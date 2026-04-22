@@ -1,0 +1,9 @@
+export { registerRenderDiagram } from "./render-diagram.js";
+export { registerRenderFlowchart } from "./render-flowchart.js";
+export { registerRenderSequence } from "./render-sequence.js";
+export { registerRenderArchitecture } from "./render-architecture.js";
+export { registerRenderClassDiagram } from "./render-class.js";
+export { registerRenderMindmap } from "./render-mindmap.js";
+export { registerRenderSvg } from "./render-svg.js";
+export { registerListDiagrams } from "./list-diagrams.js";
+export { registerOpenPreview } from "./open-preview.js";

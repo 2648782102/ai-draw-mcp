@@ -1,0 +1,49 @@
+{
+  "name": "ai-draw-mcp",
+  "version": "0.1.0",
+  "description": "MCP Server that gives AI drawing capabilities in IDEs (Cursor, VS Code, Trae, etc.)",
+  "type": "module",
+  "bin": {
+    "ai-draw-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "lint": "eslint src/",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "mcp",
+    "ai",
+    "drawing",
+    "diagram",
+    "mermaid",
+    "cursor",
+    "vscode",
+    "trae"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "express": "^5.1.0",
+    "mermaid": "^11.6.0",
+    "@mermaid-js/mermaid-cli": "^11.4.0",
+    "sharp": "^0.33.0",
+    "ws": "^8.18.0",
+    "zod": "^3.24.0",
+    "nanoid": "^5.1.0",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.18.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
+  }
+}

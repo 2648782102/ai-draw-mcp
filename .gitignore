@@ -1,0 +1,8 @@
+node_modules/
+dist/
+output/*.svg
+output/*.png
+!output/.gitkeep
+*.log
+.env
+.DS_Store
