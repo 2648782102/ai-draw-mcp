@@ -112,6 +112,8 @@
 
     /* toggle sidebar */
     .sidebar.collapsed { width: 0; overflow: hidden; border: none; }
+    #selTheme:disabled { opacity: 0.45; cursor: not-allowed; }
+    .badge-mode { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--surface2); color: var(--accent2); margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -147,7 +149,7 @@
     <div class="panes">
       <div class="pane" id="editorPane">
         <div class="pane-header">
-          <span>Mermaid Code</span>
+          <span><span id="editorModeLabel">Mermaid</span> · 源码</span>
           <span id="charCount">0 chars</span>
         </div>
         <div class="editor-wrap">
@@ -178,8 +180,26 @@
 const $ = (s) => document.querySelector(s);
 const API = location.origin;
 let currentId = null;
-let currentMermaid = '';
+let editorKind = 'mermaid'; // 'mermaid' | 'svg'
 let renderTimer = null;
+
+function setEditorKind(kind) {
+  editorKind = kind;
+  const label = $('#editorModeLabel');
+  const ph = $('#codeEditor');
+  const themeSel = $('#selTheme');
+  if (kind === 'svg') {
+    label.textContent = 'SVG';
+    label.className = 'badge-mode';
+    ph.placeholder = '粘贴或编辑完整 SVG（可含 <svg> 根或仅内部元素）';
+    themeSel.disabled = true;
+  } else {
+    label.textContent = 'Mermaid';
+    label.className = '';
+    ph.placeholder = 'Enter Mermaid DSL...\n\nExample:\ngraph TD\n  A[Start] --> B{Decision}';
+    themeSel.disabled = false;
+  }
+}
 
 // ── Mermaid render ──
 async function renderDiagram(code) {
@@ -189,11 +209,35 @@ async function renderDiagram(code) {
     const { svg } = await window.__mermaid.render('mmd-' + Date.now(), code);
     container.innerHTML = svg;
     $('#statusErr').textContent = '';
-    $('#statusMsg').textContent = `Rendered at ${new Date().toLocaleTimeString()}`;
+    $('#statusMsg').textContent = `Mermaid · ${new Date().toLocaleTimeString()}`;
   } catch (e) {
     $('#statusErr').textContent = `Error: ${e.message?.slice(0, 120) ?? e}`;
     $('#statusErr').className = 'err';
   }
+}
+
+function renderSvgPreview(raw) {
+  const container = $('#diagramRender');
+  const t = (raw || '').trim();
+  if (!t) { container.innerHTML = '<p style="color:#999">Enter SVG markup</p>'; return; }
+  try {
+    if (t.includes('<svg')) {
+      container.innerHTML = t;
+    } else {
+      container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">${t}</svg>`;
+    }
+    $('#statusErr').textContent = '';
+    $('#statusMsg').textContent = `SVG · ${new Date().toLocaleTimeString()}`;
+  } catch (e) {
+    $('#statusErr').textContent = `SVG parse: ${e.message?.slice(0, 120) ?? e}`;
+    $('#statusErr').className = 'err';
+  }
+}
+
+function renderPreview() {
+  const code = $('#codeEditor').value;
+  if (editorKind === 'svg') renderSvgPreview(code);
+  else renderDiagram(code);
 }
 
 // Auto-render on code change (debounced)
@@ -201,19 +245,16 @@ $('#codeEditor').addEventListener('input', () => {
   clearTimeout(renderTimer);
   const code = $('#codeEditor').value;
   $('#charCount').textContent = `${code.length} chars`;
-  renderTimer = setTimeout(() => renderDiagram(code), 400);
+  renderTimer = setTimeout(() => renderPreview(), 400);
 });
 
-// Manual render button
-$('#btnRender').addEventListener('click', () => renderDiagram($('#codeEditor').value));
+$('#btnRender').addEventListener('click', () => renderPreview());
 
-// Keyboard shortcut: Ctrl+Enter to render
 $('#codeEditor').addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
-    renderDiagram($('#codeEditor').value);
+    renderPreview();
   }
-  // Tab support
   if (e.key === 'Tab') {
     e.preventDefault();
     const ta = e.target;
@@ -223,8 +264,8 @@ $('#codeEditor').addEventListener('keydown', (e) => {
   }
 });
 
-// ── Theme ──
 $('#selTheme').addEventListener('change', async () => {
+  if (editorKind === 'svg') return;
   const theme = $('#selTheme').value;
   await window.__mermaid.initialize({ theme, securityLevel: 'loose' });
   renderDiagram($('#codeEditor').value);
@@ -318,26 +359,41 @@ async function loadDiagram(id) {
   try {
     const res = await fetch(`${API}/api/diagram/${id}`);
     const data = await res.json();
-    if (data.mermaidCode) {
+    const kind = data.editorKind === 'svg' ? 'svg' : 'mermaid';
+    setEditorKind(kind);
+    $('#diagramTitle').textContent = data.title || id;
+
+    if (kind === 'mermaid' && data.mermaidCode != null) {
       $('#codeEditor').value = data.mermaidCode;
       $('#charCount').textContent = `${data.mermaidCode.length} chars`;
-      $('#diagramTitle').textContent = data.title || id;
       renderDiagram(data.mermaidCode);
+    } else {
+      const svgRes = await fetch(`${API}/api/diagram/${id}/svg`);
+      const svgText = await svgRes.text();
+      $('#codeEditor').value = svgText;
+      $('#charCount').textContent = `${svgText.length} chars`;
+      renderSvgPreview(svgText);
     }
     loadList();
   } catch {}
 }
 
-// ── Save edits back to server ──
 async function saveCurrent() {
   if (!currentId) return;
   const code = $('#codeEditor').value;
   try {
-    await fetch(`${API}/api/diagram/${currentId}`, {
+    const body =
+      editorKind === 'svg' ? { svgContent: code } : { mermaidCode: code };
+    const r = await fetch(`${API}/api/diagram/${currentId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mermaidCode: code }),
+      body: JSON.stringify(body),
     });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      showToast(j.error || `Save failed ${r.status}`);
+      return;
+    }
     showToast('Saved');
   } catch {}
 }
@@ -355,19 +411,21 @@ function connectWs() {
   ws.onopen = () => { dot.classList.remove('offline'); label.textContent = 'Live'; };
   ws.onclose = () => { dot.classList.add('offline'); label.textContent = 'Offline'; setTimeout(connectWs, 3000); };
 
-  ws.onmessage = (e) => {
+  ws.onmessage = async (e) => {
     try {
       const msg = JSON.parse(e.data);
 
       if (msg.type === 'diagram_update' || msg.type === 'diagram_added') {
-        // AI pushed a new or updated diagram
         currentId = msg.id;
-        if (msg.mermaidCode) {
+        if (msg.title) $('#diagramTitle').textContent = msg.title;
+        if (msg.mermaidCode && String(msg.mermaidCode).trim()) {
+          setEditorKind('mermaid');
           $('#codeEditor').value = msg.mermaidCode;
           $('#charCount').textContent = `${msg.mermaidCode.length} chars`;
           renderDiagram(msg.mermaidCode);
+        } else {
+          await loadDiagram(msg.id);
         }
-        if (msg.title) $('#diagramTitle').textContent = msg.title;
         showToast(msg.type === 'diagram_added' ? `New: ${msg.title}` : `Updated: ${msg.title}`);
         loadList();
       }

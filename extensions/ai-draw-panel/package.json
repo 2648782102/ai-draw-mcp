@@ -1,0 +1,49 @@
+{
+  "name": "ai-draw-panel",
+  "displayName": "AI Draw Panel",
+  "description": "Open the ai-draw-mcp live diagram panel in the editor (Simple Browser).",
+  "version": "0.2.0",
+  "publisher": "2648782102",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onCommand:ai-draw.openPanel", "onCommand:ai-draw.openDiagram"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ai-draw.openPanel",
+        "title": "AI Draw: Open Live Panel"
+      },
+      {
+        "command": "ai-draw.openDiagram",
+        "title": "AI Draw: Open Diagram by ID"
+      }
+    ],
+    "configuration": {
+      "title": "AI Draw",
+      "properties": {
+        "aiDraw.previewPort": {
+          "type": "number",
+          "default": 3399,
+          "description": "Port of the ai-draw-mcp preview server (PREVIEW_PORT)."
+        },
+        "aiDraw.previewHost": {
+          "type": "string",
+          "default": "127.0.0.1",
+          "description": "Host of the preview server."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.8.0"
+  }
+}

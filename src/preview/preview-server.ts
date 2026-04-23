@@ -6,9 +6,16 @@ import { WebSocketServer } from "ws";
 import http from "node:http";
 import type { DiagramStore } from "../storage/diagram-store.js";
 import type { AppConfig } from "../utils/config.js";
+import type { DiagramRecord } from "../utils/types.js";
 import { logger } from "../utils/logger.js";
+import { renderMermaidToSvg, saveSvg } from "../renderer/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function editorKind(record: DiagramRecord): "mermaid" | "svg" {
+  if (record.mermaidCode && record.mermaidCode.trim().length > 0) return "mermaid";
+  return "svg";
+}
 
 export class PreviewServer {
   private app = express();
@@ -49,21 +56,52 @@ export class PreviewServer {
     this.app.get("/api/diagram/:id", (req, res) => {
       const record = this.store.get(req.params.id);
       if (!record) return res.status(404).json({ error: "Not found" });
-      res.json(record);
+      res.json({ ...record, editorKind: editorKind(record) });
     });
 
-    // Update diagram mermaid code from the panel
+    // Update diagram from the panel (Mermaid re-renders to SVG on disk, or raw SVG write)
     this.app.put("/api/diagram/:id", async (req, res) => {
       const record = this.store.get(req.params.id);
       if (!record) return res.status(404).json({ error: "Not found" });
-      const { mermaidCode } = req.body;
-      if (typeof mermaidCode === "string") {
-        record.mermaidCode = mermaidCode;
+      const { mermaidCode, svgContent } = req.body as {
+        mermaidCode?: string;
+        svgContent?: string;
+      };
+
+      const kind = editorKind(record);
+
+      if (kind === "svg" && typeof svgContent === "string") {
+        await fs.writeFile(record.svgPath, svgContent, "utf-8");
+        record.mermaidCode = undefined;
         await this.store.add(record);
-        res.json({ ok: true });
-      } else {
-        res.status(400).json({ error: "mermaidCode required" });
+        res.json({ ok: true, editorKind: "svg" as const });
+        return;
       }
+
+      if (kind === "mermaid" && typeof mermaidCode === "string") {
+        record.mermaidCode = mermaidCode;
+        if (mermaidCode.trim()) {
+          try {
+            const svg = await renderMermaidToSvg(mermaidCode, "default");
+            const dir = path.dirname(record.svgPath);
+            const file = path.basename(record.svgPath);
+            await saveSvg(svg, dir, file);
+            record.svgPath = path.join(dir, file);
+          } catch (e) {
+            logger.warn(`PUT re-render failed, metadata still saved: ${e}`);
+          }
+        }
+        await this.store.add(record);
+        res.json({ ok: true, editorKind: "mermaid" as const });
+        return;
+      }
+
+      res.status(400).json({
+        error:
+          kind === "svg"
+            ? "This diagram is SVG-only: send { svgContent: \"...\" }"
+            : "This diagram is Mermaid: send { mermaidCode: \"...\" }",
+      });
     });
 
     // Serve SVG file

@@ -1,6 +1,6 @@
 {
   "name": "ai-draw-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP Server that gives AI drawing capabilities in IDEs (Cursor, VS Code, Trae, etc.)",
   "type": "module",
   "bin": {
@@ -11,7 +11,8 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "lint": "eslint src/",
-    "test": "vitest run"
+    "test": "vitest run",
+    "doctor": "node scripts/doctor.mjs"
   },
   "keywords": [
     "mcp",

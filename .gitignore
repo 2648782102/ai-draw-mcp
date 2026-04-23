@@ -7,3 +7,6 @@ output/diagrams.json
 *.log
 .env
 .DS_Store
+
+extensions/ai-draw-panel/out/
+extensions/ai-draw-panel/node_modules/
