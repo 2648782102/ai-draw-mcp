@@ -14,6 +14,7 @@ import {
   registerListDiagrams,
   registerOpenPreview,
 } from "./tools/index.js";
+import { registerUpdateDiagram } from "./tools/update-diagram.js";
 
 /**
  * Create and configure the MCP server with all tools registered.
@@ -28,20 +29,23 @@ export async function createServer() {
 
   const mcp = new McpServer({
     name: "ai-draw-mcp",
-    version: "0.1.0",
+    version: "0.2.0",
   });
 
-  registerRenderDiagram(mcp, store, config);
-  registerRenderFlowchart(mcp, store, config);
-  registerRenderSequence(mcp, store, config);
-  registerRenderArchitecture(mcp, store, config);
-  registerRenderClassDiagram(mcp, store, config);
-  registerRenderMindmap(mcp, store, config);
-  registerRenderSvg(mcp, store, config);
+  const ctx = { store, config, preview };
+
+  registerRenderDiagram(mcp, ctx);
+  registerRenderFlowchart(mcp, ctx);
+  registerRenderSequence(mcp, ctx);
+  registerRenderArchitecture(mcp, ctx);
+  registerRenderClassDiagram(mcp, ctx);
+  registerRenderMindmap(mcp, ctx);
+  registerRenderSvg(mcp, ctx);
+  registerUpdateDiagram(mcp, ctx);
   registerListDiagrams(mcp, store, config);
   registerOpenPreview(mcp, store, config);
 
-  logger.info("All 9 MCP tools registered");
+  logger.info("All 10 MCP tools registered");
 
   return { mcp, store, preview, config };
 }

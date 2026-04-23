@@ -2,6 +2,7 @@ node_modules/
 dist/
 output/*.svg
 output/*.png
+output/diagrams.json
 !output/.gitkeep
 *.log
 .env

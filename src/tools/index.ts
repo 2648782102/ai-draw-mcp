@@ -5,5 +5,7 @@ export { registerRenderArchitecture } from "./render-architecture.js";
 export { registerRenderClassDiagram } from "./render-class.js";
 export { registerRenderMindmap } from "./render-mindmap.js";
 export { registerRenderSvg } from "./render-svg.js";
+export { registerUpdateDiagram } from "./update-diagram.js";
 export { registerListDiagrams } from "./list-diagrams.js";
 export { registerOpenPreview } from "./open-preview.js";
+export { renderAndRespond, errorResponse, type ToolContext } from "./shared.js";

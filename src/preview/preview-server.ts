@@ -19,27 +19,54 @@ export class PreviewServer {
     private store: DiagramStore,
     private config: AppConfig
   ) {
+    this.app.use(express.json());
     this.setupRoutes();
   }
 
-  private setupRoutes() {
-    this.app.get("/", async (_req, res) => {
-      const htmlPath = path.join(__dirname, "templates", "index.html");
+  private async serveHtml(_req: express.Request, res: express.Response) {
+    const compiled = path.join(__dirname, "templates", "index.html");
+    const source = path.resolve(__dirname, "../../src/preview/templates/index.html");
+    for (const p of [compiled, source]) {
       try {
-        const html = await fs.readFile(htmlPath, "utf-8");
+        const html = await fs.readFile(p, "utf-8");
         res.type("html").send(html);
-      } catch {
-        // Fallback: serve from source tree (dev mode)
-        const devPath = path.resolve(__dirname, "../../src/preview/templates/index.html");
-        const html = await fs.readFile(devPath, "utf-8");
-        res.type("html").send(html);
-      }
-    });
+        return;
+      } catch {}
+    }
+    res.status(404).send("Template not found");
+  }
 
+  private setupRoutes() {
+    this.app.get("/", (req, res) => this.serveHtml(req, res));
+    this.app.get("/diagram/:id", (req, res) => this.serveHtml(req, res));
+
+    // List all diagrams
     this.app.get("/api/diagrams", (_req, res) => {
       res.json(this.store.list());
     });
 
+    // Get diagram metadata (including mermaidCode)
+    this.app.get("/api/diagram/:id", (req, res) => {
+      const record = this.store.get(req.params.id);
+      if (!record) return res.status(404).json({ error: "Not found" });
+      res.json(record);
+    });
+
+    // Update diagram mermaid code from the panel
+    this.app.put("/api/diagram/:id", async (req, res) => {
+      const record = this.store.get(req.params.id);
+      if (!record) return res.status(404).json({ error: "Not found" });
+      const { mermaidCode } = req.body;
+      if (typeof mermaidCode === "string") {
+        record.mermaidCode = mermaidCode;
+        await this.store.add(record);
+        res.json({ ok: true });
+      } else {
+        res.status(400).json({ error: "mermaidCode required" });
+      }
+    });
+
+    // Serve SVG file
     this.app.get("/api/diagram/:id/svg", async (req, res) => {
       const record = this.store.get(req.params.id);
       if (!record) return res.status(404).send("Not found");
@@ -54,6 +81,7 @@ export class PreviewServer {
       }
     });
 
+    // Serve PNG file
     this.app.get("/api/diagram/:id/png", async (req, res) => {
       const record = this.store.get(req.params.id);
       if (!record?.pngPath) return res.status(404).send("PNG not available");
@@ -65,18 +93,6 @@ export class PreviewServer {
         res.type("image/png").send(png);
       } catch {
         res.status(404).send("PNG file not found");
-      }
-    });
-
-    this.app.get("/diagram/:id", async (_req, res) => {
-      const htmlPath = path.join(__dirname, "templates", "index.html");
-      try {
-        const html = await fs.readFile(htmlPath, "utf-8");
-        res.type("html").send(html);
-      } catch {
-        const devPath = path.resolve(__dirname, "../../src/preview/templates/index.html");
-        const html = await fs.readFile(devPath, "utf-8");
-        res.type("html").send(html);
       }
     });
   }
@@ -98,8 +114,34 @@ export class PreviewServer {
     });
   }
 
-  notifyNewDiagram(diagramId: string): void {
-    const message = JSON.stringify({ type: "diagram_added", id: diagramId });
+  /**
+   * Push a new diagram to all connected panel clients.
+   * The panel will update its editor and render in real-time.
+   */
+  notifyNewDiagram(diagramId: string, title: string, mermaidCode?: string): void {
+    const message = JSON.stringify({
+      type: "diagram_added",
+      id: diagramId,
+      title,
+      mermaidCode: mermaidCode ?? "",
+    });
+    this.broadcast(message);
+  }
+
+  /**
+   * Push a diagram update (AI modified an existing diagram).
+   */
+  notifyDiagramUpdate(diagramId: string, title: string, mermaidCode: string): void {
+    const message = JSON.stringify({
+      type: "diagram_update",
+      id: diagramId,
+      title,
+      mermaidCode,
+    });
+    this.broadcast(message);
+  }
+
+  private broadcast(message: string): void {
     this.wss?.clients.forEach((client) => {
       if (client.readyState === 1) client.send(message);
     });

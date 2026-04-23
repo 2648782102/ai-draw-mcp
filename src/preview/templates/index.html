@@ -3,225 +3,385 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Draw MCP — Diagram Preview</title>
+  <title>AI Draw MCP — Live Editor</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+    window.__mermaid = mermaid;
+  </script>
   <style>
     :root {
       --bg: #0f1117;
       --surface: #1a1d27;
-      --border: #2a2d3a;
+      --surface2: #22252f;
+      --border: #2e3140;
       --text: #e1e4ed;
-      --text-muted: #8b8fa3;
+      --text-muted: #6b7084;
       --accent: #6c72cb;
-      --accent-hover: #8086d6;
+      --accent2: #cb69c1;
+      --green: #4caf50;
+      --red: #f44336;
+      --orange: #ff9800;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+
+    /* ── Header ── */
+    .header {
+      height: 40px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 12px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
     }
-    header {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .header .brand { font-size: 13px; font-weight: 600; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header .status { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+    .header .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    .header .dot.offline { background: var(--red); }
+    .toolbar { display: flex; gap: 4px; align-items: center; }
+    .toolbar select, .toolbar button {
+      height: 26px; padding: 0 8px; border-radius: 4px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text); font-size: 11px; cursor: pointer;
     }
-    header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      background: linear-gradient(135deg, #6c72cb, #cb69c1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .status {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .status .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #4caf50;
-    }
-    .status .dot.offline { background: #f44336; }
-    .container {
-      display: flex;
-      height: calc(100vh - 57px);
-    }
+    .toolbar button:hover { background: var(--accent); border-color: var(--accent); }
+    .toolbar .btn-icon { width: 26px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+    /* ── Main Layout ── */
+    .main { display: flex; height: calc(100vh - 40px); }
+
+    /* ── Sidebar: diagram list ── */
     .sidebar {
-      width: 280px;
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
-      flex-shrink: 0;
+      width: 200px; border-right: 1px solid var(--border); flex-shrink: 0;
+      display: flex; flex-direction: column; background: var(--surface);
     }
-    .sidebar-title {
-      padding: 12px 16px;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
+    .sidebar-head { padding: 8px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .sidebar-list { flex: 1; overflow-y: auto; }
+    .sidebar-item {
+      padding: 7px 10px; border-bottom: 1px solid var(--border); cursor: pointer;
+      font-size: 12px; transition: background .1s;
     }
-    .diagram-item {
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.15s;
+    .sidebar-item:hover, .sidebar-item.active { background: var(--surface2); }
+    .sidebar-item .name { font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-item .meta { font-size: 10px; color: var(--text-muted); }
+    .sidebar-item .badge { display: inline-block; padding: 0 4px; border-radius: 3px; font-size: 9px; background: var(--accent); color: #fff; margin-right: 4px; }
+
+    /* ── Editor + Preview split ── */
+    .workspace { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .panes { flex: 1; display: flex; min-height: 0; }
+    .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .pane-header {
+      height: 30px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
     }
-    .diagram-item:hover, .diagram-item.active {
-      background: var(--surface);
+    .divider {
+      width: 4px; background: var(--border); cursor: col-resize; flex-shrink: 0;
+      transition: background .15s;
     }
-    .diagram-item .name {
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 4px;
+    .divider:hover { background: var(--accent); }
+
+    /* Code editor */
+    .editor-wrap { flex: 1; position: relative; }
+    #codeEditor {
+      width: 100%; height: 100%; resize: none; border: none; outline: none;
+      background: var(--bg); color: #c9d1d9; padding: 12px;
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+      font-size: 13px; line-height: 1.6; tab-size: 2;
     }
-    .diagram-item .meta {
-      font-size: 11px;
-      color: var(--text-muted);
+
+    /* Diagram preview */
+    .preview-wrap {
+      flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center;
+      background: #ffffff; position: relative;
     }
-    .diagram-item .badge {
-      display: inline-block;
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-size: 10px;
-      background: var(--accent);
-      color: #fff;
-      margin-right: 6px;
+    .preview-wrap.dark-bg { background: var(--bg); }
+    #diagramRender { max-width: 100%; padding: 20px; }
+    #diagramRender svg { max-width: 100%; height: auto; }
+
+    /* ── Status bar ── */
+    .statusbar {
+      height: 22px; display: flex; align-items: center; padding: 0 10px;
+      font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border);
+      background: var(--surface); flex-shrink: 0; gap: 14px;
     }
-    .main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      overflow: auto;
+    .statusbar .err { color: var(--red); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; top: 50px; right: 16px; padding: 8px 14px; border-radius: 6px;
+      background: var(--accent); color: #fff; font-size: 12px; z-index: 999;
+      opacity: 0; transform: translateY(-8px); transition: all .25s;
     }
-    .main svg {
-      max-width: 100%;
-      max-height: 100%;
-    }
-    .empty {
-      color: var(--text-muted);
-      text-align: center;
-    }
-    .empty p { margin-top: 8px; font-size: 14px; }
-    .toolbar {
-      position: fixed;
-      bottom: 16px;
-      right: 16px;
-      display: flex;
-      gap: 8px;
-    }
-    .toolbar button {
-      padding: 8px 14px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      cursor: pointer;
-      font-size: 13px;
-      transition: background 0.15s;
-    }
-    .toolbar button:hover {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* toggle sidebar */
+    .sidebar.collapsed { width: 0; overflow: hidden; border: none; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>AI Draw MCP</h1>
-    <div class="status">
-      <span class="dot" id="wsStatus"></span>
-      <span id="wsLabel">Connecting...</span>
-    </div>
-  </header>
-  <div class="container">
-    <aside class="sidebar">
-      <div class="sidebar-title">Diagrams</div>
-      <div id="diagramList"></div>
-    </aside>
-    <main class="main" id="viewer">
-      <div class="empty">
-        <p>No diagrams yet.<br/>AI will generate them during conversation.</p>
-      </div>
-    </main>
-  </div>
+
+<div class="header">
+  <span class="brand">AI Draw MCP</span>
   <div class="toolbar">
-    <button id="btnDownloadSvg">Download SVG</button>
-    <button id="btnDownloadPng">Download PNG</button>
+    <button class="btn-icon" id="btnToggleSidebar" title="Toggle sidebar">☰</button>
+    <select id="selTheme">
+      <option value="default">Default</option>
+      <option value="dark">Dark</option>
+      <option value="forest">Forest</option>
+      <option value="neutral">Neutral</option>
+    </select>
+    <button id="btnRender">▶ Render</button>
+    <button id="btnExportSvg">↓ SVG</button>
+    <button id="btnExportPng">↓ PNG</button>
+    <button class="btn-icon" id="btnDarkBg" title="Toggle preview background">◐</button>
   </div>
+  <div class="status">
+    <span class="dot" id="wsStatus"></span>
+    <span id="wsLabel">Connecting...</span>
+  </div>
+</div>
 
-  <script>
-    const API = location.origin;
-    let currentId = null;
+<div class="main">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">Diagrams</div>
+    <div class="sidebar-list" id="diagramList"></div>
+  </aside>
 
-    async function loadList() {
-      try {
-        const res = await fetch(`${API}/api/diagrams`);
-        const diagrams = await res.json();
-        const list = document.getElementById('diagramList');
-        list.innerHTML = '';
-        for (const d of diagrams) {
-          const el = document.createElement('div');
-          el.className = 'diagram-item' + (d.id === currentId ? ' active' : '');
-          el.innerHTML = `
-            <div class="name">${d.title}</div>
-            <div class="meta"><span class="badge">${d.type}</span>${new Date(d.createdAt).toLocaleString()}</div>
-          `;
-          el.onclick = () => showDiagram(d.id);
-          list.appendChild(el);
-        }
-        if (diagrams.length > 0 && !currentId) {
-          showDiagram(diagrams[0].id);
-        }
-      } catch {}
+  <div class="workspace">
+    <div class="panes">
+      <div class="pane" id="editorPane">
+        <div class="pane-header">
+          <span>Mermaid Code</span>
+          <span id="charCount">0 chars</span>
+        </div>
+        <div class="editor-wrap">
+          <textarea id="codeEditor" spellcheck="false" placeholder="Enter Mermaid DSL here...&#10;&#10;Example:&#10;graph TD&#10;  A[Start] --> B{Decision}&#10;  B -->|Yes| C[OK]&#10;  B -->|No| D[Retry]"></textarea>
+        </div>
+      </div>
+      <div class="divider" id="divider"></div>
+      <div class="pane" id="previewPane">
+        <div class="pane-header">
+          <span>Preview</span>
+          <span id="diagramTitle">—</span>
+        </div>
+        <div class="preview-wrap" id="previewWrap">
+          <div id="diagramRender"></div>
+        </div>
+      </div>
+    </div>
+    <div class="statusbar">
+      <span id="statusMsg">Ready</span>
+      <span id="statusErr"></span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const $ = (s) => document.querySelector(s);
+const API = location.origin;
+let currentId = null;
+let currentMermaid = '';
+let renderTimer = null;
+
+// ── Mermaid render ──
+async function renderDiagram(code) {
+  const container = $('#diagramRender');
+  if (!code || !code.trim()) { container.innerHTML = '<p style="color:#999">Enter Mermaid code to preview</p>'; return; }
+  try {
+    const { svg } = await window.__mermaid.render('mmd-' + Date.now(), code);
+    container.innerHTML = svg;
+    $('#statusErr').textContent = '';
+    $('#statusMsg').textContent = `Rendered at ${new Date().toLocaleTimeString()}`;
+  } catch (e) {
+    $('#statusErr').textContent = `Error: ${e.message?.slice(0, 120) ?? e}`;
+    $('#statusErr').className = 'err';
+  }
+}
+
+// Auto-render on code change (debounced)
+$('#codeEditor').addEventListener('input', () => {
+  clearTimeout(renderTimer);
+  const code = $('#codeEditor').value;
+  $('#charCount').textContent = `${code.length} chars`;
+  renderTimer = setTimeout(() => renderDiagram(code), 400);
+});
+
+// Manual render button
+$('#btnRender').addEventListener('click', () => renderDiagram($('#codeEditor').value));
+
+// Keyboard shortcut: Ctrl+Enter to render
+$('#codeEditor').addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    renderDiagram($('#codeEditor').value);
+  }
+  // Tab support
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta = e.target;
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + 2;
+  }
+});
+
+// ── Theme ──
+$('#selTheme').addEventListener('change', async () => {
+  const theme = $('#selTheme').value;
+  await window.__mermaid.initialize({ theme, securityLevel: 'loose' });
+  renderDiagram($('#codeEditor').value);
+});
+
+// ── Dark/light preview background ──
+$('#btnDarkBg').addEventListener('click', () => {
+  $('#previewWrap').classList.toggle('dark-bg');
+});
+
+// ── Toggle sidebar ──
+$('#btnToggleSidebar').addEventListener('click', () => {
+  $('#sidebar').classList.toggle('collapsed');
+});
+
+// ── Resizable split pane ──
+{
+  const divider = $('#divider');
+  let dragging = false;
+  divider.addEventListener('mousedown', () => { dragging = true; document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none'; });
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const rect = $('.panes').getBoundingClientRect();
+    const pct = ((e.clientX - rect.left) / rect.width) * 100;
+    const clamped = Math.max(15, Math.min(85, pct));
+    $('#editorPane').style.flex = `0 0 ${clamped}%`;
+    $('#previewPane').style.flex = `0 0 ${100 - clamped}%`;
+  });
+  window.addEventListener('mouseup', () => { dragging = false; document.body.style.cursor = ''; document.body.style.userSelect = ''; });
+}
+
+// ── Export ──
+$('#btnExportSvg').addEventListener('click', () => {
+  const svg = $('#diagramRender').innerHTML;
+  if (!svg) return;
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  download(blob, `diagram-${currentId || 'untitled'}.svg`);
+});
+
+$('#btnExportPng').addEventListener('click', async () => {
+  const svgEl = $('#diagramRender svg');
+  if (!svgEl) return;
+  const svgData = new XMLSerializer().serializeToString(svgEl);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    canvas.width = img.width * 2; canvas.height = img.height * 2;
+    ctx.scale(2, 2);
+    ctx.drawImage(img, 0, 0);
+    canvas.toBlob(blob => download(blob, `diagram-${currentId || 'untitled'}.png`), 'image/png');
+  };
+  img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+});
+
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── Toast ──
+function showToast(msg, duration = 2500) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Diagram list ──
+async function loadList() {
+  try {
+    const res = await fetch(`${API}/api/diagrams`);
+    const diagrams = await res.json();
+    const list = $('#diagramList');
+    list.innerHTML = '';
+    for (const d of diagrams) {
+      const el = document.createElement('div');
+      el.className = 'sidebar-item' + (d.id === currentId ? ' active' : '');
+      el.innerHTML = `<div class="name">${d.title}</div><div class="meta"><span class="badge">${d.type}</span>${new Date(d.createdAt).toLocaleTimeString()}</div>`;
+      el.onclick = () => loadDiagram(d.id);
+      list.appendChild(el);
     }
+  } catch {}
+}
 
-    async function showDiagram(id) {
-      currentId = id;
-      try {
-        const res = await fetch(`${API}/api/diagram/${id}/svg`);
-        const svg = await res.text();
-        document.getElementById('viewer').innerHTML = svg;
-        document.querySelectorAll('.diagram-item').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.diagram-item').forEach((el, i) => {
-          if (el.querySelector('.name')?.textContent) el.classList.toggle('active', false);
-        });
-        loadList();
-      } catch {}
+async function loadDiagram(id) {
+  currentId = id;
+  try {
+    const res = await fetch(`${API}/api/diagram/${id}`);
+    const data = await res.json();
+    if (data.mermaidCode) {
+      $('#codeEditor').value = data.mermaidCode;
+      $('#charCount').textContent = `${data.mermaidCode.length} chars`;
+      $('#diagramTitle').textContent = data.title || id;
+      renderDiagram(data.mermaidCode);
     }
-
-    document.getElementById('btnDownloadSvg').onclick = () => {
-      if (currentId) window.open(`${API}/api/diagram/${currentId}/svg?download=1`);
-    };
-    document.getElementById('btnDownloadPng').onclick = () => {
-      if (currentId) window.open(`${API}/api/diagram/${currentId}/png?download=1`);
-    };
-
-    // WebSocket for live updates
-    function connectWs() {
-      const ws = new WebSocket(`ws://${location.host}/ws`);
-      const dot = document.getElementById('wsStatus');
-      const label = document.getElementById('wsLabel');
-      ws.onopen = () => { dot.classList.remove('offline'); label.textContent = 'Live'; };
-      ws.onclose = () => { dot.classList.add('offline'); label.textContent = 'Offline'; setTimeout(connectWs, 3000); };
-      ws.onmessage = (e) => {
-        const msg = JSON.parse(e.data);
-        if (msg.type === 'diagram_added') {
-          loadList();
-          showDiagram(msg.id);
-        }
-      };
-    }
-
     loadList();
-    connectWs();
-  </script>
+  } catch {}
+}
+
+// ── Save edits back to server ──
+async function saveCurrent() {
+  if (!currentId) return;
+  const code = $('#codeEditor').value;
+  try {
+    await fetch(`${API}/api/diagram/${currentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mermaidCode: code }),
+    });
+    showToast('Saved');
+  } catch {}
+}
+
+$('#codeEditor').addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveCurrent(); }
+});
+
+// ── WebSocket — live updates from AI ──
+function connectWs() {
+  const ws = new WebSocket(`ws://${location.host}/ws`);
+  const dot = $('#wsStatus');
+  const label = $('#wsLabel');
+
+  ws.onopen = () => { dot.classList.remove('offline'); label.textContent = 'Live'; };
+  ws.onclose = () => { dot.classList.add('offline'); label.textContent = 'Offline'; setTimeout(connectWs, 3000); };
+
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+
+      if (msg.type === 'diagram_update' || msg.type === 'diagram_added') {
+        // AI pushed a new or updated diagram
+        currentId = msg.id;
+        if (msg.mermaidCode) {
+          $('#codeEditor').value = msg.mermaidCode;
+          $('#charCount').textContent = `${msg.mermaidCode.length} chars`;
+          renderDiagram(msg.mermaidCode);
+        }
+        if (msg.title) $('#diagramTitle').textContent = msg.title;
+        showToast(msg.type === 'diagram_added' ? `New: ${msg.title}` : `Updated: ${msg.title}`);
+        loadList();
+      }
+    } catch {}
+  };
+}
+
+// ── Init ──
+loadList();
+connectWs();
+
+// Check URL for specific diagram
+const pathMatch = location.pathname.match(/\/diagram\/(.+)/);
+if (pathMatch) loadDiagram(pathMatch[1]);
+</script>
 </body>
 </html>

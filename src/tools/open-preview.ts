@@ -1,13 +1,9 @@
 import { z } from "zod";
-import open from "open";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { DiagramStore } from "../storage/diagram-store.js";
 import type { AppConfig } from "../utils/config.js";
-import { logger } from "../utils/logger.js";
+import { openPanelInIDE } from "../utils/ide-opener.js";
 
-/**
- * Register `open_preview` — open the diagram preview in the default browser.
- */
 export function registerOpenPreview(
   server: McpServer,
   store: DiagramStore,
@@ -15,13 +11,10 @@ export function registerOpenPreview(
 ) {
   server.tool(
     "open_preview",
-    "Open the diagram preview page in the default browser. " +
+    "Open the diagram editor panel inside the IDE. " +
       "Optionally specify a diagram ID to jump directly to that diagram.",
     {
-      diagram_id: z
-        .string()
-        .optional()
-        .describe("Specific diagram ID to preview. If omitted, opens the gallery."),
+      diagram_id: z.string().optional().describe("Diagram ID to preview"),
     },
     async ({ diagram_id }) => {
       const base = `http://localhost:${config.previewPort}`;
@@ -40,19 +33,15 @@ export function registerOpenPreview(
         url = base;
       }
 
-      try {
-        await open(url);
-        return {
-          content: [{ type: "text" as const, text: `🌐 已在浏览器中打开: ${url}` }],
-        };
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        logger.error(`open_preview failed: ${message}`);
-        return {
-          content: [{ type: "text" as const, text: `❌ 无法打开浏览器: ${message}\n请手动访问: ${url}` }],
-          isError: true,
-        };
-      }
+      const opened = await openPanelInIDE(url, true);
+      return {
+        content: [{
+          type: "text" as const,
+          text: opened
+            ? `✅ 面板已在编辑器中打开: ${url}`
+            : `⚠️ 无法自动打开面板，请手动访问: ${url}`,
+        }],
+      };
     }
   );
 }
