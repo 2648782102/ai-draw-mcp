@@ -17,7 +17,7 @@ AI 调用工具 → 渲染 Mermaid/SVG → 推送到本机预览面板（HTTP + 
 ```
 src/
 ├── index.ts              入口：启动预览服务，连接 MCP stdio
-├── server.ts             组装根：创建所有实例，注册全部工具
+├── server.ts             组装根：创建所有实例，注册全部工具（含 TOOL_COUNT 常量）
 ├── tools/
 │   ├── _shared.ts        工具共享层（必读）：ToolContext、渲染管道、响应格式化
 │   ├── render-diagram.ts    工具：通用 Mermaid DSL
@@ -37,7 +37,9 @@ src/
     ├── renderer.ts       renderMermaidToSvg/Png, saveSvg, wrapSvg, svgToPng
     ├── preview-server.ts Express HTTP + WebSocket 预览服务
     ├── ide-opener.ts     openPanelInIDE：在 IDE 中打开 Simple Browser
-    └── logger.ts         轻量 logger，写 stderr 避免污染 MCP stdio
+    ├── logger.ts         轻量 logger，写 stderr 避免污染 MCP stdio
+    └── templates/
+        └── index.html    预览面板前端（Mermaid 渲染、缩放/平移、小地图、WebSocket）
 
 extensions/ai-draw-panel/   可选 VS Code/Cursor 扩展，处理 vscode:// URI
 scripts/doctor.mjs          环境自检脚本
@@ -111,7 +113,7 @@ import { registerRenderXxx } from "./tools/render-xxx.js";
 registerRenderXxx(mcp, ctx);
 ```
 
-完成。工具数量常量 `TOOL_COUNT` 也要同步更新。
+完成。工具数量常量 `TOOL_COUNT` 也要同步更新（当前值为 `11`，每加一个工具 +1）。
 
 ---
 

@@ -4,11 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Draw MCP — Live Editor</title>
-  <script type="module">
-    import mermaid from '/vendor/mermaid-dist/mermaid.core.mjs';
-    mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
-    window.__mermaid = mermaid;
-  </script>
+  <script src="/vendor/mermaid-dist/mermaid.min.js"></script>
   <style>
     :root {
       --bg: #0f1117;
@@ -87,12 +83,61 @@
 
     /* Diagram preview */
     .preview-wrap {
-      flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center;
-      background: #ffffff; position: relative;
+      flex: 1; overflow: hidden; position: relative;
+      background: #ffffff;
     }
     .preview-wrap.dark-bg { background: var(--bg); }
-    #diagramRender { max-width: 100%; padding: 20px; }
-    #diagramRender svg { max-width: 100%; height: auto; }
+    #diagramRender {
+      position: absolute; top: 0; left: 0;
+      transform-origin: 0 0;
+      padding: 20px;
+    }
+    /* Transparent overlay captures all mouse events — prevents SVG from stealing drag/scroll */
+    #panOverlay {
+      position: absolute; inset: 0; z-index: 10;
+      cursor: grab;
+    }
+    #panOverlay.panning { cursor: grabbing; }
+    #diagramRender svg { display: block; pointer-events: none; }
+
+    /* ── Minimap ── */
+    #minimap {
+      position: absolute; bottom: 10px; right: 10px; z-index: 20;
+      width: 160px; height: 110px;
+      background: rgba(15, 17, 23, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 6px; overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,.45);
+      backdrop-filter: blur(6px);
+      cursor: crosshair;
+    }
+    #minimapContent {
+      position: absolute; inset: 0; overflow: hidden;
+    }
+    #minimapContent svg {
+      position: absolute;
+      pointer-events: none;
+    }
+    #minimapViewport {
+      display: none;
+      position: absolute;
+      border: 1.5px solid rgba(108, 114, 203, 0.95);
+      background: rgba(108, 114, 203, 0.08);
+      pointer-events: none;
+      /* box-shadow dims everything outside the viewport rect */
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.42);
+    }
+
+    /* Zoom controls in preview pane-header */
+    .zoom-controls { display: flex; align-items: center; gap: 3px; }
+    .zoom-btn {
+      width: 22px; height: 22px; padding: 0; border-radius: 4px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 14px; line-height: 1;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .zoom-btn:hover { background: var(--accent); border-color: var(--accent); }
+    #zoomLabel { font-size: 10px; min-width: 34px; text-align: center; color: var(--text-muted); }
 
     /* ── Status bar ── */
     .statusbar {
@@ -162,10 +207,22 @@
       <div class="pane" id="previewPane">
         <div class="pane-header">
           <span>Preview</span>
+          <div class="zoom-controls">
+            <button class="zoom-btn" id="btnZoomOut" title="缩小">−</button>
+            <span id="zoomLabel">100%</span>
+            <button class="zoom-btn" id="btnZoomIn" title="放大">+</button>
+            <button class="zoom-btn" id="btnZoomFit" title="适应窗口 (F)">⊡</button>
+            <button class="zoom-btn" id="btnZoomReset" title="重置 1:1 (双击画布)">1:1</button>
+          </div>
           <span id="diagramTitle">—</span>
         </div>
         <div class="preview-wrap" id="previewWrap">
           <div id="diagramRender"></div>
+          <div id="panOverlay"></div>
+          <div id="minimap">
+            <div id="minimapContent"></div>
+            <div id="minimapViewport"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -179,11 +236,178 @@
 <div class="toast" id="toast"></div>
 
 <script type="module">
+const mermaid = window.mermaid;
+mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+
 const $ = (s) => document.querySelector(s);
 const API = location.origin;
 let currentId = null;
 let editorKind = 'mermaid'; // 'mermaid' | 'svg'
 let renderTimer = null;
+
+// ── Zoom / Pan ──────────────────────────────────────────────────
+let zScale = 1, zX = 0, zY = 0;
+let isPanning = false, panStartX = 0, panStartY = 0;
+
+function applyTransform() {
+  $('#diagramRender').style.transform = `translate(${zX}px,${zY}px) scale(${zScale})`;
+  $('#zoomLabel').textContent = `${Math.round(zScale * 100)}%`;
+  scheduleMinimapUpdate();
+}
+
+function resetView() { zScale = 1; zX = 0; zY = 0; applyTransform(); }
+
+function fitView() {
+  const wrap = $('#previewWrap');
+  const render = $('#diagramRender');
+  const svg = render.querySelector('svg');
+  if (!svg) { resetView(); return; }
+  const svgW = svg.getBoundingClientRect().width / zScale;
+  const svgH = svg.getBoundingClientRect().height / zScale;
+  if (!svgW || !svgH) { resetView(); return; }
+  const padW = wrap.clientWidth - 40, padH = wrap.clientHeight - 40;
+  const newScale = Math.min(padW / svgW, padH / svgH, 2);
+  zScale = Math.max(0.05, newScale);
+  zX = (wrap.clientWidth  - svgW * zScale) / 2;
+  zY = (wrap.clientHeight - svgH * zScale) / 2;
+  applyTransform();
+}
+
+const previewWrap = $('#previewWrap');
+const panOverlay  = $('#panOverlay');
+
+previewWrap.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+  const rect = previewWrap.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  zX = mx - (mx - zX) * factor;
+  zY = my - (my - zY) * factor;
+  zScale = Math.max(0.05, Math.min(20, zScale * factor));
+  applyTransform();
+}, { passive: false });
+
+panOverlay.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  isPanning = true;
+  panStartX = e.clientX - zX;
+  panStartY = e.clientY - zY;
+  panOverlay.classList.add('panning');
+});
+window.addEventListener('mousemove', (e) => {
+  if (!isPanning) return;
+  zX = e.clientX - panStartX;
+  zY = e.clientY - panStartY;
+  applyTransform();
+});
+window.addEventListener('mouseup', () => {
+  if (isPanning) { isPanning = false; panOverlay.classList.remove('panning'); }
+});
+
+panOverlay.addEventListener('dblclick', () => resetView());
+
+$('#btnZoomIn').addEventListener('click',    () => { const c = previewWrap.getBoundingClientRect(); const cx=c.width/2,cy=c.height/2; zX=cx-(cx-zX)*1.3; zY=cy-(cy-zY)*1.3; zScale=Math.min(20,zScale*1.3); applyTransform(); });
+$('#btnZoomOut').addEventListener('click',   () => { const c = previewWrap.getBoundingClientRect(); const cx=c.width/2,cy=c.height/2; zX=cx-(cx-zX)/1.3; zY=cy-(cy-zY)/1.3; zScale=Math.max(0.05,zScale/1.3); applyTransform(); });
+$('#btnZoomFit').addEventListener('click',   () => fitView());
+$('#btnZoomReset').addEventListener('click', () => resetView());
+
+// Keyboard: F=fit, 0=reset, +/- zoom
+window.addEventListener('keydown', (e) => {
+  if (document.activeElement === $('#codeEditor')) return;
+  if (e.key === 'f' || e.key === 'F') fitView();
+  if (e.key === '0') resetView();
+});
+// ────────────────────────────────────────────────────────────────
+
+// ── Minimap ──────────────────────────────────────────────────────
+// DOM-clone approach: no canvas/blob/CORS issues — works with any SVG
+const MM_W = 160, MM_H = 110;
+const minimapEl      = document.getElementById('minimap');
+const minimapContent = document.getElementById('minimapContent');
+const minimapVP      = document.getElementById('minimapViewport');
+let mmPending = false;
+
+function getContentMetrics() {
+  const svgEl = $('#diagramRender svg');
+  if (!svgEl) return null;
+  const pad  = 20;
+  const svgW = parseFloat(svgEl.getAttribute('width'))  || svgEl.viewBox?.baseVal?.width  || 800;
+  const svgH = parseFloat(svgEl.getAttribute('height')) || svgEl.viewBox?.baseVal?.height || 600;
+  const contentW = svgW + pad * 2;
+  const contentH = svgH + pad * 2;
+  const mmScale  = Math.min(MM_W / contentW, MM_H / contentH) * 0.92;
+  const offX     = (MM_W - contentW * mmScale) / 2;
+  const offY     = (MM_H - contentH * mmScale) / 2;
+  return { svgW, svgH, pad, mmScale, offX, offY };
+}
+
+function refreshMinimapImage() {
+  const svgEl = $('#diagramRender svg');
+  minimapContent.innerHTML = '';
+  if (!svgEl) { minimapVP.style.display = 'none'; return; }
+  const clone = svgEl.cloneNode(true);
+  clone.style.position     = 'absolute';
+  clone.style.pointerEvents = 'none';
+  clone.style.transformOrigin = '0 0';
+  minimapContent.appendChild(clone);
+  scheduleMinimapUpdate();
+}
+
+function renderMinimapNow() {
+  mmPending = false;
+  const m = getContentMetrics();
+  if (!m) { minimapVP.style.display = 'none'; return; }
+
+  // Position the cloned SVG
+  const cloneSvg = minimapContent.querySelector('svg');
+  if (cloneSvg) {
+    cloneSvg.setAttribute('width',  String(m.svgW));
+    cloneSvg.setAttribute('height', String(m.svgH));
+    cloneSvg.style.left   = `${m.offX + m.pad * m.mmScale}px`;
+    cloneSvg.style.top    = `${m.offY + m.pad * m.mmScale}px`;
+    cloneSvg.style.width  = `${m.svgW * m.mmScale}px`;
+    cloneSvg.style.height = `${m.svgH * m.mmScale}px`;
+  }
+
+  // Position the viewport indicator rectangle
+  const vpX = -zX / zScale, vpY = -zY / zScale;
+  const vpW = previewWrap.clientWidth  / zScale;
+  const vpH = previewWrap.clientHeight / zScale;
+  const rx = m.offX + vpX * m.mmScale;
+  const ry = m.offY + vpY * m.mmScale;
+  const rw = Math.max(4, vpW * m.mmScale);
+  const rh = Math.max(4, vpH * m.mmScale);
+
+  minimapVP.style.display = 'block';
+  minimapVP.style.left    = `${rx}px`;
+  minimapVP.style.top     = `${ry}px`;
+  minimapVP.style.width   = `${rw}px`;
+  minimapVP.style.height  = `${rh}px`;
+}
+
+function scheduleMinimapUpdate() {
+  if (mmPending) return;
+  mmPending = true;
+  requestAnimationFrame(() => { mmPending = false; renderMinimapNow(); });
+}
+
+// Click / drag on minimap → navigate
+let mmDragging = false;
+function minimapNavTo(clientX, clientY) {
+  const m = getContentMetrics();
+  if (!m) return;
+  const rect   = minimapEl.getBoundingClientRect();
+  const diagX  = (clientX - rect.left - m.offX) / m.mmScale;
+  const diagY  = (clientY - rect.top  - m.offY) / m.mmScale;
+  zX = previewWrap.clientWidth  / 2 - diagX * zScale;
+  zY = previewWrap.clientHeight / 2 - diagY * zScale;
+  applyTransform();
+}
+minimapEl.addEventListener('mousedown', (e) => { e.stopPropagation(); mmDragging = true; minimapNavTo(e.clientX, e.clientY); });
+window.addEventListener('mousemove',  (e) => { if (mmDragging) minimapNavTo(e.clientX, e.clientY); });
+window.addEventListener('mouseup',    ()  => { mmDragging = false; });
+// ────────────────────────────────────────────────────────────────
 
 function setEditorKind(kind) {
   editorKind = kind;
@@ -208,10 +432,26 @@ async function renderDiagram(code) {
   const container = $('#diagramRender');
   if (!code || !code.trim()) { container.innerHTML = '<p style="color:#999">Enter Mermaid code to preview</p>'; return; }
   try {
-    const { svg } = await window.__mermaid.render('mmd-' + Date.now(), code);
+    const { svg } = await mermaid.render('mmd-' + Date.now(), code);
     container.innerHTML = svg;
+    // Ensure SVG stays vector-sharp at any zoom level:
+    // preserve natural size in viewBox, then let CSS transform handle scaling.
+    const svgEl = container.querySelector('svg');
+    if (svgEl) {
+      const w = parseFloat(svgEl.getAttribute('width'))  || svgEl.viewBox?.baseVal?.width  || 0;
+      const h = parseFloat(svgEl.getAttribute('height')) || svgEl.viewBox?.baseVal?.height || 0;
+      if (w && h && !svgEl.getAttribute('viewBox')) {
+        svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      }
+      // Keep explicit px dimensions so getBoundingClientRect works for fitView
+      if (w) svgEl.setAttribute('width',  String(w));
+      if (h) svgEl.setAttribute('height', String(h));
+      svgEl.style.maxWidth = 'none';
+    }
     $('#statusErr').textContent = '';
     $('#statusMsg').textContent = `Mermaid · ${new Date().toLocaleTimeString()}`;
+    fitView();
+    refreshMinimapImage();
   } catch (e) {
     $('#statusErr').textContent = `Error: ${e.message?.slice(0, 120) ?? e}`;
     $('#statusErr').className = 'err';
@@ -230,6 +470,8 @@ function renderSvgPreview(raw) {
     }
     $('#statusErr').textContent = '';
     $('#statusMsg').textContent = `SVG · ${new Date().toLocaleTimeString()}`;
+    fitView();
+    refreshMinimapImage();
   } catch (e) {
     $('#statusErr').textContent = `SVG parse: ${e.message?.slice(0, 120) ?? e}`;
     $('#statusErr').className = 'err';
@@ -269,7 +511,7 @@ $('#codeEditor').addEventListener('keydown', (e) => {
 $('#selTheme').addEventListener('change', async () => {
   if (editorKind === 'svg') return;
   const theme = $('#selTheme').value;
-  await window.__mermaid.initialize({ theme, securityLevel: 'loose' });
+  await mermaid.initialize({ theme, securityLevel: 'loose' });
   renderDiagram($('#codeEditor').value);
 });
 

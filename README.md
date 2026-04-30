@@ -1,31 +1,51 @@
 # AI Draw MCP
 
-> Give AI the power to draw — MCP server + live editor panel for Cursor, VS Code, Trae, and other MCP hosts.
+> 给 AI 画图能力 — MCP Server + 实时可编辑预览面板，适配 Cursor、VS Code、Trae 等所有 MCP 宿主。
 
-在 IDE 里为 AI 提供**流程图、时序图、架构图、类图、思维导图、任意 Mermaid、自由 SVG**，并推送到本机**可编辑预览面板**（HTTP + WebSocket）。
+在 IDE 里让 AI 一句话生成**流程图、时序图、架构图、类图、思维导图、任意 Mermaid DSL、自由 SVG**，并实时推送到本机预览面板。
 
-## Features
+---
 
-- **11 MCP tools** — 含 `delete_diagram` 与全套 render / list / open / update
-- **双模式面板** — Mermaid 源码编辑 / **SVG 整文件编辑**（`render_svg` 生成的图自动走 SVG 模式）
-- **离线预览** — 面板从本包 `node_modules/mermaid/dist` 加载 Mermaid，不依赖 jsDelivr CDN
-- **实时预览** — 保存时 Mermaid 会重算并写回磁盘 SVG；工具返回中带 `JSON:` 行便于模型解析 ID 与路径
-- **编辑器内打开** — 安装 `extensions/ai-draw-panel` 后，MCP 返回中的 **`vscode://2648782102.ai-draw-panel/open?url=...` 可点击**，由扩展在 **Simple Browser** 中打开（聊天里点普通 `http://` 链往往会打开**外置浏览器**）
-- **可选 IDE 扩展** — `extensions/ai-draw-panel` 用 Simple Browser 一键打开面板（见 `extensions/README.md`）
+## 预览
 
-## Quick Start
+![AI Draw MCP 预览面板](docs/preview-panel.png)
+
+预览面板支持：滚轮缩放、拖拽平移、右下角小地图导航、双击重置、适应窗口（`F` 键）、明暗背景切换、SVG/PNG 导出。
+
+---
+
+## 功能
+
+- **11 个 MCP 工具** — 覆盖绘图全场景：`render_flowchart`、`render_sequence`、`render_architecture`、`render_class_diagram`、`render_mindmap`、`render_diagram`（通用 DSL）、`render_svg`、`update_diagram`、`delete_diagram`、`list_diagrams`、`open_preview`
+- **实时双向面板** — AI 绘图后通过 WebSocket 推送到面板；面板里也可手动编辑源码、实时预览、保存回磁盘
+- **双模式编辑器** — Mermaid DSL 模式 / SVG 全文本模式（`render_svg` 生成的图自动切换到 SVG 模式）
+- **小地图导航** — 右下角缩略图，支持点击/拖拽直接跳转视口
+- **流畅缩放平移** — 滚轮缩放（以鼠标为锚点）、左键拖拽平移、不卡顿不模糊（纯矢量渲染）
+- **离线 Mermaid** — 面板从本包 `node_modules/mermaid/dist` 加载，不依赖 CDN
+- **SVG & PNG 输出** — 渲染结果同时落盘为 `.svg`；配置 `DEFAULT_FORMAT=png` 或工具参数 `output_format: png` 也输出 PNG（Mermaid 走 mmdc，SVG 走 sharp）
+
+---
+
+## 快速开始
+
+### 1. 安装
 
 ```bash
 git clone https://github.com/2648782102/ai-draw-mcp.git
 cd ai-draw-mcp
 npm install
 npm run build
-npm run doctor   # 可选：自检 Node、mmdc、预览端口、OUTPUT_DIR 可写、本地 Mermaid 包
 ```
 
-### MCP 配置（Cursor 示例）
+可选自检（验证 Node 版本、mmdc、端口、输出目录）：
 
-`.cursor/mcp.json`：
+```bash
+npm run doctor
+```
+
+### 2. 配置到 Cursor
+
+在项目的 `.cursor/mcp.json`（或全局 `~/.cursor/mcp.json`）里加入：
 
 ```json
 {
@@ -35,75 +55,128 @@ npm run doctor   # 可选：自检 Node、mmdc、预览端口、OUTPUT_DIR 可�
       "args": ["D:/path/to/ai-draw-mcp/dist/index.js"],
       "env": {
         "PREVIEW_PORT": "3399",
-        "OUTPUT_DIR": "D:/path/to/ai-draw-mcp/output"
+        "OUTPUT_DIR": "D:/path/to/output"
       }
     }
   }
 }
 ```
 
-将 `args`、`OUTPUT_DIR` 换成你本机绝对路径。
+> 将 `args[0]` 和 `OUTPUT_DIR` 替换为你本机的**绝对路径**。Windows 路径用正斜杠或双反斜杠均可。
 
-### 在编辑器里打开面板
+### 3. 配置到其他 MCP 宿主
 
-1. **命令面板** → `Simple Browser: Show` → 输入 `http://127.0.0.1:3399/`
-2. 或安装 **`extensions/ai-draw-panel`** 后使用命令 **「AI Draw: Open Live Panel」**（见 `extensions/README.md`）
-3. AI 首次 `render_*` 时也会尝试通过本机 **Cursor/VS Code `--open-url`** 打开（见下方故障排除）
+任何支持 `stdio` 传输的 MCP 宿主都可以接入，只需把上面的 `command` + `args` + `env` 填入对应的配置格式。
 
-## Tools
+**VS Code（`settings.json`）**：
 
-| Tool | Description |
-|------|-------------|
-| `render_diagram` | 任意 Mermaid DSL → 面板 |
-| `render_flowchart` | 结构化流程图 |
-| `render_sequence` | 时序图 |
-| `render_architecture` | 架构 / 组件图 |
-| `render_class_diagram` | UML 类图 |
-| `render_mindmap` | 思维导图 |
-| `render_svg` | 自由 SVG（面板左侧为 SVG 源码）；可选 `output_format: png`（sharp 从 SVG 导出） |
-| `update_diagram` | 按 ID 更新已有 Mermaid 图 |
-| `delete_diagram` | 按 ID 删除磁盘上的 SVG/PNG 与清单，并通知面板刷新 |
-| `list_diagrams` | 列出已生成图表（返回中含 `JSON:` 摘要） |
-| `open_preview` | 在 IDE 中打开预览面板（可 deep-link 到指定图） |
+```json
+"mcp.servers": {
+  "ai-draw": {
+    "type": "stdio",
+    "command": "node",
+    "args": ["/path/to/ai-draw-mcp/dist/index.js"],
+    "env": { "PREVIEW_PORT": "3399", "OUTPUT_DIR": "/path/to/output" }
+  }
+}
+```
 
-## Environment Variables
+**Claude Desktop（`claude_desktop_config.json`）**：
 
-| Variable | Default | Description |
-|----------|---------|-------------|
+```json
+{
+  "mcpServers": {
+    "ai-draw": {
+      "command": "node",
+      "args": ["/path/to/ai-draw-mcp/dist/index.js"],
+      "env": { "OUTPUT_DIR": "/path/to/output" }
+    }
+  }
+}
+```
+
+### 4. 打开预览面板
+
+配置好 MCP 后，有三种方式打开面板：
+
+| 方式 | 操作 |
+|---|---|
+| **AI 自动打开** | 让 AI 调用任意 `render_*` 工具，首次渲染后会自动尝试打开面板 |
+| **命令面板** | `Ctrl+Shift+P` → `Simple Browser: Show` → 输入 `http://127.0.0.1:3399/` |
+| **MCP 工具** | 在 AI 对话里说「打开预览面板」，AI 调用 `open_preview` |
+
+### 5. 开始绘图
+
+直接在 Cursor Chat 或任意 AI 对话里输入自然语言：
+
+```
+画一个用户注册的流程图
+帮我画 Redis 缓存架构图
+用时序图描述 OAuth 2.0 登录流程
+```
+
+AI 会自动选择合适的工具，生成图表并推送到面板。
+
+---
+
+## 工具列表
+
+| 工具 | 用途 |
+|------|------|
+| `render_diagram` | 任意 Mermaid DSL 直接渲染 |
+| `render_flowchart` | 流程图（自动生成 `flowchart TD` DSL）|
+| `render_sequence` | 时序图（自动生成 `sequenceDiagram` DSL）|
+| `render_architecture` | 架构 / 组件图（`block-beta` DSL）|
+| `render_class_diagram` | UML 类图（`classDiagram` DSL）|
+| `render_mindmap` | 思维导图（`mindmap` DSL）|
+| `render_svg` | 自由 SVG — 直接传入 SVG 源码，面板进入 SVG 编辑模式 |
+| `update_diagram` | 按 ID 更新已有图（重新渲染 + 推送） |
+| `delete_diagram` | 按 ID 删除磁盘文件 + 通知面板 |
+| `list_diagrams` | 列出全部已生成图表（含 ID、类型、路径） |
+| `open_preview` | 在 IDE 中打开预览面板，可 deep-link 到指定图 |
+
+---
+
+## 环境变量
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
 | `PREVIEW_PORT` | `3399` | 预览服务端口 |
-| `PREVIEW_HOST` | `127.0.0.1` | 工具返回里「面板」URL 使用的主机名，与扩展 `aiDraw.previewHost` 一致 |
-| `AI_DRAW_URI_AUTHORITY` | `2648782102.ai-draw-panel` | 生成 `vscode://<authority>/open?url=...`；设为空字符串则关闭该链，仅 `http` + `open_preview` |
-| `OUTPUT_DIR` | `./output` | 输出目录（建议绝对路径） |
-| `DEFAULT_THEME` | `default` | Mermaid 主题 |
-| `DEFAULT_FORMAT` | `svg` | Mermaid 类工具默认输出；`png` 时 Mermaid 走 mmdc，`render_svg` 走 sharp |
-| `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
+| `PREVIEW_HOST` | `127.0.0.1` | 面板地址主机名 |
+| `OUTPUT_DIR` | `./output` | 图表输出目录（**建议绝对路径**） |
+| `DEFAULT_THEME` | `default` | Mermaid 主题：`default` / `dark` / `forest` / `neutral` |
+| `DEFAULT_FORMAT` | `svg` | 默认输出格式：`svg` / `png` |
+| `LOG_LEVEL` | `info` | 日志级别：`debug` / `info` / `warn` / `error` |
+
+---
+
+## 面板快捷操作
+
+| 操作 | 效果 |
+|---|---|
+| 滚轮 | 以鼠标为中心缩放 |
+| 左键拖拽 | 平移画布 |
+| 双击画布 | 重置为 1:1 |
+| `F` 键 | 适应窗口 |
+| `0` 键 | 重置为 100% |
+| `⊡` 按钮 | 适应窗口 |
+| 右下角小地图 | 点击/拖拽跳转视口 |
+| `Ctrl+Enter` | 手动触发重新渲染 |
+| `Ctrl+S` | 保存当前编辑到磁盘 |
+
+---
 
 ## 故障排除
 
-### 端口被占用
+**端口被占用**：改 `PREVIEW_PORT`，例如 `3400`。
 
-报错或预览打不开：换一个端口，例如 `PREVIEW_PORT=3400`，并同步修改扩展里的 `aiDraw.previewPort`。
+**`mmdc` 渲染失败**：执行 `npm run doctor` 自检；Windows 下需要 Puppeteer 能拉起 Chromium。
 
-### `mmdc` / 渲染失败
+**面板空白 / JS 报错**：重启 MCP（Cursor 设置里把 `ai-draw` 关掉再开启），再刷新面板页。
 
-- 在项目根目录执行 **`npm run doctor`**，确认 `mmdc` 存在且可运行。
-- Windows 下需能拉起 Puppeteer 自带的 Chromium（首次可能较慢）。
+**PNG 中文方块**：需系统有中文字体；或改用 `DEFAULT_FORMAT=svg` 避免 mmdc 栅格化。
 
-### 中文在 PNG 里方块
-
-Mermaid 的 PNG 由 **mmdc（Chromium）** 生成；**`render_svg` 的 PNG** 由 **sharp** 从 SVG 栅格化。非法 `DEFAULT_THEME` / `DEFAULT_FORMAT` 会在启动时回退为 default/svg 并打日志。
-
-### Git SSH：`Host key verification failed`
-
-换用 HTTPS 远程，或在本机执行 `ssh -T git@github.com` 按提示接受 `known_hosts`。
-
-### 聊天里点的链接打开外置浏览器
-
-Cursor/Chat 中 **`http://127.0.0.1:...` 可点击链** 常由系统走 **Chrome/Edge**，不会进 Simple Browser。请任选：**安装本仓库扩展**后点返回中的 **`vscode://2648782102.ai-draw-panel/open?url=...`**；或 **Ctrl+Shift+P** → `Simple Browser: Show` 粘贴同一条 `http://` 地址；或让 AI 调用 **`open_preview`**。
-
-### 自动打开浏览器而非 Simple Browser
-
-本仓库会依次尝试：`Cursor.exe`/`Code.exe` **`--open-url`** → PATH 中的 `cursor`/`code` → 系统默认打开。若仍在外置浏览器，请用扩展命令或手动 **Simple Browser**。
+---
 
 ## License
 
