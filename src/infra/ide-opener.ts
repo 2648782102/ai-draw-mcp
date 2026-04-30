@@ -96,11 +96,12 @@ export async function openPanelInIDE(url: string, force = false): Promise<boolea
   const ide = await detectIDE();
   const cfg = loadConfig();
 
-  const attemptUrls: string[] = [];
-  if (cfg.panelUriAuthority) attemptUrls.push(buildVscodeLink(url, cfg.panelUriAuthority));
-  attemptUrls.push(url);
+  // Use http:// URL directly with --open-url so Cursor/VS Code opens it in Browser Tab.
+  // Do NOT use vscode:// URI here — Cursor's Browser Tab navigates to it as a web URL
+  // instead of routing to the URI handler, causing "This site can't be reached".
+  const attemptUrls: string[] = [url];
 
-  logger.info(`[ide-opener] IDE≈${ide} → open: ${attemptUrls.join(" | ")}`);
+  logger.info(`[ide-opener] IDE≈${ide} → open: ${url}`);
 
   const exes: string[] = [];
   const primary = findIdeExecutable(ide);

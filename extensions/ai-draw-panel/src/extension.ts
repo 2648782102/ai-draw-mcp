@@ -15,7 +15,8 @@ function diagramUri(id: string): vscode.Uri {
 }
 
 function openInSimpleBrowser(uri: vscode.Uri): Thenable<unknown> {
-  return vscode.commands.executeCommand("simpleBrowser.show", uri);
+  // Cursor / VS Code both accept a string URL for simpleBrowser.show
+  return vscode.commands.executeCommand("simpleBrowser.show", uri.toString());
 }
 
 export function activate(context: vscode.ExtensionContext): void {

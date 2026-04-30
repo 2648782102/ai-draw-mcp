@@ -47,10 +47,6 @@ export function panelDiagramUrl(config: AppConfig, id: string): string {
   return `${panelBaseUrl(config)}/diagram/${encodeURIComponent(id)}`;
 }
 
-function vscodePanelLink(httpUrl: string, authority: string): string {
-  return `vscode://${authority}/open?url=${encodeURIComponent(httpUrl)}`;
-}
-
 // ─── Response formatters ──────────────────────────────────────────────────────
 
 export function jsonLine(payload: Record<string, string | undefined>): string {
@@ -60,25 +56,16 @@ export function jsonLine(payload: Record<string, string | undefined>): string {
 }
 
 /**
- * Multi-line hint explaining how to open the panel inside the IDE
- * (not in an external browser).
+ * One-line hint shown in MCP tool responses.
+ * Highlights the http:// URL — clicking it in Cursor chat opens Browser Tab directly.
+ * The vscode:// URI is intentionally omitted here: Cursor's Browser Tab navigates to
+ * it as a web address instead of routing through the URI handler.
  */
-export function openHint(httpPanelUrl: string, config: AppConfig): string {
-  const parts = [
-    "「内置预览」：聊天中点普通 http 链通常打开外置浏览器，不是 Simple Browser。",
-  ];
-  if (config.panelUriAuthority) {
-    const vsc = vscodePanelLink(httpPanelUrl, config.panelUriAuthority);
-    parts.push(
-      `已装 AI Draw Panel 扩展时可点此在编辑器内打开：${vsc}`,
-      "（未装扩展可在仓库 extensions/ai-draw-panel 安装；或见下方命令面板方式。）"
-    );
-  }
-  parts.push(
-    "命令面板（Ctrl+Shift+P）→「Simple Browser: Show」→ 粘贴上面的 http 地址。",
-    "或让 AI 再调一次 open_preview 工具。"
-  );
-  return parts.join(" ");
+export function openHint(httpPanelUrl: string, _config: AppConfig): string {
+  return [
+    `面板地址（在 Cursor 聊天中点击可在 Browser Tab 打开）：${httpPanelUrl}`,
+    `或：Ctrl+Shift+P → 「AI Draw: Open Live Panel」命令`,
+  ].join(" ");
 }
 
 function workflowHint(kind: "mermaid" | "svg"): string {
