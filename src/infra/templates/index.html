@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Draw MCP — Live Editor</title>
   <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    import mermaid from '/vendor/mermaid-dist/mermaid.core.mjs';
     mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
     window.__mermaid = mermaid;
   </script>
@@ -131,6 +131,8 @@
     <button id="btnRender">▶ Render</button>
     <button id="btnExportSvg">↓ SVG</button>
     <button id="btnExportPng">↓ PNG</button>
+    <button id="btnCopyId" type="button" title="复制当前图 ID">📋 ID</button>
+    <button id="btnDeleteDiagram" type="button" title="从本机删除当前图">🗑 删当前</button>
     <button class="btn-icon" id="btnDarkBg" title="Toggle preview background">◐</button>
   </div>
   <div class="status">
@@ -305,6 +307,32 @@ $('#btnExportSvg').addEventListener('click', () => {
   download(blob, `diagram-${currentId || 'untitled'}.svg`);
 });
 
+$('#btnCopyId').addEventListener('click', async () => {
+  if (!currentId) { showToast('未选中图表'); return; }
+  try {
+    await navigator.clipboard.writeText(currentId);
+    showToast('已复制 ID');
+  } catch { showToast(currentId); }
+});
+
+$('#btnDeleteDiagram').addEventListener('click', async () => {
+  if (!currentId) { showToast('未选中图表'); return; }
+  if (!confirm('确定从本机删除该图？（磁盘与清单）')) return;
+  try {
+    const r = await fetch(`${API}/api/diagram/${currentId}`, { method: 'DELETE' });
+    if (!r.ok) {
+      showToast('删除失败');
+      return;
+    }
+    showToast('已删除');
+    currentId = null;
+    $('#diagramTitle').textContent = '—';
+    $('#codeEditor').value = '';
+    $('#diagramRender').innerHTML = '';
+    loadList();
+  } catch { showToast('删除失败'); }
+});
+
 $('#btnExportPng').addEventListener('click', async () => {
   const svgEl = $('#diagramRender svg');
   if (!svgEl) return;
@@ -414,6 +442,18 @@ function connectWs() {
   ws.onmessage = async (e) => {
     try {
       const msg = JSON.parse(e.data);
+
+      if (msg.type === 'diagram_removed') {
+        if (currentId === msg.id) {
+          currentId = null;
+          $('#diagramTitle').textContent = '—';
+          $('#codeEditor').value = '';
+          $('#diagramRender').innerHTML = '';
+        }
+        showToast(`已删除: ${msg.id}`);
+        loadList();
+        return;
+      }
 
       if (msg.type === 'diagram_update' || msg.type === 'diagram_added') {
         currentId = msg.id;

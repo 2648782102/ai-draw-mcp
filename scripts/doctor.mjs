@@ -64,5 +64,23 @@ const inUse = await new Promise((resolve) => {
 if (inUse) warn(`端口 ${port} 已被占用（可能 MCP 已在运行）`);
 else pass(`端口 ${port} 空闲`);
 
+const outDir = process.env.OUTPUT_DIR
+  ? path.resolve(process.env.OUTPUT_DIR)
+  : path.join(root, "output");
+try {
+  fs.mkdirSync(outDir, { recursive: true });
+  const probe = path.join(outDir, ".doctor-write-probe");
+  fs.writeFileSync(probe, "ok", "utf-8");
+  fs.unlinkSync(probe);
+  pass(`OUTPUT_DIR 可写: ${outDir}`);
+} catch (e) {
+  fail(`OUTPUT_DIR 不可写: ${outDir} — ${e?.message ?? e}`);
+}
+
+const mermaidDist = path.join(root, "node_modules", "mermaid", "dist");
+if (fs.existsSync(path.join(mermaidDist, "mermaid.core.mjs")))
+  pass("Mermaid 本地包可用于预览（离线，不依赖 CDN）");
+else warn("未找到 mermaid/dist/mermaid.core.mjs — npm install 后应存在");
+
 console.log("");
 process.exit(ok ? 0 : 1);

@@ -23,7 +23,11 @@ try {
     console.log(`    ${t.description?.slice(0, 80)}`);
   }
 
-  console.log("\n--- Testing render_diagram ---");
+  if (tools.length !== 11) {
+    throw new Error(`Expected 11 tools, got ${tools.length}`);
+  }
+
+  console.log("\n--- Testing render_diagram + delete_diagram ---");
   const result = await client.callTool({
     name: "render_diagram",
     arguments: {
@@ -31,7 +35,21 @@ try {
       mermaid_code: "graph TD\n  A[Start] --> B[End]",
     },
   });
+  let text = "";
   for (const c of result.content) {
+    if (c.type === "text") {
+      console.log(c.text);
+      text = c.text;
+    }
+  }
+  const idMatch = text.match(/ID:\s*(\S+)/);
+  if (!idMatch) throw new Error("Could not parse diagram ID from render_diagram response");
+  const diagramId = idMatch[1];
+  const del = await client.callTool({
+    name: "delete_diagram",
+    arguments: { diagram_id: diagramId },
+  });
+  for (const c of del.content) {
     if (c.type === "text") console.log(c.text);
   }
 

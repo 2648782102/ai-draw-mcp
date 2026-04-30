@@ -14,12 +14,50 @@ function diagramUri(id: string): vscode.Uri {
   return vscode.Uri.parse(`http://${host}:${port}/diagram/${encodeURIComponent(id)}`);
 }
 
+function openInSimpleBrowser(uri: vscode.Uri): Thenable<unknown> {
+  return vscode.commands.executeCommand("simpleBrowser.show", uri);
+}
+
 export function activate(context: vscode.ExtensionContext): void {
+  // vscode://2648782102.ai-draw-panel/open?url=http%3A%2F%2F127.0.0.1%3A3399%2Fdiagram%2F...
+  // 使 MCP 返回中的可点击链在编辑器内打开 Simple Browser（勿依赖外置浏览器）
+  context.subscriptions.push(
+    vscode.window.registerUriHandler({
+      handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+        const p = (uri.path || "").replace(/^\//, "");
+        if (p !== "open") return;
+        let raw: string | undefined;
+        for (const part of (uri.query || "").split("&")) {
+          if (part.startsWith("url=")) {
+            raw = part.slice(4);
+            break;
+          }
+        }
+        if (!raw) return;
+        let target: string;
+        try {
+          target = decodeURIComponent(raw);
+        } catch {
+          target = raw;
+        }
+        const u = vscode.Uri.parse(target);
+        return (async () => {
+          try {
+            await openInSimpleBrowser(u);
+          } catch {
+            await vscode.env.openExternal(u);
+            void vscode.window.showWarningMessage("Simple Browser 不可用，已用系统浏览器打开。");
+          }
+        })();
+      },
+    })
+  );
+
   context.subscriptions.push(
     vscode.commands.registerCommand("ai-draw.openPanel", async () => {
       const uri = panelUri();
       try {
-        await vscode.commands.executeCommand("simpleBrowser.show", uri);
+        await openInSimpleBrowser(uri);
       } catch {
         await vscode.env.openExternal(uri);
         void vscode.window.showWarningMessage(
@@ -38,7 +76,7 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!id?.trim()) return;
       const uri = diagramUri(id.trim());
       try {
-        await vscode.commands.executeCommand("simpleBrowser.show", uri);
+        await openInSimpleBrowser(uri);
       } catch {
         await vscode.env.openExternal(uri);
       }

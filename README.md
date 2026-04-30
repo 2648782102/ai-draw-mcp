@@ -6,9 +6,11 @@
 
 ## Features
 
-- **10 MCP tools** — `render_diagram`, `render_flowchart`, `render_sequence`, `render_architecture`, `render_class_diagram`, `render_mindmap`, `render_svg`, `update_diagram`, `list_diagrams`, `open_preview`
+- **11 MCP tools** — 含 `delete_diagram` 与全套 render / list / open / update
 - **双模式面板** — Mermaid 源码编辑 / **SVG 整文件编辑**（`render_svg` 生成的图自动走 SVG 模式）
-- **实时预览** — 保存时 Mermaid 会重算并写回磁盘 SVG
+- **离线预览** — 面板从本包 `node_modules/mermaid/dist` 加载 Mermaid，不依赖 jsDelivr CDN
+- **实时预览** — 保存时 Mermaid 会重算并写回磁盘 SVG；工具返回中带 `JSON:` 行便于模型解析 ID 与路径
+- **编辑器内打开** — 安装 `extensions/ai-draw-panel` 后，MCP 返回中的 **`vscode://2648782102.ai-draw-panel/open?url=...` 可点击**，由扩展在 **Simple Browser** 中打开（聊天里点普通 `http://` 链往往会打开**外置浏览器**）
 - **可选 IDE 扩展** — `extensions/ai-draw-panel` 用 Simple Browser 一键打开面板（见 `extensions/README.md`）
 
 ## Quick Start
@@ -18,7 +20,7 @@ git clone https://github.com/2648782102/ai-draw-mcp.git
 cd ai-draw-mcp
 npm install
 npm run build
-npm run doctor   # 可选：自检 Node、mmdc、构建产物
+npm run doctor   # 可选：自检 Node、mmdc、预览端口、OUTPUT_DIR 可写、本地 Mermaid 包
 ```
 
 ### MCP 配置（Cursor 示例）
@@ -58,19 +60,22 @@ npm run doctor   # 可选：自检 Node、mmdc、构建产物
 | `render_architecture` | 架构 / 组件图 |
 | `render_class_diagram` | UML 类图 |
 | `render_mindmap` | 思维导图 |
-| `render_svg` | 自由 SVG（面板左侧为 SVG 源码） |
+| `render_svg` | 自由 SVG（面板左侧为 SVG 源码）；可选 `output_format: png`（sharp 从 SVG 导出） |
 | `update_diagram` | 按 ID 更新已有 Mermaid 图 |
-| `list_diagrams` | 列出已生成图表 |
-| `open_preview` | 强制在 IDE 中尝试打开预览 |
+| `delete_diagram` | 按 ID 删除磁盘上的 SVG/PNG 与清单，并通知面板刷新 |
+| `list_diagrams` | 列出已生成图表（返回中含 `JSON:` 摘要） |
+| `open_preview` | 在 IDE 中打开预览面板（可 deep-link 到指定图） |
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PREVIEW_PORT` | `3399` | 预览服务端口 |
+| `PREVIEW_HOST` | `127.0.0.1` | 工具返回里「面板」URL 使用的主机名，与扩展 `aiDraw.previewHost` 一致 |
+| `AI_DRAW_URI_AUTHORITY` | `2648782102.ai-draw-panel` | 生成 `vscode://<authority>/open?url=...`；设为空字符串则关闭该链，仅 `http` + `open_preview` |
 | `OUTPUT_DIR` | `./output` | 输出目录（建议绝对路径） |
 | `DEFAULT_THEME` | `default` | Mermaid 主题 |
-| `DEFAULT_FORMAT` | `svg` | 服务端导出 `png` 时用 mmdc 生成 PNG |
+| `DEFAULT_FORMAT` | `svg` | Mermaid 类工具默认输出；`png` 时 Mermaid 走 mmdc，`render_svg` 走 sharp |
 | `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
 
 ## 故障排除
@@ -86,11 +91,15 @@ npm run doctor   # 可选：自检 Node、mmdc、构建产物
 
 ### 中文在 PNG 里方块
 
-PNG 由 **mmdc（Chromium）** 生成，一般正常；若用其他工具把 SVG 转 PNG，可能缺字体。优先用工具参数 `output_format: "png"` 走内置路径。
+Mermaid 的 PNG 由 **mmdc（Chromium）** 生成；**`render_svg` 的 PNG** 由 **sharp** 从 SVG 栅格化。非法 `DEFAULT_THEME` / `DEFAULT_FORMAT` 会在启动时回退为 default/svg 并打日志。
 
 ### Git SSH：`Host key verification failed`
 
 换用 HTTPS 远程，或在本机执行 `ssh -T git@github.com` 按提示接受 `known_hosts`。
+
+### 聊天里点的链接打开外置浏览器
+
+Cursor/Chat 中 **`http://127.0.0.1:...` 可点击链** 常由系统走 **Chrome/Edge**，不会进 Simple Browser。请任选：**安装本仓库扩展**后点返回中的 **`vscode://2648782102.ai-draw-panel/open?url=...`**；或 **Ctrl+Shift+P** → `Simple Browser: Show` 粘贴同一条 `http://` 地址；或让 AI 调用 **`open_preview`**。
 
 ### 自动打开浏览器而非 Simple Browser
 

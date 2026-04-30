@@ -1,14 +1,17 @@
+/**
+ * infra/store.ts — DiagramStore
+ *
+ * In-memory + JSON-file-backed store for diagram metadata.
+ * Persists a diagrams.json manifest alongside the SVG/PNG output files.
+ */
+
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { DiagramRecord, DiagramType } from "../utils/types.js";
-import { logger } from "../utils/logger.js";
+import type { DiagramRecord, DiagramType } from "./config.js";
+import { logger } from "./logger.js";
 
 const MANIFEST_FILE = "diagrams.json";
 
-/**
- * In-memory + file-backed store for diagram metadata.
- * Persists a JSON manifest alongside the SVG/PNG output files.
- */
 export class DiagramStore {
   private records: Map<string, DiagramRecord> = new Map();
   private manifestPath: string;
@@ -61,7 +64,6 @@ export class DiagramStore {
   }
 
   private async persist(): Promise<void> {
-    const data = JSON.stringify(this.list(), null, 2);
-    await fs.writeFile(this.manifestPath, data, "utf-8");
+    await fs.writeFile(this.manifestPath, JSON.stringify(this.list(), null, 2), "utf-8");
   }
 }
