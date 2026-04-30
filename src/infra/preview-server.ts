@@ -27,6 +27,18 @@ import { renderMermaidToSvg, saveSvg } from "./renderer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+/** Resolve mermaid's dist folder via Node module resolution (works for local dev and npx install). */
+function resolveMermaidDist(): string {
+  try {
+    // Preferred: use import.meta.resolve to find the actual installed location
+    const mermaidPkg = fileURLToPath(new URL(import.meta.resolve("mermaid/package.json")));
+    return path.join(path.dirname(mermaidPkg), "dist");
+  } catch {
+    // Fallback for environments where import.meta.resolve is unavailable
+    return path.join(__dirname, "../../node_modules/mermaid/dist");
+  }
+}
+
 function editorKind(record: DiagramRecord): "mermaid" | "svg" {
   return record.mermaidCode && record.mermaidCode.trim().length > 0 ? "mermaid" : "svg";
 }
@@ -39,7 +51,7 @@ export class PreviewServer {
   constructor(private store: DiagramStore, private config: AppConfig) {
     this.app.use(express.json());
 
-    const mermaidDist = path.join(__dirname, "../../node_modules/mermaid/dist");
+    const mermaidDist = resolveMermaidDist();
     if (existsSync(mermaidDist)) {
       this.app.use("/vendor/mermaid-dist", express.static(mermaidDist, { maxAge: "1d" }));
       logger.info("Mermaid assets mounted at /vendor/mermaid-dist (offline)");

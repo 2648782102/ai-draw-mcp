@@ -1,13 +1,28 @@
 {
   "name": "ai-draw-mcp",
   "version": "0.2.0",
-  "description": "MCP Server that gives AI drawing capabilities in IDEs (Cursor, VS Code, Trae, etc.)",
+  "description": "MCP Server that gives AI drawing capabilities in IDEs (Cursor, VS Code, Windsurf, Trae, Zed, etc.)",
   "type": "module",
   "bin": {
     "ai-draw-mcp": "./dist/index.js"
   },
+  "files": [
+    "dist/",
+    "scripts/",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/2648782102/ai-draw-mcp.git"
+  },
+  "homepage": "https://github.com/2648782102/ai-draw-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/2648782102/ai-draw-mcp/issues"
+  },
   "scripts": {
-    "build": "tsc && node -e \"const fs=require('fs'),p=require('path');const s=p.join('src','infra','templates'),d=p.join('dist','infra','templates');fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).forEach(f=>fs.copyFileSync(p.join(s,f),p.join(d,f)))\"",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc && node -e \"const fs=require('fs'),p=require('path');const s=p.join('src','infra','templates'),d=p.join('dist','infra','templates');fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).forEach(f=>fs.copyFileSync(p.join(s,f),p.join(d,f)))\"",
+    "prepublishOnly": "npm run build",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "lint": "eslint src/",
@@ -16,13 +31,18 @@
   },
   "keywords": [
     "mcp",
+    "mcp-server",
     "ai",
     "drawing",
     "diagram",
     "mermaid",
+    "flowchart",
     "cursor",
     "vscode",
-    "trae"
+    "windsurf",
+    "trae",
+    "claude",
+    "llm"
   ],
   "license": "MIT",
   "engines": {
