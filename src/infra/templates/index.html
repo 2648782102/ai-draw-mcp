@@ -46,9 +46,17 @@
     .sidebar {
       width: 200px; border-right: 1px solid var(--border); flex-shrink: 0;
       display: flex; flex-direction: column; background: var(--surface);
+      position: relative;
     }
     .sidebar-head { padding: 8px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
     .sidebar-list { flex: 1; overflow-y: auto; }
+    /* Sidebar resize handle */
+    .sidebar-resize {
+      position: absolute; right: -2px; top: 0; bottom: 0; width: 4px;
+      cursor: col-resize; background: transparent; z-index: 5; transition: background .15s;
+    }
+    .sidebar-resize:hover { background: var(--accent); }
+    .sidebar.collapsed .sidebar-resize { display: none; }
     .sidebar-item {
       padding: 7px 10px; border-bottom: 1px solid var(--border); cursor: pointer;
       font-size: 12px; transition: background .1s;
@@ -190,6 +198,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-head">Diagrams</div>
     <div class="sidebar-list" id="diagramList"></div>
+    <div class="sidebar-resize" id="sidebarResize"></div>
   </aside>
 
   <div class="workspace">
@@ -237,13 +246,59 @@
 
 <script type="module">
 const mermaid = window.mermaid;
-mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
 
 const $ = (s) => document.querySelector(s);
 const API = location.origin;
 let currentId = null;
 let editorKind = 'mermaid'; // 'mermaid' | 'svg'
 let renderTimer = null;
+
+// ── Layout Preferences (localStorage) ────────────────────────────
+const PREFS_KEY = 'ai-draw:prefs';
+const PREFS_DEFAULT = {
+  sidebarCollapsed: false,
+  sidebarWidth: 200,
+  splitPct: 50,          // editor pane width %
+  theme: 'default',
+  darkBg: false,
+  lastDiagramId: null,
+};
+let prefs = { ...PREFS_DEFAULT };
+
+function loadPrefs() {
+  try { prefs = { ...PREFS_DEFAULT, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; } catch {}
+}
+function savePrefs() {
+  try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch {}
+}
+function applyPrefs() {
+  // Sidebar
+  const sidebar = $('#sidebar');
+  if (prefs.sidebarCollapsed) {
+    sidebar.classList.add('collapsed');
+    // No inline width — let CSS .collapsed { width:0 } take effect
+  } else {
+    const w = Math.max(120, Math.min(480, prefs.sidebarWidth));
+    sidebar.style.width = `${w}px`;
+  }
+  // Split pane
+  const pct = Math.max(15, Math.min(85, prefs.splitPct));
+  $('#editorPane').style.flex  = `0 0 ${pct}%`;
+  $('#previewPane').style.flex = `0 0 ${100 - pct}%`;
+  // Theme
+  const themeSel = $('#selTheme');
+  if (prefs.theme && themeSel.querySelector(`option[value="${prefs.theme}"]`)) {
+    themeSel.value = prefs.theme;
+  }
+  // Dark background
+  if (prefs.darkBg) $('#previewWrap').classList.add('dark-bg');
+}
+
+loadPrefs();
+// Apply theme before initializing mermaid
+mermaid.initialize({ startOnLoad: false, theme: prefs.theme || 'default', securityLevel: 'loose' });
+applyPrefs();
+// ────────────────────────────────────────────────────────────────
 
 // ── Zoom / Pan ──────────────────────────────────────────────────
 let zScale = 1, zX = 0, zY = 0;
@@ -279,12 +334,15 @@ const panOverlay  = $('#panOverlay');
 previewWrap.addEventListener('wheel', (e) => {
   e.preventDefault();
   const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+  const newScale = Math.max(0.05, Math.min(20, zScale * factor));
+  const realFactor = newScale / zScale; // 1 when clamped → no pan shift
+  if (realFactor === 1) return;
   const rect = previewWrap.getBoundingClientRect();
   const mx = e.clientX - rect.left;
   const my = e.clientY - rect.top;
-  zX = mx - (mx - zX) * factor;
-  zY = my - (my - zY) * factor;
-  zScale = Math.max(0.05, Math.min(20, zScale * factor));
+  zX = mx - (mx - zX) * realFactor;
+  zY = my - (my - zY) * realFactor;
+  zScale = newScale;
   applyTransform();
 }, { passive: false });
 
@@ -307,8 +365,18 @@ window.addEventListener('mouseup', () => {
 
 panOverlay.addEventListener('dblclick', () => resetView());
 
-$('#btnZoomIn').addEventListener('click',    () => { const c = previewWrap.getBoundingClientRect(); const cx=c.width/2,cy=c.height/2; zX=cx-(cx-zX)*1.3; zY=cy-(cy-zY)*1.3; zScale=Math.min(20,zScale*1.3); applyTransform(); });
-$('#btnZoomOut').addEventListener('click',   () => { const c = previewWrap.getBoundingClientRect(); const cx=c.width/2,cy=c.height/2; zX=cx-(cx-zX)/1.3; zY=cy-(cy-zY)/1.3; zScale=Math.max(0.05,zScale/1.3); applyTransform(); });
+$('#btnZoomIn').addEventListener('click',  () => {
+  const c = previewWrap.getBoundingClientRect();
+  const cx = c.width / 2, cy = c.height / 2;
+  const ns = Math.min(20, zScale * 1.3), rf = ns / zScale;
+  zX = cx - (cx - zX) * rf; zY = cy - (cy - zY) * rf; zScale = ns; applyTransform();
+});
+$('#btnZoomOut').addEventListener('click', () => {
+  const c = previewWrap.getBoundingClientRect();
+  const cx = c.width / 2, cy = c.height / 2;
+  const ns = Math.max(0.05, zScale / 1.3), rf = ns / zScale;
+  zX = cx - (cx - zX) * rf; zY = cy - (cy - zY) * rf; zScale = ns; applyTransform();
+});
 $('#btnZoomFit').addEventListener('click',   () => fitView());
 $('#btnZoomReset').addEventListener('click', () => resetView());
 
@@ -428,7 +496,7 @@ function setEditorKind(kind) {
 }
 
 // ── Mermaid render ──
-async function renderDiagram(code) {
+async function renderDiagram(code, keepView = false) {
   const container = $('#diagramRender');
   if (!code || !code.trim()) { container.innerHTML = '<p style="color:#999">Enter Mermaid code to preview</p>'; return; }
   try {
@@ -450,7 +518,7 @@ async function renderDiagram(code) {
     }
     $('#statusErr').textContent = '';
     $('#statusMsg').textContent = `Mermaid · ${new Date().toLocaleTimeString()}`;
-    fitView();
+    if (!keepView) fitView();
     refreshMinimapImage();
   } catch (e) {
     $('#statusErr').textContent = `Error: ${e.message?.slice(0, 120) ?? e}`;
@@ -458,7 +526,7 @@ async function renderDiagram(code) {
   }
 }
 
-function renderSvgPreview(raw) {
+function renderSvgPreview(raw, keepView = false) {
   const container = $('#diagramRender');
   const t = (raw || '').trim();
   if (!t) { container.innerHTML = '<p style="color:#999">Enter SVG markup</p>'; return; }
@@ -470,7 +538,7 @@ function renderSvgPreview(raw) {
     }
     $('#statusErr').textContent = '';
     $('#statusMsg').textContent = `SVG · ${new Date().toLocaleTimeString()}`;
-    fitView();
+    if (!keepView) fitView();
     refreshMinimapImage();
   } catch (e) {
     $('#statusErr').textContent = `SVG parse: ${e.message?.slice(0, 120) ?? e}`;
@@ -480,8 +548,9 @@ function renderSvgPreview(raw) {
 
 function renderPreview() {
   const code = $('#codeEditor').value;
-  if (editorKind === 'svg') renderSvgPreview(code);
-  else renderDiagram(code);
+  // keepView=true: user is editing — preserve current zoom & pan
+  if (editorKind === 'svg') renderSvgPreview(code, true);
+  else renderDiagram(code, true);
 }
 
 // Auto-render on code change (debounced)
@@ -511,6 +580,8 @@ $('#codeEditor').addEventListener('keydown', (e) => {
 $('#selTheme').addEventListener('change', async () => {
   if (editorKind === 'svg') return;
   const theme = $('#selTheme').value;
+  prefs.theme = theme;
+  savePrefs();
   await mermaid.initialize({ theme, securityLevel: 'loose' });
   renderDiagram($('#codeEditor').value);
 });
@@ -518,12 +589,50 @@ $('#selTheme').addEventListener('change', async () => {
 // ── Dark/light preview background ──
 $('#btnDarkBg').addEventListener('click', () => {
   $('#previewWrap').classList.toggle('dark-bg');
+  prefs.darkBg = $('#previewWrap').classList.contains('dark-bg');
+  savePrefs();
 });
 
 // ── Toggle sidebar ──
 $('#btnToggleSidebar').addEventListener('click', () => {
-  $('#sidebar').classList.toggle('collapsed');
+  const sidebar = $('#sidebar');
+  sidebar.classList.toggle('collapsed');
+  const isCollapsed = sidebar.classList.contains('collapsed');
+  prefs.sidebarCollapsed = isCollapsed;
+  if (isCollapsed) {
+    sidebar.style.width = ''; // clear inline style → let CSS width:0 win
+  } else {
+    sidebar.style.width = `${Math.max(120, Math.min(480, prefs.sidebarWidth))}px`;
+  }
+  savePrefs();
 });
+
+// ── Sidebar resize ──
+{
+  const handle = $('#sidebarResize');
+  const sidebar = $('#sidebar');
+  let dragging = false;
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    dragging = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const rect = sidebar.parentElement.getBoundingClientRect();
+    const w = Math.max(120, Math.min(480, e.clientX - rect.left));
+    sidebar.style.width = `${w}px`;
+  });
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    prefs.sidebarWidth = sidebar.getBoundingClientRect().width;
+    savePrefs();
+  });
+}
 
 // ── Resizable split pane ──
 {
@@ -538,7 +647,15 @@ $('#btnToggleSidebar').addEventListener('click', () => {
     $('#editorPane').style.flex = `0 0 ${clamped}%`;
     $('#previewPane').style.flex = `0 0 ${100 - clamped}%`;
   });
-  window.addEventListener('mouseup', () => { dragging = false; document.body.style.cursor = ''; document.body.style.userSelect = ''; });
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    const flex = $('#editorPane').style.flex;
+    const m = flex.match(/([\d.]+)%/);
+    if (m) { prefs.splitPct = parseFloat(m[1]); savePrefs(); }
+  });
 }
 
 // ── Export ──
@@ -626,6 +743,8 @@ async function loadList() {
 
 async function loadDiagram(id) {
   currentId = id;
+  prefs.lastDiagramId = id;
+  savePrefs();
   try {
     const res = await fetch(`${API}/api/diagram/${id}`);
     const data = await res.json();
@@ -719,9 +838,13 @@ function connectWs() {
 loadList();
 connectWs();
 
-// Check URL for specific diagram
+// Restore last viewed diagram (URL path takes priority)
 const pathMatch = location.pathname.match(/\/diagram\/(.+)/);
-if (pathMatch) loadDiagram(pathMatch[1]);
+if (pathMatch) {
+  loadDiagram(pathMatch[1]);
+} else if (prefs.lastDiagramId) {
+  loadDiagram(prefs.lastDiagramId);
+}
 </script>
 </body>
 </html>

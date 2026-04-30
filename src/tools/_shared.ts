@@ -57,15 +57,13 @@ export function jsonLine(payload: Record<string, string | undefined>): string {
 
 /**
  * One-line hint shown in MCP tool responses.
- * Highlights the http:// URL — clicking it in Cursor chat opens Browser Tab directly.
- * The vscode:// URI is intentionally omitted here: Cursor's Browser Tab navigates to
- * it as a web address instead of routing through the URI handler.
+ * Editor-agnostic: just show the http:// URL and universal instructions.
  */
 export function openHint(httpPanelUrl: string, _config: AppConfig): string {
   return [
-    `面板地址（在 Cursor 聊天中点击可在 Browser Tab 打开）：${httpPanelUrl}`,
-    `或：Ctrl+Shift+P → 「AI Draw: Open Live Panel」命令`,
-  ].join(" ");
+    `面板地址：${httpPanelUrl}`,
+    `（在编辑器内置浏览器中打开：Ctrl+Shift+P → "Simple Browser: Show" 粘贴上方地址；或让 AI 调用 open_preview 工具）`,
+  ].join("\n");
 }
 
 function workflowHint(kind: "mermaid" | "svg"): string {

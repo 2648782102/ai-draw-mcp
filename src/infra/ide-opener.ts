@@ -1,9 +1,11 @@
 /**
  * infra/ide-opener.ts
  *
- * Opens the local preview URL inside the running IDE (Simple Browser tab).
- * Strategy: vscode:// URI (via AI Draw extension) → IDE binary --open-url → system open.
+ * Opens the local preview URL inside the running IDE (Simple Browser / Browser Tab).
+ * Strategy: detect IDE from env/process → try binary --open-url → try PATH CLI → system open.
  * Only auto-opens once per process; pass force=true to override.
+ *
+ * Supported IDEs: Cursor, VS Code, Windsurf, Trae, Zed (+ generic fallback)
  */
 
 import { execFile, spawn } from "node:child_process";
@@ -15,7 +17,7 @@ import { loadConfig } from "./config.js";
 
 const execFileAsync = promisify(execFile);
 
-type IDE = "cursor" | "vscode" | "trae" | "unknown";
+type IDE = "cursor" | "vscode" | "windsurf" | "trae" | "zed" | "unknown";
 
 let detectedIDE: IDE | null = null;
 let panelOpened = false;
@@ -25,18 +27,21 @@ function findIdeExecutable(ide: IDE): string | null {
     const local = process.env.LOCALAPPDATA;
     if (!local) return null;
     const paths: Partial<Record<IDE, string>> = {
-      cursor: path.join(local, "Programs", "cursor", "Cursor.exe"),
-      vscode: path.join(local, "Programs", "Microsoft VS Code", "Code.exe"),
-      trae:   path.join(local, "Programs", "trae", "Trae.exe"),
+      cursor:   path.join(local, "Programs", "cursor",                  "Cursor.exe"),
+      vscode:   path.join(local, "Programs", "Microsoft VS Code",       "Code.exe"),
+      windsurf: path.join(local, "Programs", "Windsurf",                "Windsurf.exe"),
+      trae:     path.join(local, "Programs", "trae",                    "Trae.exe"),
     };
-    const p = ide === "unknown" ? null : paths[ide];
+    const p = ide === "unknown" || ide === "zed" ? null : paths[ide];
     return p && existsSync(p) ? p : null;
   }
   if (process.platform === "darwin") {
     const paths: Partial<Record<IDE, string>> = {
-      cursor: "/Applications/Cursor.app/Contents/MacOS/Cursor",
-      vscode: "/Applications/Visual Studio Code.app/Contents/MacOS/Code",
-      trae:   "/Applications/Trae.app/Contents/MacOS/Trae",
+      cursor:   "/Applications/Cursor.app/Contents/MacOS/Cursor",
+      vscode:   "/Applications/Visual Studio Code.app/Contents/MacOS/Code",
+      windsurf: "/Applications/Windsurf.app/Contents/MacOS/Windsurf",
+      trae:     "/Applications/Trae.app/Contents/MacOS/Trae",
+      zed:      "/Applications/Zed.app/Contents/MacOS/zed",
     };
     const p = ide === "unknown" ? null : paths[ide];
     return p && existsSync(p) ? p : null;
@@ -46,9 +51,16 @@ function findIdeExecutable(ide: IDE): string | null {
 
 async function detectIDE(): Promise<IDE> {
   if (detectedIDE) return detectedIDE;
-  if (process.env.CURSOR_TRACE_ID) return (detectedIDE = "cursor");
-  if (process.env.WINDIR && process.env.VSCODE_CWD) return (detectedIDE = "vscode");
 
+  // Fast env-var checks (most reliable — set by the host process)
+  if (process.env.CURSOR_TRACE_ID)          return (detectedIDE = "cursor");
+  if (process.env.WINDSURF_RESOURCES_PATH)  return (detectedIDE = "windsurf");
+  if (process.env.CODEIUM_WINDSURF)         return (detectedIDE = "windsurf");
+  // VS Code sets VSCODE_CWD; also used by forks, check after more-specific ones
+  if (process.env.VSCODE_CWD && !process.env.WINDSURF_RESOURCES_PATH)
+    return (detectedIDE = "vscode");
+
+  // Fallback: inspect parent process command line
   try {
     if (process.ppid) {
       const { exec } = await import("node:child_process");
@@ -59,9 +71,12 @@ async function detectIDE(): Promise<IDE> {
         : `ps -o comm= -p ${process.ppid} 2>/dev/null || echo ""`;
       const { stdout } = await execAsync(cmd, { timeout: 5000 });
       const lower = stdout.toLowerCase();
-      if (lower.includes("cursor")) return (detectedIDE = "cursor");
-      if (lower.includes("trae"))   return (detectedIDE = "trae");
-      if (lower.includes("code") || lower.includes("vscode")) return (detectedIDE = "vscode");
+      if (lower.includes("windsurf")) return (detectedIDE = "windsurf");
+      if (lower.includes("cursor"))   return (detectedIDE = "cursor");
+      if (lower.includes("trae"))     return (detectedIDE = "trae");
+      if (lower.includes("zed"))      return (detectedIDE = "zed");
+      if (lower.includes("code") || lower.includes("vscode"))
+        return (detectedIDE = "vscode");
     }
   } catch { /* fall through */ }
 
@@ -86,39 +101,47 @@ async function tryCliName(cli: string, url: string): Promise<boolean> {
   });
 }
 
-function buildVscodeLink(httpUrl: string, authority: string): string {
-  return `vscode://${authority}/open?url=${encodeURIComponent(httpUrl)}`;
-}
+/** CLI names per IDE that accept --open-url */
+const IDE_CLI_NAMES: Partial<Record<IDE, string[]>> = {
+  cursor:   ["cursor"],
+  vscode:   ["code"],
+  windsurf: ["windsurf"],
+  trae:     ["trae"],
+  zed:      ["zed"],           // zed supports --open-url on macOS/Linux
+  unknown:  ["cursor", "code", "windsurf"],
+};
 
 export async function openPanelInIDE(url: string, force = false): Promise<boolean> {
   if (panelOpened && !force) return true;
 
   const ide = await detectIDE();
-  const cfg = loadConfig();
-
-  // Use http:// URL directly with --open-url so Cursor/VS Code opens it in Browser Tab.
-  // Do NOT use vscode:// URI here — Cursor's Browser Tab navigates to it as a web URL
-  // instead of routing to the URI handler, causing "This site can't be reached".
-  const attemptUrls: string[] = [url];
+  loadConfig(); // ensure config side-effects run
 
   logger.info(`[ide-opener] IDE≈${ide} → open: ${url}`);
 
-  const exes: string[] = [];
+  // Build exe candidate list: primary IDE first, then common fallbacks
+  const exeCandidates: string[] = [];
   const primary = findIdeExecutable(ide);
-  if (primary) exes.push(primary);
-  if (ide !== "cursor") { const c = findIdeExecutable("cursor"); if (c) exes.push(c); }
-  if (ide !== "vscode") { const v = findIdeExecutable("vscode"); if (v) exes.push(v); }
-
-  for (const openUrl of attemptUrls) {
-    for (const exe of exes) {
-      if (await tryExe(exe, openUrl)) { panelOpened = true; return true; }
-    }
-    const clis = ([ide === "trae" ? "trae" : null, "cursor", "code"].filter(Boolean) as string[]);
-    for (const c of clis) {
-      if (await tryCliName(c, openUrl)) { panelOpened = true; return true; }
-    }
+  if (primary) exeCandidates.push(primary);
+  // Always add Cursor + VS Code + Windsurf as fallbacks (most common)
+  for (const fallback of ["cursor", "vscode", "windsurf"] as IDE[]) {
+    if (fallback === ide) continue;
+    const exe = findIdeExecutable(fallback);
+    if (exe) exeCandidates.push(exe);
   }
 
+  // Try known executable paths first
+  for (const exe of exeCandidates) {
+    if (await tryExe(exe, url)) { panelOpened = true; return true; }
+  }
+
+  // Try CLI names from PATH
+  const cliNames = IDE_CLI_NAMES[ide] ?? IDE_CLI_NAMES.unknown!;
+  for (const cli of cliNames) {
+    if (await tryCliName(cli, url)) { panelOpened = true; return true; }
+  }
+
+  // Final fallback: system default browser / open command
   try {
     if (process.platform === "win32")
       await execFileAsync("cmd.exe", ["/c", "start", "", url], { windowsHide: true });

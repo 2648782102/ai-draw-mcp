@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Environment check for ai-draw-mcp (Node, mmdc, sharp, preview port).
+ * Environment check for ai-draw-mcp (Node, mmdc, sharp, preview port, mermaid dist).
  */
 import { execFile, exec } from "node:child_process";
 import { promisify } from "node:util";
@@ -9,28 +9,25 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import net from "node:net";
+import os from "node:os";
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 
 let ok = true;
-function pass(msg) {
-  console.log(`✅ ${msg}`);
-}
-function fail(msg) {
-  console.error(`❌ ${msg}`);
-  ok = false;
-}
-function warn(msg) {
-  console.warn(`⚠️  ${msg}`);
-}
+function pass(msg) { console.log(`✅ ${msg}`); }
+function fail(msg) { console.error(`❌ ${msg}`); ok = false; }
+function warn(msg) { console.warn(`⚠️  ${msg}`); }
+function info(msg) { console.log(`ℹ️  ${msg}`); }
 
+// ── Node.js version ──────────────────────────────────────────────
 const nodeMajor = parseInt(process.version.slice(1).split(".")[0], 10);
 if (nodeMajor >= 20) pass(`Node.js ${process.version} (>=20)`);
 else fail(`Node.js ${process.version} — 需要 >= 20`);
 
-const mmdcWin = path.join(root, "node_modules", ".bin", "mmdc.cmd");
+// ── mmdc ─────────────────────────────────────────────────────────
+const mmdcWin  = path.join(root, "node_modules", ".bin", "mmdc.cmd");
 const mmdcUnix = path.join(root, "node_modules", ".bin", "mmdc");
 const mmdc = process.platform === "win32" ? mmdcWin : mmdcUnix;
 if (fs.existsSync(mmdc)) pass(`mmdc 存在: ${mmdc}`);
@@ -49,21 +46,21 @@ try {
   }
 }
 
+// ── dist/index.js ────────────────────────────────────────────────
 const distIndex = path.join(root, "dist", "index.js");
 if (fs.existsSync(distIndex)) pass("已构建 dist/index.js");
 else warn("未找到 dist/index.js — 请运行 npm run build");
 
+// ── Preview port ─────────────────────────────────────────────────
 const port = parseInt(process.env.PREVIEW_PORT ?? "3399", 10);
 const inUse = await new Promise((resolve) => {
-  const s = net.createConnection({ port, host: "127.0.0.1" }, () => {
-    s.end();
-    resolve(true);
-  });
+  const s = net.createConnection({ port, host: "127.0.0.1" }, () => { s.end(); resolve(true); });
   s.on("error", () => resolve(false));
 });
 if (inUse) warn(`端口 ${port} 已被占用（可能 MCP 已在运行）`);
 else pass(`端口 ${port} 空闲`);
 
+// ── OUTPUT_DIR ───────────────────────────────────────────────────
 const outDir = process.env.OUTPUT_DIR
   ? path.resolve(process.env.OUTPUT_DIR)
   : path.join(root, "output");
@@ -77,10 +74,34 @@ try {
   fail(`OUTPUT_DIR 不可写: ${outDir} — ${e?.message ?? e}`);
 }
 
-const mermaidDist = path.join(root, "node_modules", "mermaid", "dist");
-if (fs.existsSync(path.join(mermaidDist, "mermaid.core.mjs")))
+// ── Mermaid local dist (panel uses mermaid.min.js) ───────────────
+const mermaidMin = path.join(root, "node_modules", "mermaid", "dist", "mermaid.min.js");
+if (fs.existsSync(mermaidMin))
   pass("Mermaid 本地包可用于预览（离线，不依赖 CDN）");
-else warn("未找到 mermaid/dist/mermaid.core.mjs — npm install 后应存在");
+else
+  warn("未找到 mermaid/dist/mermaid.min.js — 请执行 npm install");
+
+// ── MCP config locations hint ────────────────────────────────────
+console.log("");
+info("MCP 配置文件位置（将 dist/index.js 的绝对路径填入对应文件）：");
+const home = os.homedir();
+const appData = process.env.APPDATA ?? path.join(home, "AppData", "Roaming");
+const configs = [
+  ["Cursor",    path.join(home, ".cursor", "mcp.json"),
+                "（或项目根 .cursor/mcp.json）"],
+  ["VS Code",   "settings.json 中 mcp.servers 字段",
+                "（Ctrl+Shift+P → Preferences: Open User Settings (JSON)）"],
+  ["Windsurf",  path.join(home, ".codeium", "windsurf", "mcp_config.json"), ""],
+  ["Trae",      path.join(home, ".trae", "mcp.json"),                        ""],
+  ["Claude Desktop (Win)", path.join(appData, "Claude", "claude_desktop_config.json"), ""],
+  ["Claude Desktop (Mac)", path.join(home, "Library", "Application Support", "Claude", "claude_desktop_config.json"), ""],
+  ["Zed",       path.join(home, ".config", "zed", "settings.json"),
+                "（context_servers 字段）"],
+];
+for (const [name, p, note] of configs) {
+  const exists = typeof p === "string" && fs.existsSync(p);
+  console.log(`  ${exists ? "✅" : "  "} ${name}: ${p}${note ? " " + note : ""}`);
+}
 
 console.log("");
 process.exit(ok ? 0 : 1);

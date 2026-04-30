@@ -81,7 +81,21 @@ npm run doctor
 }
 ```
 
-**Claude Desktop（`claude_desktop_config.json`）**：
+**Windsurf（`~/.codeium/windsurf/mcp_config.json`）**：
+
+```json
+{
+  "mcpServers": {
+    "ai-draw": {
+      "command": "node",
+      "args": ["/path/to/ai-draw-mcp/dist/index.js"],
+      "env": { "PREVIEW_PORT": "3399", "OUTPUT_DIR": "/path/to/output" }
+    }
+  }
+}
+```
+
+**Claude Desktop（`~/Library/Application Support/Claude/claude_desktop_config.json` 或 Windows `%APPDATA%/Claude/claude_desktop_config.json`）**：
 
 ```json
 {
@@ -94,6 +108,40 @@ npm run doctor
   }
 }
 ```
+
+> Claude Desktop 没有内置浏览器，面板地址需手动在浏览器中打开。
+
+**Zed（`~/.config/zed/settings.json`）**：
+
+```json
+{
+  "context_servers": {
+    "ai-draw": {
+      "command": {
+        "path": "node",
+        "args": ["/path/to/ai-draw-mcp/dist/index.js"],
+        "env": { "OUTPUT_DIR": "/path/to/output" }
+      }
+    }
+  }
+}
+```
+
+**Trae（`~/.trae/mcp.json`）**：
+
+```json
+{
+  "mcpServers": {
+    "ai-draw": {
+      "command": "node",
+      "args": ["/path/to/ai-draw-mcp/dist/index.js"],
+      "env": { "PREVIEW_PORT": "3399", "OUTPUT_DIR": "/path/to/output" }
+    }
+  }
+}
+```
+
+> 运行 `npm run doctor` 可以自动检测本机已安装的编辑器及对应配置文件位置。
 
 ### 4. 打开预览面板
 
