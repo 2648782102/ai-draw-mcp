@@ -4,6 +4,8 @@
 
 在 IDE 里让 AI 一句话生成**流程图、时序图、架构图、类图、思维导图、任意 Mermaid DSL、自由 SVG**，并实时推送到本机预览面板。
 
+**项目结构以 AI 开发为优先** — 所有工具设计均从 AI 使用体验出发，参数设计简洁直观，返回格式便于 AI 解析，让 AI 画图更顺畅。
+
 <p align="center">
   <a href="https://www.npmjs.com/package/ai-draw-mcp">
     <img src="https://img.shields.io/npm/v/ai-draw-mcp?style=flat-square" alt="npm">
