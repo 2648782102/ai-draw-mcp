@@ -3,10 +3,13 @@ dist/
 output/*.svg
 output/*.png
 output/diagrams.json
+output/manifest.json
 !output/.gitkeep
 *.log
 .env
 .DS_Store
+*.mjs
+!scripts/*.mjs
 
 extensions/ai-draw-panel/out/
 extensions/ai-draw-panel/node_modules/

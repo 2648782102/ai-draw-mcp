@@ -4,6 +4,18 @@
 
 在 IDE 里让 AI 一句话生成**流程图、时序图、架构图、类图、思维导图、任意 Mermaid DSL、自由 SVG**，并实时推送到本机预览面板。
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/ai-draw-mcp">
+    <img src="https://img.shields.io/npm/v/ai-draw-mcp?style=flat-square" alt="npm">
+  </a>
+  <a href="https://www.npmjs.com/package/ai-draw-mcp">
+    <img src="https://img.shields.io/npm/dm/ai-draw-mcp?style=flat-square" alt="downloads">
+  </a>
+  <a href="https://github.com/2648782102/ai-draw-mcp">
+    <img src="https://img.shields.io/github/stars/2648782102/ai-draw-mcp?style=social" alt="stars">
+  </a>
+</p>
+
 ---
 
 ## 预览
@@ -28,7 +40,29 @@
 
 ## 快速开始
 
-### 1. 安装
+### 方式一：通过 npm 安装（推荐）
+
+```bash
+npm install -g ai-draw-mcp
+```
+
+然后直接在 MCP 配置里使用：
+
+```json
+{
+  "mcpServers": {
+    "ai-draw": {
+      "command": "npx",
+      "args": ["ai-draw-mcp"],
+      "env": {
+        "OUTPUT_DIR": "./output"
+      }
+    }
+  }
+}
+```
+
+### 方式二：从源码安装
 
 ```bash
 git clone https://github.com/2648782102/ai-draw-mcp.git
@@ -43,9 +77,7 @@ npm run build
 npm run doctor
 ```
 
-### 2. 配置到 Cursor
-
-在项目的 `.cursor/mcp.json`（或全局 `~/.cursor/mcp.json`）里加入：
+配置到 Cursor（或其他 IDE）：
 
 ```json
 {
@@ -64,9 +96,9 @@ npm run doctor
 
 > 将 `args[0]` 和 `OUTPUT_DIR` 替换为你本机的**绝对路径**。Windows 路径用正斜杠或双反斜杠均可。
 
-### 3. 配置到其他 MCP 宿主
+### 配置到其他 MCP 宿主
 
-任何支持 `stdio` 传输的 MCP 宿主都可以接入，只需把上面的 `command` + `args` + `env` 填入对应的配置格式。
+任何支持 `stdio` 传输的 MCP 宿主都可以接入，使用 `npx ai-draw-mcp` 最简单：
 
 **VS Code（`settings.json`）**：
 
@@ -74,9 +106,9 @@ npm run doctor
 "mcp.servers": {
   "ai-draw": {
     "type": "stdio",
-    "command": "node",
-    "args": ["/path/to/ai-draw-mcp/dist/index.js"],
-    "env": { "PREVIEW_PORT": "3399", "OUTPUT_DIR": "/path/to/output" }
+    "command": "npx",
+    "args": ["ai-draw-mcp"],
+    "env": { "OUTPUT_DIR": "./output" }
   }
 }
 ```
@@ -87,9 +119,9 @@ npm run doctor
 {
   "mcpServers": {
     "ai-draw": {
-      "command": "node",
-      "args": ["/path/to/ai-draw-mcp/dist/index.js"],
-      "env": { "PREVIEW_PORT": "3399", "OUTPUT_DIR": "/path/to/output" }
+      "command": "npx",
+      "args": ["ai-draw-mcp"],
+      "env": { "OUTPUT_DIR": "./output" }
     }
   }
 }
@@ -101,9 +133,9 @@ npm run doctor
 {
   "mcpServers": {
     "ai-draw": {
-      "command": "node",
-      "args": ["/path/to/ai-draw-mcp/dist/index.js"],
-      "env": { "OUTPUT_DIR": "/path/to/output" }
+      "command": "npx",
+      "args": ["ai-draw-mcp"],
+      "env": { "OUTPUT_DIR": "./output" }
     }
   }
 }
@@ -118,9 +150,9 @@ npm run doctor
   "context_servers": {
     "ai-draw": {
       "command": {
-        "path": "node",
-        "args": ["/path/to/ai-draw-mcp/dist/index.js"],
-        "env": { "OUTPUT_DIR": "/path/to/output" }
+        "path": "npx",
+        "args": ["ai-draw-mcp"],
+        "env": { "OUTPUT_DIR": "./output" }
       }
     }
   }
@@ -133,9 +165,9 @@ npm run doctor
 {
   "mcpServers": {
     "ai-draw": {
-      "command": "node",
-      "args": ["/path/to/ai-draw-mcp/dist/index.js"],
-      "env": { "PREVIEW_PORT": "3399", "OUTPUT_DIR": "/path/to/output" }
+      "command": "npx",
+      "args": ["ai-draw-mcp"],
+      "env": { "OUTPUT_DIR": "./output" }
     }
   }
 }
@@ -143,7 +175,7 @@ npm run doctor
 
 > 运行 `npm run doctor` 可以自动检测本机已安装的编辑器及对应配置文件位置。
 
-### 4. 打开预览面板
+### 3. 打开预览面板
 
 配置好 MCP 后，有三种方式打开面板：
 
@@ -153,7 +185,7 @@ npm run doctor
 | **命令面板** | `Ctrl+Shift+P` → `Simple Browser: Show` → 输入 `http://127.0.0.1:3399/` |
 | **MCP 工具** | 在 AI 对话里说「打开预览面板」，AI 调用 `open_preview` |
 
-### 5. 开始绘图
+### 4. 开始绘图
 
 直接在 Cursor Chat 或任意 AI 对话里输入自然语言：
 

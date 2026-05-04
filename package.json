@@ -4,7 +4,7 @@
   "description": "MCP Server that gives AI drawing capabilities in IDEs (Cursor, VS Code, Windsurf, Trae, Zed, etc.)",
   "type": "module",
   "bin": {
-    "ai-draw-mcp": "./dist/index.js"
+    "ai-draw-mcp": "dist/index.js"
   },
   "files": [
     "dist/",
@@ -14,7 +14,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/2648782102/ai-draw-mcp.git"
+    "url": "git+https://github.com/2648782102/ai-draw-mcp.git"
   },
   "homepage": "https://github.com/2648782102/ai-draw-mcp#readme",
   "bugs": {
