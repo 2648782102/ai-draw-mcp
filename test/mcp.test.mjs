@@ -17,6 +17,7 @@ const COLLAB_TOOLS = [
   "get_source_navigation",
   "get_capabilities",
   "get_selection_scope",
+  "get_selection_workorder",
 ];
 
 async function withClient(port, callback) {
@@ -73,7 +74,7 @@ describe("MCP server", () => {
     await withClient(3421, async (client) => {
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name);
-      expect(names).toHaveLength(25);
+      expect(names).toHaveLength(26);
       expect(names).toContain("render_diagram");
       expect(names).toContain("delete_diagram");
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
@@ -195,8 +196,9 @@ describe("MCP server", () => {
       const text = textOf(await client.callTool({ name: "get_capabilities", arguments: {} }));
       expect(text).toContain("CAPABILITIES_JSON:");
       const capabilities = jsonAfter(text, "CAPABILITIES_JSON:");
-      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 25 });
-      expect(capabilities.tools).toHaveLength(25);
+      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 26 });
+      expect(capabilities.tools).toHaveLength(26);
+      expect(capabilities.contracts.map((contract) => contract.marker)).toContain("SELECTION_WORKORDER_JSON");
       expect(capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name)).toEqual(["apply_visual_proposal"]);
       expect(capabilities.workflow).toMatchObject({ version: 1, steps: 8, projectWriteTool: "apply_visual_proposal" });
       expect(capabilities.safety).toMatchObject({ grantsWriteAuthority: false, excludesApprovalGrants: true, excludesWorkspaceAbsolutePaths: true });
@@ -214,6 +216,32 @@ describe("MCP server", () => {
       expect(scope.safety).toMatchObject({ grantsWriteAuthority: false, projectWritesRequireHumanApproval: true });
       expect(text).not.toContain("approvalGrant");
       expect(text).not.toContain(process.cwd());
+    });
+  }, 30_000);
+
+  it("returns a read-only pre-proposal selection workorder", async () => {
+    await withClient(3438, async (client) => {
+      const text = textOf(await client.callTool({
+        name: "get_selection_workorder",
+        arguments: { item_limit: 4 },
+      }));
+      expect(text).toContain("SELECTION_WORKORDER_JSON:");
+      const workorder = jsonAfter(text, "SELECTION_WORKORDER_JSON:");
+      expect(workorder).toMatchObject({
+        version: 1,
+        readOnly: true,
+        selectedCount: 0,
+        selectionLimit: 24,
+      });
+      expect(workorder.safety).toMatchObject({
+        grantsWriteAuthority: false,
+        excludesProjectChangeContent: true,
+        projectWritesRequireHumanApproval: true,
+      });
+      expect(Array.isArray(workorder.gaps)).toBe(true);
+      expect(workorder.gaps.join(" ")).toContain("No active human selection");
+      expect(text).not.toContain("approvalGrant");
+      expect(text).not.toContain("PROPOSAL_JSON:");
     });
   }, 30_000);
 

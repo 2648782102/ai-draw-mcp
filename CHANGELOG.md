@@ -6,10 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-11-06
+
+### Added
+
+- 第 26 个 MCP 工具 `get_selection_workorder` 与 `GET /api/collab/selection-workorder`：version 1 `SELECTION_WORKORDER_JSON` 从 `SELECTION_SCOPE_JSON`、当前会话与派生审阅就绪状态生成有界「预提案工作单」，汇总选中节点、内部连线、安全相对候选路径、范围内人类意图、`file:line` 证据、缺口与下一步。工作单不含候选文件内容、逐行 diff、提案、批准凭据或工作区绝对路径，也不重读项目文件、不改图修订/选择/对话/时间线、不签发凭据、不扩大写入路径。
+- [ADR 0019](docs/ADR/0019-selection-workorder-is-read-only-preflight.md)：记录工作单是只读、纯派生、预检前的对话清单；`PREFLIGHT_JSON`、完整逐行 diff、人工批准与一次性确认号仍是写入前的独立闸门。
+- 面板显示并可复制同一份只读预提案工作单；纯函数、MCP、HTTP、工作流示例、能力清单与离线一致性测试覆盖 26 个工具、19 份 ADR、安全路径过滤、缺口提示、无变更内容与凭据/绝对路径不外泄。
+
 ### Maintenance
 
-- 记录 `v0.3.3` 的公开验证证据：CI #66、Release #3、两个已发布 Release 与 Issue #8 同步；仓库 About/topics 仍因缺少管理权限令牌保持版本化漂移记录。
-- 以已发布 Release 的实际通用标题为准记录 `v0.3.3`，保留重复的 `getReleaseByTag` 幂等检查；不改写已发布 Release 或旧标签。
+- `package.json` 与 `package-lock.json` 升至 `0.3.4`；README、AGENTS、架构、安全、路线图、宣发、示例、故障排除与离线检查同步到 26 个工具和 19 份 ADR。
+- 保留 `v0.3.3` 的公开验证证据与已发布 Release 实际标题；不改写任何现有标签或 Release。
 
 ## [0.3.3] - 2026-11-06
 

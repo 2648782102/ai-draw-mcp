@@ -169,6 +169,66 @@ export interface SelectionScope {
   };
 }
 
+export interface SelectionWorkorder {
+  version: 1;
+  readOnly: true;
+  sessionId: string;
+  graphRevision: number;
+  selectionRevision: number | null;
+  source: "human" | "none";
+  selectedCount: number;
+  selectionLimit: number;
+  reviewReadiness: {
+    status: "ready" | "review" | "blocked";
+    blockers: number;
+    gaps: number;
+  };
+  nodes: Array<{
+    nodeId: string;
+    label: string;
+    kind: string;
+    path?: string;
+    group?: string;
+    hasSafePath: boolean;
+    activeThreadCount: number;
+    staleThreadCount: number;
+  }>;
+  internalEdges: Array<{ id: string; from: string; to: string; label?: string; kind?: string }>;
+  safePaths: Array<{
+    id: string;
+    path: string;
+    status: "candidate";
+    rationale: string;
+  }>;
+  intent: Array<{
+    id: string;
+    kind: "message" | "annotation";
+    nodeId?: string;
+    excerpt: string;
+    createdAt?: string;
+    nextActor?: "ai" | "human" | "none";
+  }>;
+  evidence: Array<{
+    id: string;
+    nodeId: string;
+    path: string;
+    fileLine: string;
+    kind: "definition" | "import" | "heading";
+  }>;
+  gaps: string[];
+  nextActions: string[];
+  copyText: string;
+  guidance: string[];
+  safety: {
+    readOnly: true;
+    grantsWriteAuthority: false;
+    excludesApprovalGrants: true;
+    excludesAbsolutePaths: true;
+    excludesProjectChangeContent: true;
+    projectWritesRequireHumanApproval: true;
+  };
+}
+
 export interface GraphEdge {
   id: string;
   from: string;

@@ -410,6 +410,7 @@
         <button id="btnRescan" title="只读扫描工作区并保留人工视觉状态">重新扫描项目</button>
         <button id="btnClearSelection" title="清空多选范围；不写项目文件">清空选择范围</button>
         <button id="btnCopySelectionScope" title="复制只读 SELECTION_SCOPE_JSON；不签发凭据">复制选择范围</button>
+        <button id="btnCopySelectionWorkorder" title="复制只读 SELECTION_WORKORDER_JSON 预提案工作单；不签发凭据">复制预提案工作单</button>
       </div>
     </section>
     <section class="collab-section">
@@ -427,6 +428,8 @@
       <div class="diagnostics-list" id="capabilitiesList"></div>
       <p class="activity-summary" id="selectionScopeSummary">选择范围上下文 · 加载中；只投影多选节点、内部连线与安全 file:line 证据</p>
       <div class="diagnostics-list" id="selectionScopeList"></div>
+      <p class="activity-summary" id="selectionWorkorderSummary">预提案工作单 · 加载中；只汇总多选范围、安全候选路径、意图与缺口，不含文件内容</p>
+      <div class="diagnostics-list" id="selectionWorkorderList"></div>
       <p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p>
       <div class="chat-log graph-diff-list" id="graphDiffList"></div>
       <div class="chat-log activity-list" id="activityList"></div>
@@ -1099,6 +1102,7 @@ let collabDecisionTrail = null;
 let collabSourceNavigation = null;
 let collabCapabilities = null;
 let collabSelectionScope = null;
+let collabSelectionWorkorder = null;
 let collabViewport = null;
 
 function escapeHtml(value) {
@@ -1358,6 +1362,9 @@ async function loadSelectionScope() {
   const scope = await collabFetch('/api/collab/selection-scope');
   collabSelectionScope = scope;
   renderSelectionScope(scope);
+  const workorder = await collabFetch('/api/collab/selection-workorder?itemLimit=8');
+  collabSelectionWorkorder = workorder;
+  renderSelectionWorkorder(workorder);
   return scope;
 }
 
@@ -1380,6 +1387,27 @@ function renderSelectionScope(scope) {
   list.innerHTML = `${nodeHtml}${edgeHtml}<p class="next-action">${escapeHtml(scope.safety?.projectWritesRequireHumanApproval ? '项目写入仍需逐行 diff、人工批准与一次性确认号；本范围不授权写入。' : '安全标记缺失，请勿继续。')}</p>`;
 }
 
+function renderSelectionWorkorder(workorder) {
+  const summary = $('#selectionWorkorderSummary');
+  const list = $('#selectionWorkorderList');
+  if (!summary || !list) return;
+  if (!workorder) {
+    summary.textContent = '预提案工作单 · 不可用；刷新协作会话后重试';
+    list.innerHTML = '<div class="collab-help">只读工作单尚未加载。</div>';
+    return;
+  }
+  const status = workorder.reviewReadiness?.status || 'unknown';
+  summary.textContent = `预提案工作单 · rev ${workorder.graphRevision} · ${workorder.selectedCount}/${workorder.selectionLimit} 个节点 · ${workorder.safePaths.length} 条候选路径 · ${workorder.gaps.length} 个缺口 · 审阅 ${status} · 只读`;
+  const pathsHtml = workorder.safePaths.length
+    ? `<p class="signal">候选路径 · ${workorder.safePaths.slice(0, 4).map((item) => escapeHtml(item.path)).join('、')}${workorder.safePaths.length > 4 ? ` 等 ${workorder.safePaths.length} 条` : ''}</p>`
+    : '<p class="signal">没有安全相对路径可作为候选；请让 AI 先与人确认目标文件。</p>';
+  const gapsHtml = workorder.gaps.length
+    ? workorder.gaps.slice(0, 3).map((gap) => `<p class="signal">缺口 · ${escapeHtml(gap)}</p>`).join('')
+    : '<p class="signal">暂无明确缺口；仍需读取完整会话并人工确认变更内容。</p>';
+  const nextHtml = `<p class="next-action">${escapeHtml(workorder.safety?.excludesProjectChangeContent ? '工作单不含候选文件内容或逐行 diff；继续前须 preflight_visual_proposal、人工审阅与一次性确认号。' : '安全标记缺失，请勿继续。')}</p>`;
+  list.innerHTML = `${pathsHtml}${gapsHtml}${nextHtml}`;
+}
+
 async function copySelectionScope() {
   try {
     const scope = collabSelectionScope || await loadSelectionScope();
@@ -1397,6 +1425,28 @@ async function copySelectionScope() {
     $('#messageInput').value = scope ? `请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。\n${scope.copyText}` : '请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。';
     $('#messageInput').focus();
     showToast('剪贴板不可用，已把选择范围提示放入消息框（尚未发送）');
+  }
+}
+
+async function copySelectionWorkorder() {
+  try {
+    const workorder = collabSelectionWorkorder || (await loadSelectionScope(), collabSelectionWorkorder);
+    const prompt = [
+      '请调用 get_selection_workorder 读取同一份 version 1 SELECTION_WORKORDER_JSON；下面是面板已加载的只读预提案工作单：',
+      workorder.copyText,
+      '',
+      `SELECTION_WORKORDER_JSON: ${JSON.stringify(workorder)}`,
+      '工作单不含文件内容、逐行 diff 或批准凭据；请先用 get_visual_context 读取完整会话，讨论缺口后再显式起草 changes，并先调用 preflight_visual_proposal。',
+    ].join('\n');
+    await navigator.clipboard.writeText(prompt);
+    showToast('已复制只读预提案工作单；它不包含文件内容、确认号或本机绝对路径');
+  } catch {
+    const workorder = collabSelectionWorkorder;
+    $('#messageInput').value = workorder
+      ? `请调用 get_selection_workorder 读取当前预提案工作单；这是只读清单，不授权写入。\n${workorder.copyText}`
+      : '请调用 get_selection_workorder 读取当前预提案工作单；这是只读清单，不授权写入。';
+    $('#messageInput').focus();
+    showToast('剪贴板不可用，已把工作单提示放入消息框（尚未发送）');
   }
 }
 
@@ -2196,6 +2246,7 @@ $('#btnRedoGraph').addEventListener('click', () => restoreGraphHistory('redo'));
 $('#btnRescan').addEventListener('click', rescanProject);
 $('#btnClearSelection').addEventListener('click', clearSelection);
 $('#btnCopySelectionScope').addEventListener('click', copySelectionScope);
+$('#btnCopySelectionWorkorder').addEventListener('click', copySelectionWorkorder);
 $('#btnAddNode').addEventListener('click', addNode);
 $('#btnAddEdge').addEventListener('click', addEdge);
 $('#btnExportSession').addEventListener('click', exportSession);

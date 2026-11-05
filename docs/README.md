@@ -26,6 +26,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0016-source-navigation-is-copyable-context.md](ADR/0016-source-navigation-is-copyable-context.md) | AI agents, reviewers | Why source navigation stays relative, copyable, read-only, and free of editor side effects |
 | [ADR/0017-capability-catalogue-is-read-only-discovery.md](ADR/0017-capability-catalogue-is-read-only-discovery.md) | AI agents, reviewers | Why capability discovery is a derived, read-only application contract complementary to MCP `tools/list` |
 | [ADR/0018-human-selection-is-read-only-scope.md](ADR/0018-human-selection-is-read-only-scope.md) | AI agents, reviewers | Why bounded multi-node selection is ephemeral, read-only attention context and never a write grant |
+| [ADR/0019-selection-workorder-is-read-only-preflight.md](ADR/0019-selection-workorder-is-read-only-preflight.md) | AI agents, reviewers | Why a derived pre-proposal workorder excludes file content, proposals, credentials, and write authority |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
@@ -60,6 +61,8 @@ Source navigation is documented in [ADR 0016](ADR/0016-source-navigation-is-copy
 Capability discovery is documented in [ADR 0017](ADR/0017-capability-catalogue-is-read-only-discovery.md): `CAPABILITIES_JSON` gives new agents a versioned, bounded map of tools, JSON markers, workflow readiness, and the unique receipt-gated project-write boundary, without invoking tools or granting writes.
 
 Human multi-node selection is documented in [ADR 0018](ADR/0018-human-selection-is-read-only-scope.md): `SELECTION_SCOPE_JSON` gives agents a bounded map of "these modules" while keeping selection out of portable bundles and outside the approval path.
+
+Selection workorders are documented in [ADR 0019](ADR/0019-selection-workorder-is-read-only-preflight.md): `SELECTION_WORKORDER_JSON` turns the same bounded scope into a pure pre-proposal checklist of candidate paths, intent, evidence, readiness gaps, and next actions, while preflight, a full line diff, human approval, and a one-time receipt remain separate gates.
 
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 

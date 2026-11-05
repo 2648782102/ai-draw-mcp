@@ -24,6 +24,7 @@
  *   GET  /api/collab/review-readiness  derived BRIEF_JSON blockers + DECISION_TRAIL_JSON gaps
  *   GET  /api/collab/capabilities  bounded, read-only tool/JSON/safety catalogue
  *   GET  /api/collab/selection-scope  bounded, read-only projection of the human selection
+ *   GET  /api/collab/selection-workorder  read-only pre-proposal checklist derived from the human selection
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/graph/history  bounded visual undo/redo availability
  *   POST /api/collab/graph/undo   human-confirmed visual undo
@@ -68,6 +69,7 @@ import { buildReviewReadiness } from "../domain/review-readiness.js";
 import { buildSourceNavigation } from "../domain/source-navigation.js";
 import { buildCapabilities } from "../domain/capabilities.js";
 import { buildSelectionScope } from "../domain/selection.js";
+import { buildSelectionWorkorder } from "../domain/selection-workorder.js";
 import { SERVER_VERSION } from "./version.js";
 import { buildExportManifest } from "../domain/session-bundle.js";
 import { makeId, nowIso } from "../domain/ids.js";
@@ -277,6 +279,12 @@ export class PreviewServer {
         evidenceLimit: bounded(req.query.evidenceLimit, 20, 60),
         edgeLimit: bounded(req.query.edgeLimit, 40, 120),
       }));
+    });
+
+    this.app.get("/api/collab/selection-workorder", (req, res) => {
+      const raw = Number(req.query.itemLimit ?? 8);
+      const itemLimit = Number.isFinite(raw) ? Math.max(1, Math.min(12, Math.floor(raw))) : 8;
+      res.json(buildSelectionWorkorder(this.sessions.getSnapshot(), { itemLimit }));
     });
 
     const restoreGraphHistory = async (

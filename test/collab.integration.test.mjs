@@ -134,6 +134,21 @@ describe("collaboration session", () => {
         .then((response) => response.json());
       expect(selectionScope).toMatchObject({ version: 1, readOnly: true, selectedCount: 2, source: "human", limit: 24 });
       expect(selectionScope.safety).toMatchObject({ grantsWriteAuthority: false, projectWritesRequireHumanApproval: true });
+      const selectionWorkorder = await fetch(`${base}/api/collab/selection-workorder?itemLimit=4`, { headers })
+        .then((response) => response.json());
+      expect(selectionWorkorder).toMatchObject({
+        version: 1,
+        readOnly: true,
+        selectedCount: 2,
+        selectionLimit: 24,
+      });
+      expect(selectionWorkorder.safety).toMatchObject({
+        grantsWriteAuthority: false,
+        excludesProjectChangeContent: true,
+        projectWritesRequireHumanApproval: true,
+      });
+      expect(selectionWorkorder.safePaths.some((item) => item.path === ".")).toBe(false);
+      expect(JSON.stringify(selectionWorkorder)).not.toContain("approvalGrant");
       const unauthorizedSelection = await fetch(`${base}/api/collab/selection`, {
         method: "POST",
         headers,
@@ -442,7 +457,7 @@ describe("collaboration session", () => {
       const capabilitiesResponse = await fetch(`${base}/api/collab/capabilities`, { headers });
       expect(capabilitiesResponse.ok).toBe(true);
       const capabilities = await capabilitiesResponse.json();
-      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 25 });
+      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 26 });
       expect(capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name)).toEqual(["apply_visual_proposal"]);
       expect(capabilities.workflow).toMatchObject({ version: 1, steps: 8, projectWriteTool: "apply_visual_proposal" });
       expect(JSON.stringify(capabilities)).not.toContain("approvalGrant");

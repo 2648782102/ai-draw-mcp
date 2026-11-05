@@ -2,7 +2,7 @@ import { buildReviewReadiness } from "./review-readiness.js";
 import { buildAgentWorkflow } from "./agent-workflow.js";
 import type { Capabilities, SessionSnapshot } from "./types.js";
 
-export const SERVER_TOOL_COUNT = 25;
+export const SERVER_TOOL_COUNT = 26;
 
 const CAPABILITIES: Array<Capabilities["tools"][number]> = [
   { name: "render_diagram", group: "diagram", purpose: "Render arbitrary Mermaid DSL", output: "DIAGRAM_JSON", readOnly: false, writes: "output" },
@@ -19,6 +19,7 @@ const CAPABILITIES: Array<Capabilities["tools"][number]> = [
   { name: "scan_project", group: "collaboration", purpose: "Read the workspace and refresh the visual graph while preserving human state", output: "PRESERVATION_JSON", readOnly: false, writes: "session" },
   { name: "get_visual_context", group: "context", purpose: "Read full graph, intent, diagnostics, focus, viewport, and proposal context", output: "CONTEXT_JSON", readOnly: true, writes: "none" },
   { name: "get_selection_scope", group: "context", purpose: "Read a bounded read-only projection of human multi-node selection", output: "SELECTION_SCOPE_JSON", readOnly: true, writes: "none" },
+  { name: "get_selection_workorder", group: "proposal", purpose: "Derive a read-only pre-proposal checklist from the selected scope", output: "SELECTION_WORKORDER_JSON", readOnly: true, writes: "none" },
   { name: "get_capabilities", group: "context", purpose: "List the versioned tool/JSON surface, safe next action, and write boundary", output: "CAPABILITIES_JSON", readOnly: true, writes: "none" },
   { name: "get_agent_workflow", group: "context", purpose: "Read the ordered eight-step collaboration workflow contract", output: "WORKFLOW_JSON", readOnly: true, writes: "none" },
   { name: "get_shared_brief", group: "context", purpose: "Read a compact handoff brief with readiness blockers", output: "BRIEF_JSON", readOnly: true, writes: "none" },
@@ -37,6 +38,7 @@ const CONTRACTS: Capabilities["contracts"] = [
   { marker: "WORKFLOW_JSON", purpose: "Ordered collaboration steps with write targets and blockers", sideEffect: "none" },
   { marker: "CONTEXT_JSON", purpose: "Full visual and conversational context for the AI", sideEffect: "none" },
   { marker: "SELECTION_SCOPE_JSON", purpose: "Bounded read-only human multi-node selection scope; no write authority", sideEffect: "none" },
+  { marker: "SELECTION_WORKORDER_JSON", purpose: "Read-only pre-proposal checklist for a bounded human selection; no file content or write authority", sideEffect: "none" },
   { marker: "BRIEF_JSON", purpose: "Compact handoff with readiness blockers", sideEffect: "none" },
   { marker: "DECISION_TRAIL_JSON", purpose: "Derived intent-to-proposal chronology; not a complete diff", sideEffect: "none" },
   { marker: "NODE_CONTEXT_JSON", purpose: "Single-node context projection", sideEffect: "none" },
@@ -90,6 +92,7 @@ export function buildCapabilities(snapshot: SessionSnapshot, serverVersion: stri
       "CAPABILITIES_JSON is a descriptive, read-only catalogue; it never invokes tools or grants write authority.",
       "Use get_agent_workflow for ordered prerequisites and get_visual_context for the full current session state.",
       "Use get_selection_scope when the human refers to a bounded multi-node range; selection is context, not approval.",
+      "Use get_selection_workorder to turn a selected range into a read-only pre-proposal checklist; candidate paths are not permissions.",
       "Bounded projections such as BRIEF_JSON and DECISION_TRAIL_JSON do not replace the full proposal line diff.",
       "Approval in the panel does not write files; apply_visual_proposal still needs a valid one-time human receipt.",
     ],

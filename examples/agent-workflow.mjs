@@ -1,7 +1,8 @@
 /**
  * Reproducible, read-only agent workflow example.
  *
- * It starts a local MCP stdio client, asks for the ordered workflow contract,
+ * It starts a local MCP stdio client, verifies the capability catalogue and
+ * bounded selection projections, asks for the ordered workflow contract,
  * expands a read-only template draft, and preflights the candidate changes.
  * It verifies that no proposal or project write occurs, never approves
  * anything, and never asks for a one-time approval receipt. The workflow tool
@@ -74,8 +75,11 @@ try {
 
   const capabilitiesText = textOf(await client.callTool({ name: "get_capabilities", arguments: {} }));
   const capabilities = jsonAfter(capabilitiesText, "CAPABILITIES_JSON:");
-  if (capabilities.version !== 1 || capabilities.toolCount !== 25 || capabilities.safety?.grantsWriteAuthority !== false) {
-    throw new Error("Capabilities unexpectedly lost the read-only 25-tool catalogue");
+  if (capabilities.version !== 1 || capabilities.toolCount !== 26 || capabilities.safety?.grantsWriteAuthority !== false) {
+    throw new Error("Capabilities unexpectedly lost the read-only 26-tool catalogue");
+  }
+  if (!capabilities.contracts.some((contract) => contract.marker === "SELECTION_WORKORDER_JSON")) {
+    throw new Error("Capabilities unexpectedly lost the SELECTION_WORKORDER_JSON contract");
   }
   if (capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name).join(",") !== "apply_visual_proposal") {
     throw new Error("Capabilities unexpectedly named another project-write tool");
@@ -97,6 +101,19 @@ try {
     throw new Error("Selection scope unexpectedly exposed a credential or absolute workspace path");
   }
   console.log(`    Selection scope: ${selectionScope.selectedCount}/${selectionScope.limit} selected nodes · read-only`);
+
+  const workorderText = textOf(await client.callTool({ name: "get_selection_workorder", arguments: { item_limit: 4 } }));
+  const workorder = jsonAfter(workorderText, "SELECTION_WORKORDER_JSON:");
+  if (workorder.version !== 1 || workorder.readOnly !== true || workorder.safety?.grantsWriteAuthority !== false) {
+    throw new Error("Selection workorder unexpectedly lost its read-only safety contract");
+  }
+  if (workorder.safety?.excludesProjectChangeContent !== true || workorder.safePaths.length > workorder.selectedCount) {
+    throw new Error("Selection workorder unexpectedly exposed change content or unbounded paths");
+  }
+  if (workorderText.includes("approvalGrant") || workorderText.includes(process.cwd())) {
+    throw new Error("Selection workorder unexpectedly exposed a credential or absolute workspace path");
+  }
+  console.log(`    Selection workorder: ${workorder.selectedCount} nodes / ${workorder.safePaths.length} candidate paths / ${workorder.gaps.length} gaps · read-only`);
 
   const workflowText = textOf(await client.callTool({ name: "get_agent_workflow", arguments: {} }));
   const workflow = jsonAfter(workflowText, "WORKFLOW_JSON:");

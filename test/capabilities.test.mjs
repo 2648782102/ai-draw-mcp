@@ -39,25 +39,30 @@ const snapshot = {
 
 describe("read-only capabilities catalogue", () => {
   it("enumerates the tool surface, JSON contracts, and safe next action without secrets", () => {
-    const capabilities = buildCapabilities(snapshot, "0.3.3");
+    const capabilities = buildCapabilities(snapshot, "0.3.4");
     const serialized = JSON.stringify(capabilities);
-    expect(SERVER_TOOL_COUNT).toBe(25);
+    expect(SERVER_TOOL_COUNT).toBe(26);
     expect(capabilities).toMatchObject({
       version: 1,
       readOnly: true,
-      serverVersion: "0.3.3",
+      serverVersion: "0.3.4",
       sessionId: "session_capabilities",
       graphRevision: 2,
-      toolCount: 25,
+      toolCount: 26,
     });
-    expect(capabilities.tools).toHaveLength(25);
-    expect(new Set(capabilities.tools.map((tool) => tool.name)).size).toBe(25);
+    expect(capabilities.tools).toHaveLength(26);
+    expect(new Set(capabilities.tools.map((tool) => tool.name)).size).toBe(26);
     expect(capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name)).toEqual(["apply_visual_proposal"]);
     expect(capabilities.tools.find((tool) => tool.name === "get_capabilities")).toMatchObject({ output: "CAPABILITIES_JSON", readOnly: true, writes: "none" });
-    expect(capabilities.contracts.map((contract) => contract.marker)).toContain("CAPABILITIES_JSON");
+    expect(capabilities.contracts.map((contract) => contract.marker)).toEqual(expect.arrayContaining(["CAPABILITIES_JSON", "SELECTION_WORKORDER_JSON"]));
+    expect(capabilities.tools.find((tool) => tool.name === "get_selection_workorder")).toMatchObject({
+      output: "SELECTION_WORKORDER_JSON",
+      readOnly: true,
+      writes: "none",
+    });
     expect(capabilities.workflow).toMatchObject({ version: 1, steps: 8, projectWriteTool: "apply_visual_proposal" });
     expect(capabilities.nextAction).toContain("get_visual_context");
-    expect(capabilities.copyText).toContain("25 tools");
+    expect(capabilities.copyText).toContain("26 tools");
     expect(capabilities.safety).toMatchObject({
       readOnly: true,
       grantsWriteAuthority: false,
@@ -95,7 +100,7 @@ describe("read-only capabilities catalogue", () => {
         status: "pending",
       }],
     };
-    const capabilities = buildCapabilities(blocked, "0.3.3");
+    const capabilities = buildCapabilities(blocked, "0.3.4");
     expect(capabilities.workflow.blocked.length).toBeGreaterThan(0);
     expect(capabilities.nextAction).toContain("Resolve WORKFLOW_JSON blockers");
     expect(capabilities.copyText).toContain("workflow blocked");
