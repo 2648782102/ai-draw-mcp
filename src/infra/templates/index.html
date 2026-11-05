@@ -228,6 +228,9 @@
     .diff-line.remove { color: #ff9b95; }
     .diff-line.context { color: var(--text-muted); }
     .annotation-resolved { opacity: .55; text-decoration: line-through; }
+    .proposal-facts { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 6px; }
+    .proposal-facts code { font-size: 9px; padding: 2px 5px; border-radius: 3px; background: var(--bg); }
+    .annotation-target { color: var(--accent); font-size: 9px; }
     .collab-section textarea, .collab-section > input {
       width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 5px;
       background: var(--bg); color: var(--text); padding: 8px; font: inherit; font-size: 11px;
@@ -1076,9 +1079,10 @@ function renderChat(messages) {
 function renderAnnotations(annotations) {
   const target = $('#annotationList');
   if (!target) return;
+  const labels = new Map((collabGraph?.nodes ?? []).map((node) => [node.id, node.label]));
   target.innerHTML = annotations.length ? annotations.map((annotation) => `
     <div class="chat-item human ${annotation.resolved ? 'annotation-resolved' : ''}">
-      <span class="meta">${escapeHtml(annotation.author)} · ${escapeHtml(annotation.createdAt)} · ${annotation.resolved ? 'resolved' : 'open'}</span>
+      <span class="meta">${escapeHtml(annotation.author)} · ${escapeHtml(annotation.createdAt)} · ${annotation.resolved ? 'resolved' : 'open'}${annotation.nodeId ? ` · <span class="annotation-target">@ ${escapeHtml(labels.get(annotation.nodeId) || annotation.nodeId)}</span>` : ''}</span>
       ${escapeHtml(annotation.body)}
     </div>
   `).join('') : '<div class="collab-help">暂无批注。</div>';
@@ -1089,6 +1093,12 @@ function renderProposals(proposals) {
     <div class="proposal-card">
       <h4>${escapeHtml(proposal.title)}</h4>
       <span class="status">${escapeHtml(proposal.status)} · ${proposal.changes.length} changes</span>
+      <div class="proposal-facts">
+        <code>rev ${escapeHtml(proposal.graphRevision ?? 0)}</code>
+        ${proposal.contentHash ? `<code title="${escapeHtml(proposal.contentHash)}">hash ${escapeHtml(String(proposal.contentHash).slice(0, 10))}</code>` : ''}
+        ${(proposal.changes || []).slice(0, 4).map((change) => `<code>${escapeHtml(change.kind)}:${escapeHtml(change.path)}</code>`).join('')}
+        ${(proposal.changes || []).length > 4 ? `<code>+${(proposal.changes || []).length - 4} files</code>` : ''}
+      </div>
       <p>${escapeHtml(proposal.summary)}</p>
       <div>${proposal.changes.map((change) => `<code>${escapeHtml(change.kind)}:${escapeHtml(change.path)}</code>`).join('<br>')}</div>
       <details class="proposal-diff" data-diff="${escapeHtml(proposal.id)}">

@@ -31,6 +31,8 @@ npm run github:sync
 
 `scripts/github-maintenance.mjs` also supports `--check` (read-only drift report) and can create a GitHub Release with `--release v0.3.0` if `CHANGELOG.md` has a matching section.
 
+Maintainers can also run the **Maintain GitHub metadata** workflow from the Actions tab. Set repository secret `GH_TOKEN` to a fine-grained token with `Administration: read and write`; choose `dry_run=true` to only report drift using the workflow token. The default `GITHUB_TOKEN` cannot change repository description or topics because those endpoints require repository administration permissions.
+
 ## Release notes — 0.3.0
 
 Title: `v0.3.0 — Human ↔ AI visual collaboration`
@@ -93,3 +95,4 @@ AI Draw MCP 0.3 已开源，本地运行、MIT、无需账号。欢迎来拍砖�
 - [ ] Release notes created from the CHANGELOG section.
 - [ ] Discussion/Issue pinned for feedback; response window stated publicly.
 - [ ] Links use the repository URL, not a personal cache or temporary screenshot host.
+- [ ] Run **Maintain GitHub metadata** with `dry_run=true`; if drift is reported and `GH_TOKEN` is configured, run again with `dry_run=false`.

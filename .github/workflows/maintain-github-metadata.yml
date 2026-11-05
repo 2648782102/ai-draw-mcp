@@ -1,0 +1,44 @@
+name: Maintain GitHub metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only report drift; do not write repository metadata"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+permissions:
+  contents: read
+
+jobs:
+  sync-metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Check repository metadata
+        if: ${{ inputs.dry_run == 'true' }}
+        run: node scripts/github-maintenance.mjs --check
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+      - name: Require an administration-capable token
+        if: ${{ inputs.dry_run != 'true' }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::Set repository secret GH_TOKEN to a fine-grained token with Administration: write for metadata sync."
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Apply repository metadata
+        if: ${{ inputs.dry_run != 'true' }}
+        run: node scripts/github-maintenance.mjs
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
