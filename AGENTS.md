@@ -57,12 +57,14 @@ test/                         Vitest：批注线程、活动时间线、领域�
 scripts/doctor.mjs            环境自检（含真实 Mermaid 渲染探针）
 scripts/github-maintenance.mjs GitHub About/topics 漂移检查、同步与 Release 创建
 scripts/repo-check.mjs        离线一致性检查：发布文案、文档链接、脚本与 CHANGELOG
+scripts/generate-doc-assets.mjs 版本化 README 概念图；`npm run docs:assets` 生成、`--check` 校验
 .github/                      Issue/PR 模板与 CI
 docs/ARCHITECTURE.md          架构、协议、安全模型
 docs/README.md                文档地图
 docs/COMPETITIVE_RESEARCH.md  同类产品调研与定位
 docs/DEPENDENCY_MAINTENANCE.md 依赖升级、CI 验证与重大版本决策记录
 docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
+docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
 ```
 

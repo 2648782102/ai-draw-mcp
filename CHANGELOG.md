@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `docs/collaboration-loop.svg` 与 `docs/collaboration-workbench.svg`：双向协作闭环与工作台概念图，由 `scripts/generate-doc-assets.mjs` 可复现生成。
+- `README.en.md`：面向国际读者的英文快速入门与安全边界摘要。
+- `docs/TROUBLESHOOTING.md`：首用自检、常见故障、一次性确认号与批注线程 FAQ。
+- `npm run docs:assets` / `npm run docs:assets:check`：生成或校验版本化文档概念图，避免 README 图片漂移。
 - `src/domain/annotation-thread.ts`：节点批注线程聚合、回复校验与 AI 可读的 `nextActor` 队列。
 - `src/domain/activity-timeline.ts`：把消息、批注线程、线程状态与提案生命周期合并为只读紧凑活动时间线。
 - 面板节点批注支持内联回复、解决/重开与状态/下一棒提示；`reply_to_visual_context` 支持 `annotation_replies`。

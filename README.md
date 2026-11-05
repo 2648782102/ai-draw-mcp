@@ -23,6 +23,18 @@
 
 ## 预览
 
+### 双向协作闭环
+
+![AI Draw MCP 双向协作闭环](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-loop.svg)
+
+### 协作工作台概念
+
+![AI Draw MCP 协作工作台概念预览](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-workbench.svg)
+
+> 概念图由 [`scripts/generate-doc-assets.mjs`](scripts/generate-doc-assets.mjs) 可复现生成；要改文案或布局，请改脚本并运行 `npm run docs:assets`。
+
+### 实际预览面板
+
 ![AI Draw MCP 预览面板](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/preview-panel.png)
 
 预览面板支持：滚轮缩放、拖拽平移、右下角小地图导航、双击重置、适应窗口（`F` 键）、明暗背景切换、SVG/PNG 导出。
@@ -47,8 +59,10 @@
 
 | 文档 | 内容 |
 |------|------|
+| [README.en.md](README.en.md) | English quickstart：最短安装、协作闭环与安全边界 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构、状态模型、活动时间线、REST/WebSocket 协议、安全边界 |
 | [docs/README.md](docs/README.md) | 文档地图：按读者与用途查找全部资料 |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | 首用自检、常见故障与 FAQ（含一次性确认号失效） |
 | [ROADMAP.md](ROADMAP.md) | 产品方向、阶段目标与明确的非目标 |
 | [docs/COMPETITIVE_RESEARCH.md](docs/COMPETITIVE_RESEARCH.md) | Mermaid/白板/MCP 同类产品调研与定位 |
 | [docs/DEPENDENCY_MAINTENANCE.md](docs/DEPENDENCY_MAINTENANCE.md) | 依赖升级与 CI 维护策略 |
@@ -325,6 +339,8 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 
 ## 故障排除
 
+完整首用清单、端口/Chrome/扫描根目录/批注线程/一次性凭据 FAQ 见 [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)。
+
 **端口被占用**：改 `PREVIEW_PORT`，例如 `3400`。
 
 **`mmdc` 渲染失败**：执行 `npm run doctor` 自检；Windows 下需要 Puppeteer 能拉起 Chromium。
@@ -336,6 +352,10 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 **提案无法应用**：确认由人类点击批准；检查目标路径是否属于 `.git`、`node_modules`、`dist`、`.env*` 或锁文件等受保护范围。
 
 **PNG 中文方块**：需系统有中文字体；或改用 `DEFAULT_FORMAT=svg` 避免 mmdc 栅格化。
+
+**AI 过早抢答批注线程**：检查 `get_visual_context.annotationThreads.nextActor`；为 `human` 时应等待人继续回复，不要创建或应用提案。
+
+**一次性确认号失效**：提案被改动、确认号已使用或已过期都会让旧凭据失效；重新查看逐行 diff，点击「批准」生成新的确认号，不要把旧确认号粘贴到 Issue 或会话 bundle。
 
 ---
 

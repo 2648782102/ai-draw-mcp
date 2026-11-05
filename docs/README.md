@@ -6,6 +6,8 @@ Start with the [main README](../README.md) for installation and the product over
 
 | Document | Audience | Purpose |
 |---|---|---|
+| [../README.en.md](../README.en.md) | International readers | English quickstart and safety-model summary |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | New users, maintainers | First-run checklist, common failures, and FAQ |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Contributors, reviewers | Components, collaboration protocol, REST/WebSocket API, safety model |
 | [COMPETITIVE_RESEARCH.md](COMPETITIVE_RESEARCH.md) | Maintainers, contributors | Market map, positioning, and product lessons from Mermaid/whiteboard/MCP tools |
 | [DEPENDENCY_MAINTENANCE.md](DEPENDENCY_MAINTENANCE.md) | Maintainers | Dependabot policy, verification order, and major-version decisions |

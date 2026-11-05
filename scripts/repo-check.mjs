@@ -37,6 +37,10 @@ const approval = await read("src/domain/approval.ts");
 const domainContractsTest = await read("test/domain-contracts.test.mjs");
 const dependabotConfig = await read(".github/dependabot.yml");
 const dependencyMaintenance = await read("docs/DEPENDENCY_MAINTENANCE.md");
+const englishQuickstart = await read("README.en.md");
+const troubleshooting = await read("docs/TROUBLESHOOTING.md");
+const documentationMap = await read("docs/README.md");
+const docAssetGenerator = await read("scripts/generate-doc-assets.mjs");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -101,10 +105,28 @@ for (const [label, file, needle] of [
   check(file.includes(needle), `${label} is missing or drifted`);
 }
 
-for (const document of ["ROADMAP.md", "docs/ARCHITECTURE.md", "docs/COMPETITIVE_RESEARCH.md", "docs/LAUNCH_KIT.md"]) {
+for (const document of ["README.en.md", "docs/TROUBLESHOOTING.md", "ROADMAP.md", "docs/ARCHITECTURE.md", "docs/COMPETITIVE_RESEARCH.md", "docs/LAUNCH_KIT.md"]) {
   check(readme.includes(document) || readme.includes(document.replace(/\.md$/, ".md")), `README.md does not link ${document}`);
 }
+for (const document of ["../README.en.md", "TROUBLESHOOTING.md"]) {
+  check(documentationMap.includes(document), `docs/README.md does not link ${document}`);
+}
+for (const [label, source, needle] of [
+  ["Chinese README loop diagram", readme, "docs/collaboration-loop.svg"],
+  ["Chinese README workbench diagram", readme, "docs/collaboration-workbench.svg"],
+  ["English quickstart loop diagram", englishQuickstart, "docs/collaboration-loop.svg"],
+  ["English quickstart workbench diagram", englishQuickstart, "docs/collaboration-workbench.svg"],
+  ["Chinese README troubleshooting link", readme, "docs/TROUBLESHOOTING.md"],
+  ["English quickstart troubleshooting link", englishQuickstart, "docs/TROUBLESHOOTING.md"],
+  ["one-time receipt FAQ", troubleshooting, "one-time receipt"],
+  ["nextActor troubleshooting", troubleshooting, "nextActor"],
+  ["reproducible asset script", docAssetGenerator, "collaboration-loop.svg"],
+  ["distribution checklist", launchKit, "concept diagrams reviewed together"],
+]) {
+  check(source.includes(needle), `${label} is missing or drifted`);
+}
 check(agents.includes("scripts/github-maintenance.mjs"), "AGENTS.md does not document GitHub maintenance script");
+check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not document the versioned documentation asset generator");
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(architecture.includes("annotationThreads.nextActor"), "ARCHITECTURE.md does not document annotation thread handoff");
@@ -116,6 +138,8 @@ check(readme.includes("不等于批准变更"), "README.md does not document the
 check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased section");
 check(packageJson.scripts?.["github:check"] === "node scripts/github-maintenance.mjs --check", "github:check script is missing");
 check(packageJson.scripts?.["github:sync"] === "node scripts/github-maintenance.mjs", "github:sync script is missing");
+check(packageJson.scripts?.["docs:assets"] === "node scripts/generate-doc-assets.mjs", "docs:assets script is missing");
+check(packageJson.scripts?.["docs:assets:check"] === "node scripts/generate-doc-assets.mjs --check", "docs:assets:check script is missing");
 check(!/gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}/.test(launchKit + githubMaintenance + readme + agents + changelog), "A GitHub token-like value appears in tracked maintenance copy");
 check(!/labels:\s*\[(?:[^\]]*\bdependencies\b|[^]]*\bci\b)/.test(dependabotConfig), "dependabot.yml references labels the repository does not own");
 check(dependencyMaintenance.includes("label references were removed"), "DEPENDENCY_MAINTENANCE.md does not record the label decision");

@@ -31,10 +31,12 @@
     "test": "vitest run",
     "test:mcp": "vitest run test/mcp.test.mjs",
     "test:examples": "node --check examples/node-client.mjs && node --check examples/collab-demo.mjs",
-    "check": "npm run lint && npm run build && npm test && npm run test:examples && npm run repo:check && npm run doctor && npm pack --dry-run",
+    "check": "npm run lint && npm run build && npm test && npm run test:examples && npm run docs:assets:check && npm run repo:check && npm run doctor && npm pack --dry-run",
     "doctor": "node scripts/doctor.mjs",
     "github:check": "node scripts/github-maintenance.mjs --check",
     "github:sync": "node scripts/github-maintenance.mjs",
+    "docs:assets": "node scripts/generate-doc-assets.mjs",
+    "docs:assets:check": "node scripts/generate-doc-assets.mjs --check",
     "repo:check": "node scripts/repo-check.mjs"
   },
   "keywords": [
