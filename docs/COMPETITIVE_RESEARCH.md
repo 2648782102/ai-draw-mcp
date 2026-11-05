@@ -48,6 +48,53 @@ The shipped 0.3.x thread already covers one root annotation per node, ordered hu
 
 Keep these two boundaries explicit: `resolved` is a conversation state, never proposal approval or a project-write grant; conversation actions and one-time human write receipts are separate server-side checks. Some public sources describe client-side comment controls such as `canComment`; this project must not rely on hidden UI controls or client-supplied author fields for authorization.
 
+## 2026-11-06 增量调研
+
+本轮只补充上一节尚未覆盖的产品形态与 2026 年公开信号，不重复 Mermaid Live、通用白板、评论线程和基础 MCP 渲染的比较。结论基于公开页面与仓库说明，不是性能基准；同名项目若无法稳定定位到唯一官网，以下按产品主张记录，不推断其功能已正式发布。下文「现状」仅描述仓库当前版本，功能建议均为后续候选，不代表已经交付或已写入路线图承诺。
+
+### 增量对比
+
+| 产品 / 类别 | 新一轮观察 | 对 AI Draw MCP 的启示 | 边界与差异 |
+|---|---|---|---|
+| [Mermaid Chart MCP / AI](https://mermaid.ai/docs/ai/mcp-server) 与需要账号的图表 MCP | 把 Mermaid 生成、校验、渲染包装成 IDE 可调用的工具；部分服务把图表管理放在云端并要求登录 | AI 工具应返回结构化、可校验的中间产物，而不是只给一张图片 | AI Draw MCP 保留 Mermaid 作为渲染/导出格式，但协作状态是本地 `VisualGraph`；核心闭环不依赖账号或云图表库 |
+| [Archyne（调研输入亦记作 Arhyne）](https://github.com/archyne/archyne) / [Mermaid Manual layout](https://mermaid-25331.zendesk.com/hc/en-us/articles/51052468630547-Editing-Layout) | 本地优先 Mermaid 画布与文本双向同步、保留手工布局、本地文件由编辑器拥有、撤销/重做与导出；生成后的图仍归人控制 | 图重新扫描后不应抹掉人工摆放；视觉编辑需要可回滚，并与文件内容变更的回滚区分 | AI Draw MCP 当前已有结构化编辑、会话 bundle、提案回滚与 `GraphNode` 的可选坐标；但重新扫描会生成带网格坐标的新图，布局保持与图形撤销栈仍待验证；人工批准门槛仍只适用于项目文件写入 |
+| [OpenFlowKit](https://github.com/openflowkit/openflowkit) | 仓库地图的箭头引用到 `file + line`；本地优先、MCP；文本 DSL、画布、助手、CLI 共用同一套语言与 TypeScript 编译器 | 节点应能回到源码证据；扩展机制应保持低门槛和类型一致 | 0.3 的扫描器以文件树/import 为主；0.5 可补 source ranges，但不得把「能定位代码」变成「可以据此自动写文件」 |
+| [tldraw AI](https://tldraw.dev/docs/ai)、[agent starter kit](https://tldraw.dev/starter-kits/agent) 与 [workflow starter kit](https://tldraw.dev/starter-kits/overview) | Agent 直接读取/修改画布，把视觉操作组织成可组合的工作流 | 人需要看见 AI 改了什么、在哪里改、能撤回；工具描述要把 agent 的下一步讲清楚 | AI Draw MCP 的 AI 不直接写项目文件；画布/图的编辑与项目写入由会话、逐行 diff、人工批准和一次性凭据分层 |
+| [Nereid](https://github.com/bnomei/nereid)（TUI + MCP 参考形态） | 确定性文本渲染、显式注意力/选中状态、基于文件夹的会话持久化，让终端里的 AI 与人对同一对象工作；其为 noncommercial source-available，不是 MIT 类开源项目 | 把「当前选中了什么」变成机器可读上下文，并保留可恢复的会话；输出要可复现、可 diff | 本项目已有 WebSocket 面板与 bundle，不计划把 TUI 变成核心界面，也不借鉴其商业使用限制 |
+| [AgentDraw](https://github.com/agentdraw/agentdraw) / [DrawCMS](https://github.com/drawcms/drawcms) | 本地可编辑白板、生成结果校验/修复、可视化语法，以及 AI 批量编辑作为单次可撤销历史记录 | 视觉语法需要足够小且有约束；每次 agent 编辑都应有可审计的 before/after | 本项目已记录字段级 `graphDiffs`，可继续补图形编辑撤销栈；不能借「撤销」绕过 `ChangeProposal` 的批准模型 |
+| [Excalidraw JSON format](https://docs.excalidraw.com/docs/codebase/json-schema) / [Miro Mermaid](https://help.miro.com/hc/en-us/articles/7004628130962-Create-Mermaid-diagrams) | Excalidraw 的开放 `.excalidraw` JSON 格式强调可迁移；Miro 把 Mermaid 当作可回写的 source of truth | 版本化工件、双向转换与可迁移导出能降低锁定感；文本 DSL 与画布状态需要明确谁是真源 | AI Draw MCP 以版本化 `SessionSnapshot` / `VisualGraph` 为协作真源，Mermaid/SVG 是视图；不追求托管协作，也不让云白板拥有项目真源 |
+
+### 5 个高价值可借鉴能力
+
+1. **布局保持与编辑撤销（P0，0.4）**：复用 `GraphNode` 的可选坐标，补充视口状态、重新扫描的布局保持策略与兼容规则；默认保留人的布局，仅在新节点或人显式要求时自动排布；图形编辑提供有限的撤销/重做栈。布局是视图状态，不是项目写入授权。
+2. **源码证据与「跳到代码」（P0，0.5）**：让 scanner 为文件节点记录稳定的 `path` 与可选 `line` / `symbol` / `import` 证据，面板支持从节点打开源码位置，`get_visual_context` 返回可引用证据。证据只读，不自动扩大提案路径权限；与 [`ROADMAP.md`](../ROADMAP.md) 的 source ranges 方向一致。
+3. **注意力状态（P1，0.4）**：在会话中记录当前选中节点/连线、展开的批注线程和最近查看的提案，作为 `get_visual_context` 的轻量 `focus` 字段；让人指着图说话时，AI 不必从整张图猜测对象。
+4. **可复现的 agent 工作流（P1，0.4）**：把 `list_change_templates` 的只读草稿、`preflight_visual_proposal` 的检查结果、`create_visual_proposal` 的候选变更串成有明确前后条件的示例与诊断提示，减少 LLM 自行发明步骤；所有中间产物仍不签发批准凭据。
+5. **确定性、可迁移的会话工件（P2，0.4/0.5）**：继续强化 bundle 的版本、校验与不含凭据约束，提供稳定的 JSON 摘要、Mermaid/SVG 导出及「导入后只读审阅」模式；文本渲染与导出应可复现，便于 Issue 附档、回归测试和跨工具迁移。
+
+### 明确非目标
+
+- 不做需要账号才能使用核心闭环的云图表库，不把会话真源托管到第三方白板。
+- 不把 AI Draw MCP 做成通用自由画布、多人实时会议白板或 TUI 终端应用；布局与撤销只服务于项目结构协作。
+- 不实现 AI 直接修改画布即等于修改源码；不实现删除、二进制写入，不绕过逐行 diff、人类批准、一次性确认号、路径校验和失败回滚。
+- 不把 Mermaid 文本或某一家云服务的画布格式当作项目真源；`VisualGraph` / `SessionSnapshot` 仍是版本化协作协议。
+- 不把「选中状态 / 注意力 / 源码定位」当成授权：它们只是上下文，不能生成可用批准凭据，也不能让 `apply_visual_proposal` 接受 AI 自批准。
+- 不为追求竞品对等引入重型渲染引擎、账号系统、多人 CRDT 同步或托管执行环境；这些应留在可选适配器/集成层。
+
+### 对 0.4 / 0.5 的建议与优先级
+
+| 阶段 | 优先级 | 建议 | 完成定义 |
+|---|---|---|---|
+| 0.4 | P0 | 保存人工布局与视口；重新扫描采用「保留已有布局 + 新增节点增量排布」策略；补图形编辑撤销/重做 | 图修订不会无故移动既有节点；撤销只回退视觉状态，不回退已批准的项目写入；有协议兼容与 bundle 兼容性验证 |
+| 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 示例能展示 `changes` → preflight → proposal → 人批准 → apply；任何只读中间产物都不含确认号 |
+| 0.4 | P1 | 引入机器可读 `focus` / 选中状态，并让批注、诊断和下一棒提示引用同一对象 | AI 能从上下文识别「人正在指哪个节点」；焦点变化不签发凭据、不自动解决线程 |
+| 0.4 | P2 | bundle 增加可读摘要与可复现导出清单；发布前用 `repo:check` / `docs:assets:check` 守住文案和资产一致性 | 同一会话导出的 JSON/SVG 摘要稳定；导入仍要求人类确认且清除批准凭据（验证可沿用现有 Vitest 协作集成测试） |
+| 0.5 | P0 | 语言感知扫描、source ranges、符号/测试/框架边界，以及节点到编辑器源码位置的只读跳转 | 节点可引用 `file + line` 证据；扫描器不写文件，提案仍只接受安全路径与显式人类批准 |
+| 0.5 | P1 | 多视图会话（架构/流程/时序共享同一工作区）与可选插件适配器，保持同一编译器/类型体系 | 视图切换不丢失批注锚点；适配器不是核心依赖，也不改变批准协议 |
+| 0.5 | P1 | dry-run、测试命令建议、可选 Git worktree 隔离等审阅检查点 | 检查点只提供信息或隔离环境，不自动批准、不自动写入主工作区 |
+
+增长层面的结论：宣发应把「无需账号、本地优先、开放会话工件、人工批准才写文件」放在首屏，而不是与通用白板比谁的形状库更多；最适合争取的是已经在 IDE 里使用 MCP、又担心 agent 直接改代码的人。对应的宣发要点见 [`docs/LAUNCH_KIT.md`](LAUNCH_KIT.md)，具体交付仍以 [`ROADMAP.md`](../ROADMAP.md) 为准。
+
 ## Sources
 
 - [Mermaid](https://mermaid.ai/) and [Mermaid Chart MCP Server](https://mermaid.ai/docs/ai/mcp-server) — diagram-as-code, AI suggestions, MCP create/validate/render tools.
@@ -65,3 +112,14 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 - [GitDiagram](https://github.com/ahmedkhalf/gitdiagram) — public repository architecture diagrams and Markdown/MCP access.
 - [Open Source Guides: Starting a Project](https://opensource.guide/starting-a-project/) and [Open {re}Source: Planning Your Project](https://openresource.dev/guide/creating/planning-your-project/) — roadmap, README, license, and non-goals guidance.
 - Third-party 2026 category surveys were used to map the market lanes: [best AI diagram tools](https://nimbalyst.com/blog/best-ai-diagram-tools-2026/), [diagram APIs for AI agents](https://www.anchorterminal.com/best/diagramming/), and [visual collaboration tools](https://storyflow.so/blog/best-visual-collaboration-tools-2026/).
+
+### 2026-11-06 增量来源
+
+- [Archyne repository](https://github.com/archyne/archyne) and [Mermaid Editing & Layout](https://mermaid-25331.zendesk.com/hc/en-us/articles/51052468630547-Editing-Layout) — local-first visual Mermaid editing, manual layout, editor-owned files, undo/redo and exports. The research input used the name `Arhyne`; the canonical public repository is `Archyne`.
+- [OpenFlowKit](https://github.com/openflowkit/openflowkit) — local-first repository mapping with file/line evidence, MCP support, and one text DSL plus TypeScript compiler shared by canvas, assistant, CLI and tools. The research input used the `Vrun-design/openflowkit` path; the canonical repository redirects to the organization.
+- [tldraw AI integrations](https://tldraw.dev/docs/ai), [agent starter kit](https://tldraw.dev/starter-kits/agent), and [workflow starter kits](https://tldraw.dev/starter-kits/overview) — agent-readable canvas, direct editor manipulation, and composable visual workflows.
+- [Nereid](https://github.com/bnomei/nereid) — terminal-first Mermaid-backed TUI + MCP, deterministic text renders, attention/selection state, and folder-based session persistence; source-available noncommercial license.
+- [AgentDraw](https://github.com/agentdraw/agentdraw) and [DrawCMS](https://github.com/drawcms/drawcms) — editable local whiteboards, generated-output validation/repair, visual grammar, and undoable agent edit batches.
+- [Mermaid Chart MCP Server](https://mermaid.ai/docs/ai/mcp-server) — account-backed Mermaid MCP comparison point; its documentation states that every tool call requires a Mermaid account.
+- [Excalidraw JSON schema](https://docs.excalidraw.com/docs/codebase/json-schema) — open, portable plaintext JSON visual artifact.
+- [Miro Mermaid diagrams](https://help.miro.com/hc/en-us/articles/7004628130962-Create-Mermaid-diagrams) — Mermaid as a board-editable source of truth.
