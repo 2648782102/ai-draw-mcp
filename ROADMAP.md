@@ -6,7 +6,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Now — 0.3.x: trustworthy closed loop
 
-- Keep the 17 MCP tools small, composable, and easy for an LLM to call correctly.
+- Keep the 18 MCP tools small, composable, and easy for an LLM to call correctly.
 - Make CI reliable on Node 20, 22, and 24, including headless Chrome environments.
 - Preserve the human approval gate: no project write without a proposal, a reviewable diff, and a one-time receipt.
 - Improve first-run clarity: a 30-second Quickstart, troubleshooting, and a reproducible end-to-end demo.
@@ -16,7 +16,7 @@ Product principle: **the visual workspace is the shared language between humans 
 ## Next — 0.4: a better visual conversation
 
 - Keep expanding structured graph editing: grouping, positional editing, and richer edge kinds beyond the current add/remove/reconnect controls.
-- Proposal templates for common intents such as rename module, extract file, add test, and update docs.
+- Read-only proposal templates for common intents such as rename module, extract file, add test, and update docs.
 - Per-proposal impact summary: touched paths, line counts, detected existing files, and safety notices.
 - Export and import a collaboration session as a portable JSON artifact for bug reports and examples.
 - A richer `doctor` command that reports IDE config locations, browser detection, and remediation commands.
@@ -24,6 +24,8 @@ Product principle: **the visual workspace is the shared language between humans 
 - Keep thread resolution separate from proposal approval and one-time write receipts; conversation controls must stay distinct from server-side write authorization.
 
 ## Shipped in 0.3.x maintenance
+
+- `list_change_templates`: a read-only catalogue and draft expander for update-documentation, add-test, and create-module intents; drafts must still pass preflight and human review.
 
 - Read-only `preflight_visual_proposal` for path, filesystem-state, duplicate, and no-op change checks before a proposal is created.
 - Add, remove, rename, and retype nodes from the panel.

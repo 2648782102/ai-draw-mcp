@@ -12,6 +12,7 @@ The detailed Chinese README is [`README.md`](README.md). The full documentation 
 AI: scan_project → editable VisualGraph
 Human: edit node path/group and edge semantics / reply in annotation threads / send a message
 AI: get_visual_context → intentByNode + annotationThreads.nextActor + staleThreads + graphDiffs + activityTimeline + diagnostics
+AI: list_change_templates → optional read-only draft for common intents
 AI: preflight_visual_proposal → safe paths + existing/new files + duplicate/no-op content
 AI: create_visual_proposal → line-by-line diff + impact summary
 Human: review diff → approve → copy the one-time receipt
@@ -44,6 +45,7 @@ If Chrome is outside Puppeteer's cache, set `PUPPETEER_EXECUTABLE_PATH`. CI and 
 - No account, no cloud service, and no public network binding by default.
 - Proposal approval is a human panel action; it does not write files.
 - `preflight_visual_proposal` is a read-only check before `create_visual_proposal`; it never writes files, creates proposals, or issues grants.
+- `list_change_templates` lists or expands common proposal drafts; it is read-only and must be followed by preflight and human review.
 - `apply_visual_proposal` requires a one-time receipt bound to a SHA-256 content hash.
 - Protected paths, binary writes, deletes, path escapes, and workspace-root writes are rejected.
 - Atomic UTF-8 writes roll back on partial failure.

@@ -21,6 +21,7 @@ This guide covers first-run problems that are easiest to diagnose from the local
 | `scan_project` shows the wrong repository | `AI_DRAW_WORKSPACE_ROOT` points at the package or another workspace | Set it to the project root that the AI should scan and write to. |
 | Collaboration workbench has no graph | No scan yet, or a fresh `OUTPUT_DIR` | Ask the AI to call `scan_project`, then click `💬 协作` and refresh. |
 | AI does not see a visual edit | The graph was changed locally but not saved | Click `保存图形`; the server validates the graph and increments `graphRevision`. |
+| AI needs a common change draft | Repeating the same proposal shape by hand | Call `list_change_templates`, then pass the returned `changes` through `preflight_visual_proposal` before creating a proposal. |
 | AI replies too early on an annotation thread | `annotationThreads.nextActor` is `human` | Wait for the human's next reply; AI can read the thread without creating or applying a proposal. |
 | A resolved thread still appears in history | Resolve is a conversation state, not deletion | Use `重开` to continue, or leave it resolved; it never approves or applies a proposal. |
 | A thread is marked `outdated` | The node label or path changed after the discussion | Review the note, then click `确认重锚` if the discussion still applies to the current node. |
@@ -34,6 +35,10 @@ This guide covers first-run problems that are easiest to diagnose from the local
 ### Does the AI write files automatically?
 
 No. `create_visual_proposal` records intent, the human reviews the line diff and impact summary, and `apply_visual_proposal` requires a one-time receipt issued by the panel. The server also validates paths, hashes, atomic writes, and rollback.
+
+### Do change templates approve or write a proposal?
+
+No. `list_change_templates` is a read-only helper that returns reusable draft shapes. It never creates a `ChangeProposal`, writes project files, or issues a receipt; preflight and human approval remain mandatory.
 
 ### Is resolving an annotation the same as approving a change?
 

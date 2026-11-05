@@ -30,7 +30,7 @@ IDE / human browser
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
 3. 人类在面板「💬 协作」工作台改名称/类型/路径/分组、增删节点、编辑连线起点/终点/说明/类型、把批注绑定到选中节点、在批注线程里回复/解决/重开、发消息；每次写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、路径/分组/连线类型、回复结构与引用完整性。
 4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`：节点改名或路径变化后标为 `outdated`，节点删除后标为 `detached`；`staleThreads` 不进入 `intentByNode`，AI 应等待人类确认或重锚，不能把旧讨论当作当前写入意图。
-5. AI 可先调用 `preflight_visual_proposal` 只读检查候选变更的路径、文件存在性、create/update 方向、重复路径、重复内容、编码与体积；这一步不写会话、不创建提案、不签发凭据。随后 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`，也只写会话，不碰项目文件。
+5. AI 可选调用 `list_change_templates`：只读列出更新文档/添加测试/创建模块模板，或把模板展开为引用当前 `graphRevision` 与节点的 `changes` 草稿。它不写会话、不创建提案、不签发凭据。随后 AI 可先调用 `preflight_visual_proposal` 只读检查候选变更的路径、文件存在性、create/update 方向、重复路径、重复内容、编码与体积；这一步同样不写会话、不创建提案、不签发凭据。最后 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`，也只写会话，不碰项目文件。
 6. 面板通过 `/api/collab/proposals/:id/impact` 展示文件/行数/字节数摘要，并通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。
 7. 人类把确认号发给 AI；AI 调用 `apply_visual_proposal`，服务端校验凭据与内容哈希后写入项目，失败自动回滚。
 8. AI 可再次 `scan_project` 生成反映新结构的图，形成闭环。

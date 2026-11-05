@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `src/domain/change-templates.ts` 与 `list_change_templates`：提供更新文档、添加测试、创建模块三个常见意图的只读模板目录与草稿展开；草稿引用当前 `graphRevision` / 节点，不创建提案、不写文件、不签发确认号。
 - `src/domain/graph-diff.ts`、会话 `graphDiffs`、`GET /api/collab/graph/diffs` 与 `get_visual_context.graphDiffs`：记录最近 20 次图形修订的节点/连线字段级差异，面板显示最新修订摘要，bundle 保留审计记录。
 - 图形编辑器支持节点路径/分组与连线类型编辑；`get_visual_context.intentByNode` 暴露 `group`，`edgeLabels` 暴露连线两端路径，帮助 AI 从图上理解更精确的项目结构。
 - `SessionStore.validateGraph()` 校验节点路径/分组与连线类型，拒绝空白字段；面板保存时清空可选字段会删除属性而不是写入空字符串。
@@ -47,6 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- MCP 工具从 17 增至 18；README、英文快速入门、AGENTS、路线图、发布文案、离线一致性检查、工具数量常量与 MCP 测试同步更新。
 - 会话诊断增加 `graph_diffs` 信号与「生成提案前阅读图形差异」下一步提示；bundle 契约测试覆盖 `graphDiffs` 往返与损坏数组拒绝。
 - 协作面板把会话诊断从单行摘要扩展为信号/下一步清单：区分待处理、注意与信息级别，明确只读诊断不提供批准或写入按钮。
 - MCP 工具从 16 增至 17；`create_visual_proposal` 描述、README、AGENTS、测试与 `TOOL_COUNT` 同步指向 `preflight_visual_proposal`。

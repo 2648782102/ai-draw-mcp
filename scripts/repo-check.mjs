@@ -45,6 +45,7 @@ const docAssetGenerator = await read("scripts/generate-doc-assets.mjs");
 const governance = await read("docs/GOVERNANCE.md");
 const adrIndex = await read("docs/ADR/README.md");
 const releasing = await read("RELEASING.md");
+const changeTemplateDomain = await read("src/domain/change-templates.ts");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -66,7 +67,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
-check(launchKit.includes("17 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 17 MCP tools");
+check(launchKit.includes("18 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 18 MCP tools");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -161,7 +162,11 @@ check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not do
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
-check(readme.includes("17 个 MCP 工具"), "README.md does not reflect the 17 MCP tools");
+check(readme.includes("18 个 MCP 工具"), "README.md does not reflect the 18 MCP tools");
+check(readme.includes("list_change_templates"), "README.md does not document change templates");
+check(agents.includes("change-templates.ts"), "AGENTS.md does not list the change template module");
+check(agents.includes("list_change_templates"), "AGENTS.md does not document change templates");
+check(changeTemplateDomain.includes("does not create a proposal"), "change template guidance does not state its read-only boundary");
 check(packageJson.description?.includes("visual collaboration"), "package.json description is missing the product positioning");
 check(agents.includes("anchorStatus"), "AGENTS.md does not document stale annotation anchors");
 check(architecture.includes("annotationThreads.nextActor"), "ARCHITECTURE.md does not document annotation thread handoff");

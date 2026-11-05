@@ -43,7 +43,7 @@
 
 ## 功能
 
-- **17 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`reply_to_visual_context`、`preflight_visual_proposal`、`create_visual_proposal`、`apply_visual_proposal`
+- **18 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
 - **人机双向协作工作台** — 项目结构扫描、节点名称/类型/路径/分组与连线语义编辑、批注线程（回复/解决/重开/失锚）、会话诊断、对话、提案批准；WebSocket 实时同步给 AI 和面板
 - **人工确认的安全变更** — 面板批准只生成一次性凭据；AI 凭凭据应用提案，拒绝危险路径，写入失败自动回滚
 - **实时双向面板** — AI 绘图后通过 WebSocket 推送到面板；面板里也可手动编辑源码、实时预览、保存回磁盘
@@ -87,6 +87,7 @@ AI: scan_project → 生成项目结构图
 人: 在「💬 协作」里改名 / 批注 / 发消息
 AI: get_visual_context → 理解意图与活动时间线
 AI: reply_to_visual_context → 在面板里回信、回复节点批注线程并标记已处理
+AI: list_change_templates → 可选：把常见意图展开成只读候选草稿
 AI: preflight_visual_proposal → 只读检查路径/文件状态/重复内容
 AI: create_visual_proposal → 生成变更提案
 人: 查看逐行差异并点击「批准」→ 复制一次性确认号
@@ -103,6 +104,8 @@ AI: 再次 scan_project → 图与代码保持一致
 > **只读会话诊断**：面板、`/api/collab/diagnostics` 与 `get_visual_context.diagnostics` 汇总图/线程/提案状态、图形修订差异、待处理信号、下一步动作和安全不变量，帮助人和 AI 快速判断「现在该谁做什么」。诊断不写会话、不签发凭据、不授权项目写入。
 
 > **图形修订差异**：每次保存图形会记录字段级 `graphDiffs`（节点/连线增删、`label` / `kind` / `path` / `group` / 连线端点变化）；AI 通过 `get_visual_context.graphDiffs` 精确读取人改了哪张图，而不是从聊天文本猜测。差异只是审计上下文，不自动生成或批准项目变更。
+
+> **只读变更模板**：`list_change_templates` 列出「更新文档 / 添加测试 / 创建模块」三个常见意图，并可把它们展开成带路径、完整 UTF-8 内容、`graphRevision` 与引用节点的候选草稿。模板只生成文本，不创建提案、不写文件、不签发确认号；AI 仍需先 `preflight_visual_proposal`，再由 `create_visual_proposal` 交给人类审阅。
 
 详细架构与安全模型见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)，贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
@@ -289,7 +292,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 
 ## 工具列表
 
-> 当前版本 `0.3.0` 共 17 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT` 和测试保护。
+> 当前版本 `0.3.0` 共 18 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT` 和测试保护。
 
 | 工具 | 用途 |
 |------|------|
@@ -309,6 +312,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 | `reply_to_visual_context` | AI 在面板里回复人类、回复节点批注线程，并可把消息/批注标记为已回答、已解决 |
 | `create_visual_proposal` | 创建待确认的项目变更提案，不直接写项目文件 |
 | `preflight_visual_proposal` | 创建提案前只读检查候选变更的路径、文件状态、重复内容与阻断项 |
+| `list_change_templates` | 列出或展开常用变更模板草稿；只读，不创建提案、不写文件、不签发确认号 |
 | `apply_visual_proposal` | 应用经人类批准的提案；拒绝危险路径，失败自动回滚 |
 
 ---

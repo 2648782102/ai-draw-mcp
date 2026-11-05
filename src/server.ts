@@ -37,8 +37,9 @@ import { registerCreateVisualProposal } from "./tools/create-visual-proposal.js"
 import { registerApplyVisualProposal } from "./tools/apply-visual-proposal.js";
 import { registerReplyToVisualContext } from "./tools/reply-to-visual-context.js";
 import { registerPreflightVisualProposal } from "./tools/preflight-visual-proposal.js";
+import { registerListChangeTemplates } from "./tools/list-change-templates.js";
 
-const TOOL_COUNT = 17; // keep in sync when adding tools
+const TOOL_COUNT = 18; // keep in sync when adding tools
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -79,6 +80,7 @@ export async function createServer() {
   registerApplyVisualProposal(mcp, ctx);
   registerReplyToVisualContext(mcp, ctx);
   registerPreflightVisualProposal(mcp, ctx);
+  registerListChangeTemplates(mcp, ctx);
 
   logger.info(`${TOOL_COUNT} MCP tools registered`);
 

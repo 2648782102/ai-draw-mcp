@@ -9,6 +9,7 @@ const COLLAB_TOOLS = [
   "apply_visual_proposal",
   "reply_to_visual_context",
   "preflight_visual_proposal",
+  "list_change_templates",
 ];
 
 async function withClient(port, callback) {
@@ -35,12 +36,37 @@ function textOf(result) {
   return result.content.map((item) => item.text ?? "").join("\n");
 }
 
+function jsonAfter(text, marker) {
+  const start = text.indexOf(marker) + marker.length;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let end = -1;
+  for (let index = start; index < text.length; index += 1) {
+    const character = text[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === "\"") inString = false;
+      continue;
+    }
+    if (character === "\"") inString = true;
+    else if (character === "{") depth += 1;
+    else if (character === "}") {
+      depth -= 1;
+      if (depth === 0) { end = index + 1; break; }
+    }
+  }
+  if (end < 0) throw new Error(`No complete JSON object after ${marker}`);
+  return JSON.parse(text.slice(start, end));
+}
+
 describe("MCP server", () => {
   it("registers legacy and collaboration tools", async () => {
     await withClient(3421, async (client) => {
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name);
-      expect(names).toHaveLength(17);
+      expect(names).toHaveLength(18);
       expect(names).toContain("render_diagram");
       expect(names).toContain("delete_diagram");
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
@@ -104,6 +130,29 @@ describe("MCP server", () => {
       expect(summary.safe).toBe(true);
       expect(summary.findings.every((finding) => finding.severity !== "blocker")).toBe(true);
       expect(text).not.toContain("PROPOSAL_JSON:");
+    });
+  }, 30_000);
+
+  it("lists change templates and expands a read-only draft", async () => {
+    await withClient(3426, async (client) => {
+      const listed = textOf(await client.callTool({ name: "list_change_templates", arguments: {} }));
+      expect(listed).toContain("TEMPLATES_JSON:");
+      const templates = jsonAfter(listed, "TEMPLATES_JSON:");
+      expect(templates.templates.map((template) => template.id)).toContain("update_documentation");
+
+      const expanded = textOf(await client.callTool({
+        name: "list_change_templates",
+        arguments: {
+          template_id: "create_module",
+          path: "examples/template-stub.ts",
+          title: "templateStub",
+        },
+      }));
+      expect(expanded).toContain("DRAFT_JSON:");
+      const draft = jsonAfter(expanded, "DRAFT_JSON:");
+      expect(draft.changes[0]).toMatchObject({ kind: "create", path: "examples/template-stub.ts" });
+      expect(expanded).not.toContain("PROPOSAL_JSON:");
+      expect(expanded).toContain("preflight_visual_proposal");
     });
   }, 30_000);
 });
