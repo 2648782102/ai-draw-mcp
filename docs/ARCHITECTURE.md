@@ -43,6 +43,8 @@ IDE / human browser
 
 `GET /api/collab/diagnostics` 与 `get_visual_context.diagnostics` 从同一快照派生 version 1 健康摘要：图/线程/提案计数、活动总量、信号、下一步动作，以及 `approvalGrantsExported: false`、`staleThreadsExcludedFromIntent: true`、`projectWritesRequireHumanApproval: true` 三个安全不变量。诊断只读、无持久化、无凭据，也不替代完整上下文。
 
+面板把诊断信号与下一步动作展开为可扫读清单；`action` 信号提示人或 AI 的下一棒，`warning` 提示已失败/等待应用的提案，`info` 只描述状态。清单不提供批准按钮，也不改变会话。
+
 ## Safety model
 
 - 预览服务默认只监听 `PREVIEW_HOST`（`127.0.0.1`）。

@@ -111,6 +111,7 @@ for (const [label, file, needle] of [
   ["session diagnostics endpoint", previewServer, "buildSessionDiagnostics"],
   ["session diagnostics context", getVisualContext, "buildSessionDiagnostics"],
   ["session diagnostics panel", panel, "diagnosticsSummary"],
+  ["session diagnostics signal list", panel, "diagnosticsList"],
   ["session diagnostics domain", await read("src/domain/session-diagnostics.ts"), "buildSessionDiagnostics"],
   ["annotation anchor status", types, "anchorStatus"],
   ["annotation anchor activity", activityTimeline, "annotation_anchor"],
