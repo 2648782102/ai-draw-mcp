@@ -42,8 +42,10 @@ export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS
 1. `npm run lint`（当前等价于 TypeScript 严格检查）
 2. `npm run build`
 3. `npm test`（含领域契约测试：bundle、影响摘要、路径安全、内容哈希与一次性批准凭据）
-4. `npm run doctor`
-5. 更新文档与 `CHANGELOG.md`
+4. `npm run test:examples:workflow`（CI 中的只读工作流示例）
+5. `npm run repo:check`（文档、工具数量、端点与宣发文案防漂移）
+6. `npm run doctor`
+7. 更新文档与 `CHANGELOG.md`；可直接运行 `npm run check` 覆盖以上检查与 `npm pack --dry-run`
 
 提交信息建议使用 Conventional Commits：`feat:`, `fix:`, `docs:`, `test:`, `chore:`, `refactor:`。
 
@@ -54,3 +56,5 @@ export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS
 ## 安全边界
 
 提案应用器只接受 UTF-8 文本文件的 `create`/`update`/`mkdir`，禁止删除、路径逃逸、`.git`、`node_modules`、`dist`、`.env*` 和锁文件。任何放宽边界的改动都需要在 PR 中说明威胁模型和测试。
+
+只读投影（如 `SELECTION_SCOPE_JSON` 与 `SELECTION_WORKORDER_JSON`）不得携带项目文件内容、逐行 diff、可用批准凭据或工作区绝对路径；候选路径不是写入许可。新增工具或 JSON 契约时，需同步更新 `SERVER_TOOL_COUNT`、能力清单、AGENTS、架构、安全、测试、示例和离线检查。

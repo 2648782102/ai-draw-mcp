@@ -21,3 +21,13 @@ body:
     id: alternatives
     attributes:
       label: Alternatives considered
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety boundary
+      description: Does this change tool discovery, persisted state, approval receipts, project writes, absolute paths, or a read-only JSON projection?
+  - type: textarea
+    id: validation
+    attributes:
+      label: Expected validation
+      description: Which MCP/panel/domain/offline checks should prove the human and AI sides stay aligned?

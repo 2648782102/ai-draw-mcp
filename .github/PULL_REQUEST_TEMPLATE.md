@@ -8,12 +8,15 @@
 - [ ] Collaboration protocol / persisted session changed
 - [ ] Preview panel UX changed
 - [ ] Security boundary changed (explain threat model below)
+- [ ] Read-only JSON projection, tool catalogue, or ADR changed
 
 ## Validation
 
 - [ ] `npm run lint`
 - [ ] `npm run build`
 - [ ] `npm test`
+- [ ] `npm run test:examples:workflow`
+- [ ] `npm run repo:check`
 - [ ] `npm run doctor`
 - [ ] Updated `README.md`, `AGENTS.md`, `CHANGELOG.md`
 

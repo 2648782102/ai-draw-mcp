@@ -109,6 +109,9 @@ const englishReadme = englishQuickstart;
 const ci = await read(".github/workflows/ci.yml");
 const metadataWorkflow = await read(".github/workflows/maintain-github-metadata.yml");
 const releaseWorkflow = await read(".github/workflows/release.yml");
+const contributing = await read("CONTRIBUTING.md");
+const pullRequestTemplate = await read(".github/PULL_REQUEST_TEMPLATE.md");
+const featureRequestTemplate = await read(".github/ISSUE_TEMPLATE/feature_request.yml");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -748,6 +751,11 @@ check(packageJson.scripts?.["docs:assets:check"] === "node scripts/generate-doc-
 check(!/gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}/.test(launchKit + githubMaintenance + readme + agents + changelog), "A GitHub token-like value appears in tracked maintenance copy");
 check(!/labels:\s*\[(?:[^\]]*\bdependencies\b|[^]]*\bci\b)/.test(dependabotConfig), "dependabot.yml references labels the repository does not own");
 check(dependencyMaintenance.includes("label references were removed"), "DEPENDENCY_MAINTENANCE.md does not record the label decision");
+check(contributing.includes("npm run repo:check"), "CONTRIBUTING.md does not document the offline repository check");
+check(contributing.includes("SELECTION_WORKORDER_JSON"), "CONTRIBUTING.md does not document the read-only projection boundary");
+check(pullRequestTemplate.includes("npm run test:examples:workflow"), "PR template does not require the reproducible workflow example");
+check(pullRequestTemplate.includes("Read-only JSON projection"), "PR template does not flag read-only contract changes");
+check(featureRequestTemplate.includes("Safety boundary"), "Feature request template does not ask for safety implications");
 
 if (failures.length) {
   console.error("❌ Offline repository checks failed:");
