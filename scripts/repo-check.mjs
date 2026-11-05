@@ -82,6 +82,7 @@ for (const [id, needle] of [
 for (const endpoint of [
   "/api/collab/annotations/:id/reply",
   "/api/collab/annotations/:id/status",
+  "/api/collab/annotations/:id/anchor",
   "/api/collab/activity",
   "/api/collab/bundle/import",
   "/api/collab/proposals/:id/impact",
@@ -94,9 +95,14 @@ for (const [label, file, needle] of [
   ["annotation thread serialization", sessionBundle, "serializeReplies"],
   ["annotation thread validation", sessionStore, "parseAnnotationReplies"],
   ["annotationThreads context", getVisualContext, "summarizeAnnotationThreads"],
+  ["stale annotation threads context", getVisualContext, "staleThreads"],
   ["annotation_replies tool argument", replyTool, "annotation_replies"],
   ["activity timeline derivation", activityTimeline, "export function buildActivityTimeline"],
   ["activity timeline context", getVisualContext, "activityTimeline"],
+  ["annotation anchor status", types, "anchorStatus"],
+  ["annotation anchor activity", activityTimeline, "annotation_anchor"],
+  ["human re-anchor confirmation", previewServer, "Human confirmation is required"],
+  ["annotation re-anchor UI", panel, "data-annotation-anchor"],
   ["approval downgrade in bundle", sessionBundleSource, 'status: proposal.status === "approved" ? "pending" : proposal.status'],
   ["protected path checks", pathSafety, "DENIED_SEGMENTS"],
   ["one-time approval validation", approval, "grant.usedAt"],
@@ -129,7 +135,9 @@ check(agents.includes("scripts/github-maintenance.mjs"), "AGENTS.md does not doc
 check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not document the versioned documentation asset generator");
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
+check(agents.includes("anchorStatus"), "AGENTS.md does not document stale annotation anchors");
 check(architecture.includes("annotationThreads.nextActor"), "ARCHITECTURE.md does not document annotation thread handoff");
+check(architecture.includes("anchorStatus"), "ARCHITECTURE.md does not document stale annotation anchors");
 check(architecture.includes("activityTimeline"), "ARCHITECTURE.md does not document the derived activity timeline");
 check(agents.includes("activity-timeline.ts"), "AGENTS.md does not list the activity timeline module");
 check(agents.includes("/api/collab/activity"), "AGENTS.md does not document the activity endpoint");

@@ -10,7 +10,7 @@ import {
   parseSessionBundle,
   type SessionBundle,
 } from "../domain/session-bundle.js";
-import { parseAnnotationReplies } from "../domain/annotation-thread.js";
+import { parseAnnotationReplies, summarizeAnnotationThreads, type ThreadAnchorStatus } from "../domain/annotation-thread.js";
 import type { ApprovalGrant, ApprovalReceipt } from "../domain/approval.js";
 import { assertProposalHash, proposalContentHash } from "../domain/proposal-hash.js";
 import type {
@@ -84,13 +84,44 @@ function validateGraph(graph: VisualGraph): void {
   for (const annotation of graph.annotations) {
     if (!annotation.id || typeof annotation.body !== "string")
       throw new Error("Graph annotation requires id and body");
-    if (annotation.nodeId && !nodeIds.has(annotation.nodeId))
+    if (annotation.nodeId && !nodeIds.has(annotation.nodeId) && annotation.anchorStatus !== "detached")
       throw new Error(`Graph annotation references missing node: ${annotation.id}`);
+    const validAnchorStatuses: ThreadAnchorStatus[] = ["anchored", "detached", "outdated"];
+    if (annotation.anchorStatus !== undefined && !validAnchorStatuses.includes(annotation.anchorStatus))
+      throw new Error(`Graph annotation has invalid anchorStatus: ${annotation.id}`);
     annotation.replies = parseAnnotationReplies(
       annotation.replies,
       `Graph annotation ${annotation.id} replies`,
     );
   }
+}
+
+function anchorAnnotations(graph: VisualGraph, graphRevision: number): number {
+  const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+  let changed = 0;
+  for (const annotation of graph.annotations) {
+    const node = annotation.nodeId ? nodeById.get(annotation.nodeId) : undefined;
+    const nextStatus: ThreadAnchorStatus = annotation.anchorStatus === "detached"
+      ? "detached"
+      : annotation.nodeId && !node
+        ? "detached"
+        : annotation.anchorStatus === "outdated" || (node && (
+          (annotation.nodeLabel && annotation.nodeLabel !== node.label)
+          || (annotation.nodePath && annotation.nodePath !== node.path)
+        ))
+          ? "outdated"
+          : "anchored";
+    if (annotation.anchorStatus !== nextStatus) {
+      annotation.anchorStatus = nextStatus;
+      changed += 1;
+    }
+    annotation.graphRevision = annotation.graphRevision ?? graphRevision;
+    if (node) {
+      annotation.nodeLabel = annotation.nodeLabel ?? node.label;
+      annotation.nodePath = annotation.nodePath ?? node.path;
+    }
+  }
+  return changed;
 }
 
 function validateChange(workspaceRoot: string, change: ProjectChange): void {
@@ -223,10 +254,12 @@ export class SessionStore {
 
   async setGraph(graph: VisualGraph, activeDiagramId = graph.diagramId): Promise<SessionSnapshot> {
     validateGraph(graph);
+    const nextRevision = this.snapshot.graphRevision + 1;
+    anchorAnnotations(graph, nextRevision);
     return this.mutate((draft) => {
       draft.graph = graph;
       draft.activeDiagramId = activeDiagramId;
-      draft.graphRevision += 1;
+      draft.graphRevision = nextRevision;
     });
   }
 
@@ -279,6 +312,35 @@ export class SessionStore {
     });
   }
 
+  async refreshAnnotationAnchors(): Promise<SessionSnapshot> {
+    return this.mutate((draft) => {
+      if (!draft.graph) return;
+      const changed = anchorAnnotations(draft.graph, draft.graphRevision);
+      if (changed > 0) draft.graphRevision += 1;
+    });
+  }
+
+  async reanchorAnnotation(id: string): Promise<AnnotationPin> {
+    let updated: AnnotationPin | undefined;
+    await this.mutate((draft) => {
+      const annotation = draft.graph?.annotations.find((item) => item.id === id);
+      if (!annotation) throw new Error(`Annotation not found: ${id}`);
+      const node = annotation.nodeId
+        ? draft.graph?.nodes.find((item) => item.id === annotation.nodeId)
+        : undefined;
+      if (annotation.nodeId && !node)
+        throw new Error(`Cannot re-anchor a thread whose node no longer exists: ${id}`);
+      annotation.anchorStatus = "anchored";
+      annotation.graphRevision = draft.graphRevision;
+      if (node) {
+        annotation.nodeLabel = node.label;
+        annotation.nodePath = node.path;
+      }
+      updated = clone(annotation);
+    });
+    return updated!;
+  }
+
   async updateAnnotation(
     id: string,
     action: "reply" | "resolve" | "reopen",
@@ -302,9 +364,19 @@ export class SessionStore {
       } else {
         annotation.resolved = action === "resolve";
       }
+      if (action === "reopen") {
+        const node = annotation.nodeId
+          ? draft.graph?.nodes.find((item) => item.id === annotation.nodeId)
+          : undefined;
+        if (annotation.nodeId && !node) annotation.anchorStatus = "detached";
+      }
       updated = clone(annotation);
     });
     return updated!;
+  }
+
+  getAnnotationThreadSummary() {
+    return summarizeAnnotationThreads(this.snapshot.graph);
   }
 
   async createProposal(input: {

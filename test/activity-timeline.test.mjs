@@ -90,4 +90,23 @@ describe("activity timeline", () => {
     expect(timeline).toMatchObject({ total: 1, returned: 1, nextActor: "none" });
     expect(timeline.items[0].kind).toBe("session_created");
   });
+
+  it("records detached anchors and warns AI against stale intent", () => {
+    const stale = {
+      ...snapshot,
+      graph: {
+        ...snapshot.graph,
+        annotations: [{
+          ...snapshot.graph.annotations[0],
+          nodeId: "removed",
+          nodeLabel: "old.md",
+          anchorStatus: "detached",
+        }],
+      },
+    };
+    const timeline = buildActivityTimeline(stale);
+    expect(timeline.items.map((item) => item.kind)).toContain("annotation_anchor");
+    expect(timeline.guidance).toContain("detached or outdated");
+    expect(timeline.nextActor).toBe("human");
+  });
 });

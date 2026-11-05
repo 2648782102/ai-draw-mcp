@@ -20,6 +20,7 @@
  *   POST /api/collab/annotations add a graph annotation
  *   POST /api/collab/annotations/:id/reply   reply to an annotation thread
  *   POST /api/collab/annotations/:id/status  resolve or reopen a thread
+ *   POST /api/collab/annotations/:id/anchor   refresh a stale anchor after human review
  *   GET  /api/collab/proposals   list change proposals
  *   GET  /api/collab/proposals/:id/diff  file diffs for a proposal
  *   POST /api/collab/proposals   create a proposal
@@ -175,11 +176,19 @@ export class PreviewServer {
       if (!body.body?.trim()) return res.status(400).json({ error: "Annotation body is required" });
       const current = this.sessions.getGraph();
       if (!current) return res.status(404).json({ error: "No graph yet" });
+      const targetNode = body.nodeId
+        ? current.nodes.find((node) => node.id === body.nodeId)
+        : undefined;
       if (body.nodeId && !current.nodes.some((node) => node.id === body.nodeId))
         return res.status(400).json({ error: `Unknown annotation node: ${body.nodeId}` });
+      const nextRevision = this.sessions.getSnapshot().graphRevision + 1;
       const annotation = {
         id: makeId("ann"),
         nodeId: body.nodeId,
+        nodeLabel: targetNode?.label,
+        nodePath: targetNode?.path,
+        anchorStatus: "anchored" as const,
+        graphRevision: nextRevision,
         x: body.x,
         y: body.y,
         body: body.body.trim(),
@@ -188,9 +197,7 @@ export class PreviewServer {
       };
       current.annotations.push(annotation);
       const snapshot = await this.sessions.setGraph(current);
-      const targetLabel = body.nodeId
-        ? current.nodes.find((node) => node.id === body.nodeId)?.label
-        : undefined;
+      const targetLabel = targetNode?.label;
       const message = await this.sessions.addMessage("human", `批注${targetLabel ? ` @ ${targetLabel}` : ""}：${annotation.body}`, {
         diagramId: current.diagramId,
         status: "pending",
@@ -244,6 +251,34 @@ export class PreviewServer {
           {
             diagramId: snapshot.activeDiagramId,
             metadata: { event: "annotation_status", annotationId: annotation.id, status: payload.status },
+          },
+        );
+        this.broadcast({
+          type: "graph_updated",
+          graph: this.sessions.getGraph(),
+          revision: snapshot.graphRevision,
+          message,
+        });
+        res.json({ ok: true, annotation, graphRevision: snapshot.graphRevision });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+
+    this.app.post("/api/collab/annotations/:id/anchor", async (req, res) => {
+      const payload = req.body as { confirmedBy?: string };
+      if (payload.confirmedBy !== "human")
+        return res.status(403).json({ error: "Human confirmation is required" });
+      try {
+        const annotation = await this.sessions.reanchorAnnotation(req.params.id);
+        const snapshot = this.sessions.getSnapshot();
+        const message = await this.sessions.addMessage(
+          "human",
+          `已确认并重锚节点批注线程「${annotation.body.slice(0, 60)}」`,
+          {
+            diagramId: snapshot.activeDiagramId,
+            status: "pending",
+            metadata: { event: "annotation_anchor", annotationId: annotation.id, anchorStatus: "anchored" },
           },
         );
         this.broadcast({

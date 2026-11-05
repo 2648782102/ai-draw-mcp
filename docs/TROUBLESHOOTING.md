@@ -23,6 +23,8 @@ This guide covers first-run problems that are easiest to diagnose from the local
 | AI does not see a visual edit | The graph was changed locally but not saved | Click `保存图形`; the server validates the graph and increments `graphRevision`. |
 | AI replies too early on an annotation thread | `annotationThreads.nextActor` is `human` | Wait for the human's next reply; AI can read the thread without creating or applying a proposal. |
 | A resolved thread still appears in history | Resolve is a conversation state, not deletion | Use `重开` to continue, or leave it resolved; it never approves or applies a proposal. |
+| A thread is marked `outdated` | The node label or path changed after the discussion | Review the note, then click `确认重锚` if the discussion still applies to the current node. |
+| A thread is marked `detached` | Its node was removed from the graph | Resolve/reopen the conversation, or add a fresh annotation. The old `nodeId` is kept for audit and cannot be auto-re-anchored. |
 | Proposal cannot be applied | No human approval, receipt expired, hash changed, or protected path | Re-open the line diff, click `批准` again, give the fresh one-time receipt to the AI, and keep paths inside the workspace. |
 | Approval receipt is rejected | The proposal changed after approval, or the receipt was already used | Create a new proposal; approvals are one-time and bound to the SHA-256 content hash. |
 | PNG text renders as boxes | The rendering environment lacks Chinese fonts | Prefer `DEFAULT_FORMAT=svg`, or install a CJK font for Chrome. |
@@ -36,6 +38,10 @@ No. `create_visual_proposal` records intent, the human reviews the line diff and
 ### Is resolving an annotation the same as approving a change?
 
 No. Resolve/reopen and the activity timeline are conversation/derived views. They never grant project-write capability.
+
+### What does a stale annotation thread mean?
+
+`staleThreads` contains `outdated` or `detached` threads. `outdated` means a node label/path changed; `detached` means the original node no longer exists. Both require human review: AI should not turn their old text into a proposal, and re-anchoring is a human panel action that never writes project files.
 
 ### Does the panel require an account or cloud service?
 

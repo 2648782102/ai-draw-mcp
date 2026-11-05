@@ -96,6 +96,8 @@ describe("collaboration session", () => {
       const graphAfterAnnotation = await collabFetchGraph(base, headers);
       expect(graphAfterAnnotation.annotations.length).toBe(2);
       expect(graphAfterAnnotation.annotations[1].nodeId).toBe("new_module");
+      expect(graphAfterAnnotation.annotations[1].anchorStatus).toBe("anchored");
+      expect(graphAfterAnnotation.annotations[1].nodeLabel).toBe("shared");
       expect(sessions.getMessages().some((message) => message.body.includes("@ shared"))).toBe(true);
 
       const threadReply = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/reply`, {
@@ -127,6 +129,62 @@ describe("collaboration session", () => {
       });
       expect(threadReopen.ok).toBe(true);
       expect((await collabFetchGraph(base, headers)).annotations[1].resolved).toBe(false);
+
+      const renamedGraph = {
+        ...(await collabFetchGraph(base, headers)),
+        nodes: (await collabFetchGraph(base, headers)).nodes.map((node) =>
+          node.id === "new_module" ? { ...node, label: "shared-renamed", path: "src/shared.ts" } : node),
+      };
+      const renameResponse = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ ...renamedGraph, annotations: renamedGraph.annotations.map((annotation) => ({
+          ...annotation,
+          anchorStatus: annotation.nodeId === "new_module" ? undefined : annotation.anchorStatus,
+        })) }),
+      });
+      expect(renameResponse.ok).toBe(true);
+      const outdatedGraph = await collabFetchGraph(base, headers);
+      expect(outdatedGraph.annotations[1].anchorStatus).toBe("outdated");
+      expect(sessions.getAnnotationThreadSummary()).toMatchObject({ outdated: 1, nextActor: "human" });
+
+      const unauthorizedAnchor = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/anchor`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ confirmedBy: "ai" }),
+      });
+      expect(unauthorizedAnchor.status).toBe(403);
+
+      const reanchor = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/anchor`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ confirmedBy: "human" }),
+      });
+      expect(reanchor.ok).toBe(true);
+      const reanchoredGraph = await collabFetchGraph(base, headers);
+      expect(reanchoredGraph.annotations[1]).toMatchObject({
+        anchorStatus: "anchored",
+        nodeLabel: "shared-renamed",
+        nodePath: "src/shared.ts",
+      });
+
+      const detachedGraph = await collabFetchGraph(base, headers);
+      detachedGraph.nodes = detachedGraph.nodes.filter((node) => node.id !== "new_module");
+      detachedGraph.edges = [];
+      detachedGraph.annotations = detachedGraph.annotations.map((annotation) =>
+        annotation.nodeId === "new_module"
+          ? { ...annotation, anchorStatus: "detached" }
+          : annotation);
+      const detachedResponse = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(detachedGraph),
+      });
+      expect(detachedResponse.ok).toBe(true);
+      const finalGraph = await collabFetchGraph(base, headers);
+      const detachedAnnotation = finalGraph.annotations.find((annotation) => annotation.nodeLabel === "shared-renamed");
+      expect(detachedAnnotation).toMatchObject({ anchorStatus: "detached", nodeId: "new_module" });
+      expect(sessions.getAnnotationThreadSummary().detached).toBe(1);
 
       const invalidThreadStatus = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/status`, {
         method: "POST",

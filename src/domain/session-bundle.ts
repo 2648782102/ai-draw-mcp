@@ -74,6 +74,11 @@ function parseAnnotations(value: unknown): AnnotationPin[] {
     return {
       id: assertString(item.id, `session.graph.annotations[${index}].id`),
       nodeId: typeof item.nodeId === "string" ? item.nodeId : undefined,
+      nodeLabel: typeof item.nodeLabel === "string" ? item.nodeLabel : undefined,
+      nodePath: typeof item.nodePath === "string" ? item.nodePath : undefined,
+      graphRevision: typeof item.graphRevision === "number" ? item.graphRevision : undefined,
+      anchorStatus: item.anchorStatus === "anchored" || item.anchorStatus === "detached" || item.anchorStatus === "outdated"
+        ? item.anchorStatus : undefined,
       x: typeof item.x === "number" ? item.x : undefined,
       y: typeof item.y === "number" ? item.y : undefined,
       body: assertString(item.body, `session.graph.annotations[${index}].body`),

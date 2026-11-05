@@ -71,4 +71,40 @@ describe("annotation threads", () => {
       threads: [],
     });
   });
+
+  it("marks changed and missing node anchors as stale and hands control to the human", () => {
+    const staleGraph = {
+      ...graph,
+      nodes: [{ id: "readme", label: "README.zh.md", kind: "documentation", path: "README.zh.md" }],
+      annotations: [
+        {
+          id: "ann_outdated",
+          nodeId: "readme",
+          nodeLabel: "README.md",
+          nodePath: "README.md",
+          body: "把说明改成中文",
+          author: "human",
+          createdAt: "2026-11-06T00:00:00.000Z",
+        },
+        {
+          id: "ann_detached",
+          nodeId: "removed",
+          nodeLabel: "old.ts",
+          body: "讨论旧模块",
+          author: "human",
+          createdAt: "2026-11-06T00:01:00.000Z",
+          anchorStatus: "detached",
+        },
+      ],
+    };
+    const summary = summarizeAnnotationThreads(staleGraph);
+    expect(summary).toMatchObject({ detached: 1, outdated: 1, nextActor: "human" });
+    expect(summary.guidance).toContain("do not create a proposal");
+    expect(summary.threads.find((thread) => thread.id === "ann_outdated")).toMatchObject({
+      anchorStatus: "outdated",
+      nextActor: "human",
+    });
+    expect(summary.threads.find((thread) => thread.id === "ann_outdated")?.anchorDiff?.to).toContain("README.zh.md");
+    expect(summary.threads.find((thread) => thread.id === "ann_detached")?.nodeLabel).toBe("old.ts");
+  });
 });

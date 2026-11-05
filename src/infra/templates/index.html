@@ -230,10 +230,13 @@
     .annotation-resolved { opacity: .55; text-decoration: line-through; }
     .annotation-thread { padding: 7px; margin-bottom: 7px; border: 1px solid var(--border); border-left: 2px solid var(--accent); border-radius: 5px; background: var(--surface2); font-size: 11px; line-height: 1.45; }
     .annotation-thread.resolved { border-left-color: var(--green); opacity: .72; }
+    .annotation-thread.detached { border-left-color: var(--red, #ff6b6b); }
+    .annotation-thread.outdated { border-left-color: var(--orange); }
     .annotation-thread-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px; }
     .annotation-thread-meta { color: var(--text-muted); font-size: 9px; }
     .annotation-thread-meta .next { color: var(--orange); }
     .annotation-thread-meta .target { color: var(--accent); }
+    .annotation-thread-meta .stale { color: var(--orange); font-weight: 600; }
     .annotation-thread button { height: 20px; padding: 0 7px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; font-size: 9px; }
     .annotation-thread button:hover { border-color: var(--accent); }
     .annotation-body { margin-bottom: 5px; word-break: break-word; }
@@ -244,6 +247,7 @@
     .annotation-reply .meta { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 2px; }
     .annotation-empty { color: var(--text-muted); font-size: 9px; padding: 3px 0; }
     .annotation-reply-row { display: flex; gap: 4px; margin-top: 6px; }
+    .annotation-anchor-note { color: var(--orange); font-size: 9px; margin-top: 4px; }
     .annotation-reply-row input { min-width: 0; flex: 1; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); font-size: 10px; }
     #annotationList { flex: 0 0 220px; max-height: 220px; }
     .proposal-facts { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 6px; }
@@ -1077,7 +1081,7 @@ function removeNode(index) {
   collabGraph.nodes.splice(index, 1);
   collabGraph.edges = collabGraph.edges.filter((edge) => edge.from !== node.id && edge.to !== node.id);
   collabGraph.annotations = collabGraph.annotations.map((annotation) =>
-    annotation.nodeId === node.id ? { ...annotation, nodeId: undefined } : annotation);
+    annotation.nodeId === node.id ? { ...annotation, anchorStatus: 'detached' } : annotation);
   if (selectedNodeId === node.id) selectedNodeId = null;
   renderGraphEditor();
 }
@@ -1127,6 +1131,7 @@ function activityKindLabel(kind) {
     annotation_created: '批注',
     annotation_replied: '线程回复',
     annotation_status: '线程状态',
+    annotation_anchor: '失锚/过期',
     proposal_created: '提案',
     proposal_status: '提案状态',
   })[kind] || kind;
@@ -1141,12 +1146,17 @@ function renderAnnotations(annotations) {
   if (!target) return;
   const labels = new Map((collabGraph?.nodes ?? []).map((node) => [node.id, node.label]));
   target.innerHTML = annotations.length ? annotations.map((annotation) => `
-    <article class="annotation-thread ${annotation.resolved ? 'resolved' : ''}" data-annotation-id="${escapeHtml(annotation.id)}">
+    <article class="annotation-thread ${annotation.resolved ? 'resolved' : ''} ${annotation.anchorStatus === 'detached' ? 'detached' : ''} ${annotation.anchorStatus === 'outdated' ? 'outdated' : ''}" data-annotation-id="${escapeHtml(annotation.id)}">
       <div class="annotation-thread-head">
-        <span class="annotation-thread-meta">${annotation.resolved ? '已解决' : '待讨论'} · <span class="next">${escapeHtml(annotationThreadNextActor(annotation))}</span>${annotation.nodeId ? ` · <span class="target">@ ${escapeHtml(labels.get(annotation.nodeId) || annotation.nodeId)}</span>` : ''}</span>
-        <button data-annotation-status="${escapeHtml(annotation.id)}" data-status="${annotation.resolved ? 'open' : 'resolved'}">${annotation.resolved ? '重开' : '解决'}</button>
+        <span class="annotation-thread-meta">${annotation.resolved ? '已解决' : '待讨论'} · <span class="next">${escapeHtml(annotationThreadNextActor(annotation))}</span>${annotation.nodeId ? ` · <span class="target">@ ${escapeHtml(labels.get(annotation.nodeId) || annotation.nodeLabel || annotation.nodeId)}</span>` : ''}${annotation.anchorStatus === 'detached' ? ' · <span class="stale">失锚</span>' : ''}${annotation.anchorStatus === 'outdated' ? ' · <span class="stale">过期</span>' : ''}</span>
+        <span>
+          ${annotation.anchorStatus === 'outdated' ? `<button data-annotation-anchor="${escapeHtml(annotation.id)}">确认重锚</button>` : ''}
+          <button data-annotation-status="${escapeHtml(annotation.id)}" data-status="${annotation.resolved ? 'open' : 'resolved'}">${annotation.resolved ? '重开' : '解决'}</button>
+        </span>
       </div>
       <div class="annotation-body"><strong>${escapeHtml(annotation.author)}</strong> · ${escapeHtml(annotation.createdAt)}<br>${escapeHtml(annotation.body)}</div>
+      ${annotation.anchorStatus === 'detached' ? '<div class="annotation-anchor-note">原节点已删除；请确认讨论是否仍适用于当前图。</div>' : ''}
+      ${annotation.anchorStatus === 'outdated' ? `<div class="annotation-anchor-note">节点标签或路径已变化（原：${escapeHtml(annotation.nodeLabel || annotation.nodePath || '未记录')}）；确认重锚后 AI 才能把它当作当前意图。</div>` : ''}
       <div class="annotation-replies">${renderAnnotationReplies(annotation.replies)}</div>
       <div class="annotation-reply-row">
         <input class="annotation-reply-input" placeholder="回复这条批注，AI 会读取…" aria-label="回复批注" />
@@ -1157,6 +1167,9 @@ function renderAnnotations(annotations) {
 
   for (const button of target.querySelectorAll('[data-annotation-status]')) {
     button.addEventListener('click', () => setAnnotationStatus(button.dataset.annotationStatus, button.dataset.status));
+  }
+  for (const button of target.querySelectorAll('[data-annotation-anchor]')) {
+    button.addEventListener('click', () => reanchorAnnotation(button.dataset.annotationAnchor));
   }
   for (const button of target.querySelectorAll('[data-annotation-reply]')) {
     button.addEventListener('click', () => sendAnnotationReply(button.dataset.annotationReply));
@@ -1169,6 +1182,8 @@ function renderAnnotations(annotations) {
 }
 
 function annotationThreadNextActor(annotation) {
+  if (annotation.anchorStatus === 'detached') return '等待人确认失锚';
+  if (annotation.anchorStatus === 'outdated') return '等待人确认重锚';
   if (annotation.resolved) return '已完成';
   const latest = Array.isArray(annotation.replies) ? annotation.replies.at(-1) : null;
   return latest?.author === 'ai' ? '等待人回复' : '等待 AI 回复';
@@ -1214,6 +1229,20 @@ async function sendAnnotationReply(id) {
     await loadCollab();
   } catch (error) {
     showToast(`回复失败：${error.message}`);
+  }
+}
+
+async function reanchorAnnotation(id) {
+  if (!id) return;
+  try {
+    await collabFetch(`/api/collab/annotations/${encodeURIComponent(id)}/anchor`, {
+      method: 'POST',
+      body: JSON.stringify({ confirmedBy: 'human' }),
+    });
+    showToast('批注线程已重锚，AI 可读取当前节点');
+    await loadCollab();
+  } catch (error) {
+    showToast(`重锚失败：${error.message}`);
   }
 }
 

@@ -24,12 +24,14 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       const pending = messages.filter((message) => message.author === "human" && message.status === "pending");
       const unresolved = graph?.annotations.filter((annotation) => !annotation.resolved) ?? [];
       const annotationThreads = summarizeAnnotationThreads(graph);
+      const staleThreads = annotationThreads.threads.filter((thread) => thread.anchorStatus !== "anchored");
       const activityTimeline = buildActivityTimeline(snapshot, activity_limit ?? 30);
       const nodeLabels = new Map(graph?.nodes.map((node) => [node.id, node.label]) ?? []);
       const annotationsByNode = new Map<string, string[]>();
       const generalAnnotations: string[] = [];
       for (const annotation of unresolved) {
         const thread = annotationThreads.threads.find((item) => item.id === annotation.id);
+        if (thread?.anchorStatus !== "anchored") continue;
         const fullBody = [annotation.body, ...(thread?.replies ?? []).map((reply) => `${reply.author}: ${reply.body}`)].join(" / ");
         if (annotation.nodeId) {
           const bucket = annotationsByNode.get(annotation.nodeId) ?? [];
@@ -62,9 +64,11 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           kind: edge.kind,
         })) ?? [],
         annotationThreads,
+        staleThreads,
         nextActor: annotationThreads.nextActor,
         nextActions: [
           `Activity timeline: ${activityTimeline.total} derived events; next actor ${activityTimeline.nextActor}.`,
+          `Stale annotation threads: ${staleThreads.length}; detached ${annotationThreads.detached}, outdated ${annotationThreads.outdated}.`,
           "Use annotationThreads.nextActor to see whose turn it is; use intentByNode and pendingMessages as the human's latest intent.",
           "create_visual_proposal should cite those nodes, then wait for human approval.",
         ],
@@ -83,12 +87,14 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         pendingMessages: pending,
         unresolvedAnnotations: unresolved,
         annotationThreads,
+        staleThreads,
         activityTimeline,
         intentSummary,
         messages,
         proposals,
         nextActions: [
           "Read annotationThreads, pendingMessages and unresolvedAnnotations; annotationThreads.nextActor tells you whether the AI should reply or wait for a human.",
+          "Treat detached/outdated threads in staleThreads as historical context only; ask the human to confirm or re-anchor before using them as current intent.",
           "Use create_visual_proposal to record change proposals; never write project files directly from this tool.",
           "Ask the human to approve a proposal in the panel before anything is applied.",
           "Use activityTimeline for compact chronology of messages, annotation threads, and proposal lifecycle events.",
@@ -102,7 +108,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
             `Workspace: ${snapshot.workspaceRoot}`,
             `Pending human messages: ${pending.length} · unresolved annotations: ${unresolved.length}`,
             `Node-linked intents: ${intentByNode.length} · general annotations: ${generalAnnotations.length}`,
-            `Annotation threads: ${annotationThreads.open} open / ${annotationThreads.total} · next actor: ${annotationThreads.nextActor}`,
+            `Annotation threads: ${annotationThreads.open} open / ${annotationThreads.total} · stale: ${staleThreads.length} · next actor: ${annotationThreads.nextActor}`,
             `Activity timeline: ${activityTimeline.returned}/${activityTimeline.total} events · latest ${activityTimeline.latestAt ?? "none"}`,
             ``,
             jsonLine({

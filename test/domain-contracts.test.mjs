@@ -77,7 +77,15 @@ describe("session bundle contract", () => {
 
   it("round-trips valid bundles and rejects malformed replies", () => {
     const bundle = createSessionBundle(baseSession);
+    bundle.session.graph.annotations[0].anchorStatus = "outdated";
+    bundle.session.graph.annotations[0].nodeLabel = "README.md";
+    bundle.session.graph.annotations[0].graphRevision = 2;
     const parsed = parseSessionBundle(JSON.parse(JSON.stringify(bundle)));
+    expect(parsed.session.graph.annotations[0]).toMatchObject({
+      anchorStatus: "outdated",
+      nodeLabel: "README.md",
+      graphRevision: 2,
+    });
     expect(parsed.session.graph.annotations[0].replies).toHaveLength(1);
     const malformed = JSON.parse(JSON.stringify(bundle));
     malformed.session.graph.annotations[0].replies = "broken";

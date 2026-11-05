@@ -7,6 +7,7 @@ export type ActivityKind =
   | "annotation_created"
   | "annotation_replied"
   | "annotation_status"
+  | "annotation_anchor"
   | "proposal_created"
   | "proposal_status";
 
@@ -23,6 +24,7 @@ export interface ActivityTimelineItem {
   proposalId?: string;
   proposalStatus?: ChangeProposal["status"];
   status?: string;
+  anchorStatus?: "anchored" | "detached" | "outdated";
   derived?: boolean;
 }
 
@@ -121,6 +123,23 @@ export function buildActivityTimeline(
         derived: true,
       });
     }
+    if (annotation.anchorStatus === "detached" || annotation.anchorStatus === "outdated") {
+      items.push({
+        id: `activity:annotation-anchor:${annotation.id}`,
+        kind: "annotation_anchor",
+        actor: "system",
+        body: annotation.anchorStatus === "detached"
+          ? `节点批注线程已失锚：原节点不再存在，请人类确认或重锚。${annotation.body.slice(0, 80)}`
+          : `节点批注线程已过期：节点标签或路径已变化，请人类确认。${annotation.body.slice(0, 80)}`,
+        createdAt: annotation.replies?.at(-1)?.createdAt ?? annotation.createdAt,
+        nodeId: annotation.nodeId,
+        nodeLabel: annotation.nodeLabel ?? (annotation.nodeId ? nodeLabels.get(annotation.nodeId) : undefined),
+        annotationId: annotation.id,
+        anchorStatus: annotation.anchorStatus,
+        status: annotation.anchorStatus,
+        derived: true,
+      });
+    }
   }
 
   for (const proposal of snapshot.proposals) {
@@ -176,15 +195,19 @@ export function buildActivityTimeline(
     annotation_created: 0,
     annotation_replied: 0,
     annotation_status: 0,
+    annotation_anchor: 0,
     proposal_created: 0,
     proposal_status: 0,
   });
   const annotationThreads = summarizeAnnotationThreads(snapshot.graph);
-  const guidance = annotationThreads.nextActor === "ai"
-    ? "AI should read open annotation threads first, then reply or create a proposal for the human to approve."
-    : annotationThreads.nextActor === "human"
-      ? "The latest annotation replies are from AI; wait for the human before creating or applying a proposal."
-      : "No annotation thread is awaiting AI; use latest activity and pending messages for remaining intent.";
+  const staleThreads = annotationThreads.detached + annotationThreads.outdated;
+  const guidance = staleThreads > 0
+    ? "Some annotation threads are detached or outdated; ask the human to re-anchor or confirm them before using their text as current intent."
+    : annotationThreads.nextActor === "ai"
+      ? "AI should read open annotation threads first, then reply or create a proposal for the human to approve."
+      : annotationThreads.nextActor === "human"
+        ? "The latest annotation replies are from AI; wait for the human before creating or applying a proposal."
+        : "No annotation thread is awaiting AI; use latest activity and pending messages for remaining intent.";
   return {
     version: 1,
     total: items.length,

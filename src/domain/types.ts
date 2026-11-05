@@ -45,6 +45,10 @@ export interface GraphEdge {
 export interface AnnotationPin {
   id: string;
   nodeId?: string;
+  nodeLabel?: string;
+  nodePath?: string;
+  graphRevision?: number;
+  anchorStatus?: "anchored" | "detached" | "outdated";
   x?: number;
   y?: number;
   body: string;

@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 节点批注锚点审计：`nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`，节点改名/改路径后标记 `outdated`，节点删除后标记 `detached`。
+- `get_visual_context.staleThreads` 与活动时间线 `annotation_anchor` 事件：明确告诉 AI 不要使用失锚/过期讨论生成提案。
+- `POST /api/collab/annotations/:id/anchor`：仅人类可确认重锚 `outdated` 线程；面板显示失锚提示、过期原因和「确认重锚」按钮。
 - `docs/collaboration-loop.svg` 与 `docs/collaboration-workbench.svg`：双向协作闭环与工作台概念图，由 `scripts/generate-doc-assets.mjs` 可复现生成。
 - `README.en.md`：面向国际读者的英文快速入门与安全边界摘要。
 - `docs/TROUBLESHOOTING.md`：首用自检、常见故障、一次性确认号与批注线程 FAQ。
@@ -37,6 +40,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- 协作集成测试覆盖节点改名触发 `outdated`、删除节点触发 `detached`、人类确认重锚、AI 自动重锚被拒绝，以及失锚 `nodeId` 审计保留。
+- 面板删除节点时不再静默清空批注的 `nodeId`，而是显式标记 `detached`，让 AI 与人类都能看到讨论已失去图形锚点。
+- `npm run check` 增加版本化文档概念图可复现性校验，并把英文 quickstart 与 Troubleshooting FAQ 纳入离线一致性检查。
 - npm 描述与关键词改为人机双向可视化协作定位，并同步 README 文档入口。
 - `npm run check` 增加离线仓库一致性检查；`npm run github:check` 作为显式、只读的 GitHub 元数据漂移检查，不需要凭据。
 - README 增加最短体验路径和公开文档入口；ROADMAP 中「结构化图形编辑」从下一阶段前移到当前已交付能力。
