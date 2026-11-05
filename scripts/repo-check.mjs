@@ -42,6 +42,9 @@ const englishQuickstart = await read("README.en.md");
 const troubleshooting = await read("docs/TROUBLESHOOTING.md");
 const documentationMap = await read("docs/README.md");
 const docAssetGenerator = await read("scripts/generate-doc-assets.mjs");
+const governance = await read("docs/GOVERNANCE.md");
+const adrIndex = await read("docs/ADR/README.md");
+const releasing = await read("RELEASING.md");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -116,10 +119,10 @@ for (const [label, file, needle] of [
   check(file.includes(needle), `${label} is missing or drifted`);
 }
 
-for (const document of ["README.en.md", "docs/TROUBLESHOOTING.md", "ROADMAP.md", "docs/ARCHITECTURE.md", "docs/COMPETITIVE_RESEARCH.md", "docs/LAUNCH_KIT.md"]) {
+for (const document of ["README.en.md", "docs/TROUBLESHOOTING.md", "docs/GOVERNANCE.md", "docs/ADR/README.md", "ROADMAP.md", "docs/ARCHITECTURE.md", "docs/COMPETITIVE_RESEARCH.md", "docs/LAUNCH_KIT.md"]) {
   check(readme.includes(document) || readme.includes(document.replace(/\.md$/, ".md")), `README.md does not link ${document}`);
 }
-for (const document of ["../README.en.md", "TROUBLESHOOTING.md"]) {
+for (const document of ["../README.en.md", "TROUBLESHOOTING.md", "GOVERNANCE.md", "ADR/README.md"]) {
   check(documentationMap.includes(document), `docs/README.md does not link ${document}`);
 }
 for (const [label, source, needle] of [
@@ -133,6 +136,9 @@ for (const [label, source, needle] of [
   ["nextActor troubleshooting", troubleshooting, "nextActor"],
   ["reproducible asset script", docAssetGenerator, "collaboration-loop.svg"],
   ["distribution checklist", launchKit, "concept diagrams reviewed together"],
+  ["governance metadata evidence", governance, "description: null"],
+  ["ADR safety decisions", adrIndex, "0002-conversation-state-is-not-authority.md"],
+  ["release governance checklist", releasing, "docs/GOVERNANCE.md"],
 ]) {
   check(source.includes(needle), `${label} is missing or drifted`);
 }

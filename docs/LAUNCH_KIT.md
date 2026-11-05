@@ -95,6 +95,7 @@ AI Draw MCP 0.3 已开源，本地运行、MIT、无需账号。欢迎来拍砖�
 - [ ] `npm run doctor` passes with the same Chrome setup users will have.
 - [ ] GitHub description, homepage, and topics match `scripts/github-maintenance.mjs`.
 - [ ] Release notes created from the CHANGELOG section.
+- [ ] ADR index, governance checklist, and feedback Issue #8 reviewed for the same release.
 - [ ] Discussion/Issue pinned for feedback; response window stated publicly.
 - [ ] Links use the repository URL, not a personal cache or temporary screenshot host.
 - [ ] Run **Maintain GitHub metadata** with `dry_run=true`; if drift is reported and `GH_TOKEN` is configured, run again with `dry_run=false`.

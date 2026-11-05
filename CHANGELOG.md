@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `docs/ADR/README.md` 与 4 份架构决策记录：人工批准边界、对话状态不授权、失锚批注锚点、只读提案预检。
+- `docs/GOVERNANCE.md`：开源治理入口、维护者清单、公开反馈入口与 GitHub metadata 漂移证据。
 - `src/domain/proposal-preflight.ts` 与 `preflight_visual_proposal`：AI 创建提案前只读检查路径安全、文件存在性、create/update 方向、重复路径、重复内容、编码与体积。
 - 节点批注锚点审计：`nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`，节点改名/改路径后标记 `outdated`，节点删除后标记 `detached`。
 - `get_visual_context.staleThreads` 与活动时间线 `annotation_anchor` 事件：明确告诉 AI 不要使用失锚/过期讨论生成提案。

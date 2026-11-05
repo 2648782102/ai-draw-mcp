@@ -67,6 +67,8 @@
 | [docs/COMPETITIVE_RESEARCH.md](docs/COMPETITIVE_RESEARCH.md) | Mermaid/白板/MCP 同类产品调研与定位 |
 | [docs/DEPENDENCY_MAINTENANCE.md](docs/DEPENDENCY_MAINTENANCE.md) | 依赖升级与 CI 维护策略 |
 | [docs/LAUNCH_KIT.md](docs/LAUNCH_KIT.md) | GitHub About、Release notes、Show HN 与社区宣发模板 |
+| [docs/GOVERNANCE.md](docs/GOVERNANCE.md) | 开源治理、公开入口、维护检查与元数据漂移证据 |
+| [docs/ADR/README.md](docs/ADR/README.md) | 架构决策记录：人工批准、对话状态、失锚线程与只读预检 |
 | [AGENTS.md](AGENTS.md) | AI coding agent 操作手册 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 开发、验证与 PR 约定 |
 | [SECURITY.md](SECURITY.md) | 威胁模型、支持版本与漏洞报告 |

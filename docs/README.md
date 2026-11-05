@@ -12,6 +12,8 @@ Start with the [main README](../README.md) for installation and the product over
 | [COMPETITIVE_RESEARCH.md](COMPETITIVE_RESEARCH.md) | Maintainers, contributors | Market map, positioning, and product lessons from Mermaid/whiteboard/MCP tools |
 | [DEPENDENCY_MAINTENANCE.md](DEPENDENCY_MAINTENANCE.md) | Maintainers | Dependabot policy, verification order, and major-version decisions |
 | [LAUNCH_KIT.md](LAUNCH_KIT.md) | Maintainers | Copy for GitHub About, releases, Show HN, X/Mastodon, and Chinese communities |
+| [GOVERNANCE.md](GOVERNANCE.md) | Maintainers, contributors | Public surfaces, maintainer checklist, and observed metadata drift |
+| [ADR/README.md](ADR/README.md) | Contributors, reviewers | Accepted protocol and safety decisions with consequences and alternatives |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |

@@ -64,6 +64,8 @@ docs/README.md                文档地图
 docs/COMPETITIVE_RESEARCH.md  同类产品调研与定位
 docs/DEPENDENCY_MAINTENANCE.md 依赖升级、CI 验证与重大版本决策记录
 docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
+docs/GOVERNANCE.md             开源治理、维护清单与元数据漂移证据
+docs/ADR/README.md             架构决策记录索引
 docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
 ```
