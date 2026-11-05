@@ -1,4 +1,5 @@
 import { summarizeAnnotationThreads } from "./annotation-thread.js";
+import { buildReviewReadiness } from "./review-readiness.js";
 import type { AgentWorkflow, SessionSnapshot, WorkflowStep } from "./types.js";
 
 export function buildAgentWorkflow(snapshot: SessionSnapshot): AgentWorkflow {
@@ -12,6 +13,7 @@ export function buildAgentWorkflow(snapshot: SessionSnapshot): AgentWorkflow {
   const nextActor = threads.nextActor === "none" && pendingMessages > 0 ? "ai" : threads.nextActor;
   const replyActor = nextActor === "human" ? "human" : "ai";
   const replyUsesTool = replyActor === "ai";
+  const reviewReadiness = buildReviewReadiness(snapshot);
   const blocked: string[] = [];
   if (!snapshot.graph) blocked.push("No VisualGraph is available; ask the AI to call scan_project first.");
   if (staleAnnotations > 0) blocked.push(`${staleAnnotations} stale annotation thread(s) require human review or re-anchoring before they become current intent.`);
@@ -24,14 +26,14 @@ export function buildAgentWorkflow(snapshot: SessionSnapshot): AgentWorkflow {
       id: "visual_context",
       actor: "ai",
       tool: "get_visual_context",
-      input: ["get_agent_workflow WORKFLOW_JSON", "current SessionSnapshot", "graphDiffs", "sourceEvidence", "annotationThreads", "focus", "activityTimeline"],
-      output: ["CONTEXT_JSON", "BRIEF_JSON", "NODE_CONTEXT_JSON", "DECISION_TRAIL_JSON", "intentSummary", "nextActor", "sourceEvidence", "diagnostics"],
+      input: ["get_agent_workflow WORKFLOW_JSON", "current SessionSnapshot", "graphDiffs", "sourceEvidence", "annotationThreads", "focus", "activityTimeline", "REVIEW_READINESS_JSON"],
+      output: ["CONTEXT_JSON", "BRIEF_JSON", "NODE_CONTEXT_JSON", "DECISION_TRAIL_JSON", "REVIEW_READINESS_JSON", "intentSummary", "nextActor", "sourceEvidence", "diagnostics"],
       requires: ["A collaboration session exists in OUTPUT_DIR/.ai-draw/session.json", "The AI has read this workflow contract"],
       produces: ["readable human intent"],
       readOnly: true,
       writes: "none",
       grantsWriteAuthority: false,
-      description: "Read the graph, pending messages, threads, focus, graph diffs, read-only file:line source evidence, and diagnostics before proposing anything; get_shared_brief can compactly hand off readiness blockers, get_node_context can narrow the focused node, and get_decision_trail can optionally review intent → graph edit → proposal chronology, none of which grants write authority.",
+      description: "Read the graph, pending messages, threads, focus, graph diffs, read-only file:line source evidence, review readiness, and diagnostics before proposing anything; get_shared_brief can compactly hand off readiness blockers, get_node_context can narrow the focused node, and get_decision_trail can optionally review intent → graph edit → proposal chronology, none of which grants write authority.",
     },
     {
       version: 1,
@@ -160,10 +162,19 @@ export function buildAgentWorkflow(snapshot: SessionSnapshot): AgentWorkflow {
     } : undefined,
     conversation: { pendingMessages, nextActor },
     proposals: { pending: pendingProposals, approved: approvedProposals },
+    reviewReadiness: {
+      version: 1,
+      status: reviewReadiness.status,
+      blockers: reviewReadiness.brief.blockers.length,
+      gaps: reviewReadiness.decisionTrail.gaps.length,
+      readOnly: true,
+      grantsWriteAuthority: false,
+    },
     blocked,
     steps,
     safety: [
       "Read-only steps never create proposals, write project files, or issue approval receipts.",
+      "WORKFLOW_JSON.reviewReadiness is a derived diagnostic; ready does not approve a proposal or replace full line diff review.",
       "Conversation state, focus, graph diffs, diagnostics, templates, and preflight results never grant write authority.",
       "Only apply_visual_proposal with a valid one-time human receipt may write project files.",
       "Stale annotation threads must be reviewed or re-anchored by a human before they are treated as current intent.",

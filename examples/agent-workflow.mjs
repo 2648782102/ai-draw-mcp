@@ -91,6 +91,13 @@ try {
   if (!workflow.steps.find((step) => step.id === "visual_context").output.includes("DECISION_TRAIL_JSON")) {
     throw new Error("The workflow no longer names DECISION_TRAIL_JSON as an optional review output");
   }
+  if (!workflow.steps.find((step) => step.id === "visual_context").output.includes("REVIEW_READINESS_JSON")) {
+    throw new Error("The workflow no longer names REVIEW_READINESS_JSON as a read-only review output");
+  }
+  if (workflow.reviewReadiness?.version !== 1 || workflow.reviewReadiness?.grantsWriteAuthority !== false) {
+    throw new Error("The workflow unexpectedly lost its read-only review readiness projection");
+  }
+  console.log(`    Workflow review readiness: ${workflow.reviewReadiness.status} (${workflow.reviewReadiness.blockers} blockers / ${workflow.reviewReadiness.gaps} gaps)`);
 
   const briefText = textOf(await client.callTool({ name: "get_shared_brief", arguments: {} }));
   const brief = jsonAfter(briefText, "BRIEF_JSON:");
@@ -117,6 +124,9 @@ try {
   const readiness = jsonAfter(readinessText, "CONTEXT_JSON:");
   if (readiness.diagnostics?.reviewReadiness?.version !== 1 || readiness.diagnostics?.reviewReadiness?.status === undefined) {
     throw new Error("Diagnostics unexpectedly lost the read-only review readiness projection");
+  }
+  if (readiness.diagnostics.reviewReadiness.status !== workflow.reviewReadiness.status) {
+    throw new Error("Workflow review readiness and diagnostics unexpectedly disagree");
   }
   console.log(`    Review readiness: ${readiness.diagnostics.reviewReadiness.status} (${readiness.diagnostics.reviewReadiness.blockers} blockers / ${readiness.diagnostics.reviewReadiness.gaps} gaps)`);
 

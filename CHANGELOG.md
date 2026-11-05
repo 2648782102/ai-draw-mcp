@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `WORKFLOW_JSON.reviewReadiness`：八步工作流第一步列出并校验同一快照派生的紧凑 `ready` / `review` / `blocked` 状态；工作流示例比对工作流字段与诊断字段，确认 `ready` 不授权写入或跳过完整逐行 diff。
 - [ADR 0015](docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md)：记录审阅就绪是由共享简报阻塞与决策链缺口组合而成的派生诊断，不持久化重复状态、不签发凭据，且 `ready` 不替代完整逐行 diff。
 - `REVIEW_READINESS_JSON` 的独立纯函数契约测试：覆盖 `blocked` / `ready` 聚合、有界来源点、固定安全标记、完整 diff 提示，以及一次性批准凭据不进入序列化输出。
 - **Maintain GitHub metadata** 工作流现在在 master/main push 与手动 dispatch 时执行只读漂移检查；配置具备 `Administration: read and write` 的 `GH_TOKEN` secret 后，push 会自动应用版本化 About/topics，未配置 secret 时不会让 CI 因已知漂移变红。

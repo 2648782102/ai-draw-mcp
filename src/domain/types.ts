@@ -204,6 +204,14 @@ export interface AgentWorkflow {
   graph?: { nodes: number; edges: number; annotations: number; staleAnnotations: number };
   conversation?: { pendingMessages: number; nextActor: string };
   proposals?: { pending: number; approved: number };
+  reviewReadiness: {
+    version: 1;
+    status: "ready" | "review" | "blocked";
+    blockers: number;
+    gaps: number;
+    readOnly: true;
+    grantsWriteAuthority: false;
+  };
   blocked: string[];
   steps: WorkflowStep[];
   safety: string[];

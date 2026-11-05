@@ -47,7 +47,7 @@ IDE / human browser
 
 `GET /api/collab/diagnostics` 与 `get_visual_context.diagnostics` 从同一快照派生 version 1 健康摘要：图/线程/提案计数、活动总量、信号、下一步动作，以及 `approvalGrantsExported: false`、`staleThreadsExcludedFromIntent: true`、`projectWritesRequireHumanApproval: true` 三个安全不变量。诊断只读、无持久化、无凭据，也不替代完整上下文。
 
-`src/domain/agent-workflow.ts` 复用 `summarizeAnnotationThreads()`，把对话下一棒、失锚线程、待处理消息与提案计数投影成 `AgentWorkflow`。`get_agent_workflow` 返回 `WORKFLOW_JSON`，所有步骤的 `grantsWriteAuthority` 都是 `false`；只有 `apply` 步骤的 `writes` 是 `project`。工作流不签发凭据、不自动批准、不绕开 `SessionStore.applyProposal()`；详见 [ADR 0007](ADR/0007-agent-workflow-is-a-read-only-contract.md)。
+`src/domain/agent-workflow.ts` 复用 `summarizeAnnotationThreads()` 与 `buildReviewReadiness()`，把对话下一棒、失锚线程、待处理消息、提案计数和紧凑只读 `reviewReadiness` 投影成 `AgentWorkflow`。`get_agent_workflow` 返回 `WORKFLOW_JSON`，所有步骤的 `grantsWriteAuthority` 都是 `false`；只有 `apply` 步骤的 `writes` 是 `project`。工作流不签发凭据、不自动批准，`ready` 不替代逐行 diff，也不绕开 `SessionStore.applyProposal()`；详见 [ADR 0007](ADR/0007-agent-workflow-is-a-read-only-contract.md) 与 [ADR 0015](ADR/0015-review-readiness-is-a-derived-diagnostic.md)。
 
 `src/domain/node-context.ts` 复用 `summarizeAnnotationThreads()` 和会话的 `graphDiffs`，把当前 `VisualGraph` 中单个节点投影成 `NodeContext`。`get_node_context` 与 `GET /api/collab/node-context` 返回 `NODE_CONTEXT_JSON`，面板也用同一端点显示选中节点；它是不持久化、不修改焦点/线程、不签发凭据的派生视图。详见 [ADR 0010](ADR/0010-node-context-is-a-read-only-projection.md)。
 

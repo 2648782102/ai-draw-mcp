@@ -62,9 +62,12 @@ describe("agent workflow contract", () => {
       proposals: { pending: 1, approved: 0 },
     });
     expect(workflow.focus).toMatchObject({ nodeId: "readme", nodePath: "README.md" });
+    expect(workflow.reviewReadiness).toMatchObject({ version: 1, readOnly: true, grantsWriteAuthority: false });
+    expect(["ready", "review", "blocked"]).toContain(workflow.reviewReadiness.status);
     expect(workflow.blocked.join(" ")).toContain("stale annotation thread");
     expect(workflow.steps.find((step) => step.id === "reply_or_wait")).toMatchObject({ actor: "human", readOnly: true });
     expect(workflow.safety.join(" ")).toContain("one-time human receipt");
+    expect(workflow.safety.join(" ")).toContain("ready does not approve");
   });
 
   it("waits for a human when the latest thread reply is from AI", () => {
@@ -84,6 +87,8 @@ describe("agent workflow contract", () => {
     const workflow = buildAgentWorkflow(next);
     expect(workflow.conversation.nextActor).toBe("ai");
     expect(workflow.blocked).toEqual([]);
+    expect(workflow.reviewReadiness).toMatchObject({ version: 1, readOnly: true, grantsWriteAuthority: false });
+    expect(["ready", "review", "blocked"]).toContain(workflow.reviewReadiness.status);
     expect(workflow.steps.find((step) => step.id === "reply_or_wait")).toMatchObject({
       actor: "ai",
       tool: "reply_to_visual_context",

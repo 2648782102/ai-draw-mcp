@@ -36,6 +36,7 @@ const sessionBundleSource = await read("src/domain/session-bundle.ts");
 const pathSafety = await read("src/domain/path-safety.ts");
 const approval = await read("src/domain/approval.ts");
 const domainContractsTest = await read("test/domain-contracts.test.mjs");
+const mcpTest = await read("test/mcp.test.mjs");
 const dependabotConfig = await read(".github/dependabot.yml");
 const dependencyMaintenance = await read("docs/DEPENDENCY_MAINTENANCE.md");
 const englishQuickstart = await read("README.en.md");
@@ -493,6 +494,17 @@ for (const [label, file, needle] of [
   ["review readiness troubleshooting ADR", troubleshooting, "ADR 0015"],
   ["review readiness examples ADR", examplesReadme, "ADR 0015"],
   ["review readiness research ADR", research, "ADR 0015"],
+  ["review readiness workflow type", types, "reviewReadiness: {"],
+  ["review readiness workflow builder", agentWorkflowDomain, "buildReviewReadiness(snapshot)"],
+  ["review readiness workflow no authority", agentWorkflowDomain, "grantsWriteAuthority: false"],
+  ["review readiness workflow output", agentWorkflowDomain, '"REVIEW_READINESS_JSON"'],
+  ["review readiness workflow pure test", agentWorkflowTest, "reviewReadiness"],
+  ["review readiness workflow MCP test", mcpTest, "workflow.reviewReadiness"],
+  ["review readiness workflow example", agentWorkflowExample, "Workflow review readiness:"],
+  ["review readiness workflow Chinese docs", readme, "紧凑 `reviewReadiness`"],
+  ["review readiness workflow English docs", englishQuickstart, "compact `reviewReadiness`"],
+  ["review readiness workflow AGENTS docs", agents, "紧凑只读 `reviewReadiness`"],
+  ["review readiness workflow architecture", architecture, "buildReviewReadiness()"],
   ["review readiness HTTP test", collaborationTest, "/api/collab/review-readiness"],
   ["review readiness English docs", englishQuickstart, "REVIEW_READINESS_JSON"],
   ["review readiness Chinese docs", readme, "REVIEW_READINESS_JSON"],

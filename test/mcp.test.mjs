@@ -174,6 +174,8 @@ describe("MCP server", () => {
       const workflow = jsonAfter(text, "WORKFLOW_JSON:");
       expect(workflow).toMatchObject({ version: 1 });
       expect(Array.isArray(workflow.blocked)).toBe(true);
+      expect(workflow.reviewReadiness).toMatchObject({ version: 1, readOnly: true, grantsWriteAuthority: false });
+      expect(["ready", "review", "blocked"]).toContain(workflow.reviewReadiness.status);
       expect(workflow.steps.map((step) => step.id)).toContain("preflight");
       expect(workflow.steps.every((step) => step.grantsWriteAuthority === false)).toBe(true);
       expect(workflow.steps.filter((step) => step.writes === "project").map((step) => step.id)).toEqual(["apply"]);
