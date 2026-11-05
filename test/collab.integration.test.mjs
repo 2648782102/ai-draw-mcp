@@ -554,6 +554,86 @@ describe("collaboration session", () => {
       delete process.env.PREVIEW_PORT;
     }
   }, 30_000);
+
+  it("undoes and redoes only visual graph state with human confirmation", async () => {
+    const historyTempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ai-draw-history-"));
+    const historyOutputDir = path.join(historyTempDir, "output");
+    const historyWorkspaceRoot = path.join(historyTempDir, "workspace");
+    await fs.mkdir(historyWorkspaceRoot, { recursive: true });
+    await fs.writeFile(path.join(historyWorkspaceRoot, "README.md"), "# History stays unchanged\n", "utf8");
+    process.env.AI_DRAW_WORKSPACE_ROOT = historyWorkspaceRoot;
+    process.env.OUTPUT_DIR = historyOutputDir;
+    process.env.PREVIEW_PORT = "3414";
+
+    const { preview, sessions } = await createServer();
+    await preview.start();
+    try {
+      const base = "http://127.0.0.1:3414";
+      const html = await fetch(`${base}/`).then((response) => response.text());
+      const token = html.match(/const PANEL_TOKEN = "([^"]+)"/)?.[1];
+      expect(token).toBeTruthy();
+      const headers = { "Content-Type": "application/json", "X-AI-Draw-Token": token };
+
+      const firstGraph = {
+        version: 1,
+        diagramId: "diagram_history",
+        nodes: [{ id: "readme", label: "README.md", kind: "documentation", path: "README.md" }],
+        edges: [],
+        annotations: [],
+      };
+      const first = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT", headers, body: JSON.stringify(firstGraph),
+      });
+      expect(first.ok).toBe(true);
+      const secondGraph = {
+        ...firstGraph,
+        nodes: [{ ...firstGraph.nodes[0], label: "项目说明.md", x: 120, metadata: { layoutSource: "human" } }],
+      };
+      const second = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT", headers, body: JSON.stringify(secondGraph),
+      });
+      expect(second.ok).toBe(true);
+
+      const available = await fetch(`${base}/api/collab/graph/history`, { headers }).then((response) => response.json());
+      expect(available.history).toMatchObject({ version: 1, undo: 1, redo: 0 });
+      const unauthorized = await fetch(`${base}/api/collab/graph/undo`, {
+        method: "POST", headers, body: JSON.stringify({ confirmedBy: "ai" }),
+      });
+      expect(unauthorized.status).toBe(403);
+
+      const undone = await fetch(`${base}/api/collab/graph/undo`, {
+        method: "POST", headers, body: JSON.stringify({ confirmedBy: "human" }),
+      }).then((response) => response.json());
+      expect(undone.ok).toBe(true);
+      expect(undone.history).toMatchObject({ undo: 0, redo: 1 });
+      const graphAfterUndo = await collabFetchGraph(base, headers);
+      expect(graphAfterUndo.nodes[0].label).toBe("README.md");
+      expect(graphAfterUndo.nodes[0].x).toBeUndefined();
+      expect(sessions.getGraphDiffs(5).at(-1).items.some((item) => item.entity === "node")).toBe(true);
+      expect(await fs.readFile(path.join(historyWorkspaceRoot, "README.md"), "utf8")).toBe("# History stays unchanged\n");
+
+      const redone = await fetch(`${base}/api/collab/graph/redo`, {
+        method: "POST", headers, body: JSON.stringify({ confirmedBy: "human" }),
+      }).then((response) => response.json());
+      expect(redone.ok).toBe(true);
+      expect(redone.history).toMatchObject({ undo: 1, redo: 0 });
+      const graphAfterRedo = await collabFetchGraph(base, headers);
+      expect(graphAfterRedo.nodes[0]).toMatchObject({ label: "项目说明.md", x: 120 });
+
+      const bundle = await fetch(`${base}/api/collab/bundle`, { headers }).then((response) => response.json());
+      expect(JSON.stringify(bundle)).not.toContain("graphHistory");
+      expect(JSON.stringify(bundle)).not.toContain("approvalId");
+      expect(sessions.getSnapshot().proposals).toEqual([]);
+      expect(sessions.getSnapshot().messages.at(-1).metadata?.event).toBe("graph_redo");
+      expect(await fs.readFile(path.join(historyWorkspaceRoot, "README.md"), "utf8")).toBe("# History stays unchanged\n");
+    } finally {
+      await preview.stop().catch(() => {});
+      delete process.env.AI_DRAW_WORKSPACE_ROOT;
+      delete process.env.OUTPUT_DIR;
+      delete process.env.PREVIEW_PORT;
+      await fs.rm(historyTempDir, { recursive: true, force: true });
+    }
+  }, 30_000);
 });
 
 async function collabFetchGraph(base, headers) {

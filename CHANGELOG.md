@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 有界 version 1 `GraphHistoryState` 与面板「撤销 / 重做」：保存图形时保留视觉快照，人类确认的 `GET/POST /api/collab/graph/history|undo|redo` 可查看和切换最多 12 步。恢复会生成新 `graphRevision` 与字段级 `graphDiffs`，但绝不写项目文件、恢复批准凭据或回退已应用的提案。
+- 会话诊断新增只读 `graphHistory` 计数；领域契约、MCP 诊断与 HTTP 协作集成测试覆盖撤销/重做、人类确认、bundle 不含历史及项目文件不变。
+- [ADR 0008](docs/ADR/0008-visual-undo-is-not-project-undo.md)：记录视觉撤销与项目写入撤销的边界。
 - version 1 `AgentWorkflow` 与第 19 个 MCP 工具 `get_agent_workflow`：返回八步 `WORKFLOW_JSON`、每步 `requires` / `produces` / `readOnly` / `writes` / `grantsWriteAuthority`、会话就绪 `blocked` 提示和安全不变量；只读，不创建提案、不写会话或项目文件、不签发凭据。
 - `examples/agent-workflow.mjs` 与 `npm run test:examples:workflow`：在临时工作区实际执行工作流契约 → 只读模板草稿 → preflight，断言没有确认号、没有提案、没有项目写入，并由 CI 在三个 Node 版本运行。
 - [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md)：记录工作流是描述性契约，明确 `none` / `session` / `project` 三层写入边界与唯一项目写入步骤。
@@ -62,6 +65,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- 面板图形编辑区新增撤销/重做按钮、可用性计数和「不写项目文件」提示；架构、AGENTS、路线图、竞品调研、发布文案、故障排除与安全文档同步说明视觉历史边界。
 - MCP 工具从 18 增至 19；README、英文快速入门、AGENTS、架构、路线图、竞品调研、发布文案、离线一致性检查、工具数量常量、MCP 测试与治理记录同步更新。
 - CI 增加可复现只读工作流示例执行；`npm run check` 也运行该示例，避免文档声称的「可复现」只停留在语法检查。
 - `scan_project` 工具描述、响应和参数扩展 `PRESERVATION_JSON` 与 `open_panel`；重复扫描刷新同一图形而不是清空人工编辑，README、英文快速入门、AGENTS、架构、竞品调研、路线图、发布文案与离线一致性检查同步更新。

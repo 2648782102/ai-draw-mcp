@@ -56,6 +56,9 @@ const getAgentWorkflowTool = await read("src/tools/get-agent-workflow.ts");
 const agentWorkflowExample = await read("examples/agent-workflow.mjs");
 const agentWorkflowTest = await read("test/agent-workflow.test.mjs");
 const workflowAdr = await read("docs/ADR/0007-agent-workflow-is-a-read-only-contract.md");
+const visualHistoryAdr = await read("docs/ADR/0008-visual-undo-is-not-project-undo.md");
+const graphHistoryDomain = await read("src/domain/graph-history.ts");
+const graphHistoryTest = await read("test/graph-history.test.mjs");
 const examplesReadme = await read("examples/README.md");
 const collaborationWorkflow = await read("examples/collaboration-workflow.md");
 const security = await read("SECURITY.md");
@@ -109,6 +112,9 @@ for (const [id, needle] of [
   check(panel.includes(needle), `Collaboration panel is missing ${id}`);
 }
 for (const endpoint of [
+  "/api/collab/graph/history",
+  "/api/collab/graph/undo",
+  "/api/collab/graph/redo",
   "/api/collab/annotations/:id/reply",
   "/api/collab/annotations/:id/status",
   "/api/collab/annotations/:id/anchor",
@@ -199,6 +205,27 @@ for (const [label, source, needle] of [
   ["ADR focus decision", adrIndex, "0005-human-focus-is-read-only-context.md"],
   ["ADR stable scan decision", adrIndex, "0006-stable-scan-preserves-human-visual-state.md"],
   ["ADR workflow decision", adrIndex, "0007-agent-workflow-is-a-read-only-contract.md"],
+  ["ADR visual history decision", adrIndex, "0008-visual-undo-is-not-project-undo.md"],
+  ["visual history ADR boundary", visualHistoryAdr, "never writes `AI_DRAW_WORKSPACE_ROOT`"],
+  ["visual history shared type", types, "export interface GraphHistoryState"],
+  ["visual history parser", graphHistoryDomain, "parseGraphHistory"],
+  ["visual history store", sessionStore, "MAX_GRAPH_HISTORY"],
+  ["visual history restore", sessionStore, "restoreGraph"],
+  ["visual history endpoint", previewServer, "/api/collab/graph/history"],
+  ["visual undo endpoint", previewServer, "/api/collab/graph/undo"],
+  ["visual redo endpoint", previewServer, "/api/collab/graph/redo"],
+  ["visual history panel summary", panel, 'id="graphHistorySummary"'],
+  ["visual undo button", panel, 'id="btnUndoGraph"'],
+  ["visual redo button", panel, 'id="btnRedoGraph"'],
+  ["visual history contract test", graphHistoryTest, "graph history contract"],
+  ["visual history integration test", await read("test/collab.integration.test.mjs"), "undoes and redoes only visual graph state"],
+  ["visual history diagnostics", await read("src/domain/session-diagnostics.ts"), "graphHistory"],
+  ["visual history security", security, "视觉撤销/重做"],
+  ["visual history troubleshooting", troubleshooting, "0008-visual-undo-is-not-project-undo.md"],
+  ["visual history docs map", documentationMap, "0008-visual-undo-is-not-project-undo.md"],
+  ["visual history research", research, "视觉撤销栈已交付"],
+  ["visual history roadmap", roadmap, "visual undo/redo"],
+  ["visual history launch", launchKit, "visual undo/redo"],
   ["workflow ADR write boundary", workflowAdr, 'writes: "project"'],
   ["workflow shared type", types, "export interface AgentWorkflow"],
   ["workflow domain builder", agentWorkflowDomain, "export function buildAgentWorkflow"],
@@ -240,7 +267,7 @@ for (const [label, source, needle] of [
   ["architecture stable scan", architecture, "ScanPreservationSummary"],
   ["AGENTS stable scan", agents, "VisualSyncService"],
   ["launch stable scan", launchKit, "Layout-preserving rescans"],
-  ["research layout delivered", research, "布局保持已交付"],
+  ["research layout delivered", research, "布局保持与视觉撤销栈已交付"],
   ["ADR docs map", documentationMap, "0006-stable-scan-preserves-human-visual-state.md"],
 ]) {
   check(source.includes(needle), `${label} is missing or drifted`);

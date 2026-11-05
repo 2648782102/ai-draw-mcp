@@ -33,6 +33,7 @@ src/
 │   ├── activity-timeline.ts  消息/批注/提案生命周期的只读派生时间线
 │   ├── session-diagnostics.ts 会话健康、下一步动作与安全不变量的只读摘要
 │   ├── graph-diff.ts          图形修订之间的节点/连线字段差异
+│   ├── graph-history.ts       有界视觉撤销/重做历史契约解析
 │   ├── visual-graph-merge.ts  稳定路径重扫合并器：坐标/标签/批注/焦点保留
 │   ├── change-templates.ts    常见意图的只读变更模板目录与草稿展开
 │   ├── agent-workflow.ts      当前会话的八步 agent 工作流契约与就绪阻塞
@@ -77,6 +78,7 @@ docs/ADR/README.md             架构决策记录索引
 docs/ADR/0005-human-focus-is-read-only-context.md 当前焦点只读上下文决策
 docs/ADR/0006-stable-scan-preserves-human-visual-state.md 稳定扫描保留人工视觉状态决策
 docs/ADR/0007-agent-workflow-is-a-read-only-contract.md 只读工作流契约决策
+docs/ADR/0008-visual-undo-is-not-project-undo.md 视觉撤销不等于项目写入撤销决策
 docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
 ```
@@ -132,6 +134,8 @@ ROADMAP.md                   产品路线图与非目标
 
 `get_agent_workflow` 是只读描述性契约：version 1 `WORKFLOW_JSON` 含八步顺序、`requires` / `produces`、`readOnly`、`writes: "none" | "session" | "project"`、`grantsWriteAuthority: false` 和 `blocked` 就绪提示。它不写会话、不创建提案、不签发凭据；对话回复与提案创建是 session 写入，唯一 project 写入步骤是 `apply_visual_proposal`，仍须人工批准、一次性确认号、内容哈希、路径校验与失败回滚。陈旧线程或等待 human 时，`blocked` 会提示不得把旧讨论变成当前意图。共享类型在 `src/domain/types.ts`，构造逻辑在 `src/domain/agent-workflow.ts`，设计边界见 [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md)。
 
+`SessionStore` 维护 version 1 `GraphHistoryState`：每次 `setGraph()` 把旧 `VisualGraph` 快照压入最多 12 步的 past 栈，人类确认的 undo/redo 端点恢复一个快照并把它记作新的 `graphRevision` / `graphDiffs`。历史只含视觉图，不含消息、提案、批准凭据或项目文件备份；`createSessionBundle()` 不导出历史，导入会重置历史。撤销/重做是 session 写入，不是 project 写入，也不能回退 `apply_visual_proposal` 已经写入的文件。设计边界见 [ADR 0008](docs/ADR/0008-visual-undo-is-not-project-undo.md)。
+
 ---
 
 ## 如何添加新工具（4 步）
@@ -171,6 +175,9 @@ server.tool(
 | `GET /api/collab/activity` | 只读紧凑活动时间线；`limit` 默认 60、最大 200 |
 | `GET /api/collab/diagnostics` | 只读会话诊断：图/线程/提案计数、信号、下一步与安全不变量 |
 | `GET /api/collab/graph/diffs` | 最近图形修订差异；`limit` 默认 5、最大 20 |
+| `GET /api/collab/graph/history` | 只读有界视觉撤销/重做计数 |
+| `POST /api/collab/graph/undo` | 人类确认的视觉撤销；生成新图修订，不写项目文件 |
+| `POST /api/collab/graph/redo` | 人类确认的视觉重做；生成新图修订，不写项目文件 |
 | `POST /api/collab/rescan` | 人类确认的只读重新扫描；保留人工视觉状态，不写项目文件 |
 | `GET /api/collab/bundle` | 导出可移植会话快照（不含一次性批准凭据） |
 | `POST /api/collab/bundle/import` | 人类确认后导入；清空气批准凭据，不写项目文件 |

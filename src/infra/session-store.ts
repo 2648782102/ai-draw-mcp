@@ -12,6 +12,7 @@ import {
 } from "../domain/session-bundle.js";
 import { parseAnnotationReplies, summarizeAnnotationThreads, type ThreadAnchorStatus } from "../domain/annotation-thread.js";
 import { diffVisualGraph } from "../domain/graph-diff.js";
+import { parseGraphHistory } from "../domain/graph-history.js";
 import type { ApprovalGrant, ApprovalReceipt } from "../domain/approval.js";
 import { assertProposalHash, proposalContentHash } from "../domain/proposal-hash.js";
 import type {
@@ -19,6 +20,9 @@ import type {
   ChangeProposal,
   ConversationMessage,
   GraphRevisionDiff,
+  GraphHistoryEntry,
+  GraphHistoryState,
+  GraphHistorySummary,
   Participant,
   ProjectChange,
   ProposalStatus,
@@ -36,6 +40,7 @@ const MAX_MESSAGES = 500;
 const MAX_PROPOSALS = 100;
 const MAX_CHANGE_BYTES = 1024 * 1024;
 const MAX_GRAPH_DIFFS = 20;
+const MAX_GRAPH_HISTORY = 12;
 
 interface SessionStoreOptions {
   outputDir: string;
@@ -48,6 +53,37 @@ function trimList<T>(items: T[], max: number): T[] {
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function emptyGraphHistory(): GraphHistoryState {
+  return { version: 1, past: [], future: [] };
+}
+
+function graphHistoryEntry(
+  graph: VisualGraph | undefined,
+  graphRevision: number,
+  source: GraphRevisionDiff["source"],
+): GraphHistoryEntry | undefined {
+  if (!graph) return undefined;
+  return {
+    version: 1,
+    graph: clone(graph),
+    graphRevision,
+    source,
+    createdAt: nowIso(),
+  };
+}
+
+function pushGraphHistory(
+  history: GraphHistoryState,
+  entry: GraphHistoryEntry | undefined,
+): GraphHistoryState {
+  if (!entry) return history;
+  return {
+    version: 1,
+    past: trimList([...history.past, entry], MAX_GRAPH_HISTORY),
+    future: [],
+  };
 }
 
 function finiteCoordinate(value: unknown, label: string): void {
@@ -218,7 +254,13 @@ export class SessionStore {
     let snapshot: SessionSnapshot | null = null;
     try {
       const parsed = JSON.parse(await fs.readFile(sessionPath, "utf8")) as SessionSnapshot;
-      if (parsed.version === 1) snapshot = { ...parsed, workspaceRoot };
+      if (parsed.version === 1) {
+        snapshot = {
+          ...parsed,
+          workspaceRoot,
+          graphHistory: parseGraphHistory(parsed.graphHistory, MAX_GRAPH_HISTORY) ?? emptyGraphHistory(),
+        };
+      }
     } catch {
       logger.info("No collaboration session found, creating one");
     }
@@ -276,6 +318,7 @@ export class SessionStore {
       draft.graph = graph;
       draft.focus = focus;
       draft.graphDiffs = graphDiffs;
+      draft.graphHistory = pushGraphHistory(emptyGraphHistory(), graphHistoryEntry(draft.graph, draft.graphRevision, "human"));
       draft.messages = trimList(bundle.session.messages, MAX_MESSAGES);
       draft.proposals = trimList(bundle.session.proposals, MAX_PROPOSALS);
     });
@@ -316,25 +359,75 @@ export class SessionStore {
     graph: VisualGraph,
     activeDiagramId = graph.diagramId,
     source: GraphRevisionDiff["source"] = "human",
+    options: { history?: boolean } = {},
   ): Promise<SessionSnapshot> {
     validateGraph(graph);
-    const fromRevision = this.snapshot.graphRevision;
+    return this.mutate((draft) => this.applyGraphState(draft, graph, activeDiagramId, source, options));
+  }
+
+  private applyGraphState(
+    draft: SessionSnapshot,
+    graph: VisualGraph,
+    activeDiagramId: string,
+    source: GraphRevisionDiff["source"],
+    options: { history?: boolean },
+  ): void {
+    const fromRevision = draft.graphRevision;
     const nextRevision = fromRevision + 1;
-    const graphDiff = diffVisualGraph(this.snapshot.graph, graph, {
+    const graphDiff = diffVisualGraph(draft.graph, graph, {
       fromRevision,
       toRevision: nextRevision,
       createdAt: nowIso(),
       source,
     });
     anchorAnnotations(graph, nextRevision);
+    if (options.history !== false) {
+      draft.graphHistory = pushGraphHistory(
+        draft.graphHistory ?? emptyGraphHistory(),
+        graphHistoryEntry(draft.graph, fromRevision, source),
+      );
+    }
+    draft.graph = graph;
+    draft.activeDiagramId = activeDiagramId;
+    draft.graphRevision = nextRevision;
+    draft.focus = refreshFocus(draft.focus, graph, nextRevision);
+    if (graphDiff.items.length > 0) {
+      draft.graphDiffs = trimList([...(draft.graphDiffs ?? []), graphDiff], MAX_GRAPH_DIFFS);
+    }
+  }
+
+  getGraphHistory(): GraphHistorySummary {
+    const history = this.snapshot.graphHistory ?? emptyGraphHistory();
+    return { version: 1, undo: history.past.length, redo: history.future.length, limit: MAX_GRAPH_HISTORY };
+  }
+
+  async undoGraph(): Promise<SessionSnapshot> {
+    return this.restoreGraph("undo");
+  }
+
+  async redoGraph(): Promise<SessionSnapshot> {
+    return this.restoreGraph("redo");
+  }
+
+  private async restoreGraph(direction: "undo" | "redo"): Promise<SessionSnapshot> {
     return this.mutate((draft) => {
-      draft.graph = graph;
-      draft.activeDiagramId = activeDiagramId;
-      draft.graphRevision = nextRevision;
-      draft.focus = refreshFocus(draft.focus, graph, nextRevision);
-      if (graphDiff.items.length > 0) {
-        draft.graphDiffs = trimList([...(draft.graphDiffs ?? []), graphDiff], MAX_GRAPH_DIFFS);
-      }
+      const current = draft.graphHistory ?? emptyGraphHistory();
+      const from = direction === "undo" ? current.past : current.future;
+      const target = from.at(-1);
+      if (!target) throw new Error(`No graph state available to ${direction}`);
+      const graph = clone(target.graph);
+      validateGraph(graph);
+      const displaced = graphHistoryEntry(draft.graph, draft.graphRevision, "human");
+      this.applyGraphState(draft, graph, draft.activeDiagramId ?? graph.diagramId, "human", { history: false });
+      const remaining = from.slice(0, -1);
+      const displacedList = displaced ? [displaced] : [];
+      const past = direction === "undo" ? remaining : [...current.past, ...displacedList];
+      const future = direction === "undo" ? [...current.future, ...displacedList] : remaining;
+      draft.graphHistory = {
+        version: 1,
+        past: trimList(past, MAX_GRAPH_HISTORY),
+        future: trimList(future, MAX_GRAPH_HISTORY),
+      };
     });
   }
 

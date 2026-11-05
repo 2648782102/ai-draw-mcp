@@ -187,6 +187,7 @@
     .collab-help { font-size: 10px; color: var(--text-muted); line-height: 1.5; margin-bottom: 8px; }
     .collab-actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
     .collab-actions button:hover { background: var(--accent); }
+    .collab-actions button:disabled { opacity: .45; cursor: not-allowed; }
     .graph-editor, .chat-log, .proposal-list {
       flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--border);
       border-radius: 6px; background: var(--bg); padding: 8px;
@@ -380,6 +381,7 @@
       <p class="collab-help">可编辑节点名称/类型/路径/分组与连线起点/终点/说明/类型；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
       <p class="activity-summary" id="rescanSummary">重新同步 · 按路径保留人工坐标、标签、批注与焦点；只读扫描项目文件</p>
       <p class="activity-summary" id="focusSummary">当前焦点 · 未选中节点</p>
+      <p class="activity-summary" id="graphHistorySummary">图形历史 · 尚无撤销记录；撤销只恢复视觉状态，不写项目文件</p>
       <div class="graph-editor" id="graphEditor"></div>
       <div class="graph-row-header"><span></span><span>名称</span><span>类型</span><span>路径</span><span>分组</span><span>X</span><span>Y</span><span></span></div>
       <div class="edge-editor">
@@ -390,6 +392,8 @@
       <div class="collab-actions">
         <button id="btnAddNode">＋ 节点</button>
         <button id="btnAddEdge">＋ 连线</button>
+        <button id="btnUndoGraph" disabled title="撤销上一次图形保存；不写项目文件">↶ 撤销</button>
+        <button id="btnRedoGraph" disabled title="重做已撤销的图形状态；不写项目文件">↷ 重做</button>
         <button id="btnSaveGraph">保存图形</button>
         <button id="btnExportSession">导出会话</button>
         <button id="btnImportSession">导入会话</button>
@@ -1027,6 +1031,7 @@ let collabSessionId = null;
 let collabWorkspaceRoot = null;
 let collabDiagnostics = null;
 let collabGraphDiffs = [];
+let collabGraphHistory = { version: 1, undo: 0, redo: 0, limit: 12 };
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -1110,6 +1115,34 @@ function renderFocus(focus = null) {
     ? `当前焦点 · ${node.label}${node.path ? ` · ${node.path}` : ''} · 仅作为 AI 上下文，不授权写入`
     : '当前焦点 · 未选中节点；选中后 AI 会知道你正在指哪个对象';
   target.title = '选中状态只是只读上下文，不签发批准凭据，也不自动创建或应用提案。';
+}
+
+function renderGraphHistory() {
+  const target = $('#graphHistorySummary');
+  if (target) {
+    target.textContent = `图形历史 · 可撤销 ${collabGraphHistory.undo} 步 / 可重做 ${collabGraphHistory.redo} 步（上限 ${collabGraphHistory.limit}）· 只恢复视觉状态，不写项目文件、不恢复批准凭据`;
+    target.title = '撤销/重做会生成新的图形修订与字段级差异；不会应用提案、改变对话/提案状态或写项目文件。';
+  }
+  const undo = $('#btnUndoGraph');
+  const redo = $('#btnRedoGraph');
+  if (undo) undo.disabled = collabGraphHistory.undo === 0;
+  if (redo) redo.disabled = collabGraphHistory.redo === 0;
+}
+
+async function restoreGraphHistory(direction) {
+  try {
+    const result = await collabFetch(`/api/collab/graph/${direction}`, {
+      method: 'POST',
+      body: JSON.stringify({ confirmedBy: 'human' }),
+    });
+    collabRevision = result.graphRevision;
+    collabGraphHistory = result.history || collabGraphHistory;
+    renderGraphHistory();
+    showToast(`图形已${direction === 'undo' ? '撤销' : '重做'} · revision ${collabRevision} · 未写项目文件`);
+    await loadCollab();
+  } catch (error) {
+    showToast(`图形${direction === 'undo' ? '撤销' : '重做'}失败：${error.message}`);
+  }
 }
 
 async function publishFocus(nodeId) {
@@ -1477,6 +1510,9 @@ async function loadCollab() {
     const graphDiffs = await collabFetch('/api/collab/graph/diffs?limit=5');
     collabGraphDiffs = graphDiffs.diffs || [];
     renderGraphDiffs(graphDiffs.diffs);
+    const graphHistory = await collabFetch('/api/collab/graph/history');
+    collabGraphHistory = graphHistory.history || { version: 1, undo: 0, redo: 0, limit: 12 };
+    renderGraphHistory();
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
   }
@@ -1698,6 +1734,8 @@ $('#btnCollaborate').addEventListener('click', () => {
 });
 $('#btnCloseCollab').addEventListener('click', () => { $('#collabShell').hidden = true; });
 $('#btnSaveGraph').addEventListener('click', saveGraph);
+$('#btnUndoGraph').addEventListener('click', () => restoreGraphHistory('undo'));
+$('#btnRedoGraph').addEventListener('click', () => restoreGraphHistory('redo'));
 $('#btnRescan').addEventListener('click', rescanProject);
 $('#btnAddNode').addEventListener('click', addNode);
 $('#btnAddEdge').addEventListener('click', addEdge);

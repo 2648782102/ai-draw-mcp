@@ -45,6 +45,23 @@ const snapshot = {
     items: [],
     summary: ["0 nodes added, 0 removed, 1 updated"],
   }],
+  graphHistory: {
+    version: 1,
+    past: [{
+      version: 1,
+      graph: {
+        version: 1,
+        diagramId: "diagram_diagnostics",
+        nodes: [{ id: "readme", label: "README.md", kind: "documentation", path: "README.md" }],
+        edges: [],
+        annotations: [],
+      },
+      graphRevision: 3,
+      source: "human",
+      createdAt: "2026-11-06T00:03:00.000Z",
+    }],
+    future: [],
+  },
   messages: [{
     id: "msg_pending",
     sessionId: "session_diagnostics",
@@ -88,6 +105,7 @@ describe("session diagnostics", () => {
       graphRevision: 4,
     });
     expect(diagnostics.graph).toMatchObject({ nodes: 1, annotations: 1, staleAnnotations: 1 });
+    expect(diagnostics.graphHistory).toEqual({ undo: 1, redo: 0 });
     expect(diagnostics.focus).toMatchObject({ nodeId: "readme", nodeLabel: "README.md" });
     expect(diagnostics.conversations.pendingMessages).toBe(1);
     expect(diagnostics.proposals).toMatchObject({ pending: 1, failed: 1 });

@@ -22,6 +22,7 @@ This guide covers first-run problems that are easiest to diagnose from the local
 | Collaboration workbench has no graph | No scan yet, or a fresh `OUTPUT_DIR` | Ask the AI to call `scan_project`, then click `💬 协作` and refresh. |
 | AI does not see a visual edit | The graph was changed locally but not saved | Click `保存图形`; the server validates the graph and increments `graphRevision`. |
 | AI needs a common change draft | Repeating the same proposal shape by hand | Call `list_change_templates`, then pass the returned `changes` through `preflight_visual_proposal` before creating a proposal. |
+| Accidental node or edge edit | A human changed the visual graph before saving | Click `↶ 撤销`; it restores a bounded visual snapshot as a new graph revision. It does not undo applied files or approval receipts. |
 | AI invents a collaboration sequence | The agent has not read the current workflow contract | Call `get_agent_workflow`, review `WORKFLOW_JSON.blocked`, and follow the ordered `requires` / `produces` fields. The contract itself never grants write authority. |
 | AI replies too early on an annotation thread | `annotationThreads.nextActor` is `human` | Wait for the human's next reply; AI can read the thread without creating or applying a proposal. |
 | A resolved thread still appears in history | Resolve is a conversation state, not deletion | Use `重开` to continue, or leave it resolved; it never approves or applies a proposal. |
@@ -44,6 +45,10 @@ No. `list_change_templates` is a read-only helper that returns reusable draft sh
 ### Is resolving an annotation the same as approving a change?
 
 No. Resolve/reopen and the activity timeline are conversation/derived views. They never grant project-write capability.
+
+### Does visual undo reverse a project change?
+
+No. Undo/redo only restores `VisualGraph` snapshots with human confirmation and creates a new graph revision with field-level diffs. It never writes `AI_DRAW_WORKSPACE_ROOT`, restores one-time grants, or reverses `apply_visual_proposal`. See [ADR 0008](ADR/0008-visual-undo-is-not-project-undo.md).
 
 ### What does a stale annotation thread mean?
 

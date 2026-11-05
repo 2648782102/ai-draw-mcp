@@ -15,6 +15,9 @@
  *   GET  /api/collab/activity    derived compact activity timeline
  *   GET  /api/collab/diagnostics  read-only session health and next-action summary
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
+ *   GET  /api/collab/graph/history  bounded visual undo/redo availability
+ *   POST /api/collab/graph/undo   human-confirmed visual undo
+ *   POST /api/collab/graph/redo   human-confirmed visual redo
  *   POST /api/collab/rescan       human-confirmed workspace rescan with state preservation
  *   GET  /api/collab/bundle      portable session bundle for bug reports/examples
  *   POST /api/collab/bundle/import  import a reviewed session bundle
@@ -145,6 +148,38 @@ export class PreviewServer {
       const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(20, Math.floor(rawLimit))) : 5;
       res.json({ diffs: this.sessions.getGraphDiffs(limit) });
     });
+
+    this.app.get("/api/collab/graph/history", (_req, res) => {
+      res.json({ history: this.sessions.getGraphHistory() });
+    });
+
+    const restoreGraphHistory = async (
+      req: express.Request,
+      res: express.Response,
+      direction: "undo" | "redo",
+    ) => {
+      const body = req.body as { confirmedBy?: string };
+      if (body.confirmedBy !== "human")
+        return res.status(403).json({ error: "Human confirmation is required" });
+      try {
+        const snapshot = await (direction === "undo"
+          ? this.sessions.undoGraph()
+          : this.sessions.redoGraph());
+        const graph = this.sessions.getGraph();
+        const message = await this.sessions.addMessage(
+          "system",
+          `已${direction === "undo" ? "撤销" : "重做"}一次图形编辑；只恢复视觉状态，不写项目文件。`,
+          { metadata: { event: `graph_${direction}`, graphRevision: snapshot.graphRevision } },
+        );
+        this.broadcast({ type: "graph_updated", graph, revision: snapshot.graphRevision, message });
+        res.json({ ok: true, graphRevision: snapshot.graphRevision, history: this.sessions.getGraphHistory() });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
+    };
+
+    this.app.post("/api/collab/graph/undo", (req, res) => restoreGraphHistory(req, res, "undo"));
+    this.app.post("/api/collab/graph/redo", (req, res) => restoreGraphHistory(req, res, "redo"));
 
     this.app.post("/api/collab/rescan", async (req, res) => {
       const body = req.body as { confirmedBy?: string };

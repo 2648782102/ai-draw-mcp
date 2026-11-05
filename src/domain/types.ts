@@ -137,6 +137,7 @@ export interface SessionSnapshot {
   graph?: VisualGraph;
   focus?: SessionFocus;
   graphDiffs?: GraphRevisionDiff[];
+  graphHistory?: GraphHistoryState;
   messages: ConversationMessage[];
   proposals: ChangeProposal[];
 }
@@ -206,6 +207,27 @@ export interface GraphRevisionDiff {
     fields?: Array<{ field: string; before?: string | number | boolean; after?: string | number | boolean }>;
   }>;
   summary: string[];
+}
+
+export interface GraphHistoryEntry {
+  version: 1;
+  graph: VisualGraph;
+  graphRevision: number;
+  source: GraphRevisionDiff["source"];
+  createdAt: string;
+}
+
+export interface GraphHistoryState {
+  version: 1;
+  past: GraphHistoryEntry[];
+  future: GraphHistoryEntry[];
+}
+
+export interface GraphHistorySummary {
+  version: 1;
+  undo: number;
+  redo: number;
+  limit: number;
 }
 
 export interface ProjectScanNode {
