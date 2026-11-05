@@ -20,4 +20,4 @@ The MCP server reports its version from `package.json`; keep package version, `C
 
 ## Supported versions
 
-Only the latest `0.3.x` release receives fixes. Older `0.2.x` installations should upgrade to use the collaboration protocol and security improvements.
+Only the latest `0.3.x` release receives fixes. Older `0.2.x` and `0.3.0` installations should upgrade to `0.3.1` for the full collaboration protocol, read-only projections, and security improvements.

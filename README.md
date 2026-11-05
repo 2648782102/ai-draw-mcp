@@ -328,7 +328,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 
 ## 工具列表
 
-> 当前版本 `0.3.0` 共 22 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT`、离线检查与 MCP 测试保护。
+> 当前版本 `0.3.1` 共 23 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT`、离线检查与 MCP 测试保护。
 
 | 工具 | 用途 |
 |------|------|
@@ -349,6 +349,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 | `get_shared_brief` | 读取紧凑 `BRIEF_JSON` 交接视图：状态、焦点、阻塞、有效/失锚意图、最近修订、证据与下一步；只读，不含批准凭据 |
 | `get_decision_trail` | 读取 `DECISION_TRAIL_JSON` 只读决策链：意图 → 图形修订 → 有界提案变更摘要 → 批准/应用状态；不含确认号，不替代完整逐行 diff |
 | `get_node_context` | 读取单个节点的 `NODE_CONTEXT_JSON`：源码证据、批注线程、相邻连线、相关图形差异与焦点；默认取人类选中节点，只读 |
+| `get_source_navigation` | 读取 `SOURCE_NAVIGATION_JSON` 只读源码跳转清单：有界相对 `file:line`、可复制 VS Code/Cursor URI 与 CLI 文本；不打开文件、不启动 IDE、不执行命令、不授权写入 |
 | `reply_to_visual_context` | AI 在面板里回复人类、回复节点批注线程，并可把消息/批注标记为已回答、已解决 |
 | `create_visual_proposal` | 创建待确认的项目变更提案，不直接写项目文件 |
 | `preflight_visual_proposal` | 创建提案前只读检查候选变更的路径、文件状态、重复内容与阻断项 |

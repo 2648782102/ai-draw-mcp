@@ -587,6 +587,14 @@ check(agents.includes("/api/collab/activity"), "AGENTS.md does not document the 
 check(readme.includes("解决线程只是对话状态"), "README.md does not separate thread resolution from proposal approval");
 check(readme.includes("不等于批准变更"), "README.md does not document the thread approval boundary");
 check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased section");
+check(changelog.includes("## [0.3.1]"), "CHANGELOG.md has no 0.3.1 release section");
+check(packageJson.version === "0.3.1", "package.json version is not 0.3.1");
+const lockfile = JSON.parse(await read("package-lock.json"));
+check(lockfile.version === packageJson.version, "package-lock.json version does not match package.json");
+check(lockfile.packages?.[""]?.version === packageJson.version, "package-lock.json root package version does not match package.json");
+check(readme.includes("当前版本 `0.3.1` 共 23 个工具"), "README.md does not reflect version 0.3.1 and 23 tools");
+check(readme.includes("| `get_source_navigation` |"), "README.md tool table is missing get_source_navigation");
+check(launchKit.includes("Release notes — 0.3.1"), "docs/LAUNCH_KIT.md release notes are not aligned to 0.3.1");
 check(packageJson.scripts?.["github:check"] === "node scripts/github-maintenance.mjs --check", "github:check script is missing");
 check(packageJson.scripts?.["github:sync"] === "node scripts/github-maintenance.mjs", "github:sync script is missing");
 check(metadataWorkflow.includes("branches: [master, main]"), "metadata workflow does not converge on master/main pushes");

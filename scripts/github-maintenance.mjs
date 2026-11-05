@@ -4,7 +4,7 @@
  *
  * Read-only:  node scripts/github-maintenance.mjs --check
  * Apply:      GH_TOKEN=... node scripts/github-maintenance.mjs
- * Release:    GH_TOKEN=... node scripts/github-maintenance.mjs --release v0.3.0
+ * Release:    GH_TOKEN=... node scripts/github-maintenance.mjs --release v0.3.1
  */
 import fs from "node:fs/promises";
 import path from "node:path";

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-06
+
 ### Added
 
 - 第 23 个 MCP 工具 `get_source_navigation` 与 `GET /api/collab/source-navigation`：version 1 `SOURCE_NAVIGATION_JSON` 把当前 `VisualGraph` 已有的 `GraphSourceEvidence` 投影成有界、工作区相对 `file:line`、可复制 `vscode://` / `cursor://` URI 文本与 `code --goto` 提示；面板显示同一清单并提供「复制源码跳转」。它固定 `readOnly: true` 与 `projectWritesRequireHumanApproval: true`，过滤绝对路径、目录穿越、受保护目录与 `.env`-like 名称，不重复读项目文件、不打开 IDE、不执行命令、不写会话/项目文件、不签发凭据。

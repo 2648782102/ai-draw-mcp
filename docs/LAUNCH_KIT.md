@@ -29,13 +29,13 @@ export GH_TOKEN='github_pat_...'
 npm run github:sync
 ```
 
-`scripts/github-maintenance.mjs` also supports `--check` (read-only drift report) and can create a GitHub Release with `--release v0.3.0` if `CHANGELOG.md` has a matching section.
+`scripts/github-maintenance.mjs` also supports `--check` (read-only drift report) and can create a GitHub Release with `--release v0.3.1` if `CHANGELOG.md` has a matching section.
 
 **Maintain GitHub metadata** runs its read-only drift check on every master/main push and on manual dispatch. Set repository secret `GH_TOKEN` to a fine-grained token with `Administration: read and write` and push a metadata-relevant file to apply the versioned copy automatically; a manual `dry_run=false` dispatch also applies it, while `dry_run=true` only reports drift. Without the secret, the check may report drift but does not make CI red. The default `GITHUB_TOKEN` cannot change repository description or topics because those endpoints require repository administration permissions.
 
-## Release notes — 0.3.0
+## Release notes — 0.3.1
 
-Title: `v0.3.0 — Human ↔ AI visual collaboration`
+Title: `v0.3.1 — Human ↔ AI visual collaboration`
 
 ```markdown
 AI Draw MCP is no longer just a diagram renderer. It is a local-first visual workspace where an AI scans a project, a human edits the graph and leaves annotations, and the pair reviews a file-change proposal before anything is written.
