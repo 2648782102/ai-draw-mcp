@@ -15,12 +15,19 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Next — 0.4: a better visual conversation
 
-- Structured graph editing: add, remove, reconnect, group, and label nodes from the panel without editing Mermaid source.
+- Keep expanding structured graph editing: grouping, positional editing, and richer edge kinds beyond the current add/remove/reconnect controls.
 - Annotation threads attached to nodes, with resolve/reopen and a compact activity timeline.
 - Proposal templates for common intents such as rename module, extract file, add test, and update docs.
 - Per-proposal impact summary: touched paths, line counts, detected existing files, and safety notices.
 - Export and import a collaboration session as a portable JSON artifact for bug reports and examples.
 - A richer `doctor` command that reports IDE config locations, browser detection, and remediation commands.
+
+## Shipped in 0.3.x maintenance
+
+- Add, remove, rename, and retype nodes from the panel.
+- Add, remove, and reconnect edges without editing Mermaid source.
+- Select a node and pin an annotation to it; AI messages include the target node label.
+- Validate graph IDs, required fields, and edge/annotation references on the server.
 
 ## Later — 0.5: deeper project intelligence
 

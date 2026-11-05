@@ -14,16 +14,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `scripts/github-maintenance.mjs`：检查/同步仓库 description、homepage、topics，并可从 CHANGELOG 创建 Release。
 - `scripts/repo-check.mjs`：离线检查发布文案、README 链接、维护脚本与 CHANGELOG 是否一致。
 - `npm run github:check` / `npm run github:sync`，把开源元数据维护纳入本地验证与发布流程。
+- 协作面板支持新增/删除节点、编辑与删除连线、选中节点后绑定批注，让人可以直接改「项目结构」而不只改文字。
+- `VisualGraph` 服务端校验补齐节点/连线/批注 ID、字段完整性与引用完整性，拒绝损坏的图形状态。
+- 图形批注消息会显示目标节点名，AI 上下文里的意图更明确。
 
 ### Changed
 
 - npm 描述与关键词改为人机双向可视化协作定位，并同步 README 文档入口。
 - `npm run check` 增加离线仓库一致性检查；`npm run github:check` 作为显式、只读的 GitHub 元数据漂移检查，不需要凭据。
+- README 增加最短体验路径和公开文档入口；ROADMAP 中「结构化图形编辑」从下一阶段前移到当前已交付能力。
 
 ### Fixed
 
 - `create_visual_proposal` 的 `metadata` schema 使用 `z.record(z.string(), z.unknown())`，兼容 Zod 3 与 Zod 4。
 - `mmdc` 渲染与 `doctor` 探针在 CI / 无 sandbox 的 Chrome 环境下自动使用临时 Puppeteer 配置，避免 Chrome 启动失败。
+- `/api/collab/annotations` 拒绝不存在的 `nodeId`，避免批注悬挂到无效节点。
 
 ## [0.3.0] - 2026-11-06
 

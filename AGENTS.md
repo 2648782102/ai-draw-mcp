@@ -124,7 +124,7 @@ server.tool(
 | `GET /api/collab/session` | 完整会话快照 |
 | `GET/PUT /api/collab/graph` | 读取/保存 VisualGraph |
 | `POST /api/collab/messages` | 人类或 AI 发消息 |
-| `POST /api/collab/annotations` | 给当前图加批注 |
+| `POST /api/collab/annotations` | 给当前图加批注；`nodeId` 必须引用现有节点 |
 | `GET/POST /api/collab/proposals` | 列出/创建变更提案 |
 | `GET /api/collab/proposals/:id/diff` | 查看逐行变更差异 |
 | `POST /api/collab/proposals/:id/approve` | 人类批准，返回一次性确认号；**不写项目文件** |

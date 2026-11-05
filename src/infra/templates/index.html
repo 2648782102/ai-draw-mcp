@@ -191,8 +191,24 @@
       flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--border);
       border-radius: 6px; background: var(--bg); padding: 8px;
     }
-    .graph-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 5px; border-bottom: 1px solid var(--border); }
-    .graph-row input { min-width: 0; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 4px; font-size: 10px; }
+    .graph-row {
+      display: grid; grid-template-columns: 18px 1fr .8fr 24px; gap: 4px; padding: 5px;
+      border-bottom: 1px solid var(--border); align-items: center;
+    }
+    .graph-row.selected { background: rgba(88, 166, 255, .12); }
+    .graph-row input, .graph-row select, .edge-row input, .edge-row select {
+      min-width: 0; background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 3px; padding: 4px; font-size: 10px; box-sizing: border-box;
+    }
+    .graph-row button, .edge-row button {
+      width: 22px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 3px;
+      background: var(--bg); color: var(--text-muted); cursor: pointer; font-size: 11px;
+    }
+    .graph-row button:hover, .edge-row button:hover { color: var(--red); border-color: var(--red); }
+    .edge-row { display: grid; grid-template-columns: 1fr 1fr .7fr 24px; gap: 4px; padding: 4px 5px; border-bottom: 1px solid var(--border); align-items: center; }
+    .edge-editor { margin-top: 8px; border-top: 1px solid var(--border); }
+    .edge-editor h4 { font-size: 10px; color: var(--text-muted); margin: 8px 0 4px; }
+    .graph-empty { color: var(--text-muted); font-size: 10px; padding: 8px 0; }
     .chat-item { padding: 6px 8px; margin-bottom: 6px; border-radius: 5px; background: var(--surface2); font-size: 11px; line-height: 1.45; }
     .chat-item .meta { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 3px; }
     .chat-item.human { border-left: 2px solid var(--green); }
@@ -313,9 +329,15 @@
   <div class="collab-body">
     <section class="collab-section">
       <h3>项目图 · 节点编辑</h3>
-      <p class="collab-help">点击节点改名、修改说明或位置；保存后 AI 可通过 get_visual_context 读取。</p>
+      <p class="collab-help">可新增/删除节点与连线；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
       <div class="graph-editor" id="graphEditor"></div>
+      <div class="edge-editor">
+        <h4>连线 · from → to / label</h4>
+        <div id="edgeEditor" class="graph-editor" style="flex: none; min-height: 60px; max-height: 160px;"></div>
+      </div>
       <div class="collab-actions">
+        <button id="btnAddNode">＋ 节点</button>
+        <button id="btnAddEdge">＋ 连线</button>
         <button id="btnSaveGraph">保存图形</button>
         <button id="btnRescan">重新同步会话</button>
       </div>
@@ -329,7 +351,7 @@
         <button id="btnSendMessage">发送消息</button>
         <button id="btnAddAnnotation">添加图形批注</button>
       </div>
-      <input id="annotationInput" placeholder="批注内容，例如：这里应该拆成独立模块" />
+      <input id="annotationInput" placeholder="批注内容；先选中左侧节点即可绑定" />
     </section>
     <section class="collab-section">
       <h3>变更提案 · 人工确认</h3>
@@ -938,6 +960,7 @@ function connectWs() {
 // ── Collaboration workbench ───────────────────────────────────────
 let collabGraph = null;
 let collabRevision = 0;
+let selectedNodeId = null;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -960,16 +983,81 @@ async function collabFetch(url, options = {}) {
 
 function renderGraphEditor() {
   const target = $('#graphEditor');
+  const edgeTarget = $('#edgeEditor');
   if (!collabGraph) {
     target.innerHTML = '<div class="collab-help">暂无项目结构图。让 AI 调用 scan_project，或刷新协作会话。</div>';
+    edgeTarget.innerHTML = '<div class="graph-empty">暂无连线。</div>';
     return;
   }
+  if (!collabGraph.nodes.some((node) => node.id === selectedNodeId)) selectedNodeId = null;
   target.innerHTML = collabGraph.nodes.map((node, index) => `
-    <div class="graph-row" data-index="${index}">
+    <div class="graph-row ${node.id === selectedNodeId ? 'selected' : ''}" data-index="${index}" data-node-id="${escapeHtml(node.id)}">
+      <input type="radio" name="selectedNode" ${node.id === selectedNodeId ? 'checked' : ''} aria-label="选中节点" />
       <input class="node-label" value="${escapeHtml(node.label)}" aria-label="节点名称" />
       <input class="node-kind" value="${escapeHtml(node.kind)}" aria-label="节点类型" />
+      <button data-remove-node="${index}" title="删除节点">✕</button>
     </div>
   `).join('');
+  const options = (selected) => collabGraph.nodes.map((node) => `<option value="${escapeHtml(node.id)}" ${node.id === selected ? 'selected' : ''}>${escapeHtml(node.label)}</option>`).join('');
+  edgeTarget.innerHTML = collabGraph.edges.length ? collabGraph.edges.map((edge, index) => `
+    <div class="edge-row" data-index="${index}">
+      <select class="edge-from" aria-label="连线起点">${options(edge.from)}</select>
+      <select class="edge-to" aria-label="连线终点">${options(edge.to)}</select>
+      <input class="edge-label" value="${escapeHtml(edge.label || '')}" aria-label="连线说明" />
+      <button data-remove-edge="${index}" title="删除连线">✕</button>
+    </div>
+  `).join('') : '<div class="graph-empty">暂无连线。新增节点后可描述模块关系。</div>';
+
+  for (const row of target.querySelectorAll('.graph-row')) {
+    row.addEventListener('click', (event) => {
+      if (event.target.closest('button')) return;
+      selectedNodeId = row.dataset.nodeId;
+      renderGraphEditor();
+    });
+  }
+  for (const button of target.querySelectorAll('[data-remove-node]')) {
+    button.addEventListener('click', () => removeNode(Number(button.dataset.removeNode)));
+  }
+  for (const button of edgeTarget.querySelectorAll('[data-remove-edge]')) {
+    button.addEventListener('click', () => removeEdge(Number(button.dataset.removeEdge)));
+  }
+}
+
+function localId(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function addNode() {
+  if (!collabGraph) collabGraph = { version: 1, diagramId: `panel_${Date.now()}`, nodes: [], edges: [], annotations: [] };
+  const id = localId('node');
+  collabGraph.nodes.push({ id, label: '新节点', kind: 'module', group: 'human' });
+  selectedNodeId = id;
+  renderGraphEditor();
+  $('#graphEditor').scrollTop = $('#graphEditor').scrollHeight;
+}
+
+function removeNode(index) {
+  const node = collabGraph?.nodes[index];
+  if (!node) return;
+  collabGraph.nodes.splice(index, 1);
+  collabGraph.edges = collabGraph.edges.filter((edge) => edge.from !== node.id && edge.to !== node.id);
+  collabGraph.annotations = collabGraph.annotations.map((annotation) =>
+    annotation.nodeId === node.id ? { ...annotation, nodeId: undefined } : annotation);
+  if (selectedNodeId === node.id) selectedNodeId = null;
+  renderGraphEditor();
+}
+
+function addEdge() {
+  if (!collabGraph || collabGraph.nodes.length < 2) return showToast('至少需要两个节点才能建立连线');
+  const [from, to] = collabGraph.nodes.slice(-2).map((node) => node.id);
+  collabGraph.edges.push({ id: localId('edge'), from, to, label: 'relates', kind: 'human' });
+  renderGraphEditor();
+  $('#edgeEditor').scrollTop = $('#edgeEditor').scrollHeight;
+}
+
+function removeEdge(index) {
+  collabGraph?.edges.splice(index, 1);
+  renderGraphEditor();
 }
 
 function renderChat(messages) {
@@ -1060,8 +1148,16 @@ async function saveGraph() {
   rows.forEach((row, index) => {
     const node = collabGraph.nodes[index];
     if (!node) return;
-    node.label = row.querySelector('.node-label').value;
-    node.kind = row.querySelector('.node-kind').value;
+    node.label = row.querySelector('.node-label').value.trim() || node.label;
+    node.kind = row.querySelector('.node-kind').value.trim() || node.kind;
+  });
+  const edgeRows = [...$('#edgeEditor').querySelectorAll('.edge-row')];
+  edgeRows.forEach((row, index) => {
+    const edge = collabGraph.edges[index];
+    if (!edge) return;
+    edge.from = row.querySelector('.edge-from').value;
+    edge.to = row.querySelector('.edge-to').value;
+    edge.label = row.querySelector('.edge-label').value.trim() || undefined;
   });
   try {
     const result = await collabFetch('/api/collab/graph', {
@@ -1099,11 +1195,12 @@ async function addAnnotation() {
   if (!body) return showToast('请输入批注内容');
   input.value = '';
   try {
+    const nodeId = selectedNodeId || undefined;
     await collabFetch('/api/collab/annotations', {
       method: 'POST',
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({ body, nodeId }),
     });
-    showToast('批注已加入图形');
+    showToast(nodeId ? '批注已绑定到选中节点' : '批注已加入图形');
     await loadCollab();
   } catch (error) {
     showToast(`批注失败：${error.message}`);
@@ -1144,6 +1241,8 @@ $('#btnCollaborate').addEventListener('click', () => {
 $('#btnCloseCollab').addEventListener('click', () => { $('#collabShell').hidden = true; });
 $('#btnSaveGraph').addEventListener('click', saveGraph);
 $('#btnRescan').addEventListener('click', loadCollab);
+$('#btnAddNode').addEventListener('click', addNode);
+$('#btnAddEdge').addEventListener('click', addEdge);
 $('#btnSendMessage').addEventListener('click', sendMessage);
 $('#messageInput').addEventListener('keydown', (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') sendMessage();

@@ -56,11 +56,28 @@ function createSession(workspaceRoot: string): SessionSnapshot {
 function validateGraph(graph: VisualGraph): void {
   if (graph.version !== 1) throw new Error(`Unsupported graph version: ${graph.version}`);
   if (!graph.diagramId) throw new Error("Graph diagramId is required");
-  const nodeIds = new Set(graph.nodes.map((node) => node.id));
+  if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges) || !Array.isArray(graph.annotations))
+    throw new Error("Graph nodes, edges, and annotations must be arrays");
+  const nodeIds = new Set<string>();
+  for (const node of graph.nodes) {
+    if (!node.id || typeof node.label !== "string" || typeof node.kind !== "string")
+      throw new Error("Graph node requires id, label, and kind");
+    if (nodeIds.has(node.id)) throw new Error("Graph contains duplicate node ids");
+    nodeIds.add(node.id);
+  }
+  const edgeIds = new Set<string>();
   if (nodeIds.size !== graph.nodes.length) throw new Error("Graph contains duplicate node ids");
   for (const edge of graph.edges) {
+    if (!edge.id || edgeIds.has(edge.id)) throw new Error(`Graph edge has missing or duplicate id: ${edge.id}`);
+    edgeIds.add(edge.id);
     if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to))
       throw new Error(`Graph edge references missing node: ${edge.id}`);
+  }
+  for (const annotation of graph.annotations) {
+    if (!annotation.id || typeof annotation.body !== "string")
+      throw new Error("Graph annotation requires id and body");
+    if (annotation.nodeId && !nodeIds.has(annotation.nodeId))
+      throw new Error(`Graph annotation references missing node: ${annotation.id}`);
   }
 }
 

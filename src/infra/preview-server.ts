@@ -142,6 +142,8 @@ export class PreviewServer {
       if (!body.body?.trim()) return res.status(400).json({ error: "Annotation body is required" });
       const current = this.sessions.getGraph();
       if (!current) return res.status(404).json({ error: "No graph yet" });
+      if (body.nodeId && !current.nodes.some((node) => node.id === body.nodeId))
+        return res.status(400).json({ error: `Unknown annotation node: ${body.nodeId}` });
       const annotation = {
         id: makeId("ann"),
         nodeId: body.nodeId,
@@ -153,10 +155,13 @@ export class PreviewServer {
       };
       current.annotations.push(annotation);
       const snapshot = await this.sessions.setGraph(current);
-      const message = await this.sessions.addMessage("human", `批注：${annotation.body}`, {
+      const targetLabel = body.nodeId
+        ? current.nodes.find((node) => node.id === body.nodeId)?.label
+        : undefined;
+      const message = await this.sessions.addMessage("human", `批注${targetLabel ? ` @ ${targetLabel}` : ""}：${annotation.body}`, {
         diagramId: current.diagramId,
         status: "pending",
-        metadata: { event: "annotation_added", annotationId: annotation.id },
+        metadata: { event: "annotation_added", annotationId: annotation.id, nodeId: body.nodeId },
       });
       this.broadcast({ type: "graph_updated", graph: current, revision: snapshot.graphRevision, message });
       res.json({ ok: true, annotation, graphRevision: snapshot.graphRevision });

@@ -51,6 +51,34 @@ describe("collaboration session", () => {
       });
       expect(graphResponse.ok).toBe(true);
 
+      const expandedGraph = {
+        ...graph,
+        nodes: [
+          ...graph.nodes,
+          { id: "new_module", label: "shared", kind: "module", group: "human" },
+        ],
+        edges: [{ id: "edge_1", from: "root", to: "new_module", label: "extract", kind: "human" }],
+      };
+      const expandedResponse = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(expandedGraph),
+      });
+      expect(expandedResponse.ok).toBe(true);
+      const expandedSnapshot = sessions.getSnapshot();
+      expect(expandedSnapshot.graph.nodes.map((node) => node.id)).toEqual(["root", "new_module"]);
+      expect(expandedSnapshot.graph.edges[0]).toMatchObject({ from: "root", to: "new_module", label: "extract" });
+
+      const invalidGraphResponse = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({
+          ...expandedGraph,
+          edges: [{ id: "broken", from: "root", to: "missing", label: "broken" }],
+        }),
+      });
+      expect(invalidGraphResponse.status).toBe(400);
+
       const messageResponse = await fetch(`${base}/api/collab/messages`, {
         method: "POST",
         headers,
@@ -62,11 +90,20 @@ describe("collaboration session", () => {
       const annotationResponse = await fetch(`${base}/api/collab/annotations`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ body: "这里需要中文说明", nodeId: "root" }),
+        body: JSON.stringify({ body: "这里需要中文说明", nodeId: "new_module" }),
       });
       expect(annotationResponse.ok).toBe(true);
       const graphAfterAnnotation = await collabFetchGraph(base, headers);
       expect(graphAfterAnnotation.annotations.length).toBe(2);
+      expect(graphAfterAnnotation.annotations[1].nodeId).toBe("new_module");
+      expect(sessions.getMessages().some((message) => message.body.includes("@ shared"))).toBe(true);
+
+      const unknownNodeAnnotationResponse = await fetch(`${base}/api/collab/annotations`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ body: "Should fail", nodeId: "missing" }),
+      });
+      expect(unknownNodeAnnotationResponse.status).toBe(400);
 
       await sessions.addMessage("ai", "我已理解：把 README 改成中文。", {
         status: "answered",

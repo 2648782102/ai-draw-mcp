@@ -28,7 +28,7 @@ IDE / human browser
 
 1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点）并生成 `VisualGraph`。
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
-3. 人类在面板「💬 协作」工作台改节点、加批注、发消息；每次写入都会提升 `graphRevision` 并通过 WebSocket 同步。
+3. 人类在面板「💬 协作」工作台改名/改类型/增删节点、编辑连线、把批注绑定到选中节点、发消息；每次写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID 与引用完整性。
 4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注和当前图，并用 `reply_to_visual_context` 回信、标记已处理。
 5. AI 调用 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`。这一步只写会话，不碰项目文件。
 6. 面板通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。
