@@ -31,6 +31,10 @@ const getVisualContext = await read("src/tools/get-visual-context.ts");
 const replyTool = await read("src/tools/reply-to-visual-context.ts");
 const annotationThread = await read("src/domain/annotation-thread.ts");
 const activityTimeline = await read("src/domain/activity-timeline.ts");
+const sessionBundleSource = await read("src/domain/session-bundle.ts");
+const pathSafety = await read("src/domain/path-safety.ts");
+const approval = await read("src/domain/approval.ts");
+const domainContractsTest = await read("test/domain-contracts.test.mjs");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -87,6 +91,10 @@ for (const [label, file, needle] of [
   ["annotation_replies tool argument", replyTool, "annotation_replies"],
   ["activity timeline derivation", activityTimeline, "export function buildActivityTimeline"],
   ["activity timeline context", getVisualContext, "activityTimeline"],
+  ["approval downgrade in bundle", sessionBundleSource, 'status: proposal.status === "approved" ? "pending" : proposal.status'],
+  ["protected path checks", pathSafety, "DENIED_SEGMENTS"],
+  ["one-time approval validation", approval, "grant.usedAt"],
+  ["domain contract tests", domainContractsTest, "describe(\"session bundle contract\""],
 ]) {
   check(file.includes(needle), `${label} is missing or drifted`);
 }

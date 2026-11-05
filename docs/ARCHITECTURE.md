@@ -60,6 +60,10 @@ IDE / human browser
 | `output/.ai-draw/session.json` | versioned collaboration session |
 | `ai-draw-session-*.json` | portable session bundle for bug reports and examples |
 
+## Verification layers
+
+`test/` 覆盖四层：MCP stdio 工具与响应、HTTP/WebSocket 协作闭环、批注线程/活动时间线等派生视图，以及 bundle、影响摘要、路径安全、内容哈希和一次性批准凭据等纯函数契约。`scripts/repo-check.mjs` 则离线检查公开文档、发布文案、面板关键 ID、协作端点与安全实现是否漂移。
+
 所有持久化结构都有 `version: 1`，后续迁移在 `SessionStore.create()` 与类型层处理。
 
 ## Protocol

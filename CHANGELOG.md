@@ -44,6 +44,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `docs/COMPETITIVE_RESEARCH.md` 补充公开评论线程协议调研，明确当前交付范围、后续状态/时间线候选与安全边界。
 - `get_visual_context` 增加 `activity_limit` 与 `activityTimeline`，把事件顺序、计数和下一棒提示交给 AI。
 - ROADMAP 把紧凑活动时间线从后续候选移到当前已交付能力，保留失锚/过期状态等下一阶段候选。
+- 新增纯函数契约测试，覆盖会话 bundle 批准状态降级、批注回复往返、提案影响摘要、路径安全、内容哈希与一次性批准凭据。
 
 ### Fixed
 

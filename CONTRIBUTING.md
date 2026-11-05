@@ -41,7 +41,7 @@ export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS
 
 1. `npm run lint`（当前等价于 TypeScript 严格检查）
 2. `npm run build`
-3. `npm test`
+3. `npm test`（含领域契约测试：bundle、影响摘要、路径安全、内容哈希与一次性批准凭据）
 4. `npm run doctor`
 5. 更新文档与 `CHANGELOG.md`
 
