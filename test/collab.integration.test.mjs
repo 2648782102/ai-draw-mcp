@@ -377,6 +377,14 @@ describe("collaboration session", () => {
       expect(decisionTrail.safety).toMatchObject({ readOnly: true, grantsWriteAuthority: false, excludesApprovalGrants: true });
       expect(JSON.stringify(decisionTrail)).not.toContain("approvalGrant");
 
+      const reviewReadinessResponse = await fetch(`${base}/api/collab/review-readiness`, { headers });
+      expect(reviewReadinessResponse.ok).toBe(true);
+      const reviewReadiness = await reviewReadinessResponse.json();
+      expect(reviewReadiness).toMatchObject({ version: 1, graphRevision: expect.any(Number) });
+      expect(["ready", "review", "blocked"]).toContain(reviewReadiness.status);
+      expect(reviewReadiness.safety).toMatchObject({ readOnly: true, grantsWriteAuthority: false, excludesApprovalGrants: true });
+      expect(JSON.stringify(reviewReadiness)).not.toContain("grantHash");
+
       const activityResponse = await fetch(`${base}/api/collab/activity?limit=100`, { headers });
       expect(activityResponse.ok).toBe(true);
       const activity = (await activityResponse.json()).timeline;

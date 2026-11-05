@@ -14,6 +14,7 @@ These examples are intentionally small and contain no secrets or absolute paths.
 - `get_decision_trail` — a read-only `DECISION_TRAIL_JSON` chronology linking human intent, graph diffs, bounded proposal change summaries, proposal stages, gaps, and activity events; `agent-workflow.mjs` verifies its no-grant boundary before preflight. It does not replace the full line diff.
 - `BRIEF_JSON.viewport` — bounded human zoom/pan attention context; it is read-only and never becomes a graph revision, timeline event, bundle field, or approval grant.
 - `EXPORT_MANIFEST_JSON` — a derived, credential-free inventory attached to downloaded session bundles; it lists counts, exclusions, and read-only safety flags, and is not required for strict bundle import.
+- `REVIEW_READINESS_JSON` — a derived, read-only diagnostic in `CONTEXT_JSON.diagnostics.reviewReadiness` and the panel; `agent-workflow.mjs` verifies its status before preflight without approving or writing files. See [ADR 0015](../docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md).
 - `collaboration-workflow.md` — a human ↔ AI walkthrough for scanning, annotating, approving, and applying a proposal.
 
 Run the client after `npm run build`:

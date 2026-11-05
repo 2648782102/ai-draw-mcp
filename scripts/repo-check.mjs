@@ -68,6 +68,11 @@ const getDecisionTrailTool = await read("src/tools/get-decision-trail.ts");
 const decisionTrailTest = await read("test/decision-trail.test.mjs");
 const decisionTrailAdr = await read("docs/ADR/0013-decision-trail-is-a-read-only-projection.md");
 const exportManifestAdr = await read("docs/ADR/0014-export-manifest-is-a-derived-inventory.md");
+const reviewReadinessAdr = await read("docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md");
+const reviewReadinessDomain = await read("src/domain/review-readiness.ts");
+const reviewReadinessTest = await read("test/review-readiness.test.mjs");
+const sessionDiagnosticsDomain = await read("src/domain/session-diagnostics.ts");
+const sessionDiagnosticsTest = await read("test/session-diagnostics.test.mjs");
 const viewportDomain = await read("src/domain/viewport.ts");
 const viewportTest = await read("test/viewport.test.mjs");
 const viewportAdr = await read("docs/ADR/0012-viewport-is-read-only-attention-context.md");
@@ -85,6 +90,7 @@ const roadmap = await read("ROADMAP.md");
 const research = await read("docs/COMPETITIVE_RESEARCH.md");
 const englishReadme = englishQuickstart;
 const ci = await read(".github/workflows/ci.yml");
+const metadataWorkflow = await read(".github/workflows/maintain-github-metadata.yml");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -134,6 +140,7 @@ for (const endpoint of [
   "/api/collab/source-evidence",
   "/api/collab/decision-trail",
   "/api/collab/bundle/manifest",
+  "/api/collab/review-readiness",
   "/api/collab/node-context",
   "/api/collab/graph/history",
   "/api/collab/graph/undo",
@@ -463,6 +470,39 @@ for (const [label, file, needle] of [
   ["export manifest research", research, "EXPORT_MANIFEST_JSON"],
   ["export manifest troubleshooting", troubleshooting, "EXPORT_MANIFEST_JSON"],
   ["export manifest examples map", examplesReadme, "EXPORT_MANIFEST_JSON"],
+  ["review readiness domain", reviewReadinessDomain, "export function buildReviewReadiness"],
+  ["review readiness no authority", reviewReadinessDomain, "grantsWriteAuthority: false"],
+  ["review readiness brief source", reviewReadinessDomain, "buildSharedBrief"],
+  ["review readiness trail source", reviewReadinessDomain, "buildDecisionTrail"],
+  ["review readiness diagnostics field", sessionDiagnosticsDomain, "reviewReadiness:"],
+  ["review readiness diagnostics signal", sessionDiagnosticsDomain, "review_readiness"],
+  ["review readiness endpoint", previewServer, "/api/collab/review-readiness"],
+  ["review readiness panel", panel, 'id="reviewReadinessList"'],
+  ["review readiness workflow example", agentWorkflowExample, "Review readiness:"],
+  ["review readiness pure test", sessionDiagnosticsTest, "review_readiness"],
+  ["review readiness dedicated test", reviewReadinessTest, "read-only review readiness"],
+  ["review readiness ADR index", adrIndex, "0015-review-readiness-is-a-derived-diagnostic.md"],
+  ["review readiness ADR boundary", reviewReadinessAdr, "grantsWriteAuthority: false"],
+  ["review readiness docs map", documentationMap, "0015-review-readiness-is-a-derived-diagnostic.md"],
+  ["review readiness AGENTS ADR", agents, "ADR 0015"],
+  ["review readiness Chinese ADR", readme, "ADR 0015"],
+  ["review readiness English ADR", englishQuickstart, "ADR 0015"],
+  ["review readiness architecture ADR", architecture, "ADR 0015"],
+  ["review readiness security ADR", security, "ADR 0015"],
+  ["review readiness launch ADR", launchKit, "ADR 0015"],
+  ["review readiness troubleshooting ADR", troubleshooting, "ADR 0015"],
+  ["review readiness examples ADR", examplesReadme, "ADR 0015"],
+  ["review readiness research ADR", research, "ADR 0015"],
+  ["review readiness HTTP test", collaborationTest, "/api/collab/review-readiness"],
+  ["review readiness English docs", englishQuickstart, "REVIEW_READINESS_JSON"],
+  ["review readiness Chinese docs", readme, "REVIEW_READINESS_JSON"],
+  ["review readiness AGENTS docs", agents, "REVIEW_READINESS_JSON"],
+  ["review readiness architecture", architecture, "REVIEW_READINESS_JSON"],
+  ["review readiness security", security, "REVIEW_READINESS_JSON"],
+  ["review readiness roadmap", roadmap, "REVIEW_READINESS_JSON"],
+  ["review readiness launch", launchKit, "REVIEW_READINESS_JSON"],
+  ["review readiness troubleshooting", troubleshooting, "REVIEW_READINESS_JSON"],
+  ["review readiness examples map", examplesReadme, "REVIEW_READINESS_JSON"],
 ]) {
   check(file.includes(needle), `${label} is missing or drifted`);
 }
@@ -501,6 +541,11 @@ check(readme.includes("不等于批准变更"), "README.md does not document the
 check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased section");
 check(packageJson.scripts?.["github:check"] === "node scripts/github-maintenance.mjs --check", "github:check script is missing");
 check(packageJson.scripts?.["github:sync"] === "node scripts/github-maintenance.mjs", "github:sync script is missing");
+check(metadataWorkflow.includes("branches: [master, main]"), "metadata workflow does not converge on master/main pushes");
+check(metadataWorkflow.includes("env:\n      GH_ADMIN_TOKEN: ${{ secrets.GH_TOKEN }}"), "metadata workflow does not expose the admin token through job env");
+check(metadataWorkflow.includes("env.GH_ADMIN_TOKEN != ''"), "metadata workflow does not guard metadata writes with an admin token");
+check(governance.includes("read-only drift check on every master/main push"), "governance docs do not describe automatic metadata drift checks");
+check(launchKit.includes("push a metadata-relevant file to apply"), "launch kit does not describe automatic metadata convergence");
 check(packageJson.scripts?.["docs:assets"] === "node scripts/generate-doc-assets.mjs", "docs:assets script is missing");
 check(packageJson.scripts?.["docs:assets:check"] === "node scripts/generate-doc-assets.mjs --check", "docs:assets:check script is missing");
 check(!/gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}/.test(launchKit + githubMaintenance + readme + agents + changelog), "A GitHub token-like value appears in tracked maintenance copy");

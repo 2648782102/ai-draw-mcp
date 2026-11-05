@@ -22,6 +22,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0012-viewport-is-read-only-attention-context.md](ADR/0012-viewport-is-read-only-attention-context.md) | AI agents, reviewers | Why human zoom/pan state never becomes a graph revision, timeline event, or write grant |
 | [ADR/0013-decision-trail-is-a-read-only-projection.md](ADR/0013-decision-trail-is-a-read-only-projection.md) | AI agents, reviewers | Why a derived decision trail excludes approval grants and never replaces the full proposal diff |
 | [ADR/0014-export-manifest-is-a-derived-inventory.md](ADR/0014-export-manifest-is-a-derived-inventory.md) | Maintainers, reviewers | Why a portable export manifest describes contents and exclusions without granting writes |
+| [ADR/0015-review-readiness-is-a-derived-diagnostic.md](ADR/0015-review-readiness-is-a-derived-diagnostic.md) | AI agents, reviewers | Why review readiness combines brief blockers and trail gaps without becoming approval or a second state machine |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
@@ -48,6 +49,8 @@ Viewport attention is documented in [ADR 0012](ADR/0012-viewport-is-read-only-at
 Decision trails are documented in [ADR 0013](ADR/0013-decision-trail-is-a-read-only-projection.md): `get_decision_trail` derives a bounded, evidence-labelled chronology from the current session, separates stale threads from current intent, excludes approval grants, and points reviewers back to the full line diff before any project write.
 
 Export manifests are documented in [ADR 0014](ADR/0014-export-manifest-is-a-derived-inventory.md): a downloaded session bundle can carry a derived, credential-free inventory of its contents and intentional exclusions; strict import validation still treats only the versioned `session` object as authority.
+
+Review readiness is documented in [ADR 0015](ADR/0015-review-readiness-is-a-derived-diagnostic.md): a bounded `ready` / `review` / `blocked` status composes shared-brief blockers and decision-trail gaps, but never persists a duplicate state, exports approval grants, or replaces full line-diff review.
 
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 

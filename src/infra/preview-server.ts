@@ -19,6 +19,7 @@
  *   GET  /api/collab/node-context  read-only context for a selected graph node
  *   GET  /api/collab/brief       compact read-only shared handoff brief
  *   GET  /api/collab/decision-trail  read-only chronological decision trail
+ *   GET  /api/collab/review-readiness  derived BRIEF_JSON blockers + DECISION_TRAIL_JSON gaps
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/graph/history  bounded visual undo/redo availability
  *   POST /api/collab/graph/undo   human-confirmed visual undo
@@ -59,6 +60,7 @@ import { buildSessionDiagnostics } from "../domain/session-diagnostics.js";
 import { buildNodeContext } from "../domain/node-context.js";
 import { buildSharedBrief } from "../domain/shared-brief.js";
 import { buildDecisionTrail } from "../domain/decision-trail.js";
+import { buildReviewReadiness } from "../domain/review-readiness.js";
 import { buildExportManifest } from "../domain/session-bundle.js";
 import { makeId, nowIso } from "../domain/ids.js";
 import { logger } from "./logger.js";
@@ -224,6 +226,10 @@ export class PreviewServer {
 
     this.app.get("/api/collab/graph/history", (_req, res) => {
       res.json({ history: this.sessions.getGraphHistory() });
+    });
+
+    this.app.get("/api/collab/review-readiness", (_req, res) => {
+      res.json(buildReviewReadiness(this.sessions.getSnapshot()));
     });
 
     const restoreGraphHistory = async (

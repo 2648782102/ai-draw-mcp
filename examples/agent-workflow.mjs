@@ -113,6 +113,13 @@ try {
   }
   console.log(`    Decision trail: ${decisionTrail.counts.returnedEvents}/${decisionTrail.counts.events} bounded events`);
 
+  const readinessText = textOf(await client.callTool({ name: "get_visual_context", arguments: {} }));
+  const readiness = jsonAfter(readinessText, "CONTEXT_JSON:");
+  if (readiness.diagnostics?.reviewReadiness?.version !== 1 || readiness.diagnostics?.reviewReadiness?.status === undefined) {
+    throw new Error("Diagnostics unexpectedly lost the read-only review readiness projection");
+  }
+  console.log(`    Review readiness: ${readiness.diagnostics.reviewReadiness.status} (${readiness.diagnostics.reviewReadiness.blockers} blockers / ${readiness.diagnostics.reviewReadiness.gaps} gaps)`);
+
   const draftText = textOf(await client.callTool({
     name: "list_change_templates",
     arguments: {

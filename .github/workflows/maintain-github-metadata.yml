@@ -1,6 +1,12 @@
 name: Maintain GitHub metadata
 
 on:
+  push:
+    branches: [master, main]
+    paths:
+      - docs/LAUNCH_KIT.md
+      - scripts/github-maintenance.mjs
+      - .github/workflows/maintain-github-metadata.yml
   workflow_dispatch:
     inputs:
       dry_run:
@@ -17,6 +23,8 @@ jobs:
   sync-metadata:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      GH_ADMIN_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,12 +32,12 @@ jobs:
           node-version: 22
           cache: npm
       - name: Check repository metadata
-        if: ${{ inputs.dry_run == 'true' }}
         run: node scripts/github-maintenance.mjs --check
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+        continue-on-error: true
       - name: Require an administration-capable token
-        if: ${{ inputs.dry_run != 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run != 'true' }}
         run: |
           if [ -z "${GH_TOKEN}" ]; then
             echo "::error::Set repository secret GH_TOKEN to a fine-grained token with Administration: write for metadata sync."
@@ -38,7 +46,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Apply repository metadata
-        if: ${{ inputs.dry_run != 'true' }}
+        if: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dry_run != 'true')) && env.GH_ADMIN_TOKEN != '' }}
         run: node scripts/github-maintenance.mjs
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ env.GH_ADMIN_TOKEN }}

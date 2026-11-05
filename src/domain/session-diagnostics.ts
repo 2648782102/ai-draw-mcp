@@ -1,5 +1,6 @@
 import { buildActivityTimeline } from "./activity-timeline.js";
 import { summarizeAnnotationThreads } from "./annotation-thread.js";
+import { buildReviewReadiness } from "./review-readiness.js";
 import type { ChangeProposal, SessionSnapshot } from "./types.js";
 
 export type DiagnosticLevel = "info" | "warning" | "action";
@@ -27,6 +28,14 @@ export interface SessionDiagnostics {
   conversations: { pendingMessages: number; annotationThreads: number; openThreads: number; awaitingAi: number; awaitingHuman: number };
   proposals: Record<ChangeProposal["status"], number>;
   activity: { total: number; latestAt?: string; nextActor: "ai" | "human" | "none" };
+  reviewReadiness: {
+    version: 1;
+    status: "ready" | "review" | "blocked";
+    blockers: number;
+    gaps: number;
+    events: number;
+    proposals: number;
+  };
   safety: {
     approvalGrantsExported: false;
     staleThreadsExcludedFromIntent: true;
@@ -43,6 +52,7 @@ function emptyProposalCounts(): Record<ChangeProposal["status"], number> {
 export function buildSessionDiagnostics(snapshot: SessionSnapshot): SessionDiagnostics {
   const threads = summarizeAnnotationThreads(snapshot.graph);
   const timeline = buildActivityTimeline(snapshot, 1);
+  const reviewReadiness = buildReviewReadiness(snapshot);
   const proposalCounts = emptyProposalCounts();
   for (const proposal of snapshot.proposals) proposalCounts[proposal.status] += 1;
   const pendingMessages = snapshot.messages.filter((message) => message.author === "human" && message.status === "pending");
@@ -127,6 +137,17 @@ export function buildSessionDiagnostics(snapshot: SessionSnapshot): SessionDiagn
       count: graphDiffs.length,
     });
   }
+  if (reviewReadiness.reviewPoints.length > 0) {
+    signals.push({
+      code: "review_readiness",
+      level: reviewReadiness.status === "blocked" ? "action" : "warning",
+      message: reviewReadiness.status === "blocked"
+        ? "BRIEF_JSON blockers or DECISION_TRAIL_JSON gaps require review before the next proposal step."
+        : "DECISION_TRAIL_JSON has evidence gaps; review them before relying on a bounded chronology.",
+      count: reviewReadiness.reviewPoints.length,
+      ids: reviewReadiness.reviewPoints.map((point) => point.id),
+    });
+  }
   const nextActions: string[] = [];
   if (!snapshot.graph) nextActions.push("Run scan_project to create the current VisualGraph.");
   if (graphDiffs.length > 0) nextActions.push("Read graphDiffs to understand exact node/edge edits before generating a proposal.");
@@ -135,6 +156,8 @@ export function buildSessionDiagnostics(snapshot: SessionSnapshot): SessionDiagn
   if (proposalCounts.pending > 0) nextActions.push("Ask the human to review the line diff before approving a proposal.");
   if (proposalCounts.approved > 0) nextActions.push("The AI needs a one-time receipt from the human to call apply_visual_proposal.");
   if (proposalCounts.applied > 0) nextActions.push("Run scan_project again so the graph and source tree stay aligned.");
+  if (reviewReadiness.status !== "ready")
+    nextActions.push("Read BRIEF_JSON blockers and DECISION_TRAIL_JSON gaps, then resolve evidence questions with the human.");
   if (nextActions.length === 0) nextActions.push("Session is quiet; use get_visual_context for full context before creating a proposal.");
 
   return {
@@ -179,6 +202,14 @@ export function buildSessionDiagnostics(snapshot: SessionSnapshot): SessionDiagn
     },
     proposals: proposalCounts,
     activity: { total: timeline.total, latestAt: timeline.latestAt, nextActor: timeline.nextActor },
+    reviewReadiness: {
+      version: 1,
+      status: reviewReadiness.status,
+      blockers: reviewReadiness.brief.blockers.length,
+      gaps: reviewReadiness.decisionTrail.gaps.length,
+      events: reviewReadiness.decisionTrail.events,
+      proposals: reviewReadiness.decisionTrail.proposals,
+    },
     safety: {
       approvalGrantsExported: false,
       staleThreadsExcludedFromIntent: true,

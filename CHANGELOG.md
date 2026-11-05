@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- [ADR 0015](docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md)：记录审阅就绪是由共享简报阻塞与决策链缺口组合而成的派生诊断，不持久化重复状态、不签发凭据，且 `ready` 不替代完整逐行 diff。
+- `REVIEW_READINESS_JSON` 的独立纯函数契约测试：覆盖 `blocked` / `ready` 聚合、有界来源点、固定安全标记、完整 diff 提示，以及一次性批准凭据不进入序列化输出。
+- **Maintain GitHub metadata** 工作流现在在 master/main push 与手动 dispatch 时执行只读漂移检查；配置具备 `Administration: read and write` 的 `GH_TOKEN` secret 后，push 会自动应用版本化 About/topics，未配置 secret 时不会让 CI 因已知漂移变红。
+- version 1 `REVIEW_READINESS_JSON` 与 `GET /api/collab/review-readiness`：从 `BRIEF_JSON` 阻塞和 `DECISION_TRAIL_JSON` 证据缺口派生 `ready` / `review` / `blocked` 只读审阅状态；`CONTEXT_JSON.diagnostics.reviewReadiness`、诊断信号、下一步动作、面板与工作流示例显示/读取同一投影，且不创建提案或写文件。
+- 审阅就绪纯函数、HTTP、工作流示例、诊断与离线一致性测试：覆盖阻塞/缺口聚合、固定只读安全标记、凭据不外泄、下一步动作和 CI 示例读取。
 - version 1 `EXPORT_MANIFEST_JSON` 与 `GET /api/collab/bundle/manifest`：从导出的 `SessionBundle` 派生可读资产清单、建议文件名、有界计数、被排除的凭据/图形历史/视口字段、已降级批准状态与固定只读安全标记；面板下载的 bundle 附带 `exportManifest`，严格导入仍只信任 versioned `session`。
 - [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md)：记录导出清单是派生只读清单、不持久化、不改变导入契约、不签发凭据，也不授权写入。
 - 导出清单纯函数、HTTP、面板导出与离线一致性测试：覆盖确定性、版本校验、credential-like metadata 拒绝、凭据不外泄、固定安全标记和带清单旧字段的 bundle 导入兼容。

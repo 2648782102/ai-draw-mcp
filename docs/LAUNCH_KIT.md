@@ -31,7 +31,7 @@ npm run github:sync
 
 `scripts/github-maintenance.mjs` also supports `--check` (read-only drift report) and can create a GitHub Release with `--release v0.3.0` if `CHANGELOG.md` has a matching section.
 
-Maintainers can also run the **Maintain GitHub metadata** workflow from the Actions tab. Set repository secret `GH_TOKEN` to a fine-grained token with `Administration: read and write`; choose `dry_run=true` to only report drift using the workflow token. The default `GITHUB_TOKEN` cannot change repository description or topics because those endpoints require repository administration permissions.
+**Maintain GitHub metadata** runs its read-only drift check on every master/main push and on manual dispatch. Set repository secret `GH_TOKEN` to a fine-grained token with `Administration: read and write` and push a metadata-relevant file to apply the versioned copy automatically; a manual `dry_run=false` dispatch also applies it, while `dry_run=true` only reports drift. Without the secret, the check may report drift but does not make CI red. The default `GITHUB_TOKEN` cannot change repository description or topics because those endpoints require repository administration permissions.
 
 ## Release notes — 0.3.0
 
@@ -49,6 +49,7 @@ Highlights:
 - `get_shared_brief` returns a read-only version 1 `BRIEF_JSON` for compact handoffs: readiness blockers, current intent, stale threads, the latest graph diff, bounded source evidence, and next actions. The panel displays and can copy the same view; approval grants are absent by construction.
 - `get_decision_trail` returns a read-only version 1 `DECISION_TRAIL_JSON` linking human intent, anchored and stale threads, graph diffs, bounded proposal change summaries, proposal stages, activity events, and evidence gaps. The panel displays and can copy the same chronology; it is a derived projection, excludes approval grants, and never replaces the full line diff or human approval; see [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md).
 - Portable session bundle downloads include a derived, credential-free version 1 `EXPORT_MANIFEST_JSON` inventory with bounded counts, excluded credential/history/viewport fields, and a suggested filename; strict import validation remains unchanged; see [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md).
+- `REVIEW_READINESS_JSON` gives agents and humans one bounded, read-only readiness signal by aggregating `BRIEF_JSON` blockers and `DECISION_TRAIL_JSON` evidence gaps; diagnostics, the panel, and the reproducible workflow example use the same projection without granting writes; see [ADR 0015](docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md).
 - Human viewport attention is a bounded, throttled read-only zoom/pan hint for AI; the panel publishes it with an authenticated `keepalive fetch`, and it never changes graph revisions, timelines, bundles, approval grants, or project files; see [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md).
 - A read-only change-template catalogue for common intents: drafts cite the current graph revision and must still pass preflight and human review.
 - A shared human focus: select a node and the AI sees exactly which object the conversation is about, without that selection granting write authority.

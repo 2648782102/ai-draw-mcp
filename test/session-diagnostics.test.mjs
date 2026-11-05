@@ -120,7 +120,11 @@ describe("session diagnostics", () => {
       "proposals_await_review",
       "failed_proposals",
       "graph_diffs",
+      "review_readiness",
     ]));
+    expect(diagnostics.reviewReadiness).toMatchObject({ version: 1, status: "blocked" });
+    expect(diagnostics.reviewReadiness.blockers).toBeGreaterThan(0);
+    expect(diagnostics.nextActions.join(" ")).toContain("DECISION_TRAIL_JSON gaps");
     expect(diagnostics.nextActions.join(" ")).toContain("re-anchor");
     expect(diagnostics.nextActions.join(" ")).toContain("graphDiffs");
   });
@@ -129,5 +133,19 @@ describe("session diagnostics", () => {
     const diagnostics = buildSessionDiagnostics({ ...snapshot, graph: undefined, messages: [], proposals: [] });
     expect(diagnostics.signals.map((signal) => signal.code)).toContain("graph_missing");
     expect(diagnostics.nextActions.join(" ")).toContain("scan_project");
+  });
+
+  it("stays ready when brief and decision trail have no blockers or gaps", () => {
+    const clean = {
+      ...snapshot,
+      graph: {
+        ...snapshot.graph,
+        annotations: [],
+      },
+      messages: [],
+      proposals: [],
+    };
+    const diagnostics = buildSessionDiagnostics(clean);
+    expect(diagnostics.reviewReadiness).toMatchObject({ version: 1, status: "ready", blockers: 0, gaps: 0 });
   });
 });

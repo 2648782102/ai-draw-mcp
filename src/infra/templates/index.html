@@ -414,6 +414,8 @@
       <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
       <p class="activity-summary" id="diagnosticsSummary">会话诊断加载中…</p>
       <div class="diagnostics-list" id="diagnosticsList"></div>
+      <p class="activity-summary" id="reviewReadinessSummary">审阅就绪 · 加载中；只聚合 BRIEF_JSON 阻塞与 DECISION_TRAIL_JSON 证据缺口</p>
+      <div class="diagnostics-list" id="reviewReadinessList"></div>
       <p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p>
       <div class="chat-log graph-diff-list" id="graphDiffList"></div>
       <div class="chat-log activity-list" id="activityList"></div>
@@ -1369,6 +1371,18 @@ function renderDiagnostics(diagnostics) {
     : '<p class="signal">会话诊断不可用。</p>';
 }
 
+function renderReviewReadiness(readiness) {
+  const summary = $('#reviewReadinessSummary');
+  const list = $('#reviewReadinessList');
+  if (!summary || !list) return;
+  const points = Array.isArray(readiness?.reviewPoints) ? readiness.reviewPoints : [];
+  const statusLabel = ({ ready: '就绪', review: '待复核', blocked: '有阻塞' })[readiness?.status] || '未知';
+  summary.textContent = `审阅就绪 · ${statusLabel} · ${readiness?.brief.blockers.length ?? 0} 个 BRIEF_JSON 阻塞 / ${readiness?.decisionTrail.gaps.length ?? 0} 项 DECISION_TRAIL_JSON 缺口 · 只读，不签发凭据`;
+  summary.title = 'REVIEW_READINESS_JSON 派生自共享简报与决策链；它不批准变更，也不替代完整逐行 diff。';
+  const pointHtml = points.slice(0, 8).map((point) => `<p class="signal ${point.severity === 'action' ? 'action' : ''}"><strong>${escapeHtml(point.source)}</strong> · ${escapeHtml(point.message)}</p>`).join('');
+  list.innerHTML = pointHtml || '<p class="signal">暂无共享简报阻塞或决策链证据缺口；批准提案前仍须打开完整逐行 diff。</p>';
+}
+
 function renderSharedBrief(brief) {
   const summary = $('#sharedBriefSummary');
   const list = $('#sharedBriefList');
@@ -1670,6 +1684,8 @@ async function loadCollab() {
     const diagnostics = await collabFetch('/api/collab/diagnostics');
     collabDiagnostics = diagnostics.diagnostics;
     renderDiagnostics(diagnostics.diagnostics);
+    const reviewReadiness = await collabFetch('/api/collab/review-readiness');
+    renderReviewReadiness(reviewReadiness);
     const graphDiffs = await collabFetch('/api/collab/graph/diffs?limit=5');
     collabGraphDiffs = graphDiffs.diffs || [];
     renderGraphDiffs(graphDiffs.diffs);
