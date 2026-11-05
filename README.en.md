@@ -17,6 +17,7 @@ AI: preflight_visual_proposal → safe paths + existing/new files + duplicate/no
 AI: create_visual_proposal → line-by-line diff + impact summary
 Human: review diff → approve → copy the one-time receipt
 AI: apply_visual_proposal(receipt) → safe write → automatic rollback on failure
+AI or human: rescan → stable path IDs preserve human coordinates, labels, threads, and focus
 ```
 
 ![Collaboration workbench](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-workbench.svg)
@@ -54,6 +55,7 @@ If Chrome is outside Puppeteer's cache, set `PUPPETEER_EXECUTABLE_PATH`. CI and 
 - `graphDiffs` records exact node/edge field changes between graph revisions; AI should use it instead of guessing visual edits from prose.
 - `activityTimeline` derives graph revision events alongside messages, annotation threads, and proposal lifecycle events; this read-only projection never grants write authority.
 - `focus` records the human-selected node as versioned attention context; it is cleared when the node disappears and never grants write authority.
+- `scan_project` and the human-confirmed panel rescan read project files only. Deterministic path-based IDs preserve human layout, custom labels, annotation anchors, and focus; new nodes are auto-placed and removed nodes detach stale threads. A `PRESERVATION_JSON` summary explains what was retained. Visual synchronization never grants project-write authority; see [ADR 0006](docs/ADR/0006-stable-scan-preserves-human-visual-state.md).
 - Stale annotation threads are explicitly `outdated` or `detached`; AI must ask a human to review or re-anchor them before treating old discussion as current intent.
 
 See [`SECURITY.md`](SECURITY.md), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), and [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).

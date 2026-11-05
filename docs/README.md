@@ -21,8 +21,10 @@ Start with the [main README](../README.md) for installation and the product over
 | [../CHANGELOG.md](../CHANGELOG.md) | Users | Versioned release notes |
 | [../examples/README.md](../examples/README.md) | New users | MCP configs, diagram examples, and the end-to-end collaboration demo |
 
-Portable `ai-draw-session-*.json` bundles are for bug reports and reproducible examples. They contain graph/chat/annotation-thread/proposal state and the validated human focus, but never one-time approval grants; importing a bundle requires explicit human confirmation and never writes project files. The activity timeline is a derived, read-only view of those same source records and never grants project-write capability.
+Portable `ai-draw-session-*.json` bundles are for bug reports and reproducible examples. They contain graph/chat/annotation-thread/proposal state, finite human coordinates, and the validated human focus, but never one-time approval grants; importing a bundle requires explicit human confirmation and never writes project files. The activity timeline is a derived, read-only view of those same source records and never grants project-write capability.
+
+Stable-path rescans are documented in [ADR 0006](ADR/0006-stable-scan-preserves-human-visual-state.md): deterministic IDs and a read-only visual-state merge preserve layout, labels, threads, and focus while keeping scans separate from the proposal/write boundary.
 
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 
-Test rule: `npm test` covers MCP integration, the collaboration loop, annotation threads, the derived activity timeline, and pure domain contracts for bundles, impact summaries, path safety, content hashes, and one-time approval grants.
+Test rule: `npm test` covers MCP integration, the collaboration loop, stable scan preservation, annotation threads, the derived activity timeline, and pure domain contracts for bundles, impact summaries, path safety, content hashes, and one-time approval grants.

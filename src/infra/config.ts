@@ -101,7 +101,9 @@ export interface DiagramRecord {
   title: string;
   type: DiagramType;
   createdAt: string;
+  updatedAt?: string;
   svgPath: string;
   pngPath?: string;
   mermaidCode?: string;
+  visualSync?: boolean;
 }

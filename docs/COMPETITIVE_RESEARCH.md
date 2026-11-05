@@ -57,7 +57,7 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 | 产品 / 类别 | 新一轮观察 | 对 AI Draw MCP 的启示 | 边界与差异 |
 |---|---|---|---|
 | [Mermaid Chart MCP / AI](https://mermaid.ai/docs/ai/mcp-server) 与需要账号的图表 MCP | 把 Mermaid 生成、校验、渲染包装成 IDE 可调用的工具；部分服务把图表管理放在云端并要求登录 | AI 工具应返回结构化、可校验的中间产物，而不是只给一张图片 | AI Draw MCP 保留 Mermaid 作为渲染/导出格式，但协作状态是本地 `VisualGraph`；核心闭环不依赖账号或云图表库 |
-| [Archyne（调研输入亦记作 Arhyne）](https://github.com/archyne/archyne) | README 自述为本地优先 Mermaid 画布与文本双向同步；把人工坐标保存在 Mermaid 注释中，LLM 重写图时尽量保留既有节点布局；本地文件由编辑器拥有，并提供撤销/重做、MCP 校验写入与导出 | 图重新扫描后不应抹掉人工摆放；视觉编辑需要可回滚，并与文件内容变更的回滚区分 | AI Draw MCP 当前已有结构化编辑、会话 bundle、提案回滚与 `GraphNode` 的可选坐标；但重新扫描会生成带网格坐标的新图，布局保持与图形撤销栈仍待验证；人工批准门槛仍只适用于项目文件写入 |
+| [Archyne（调研输入亦记作 Arhyne）](https://github.com/archyne/archyne) | README 自述为本地优先 Mermaid 画布与文本双向同步；把人工坐标保存在 Mermaid 注释中，LLM 重写图时尽量保留既有节点布局；本地文件由编辑器拥有，并提供撤销/重做、MCP 校验写入与导出 | 图重新扫描后不应抹掉人工摆放；视觉编辑需要可回滚，并与文件内容变更的回滚区分 | AI Draw MCP 0.3.x 现已用稳定路径 ID、`VisualSyncService` 与 `mergeScannedGraph()` 保留人工坐标/标签/批注/焦点，新增节点才自动排布，重新扫描只读项目文件；图形撤销栈仍是后续候选，人工批准门槛仍只适用于项目文件写入 |
 | [OpenFlowKit](https://github.com/openflowkit/openflowkit)（原 `Vrun-design` 路径当前返回永久重定向） | 调研输入称其仓库地图的箭头引用到 `file + line`；本地优先、MCP；文本 DSL、画布、助手、CLI 共用同一套语言与 TypeScript 编译器 | 节点应能回到源码证据；扩展机制应保持低门槛和类型一致 | 0.3 的扫描器以文件树/import 为主；0.5 可补 source ranges，但不得把「能定位代码」变成「可以据此自动写文件」。重定向目标未能在本轮公开 API 工具中稳定复核，因此该条只作候选信号 |
 | [tldraw AI](https://tldraw.dev/docs/ai)、[agent starter kit](https://tldraw.dev/starter-kits/agent) 与 [workflow starter kit](https://tldraw.dev/starter-kits/overview) | Agent 直接读取/修改画布，把视觉操作组织成可组合的工作流 | 人需要看见 AI 改了什么、在哪里改、能撤回；工具描述要把 agent 的下一步讲清楚 | AI Draw MCP 的 AI 不直接写项目文件；画布/图的编辑与项目写入由会话、逐行 diff、人工批准和一次性凭据分层 |
 | [Nereid](https://github.com/bnomei/nereid)（TUI + MCP 参考形态） | 确定性文本渲染、显式注意力/选中状态、基于文件夹的会话持久化，让终端里的 AI 与人对同一对象工作；其 `LICENSE` 明确为非商业、禁止修改与衍生作品的 source-available 许可 | 把「当前选中了什么」变成机器可读上下文，并保留可恢复的会话；输出要可复现、可 diff | 本项目已有 WebSocket 面板与 bundle，不计划把 TUI 变成核心界面，也不借鉴其源码使用限制 |
@@ -66,7 +66,7 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 
 ### 5 个高价值可借鉴能力
 
-1. **布局保持与编辑撤销（P0，0.4）**：复用 `GraphNode` 的可选坐标，补充视口状态、重新扫描的布局保持策略与兼容规则；默认保留人的布局，仅在新节点或人显式要求时自动排布；图形编辑提供有限的撤销/重做栈。布局是视图状态，不是项目写入授权。
+1. **布局保持与编辑撤销（P0，0.4；布局保持已交付）**：`GraphNode` 的可选坐标与 `metadata.layoutSource` 已通过稳定路径 ID、`ScanPreservationSummary` 和人工确认重新扫描得到保留；默认保留人的布局，仅新节点自动排布。仍可补视口状态与有限的图形撤销/重做栈；布局是视图状态，不是项目写入授权。
 2. **源码证据与「跳到代码」（P0，0.5）**：让 scanner 为文件节点记录稳定的 `path` 与可选 `line` / `symbol` / `import` 证据，面板支持从节点打开源码位置，`get_visual_context` 返回可引用证据。证据只读，不自动扩大提案路径权限；与 [`ROADMAP.md`](../ROADMAP.md) 的 source ranges 方向一致。
 3. **注意力状态（P1，0.4）**：在会话中记录当前选中节点/连线、展开的批注线程和最近查看的提案，作为 `get_visual_context` 的轻量 `focus` 字段；让人指着图说话时，AI 不必从整张图猜测对象。
 4. **可复现的 agent 工作流（P1，0.4）**：把 `list_change_templates` 的只读草稿、`preflight_visual_proposal` 的检查结果、`create_visual_proposal` 的候选变更串成有明确前后条件的示例与诊断提示，减少 LLM 自行发明步骤；所有中间产物仍不签发批准凭据。
@@ -85,7 +85,7 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 
 | 阶段 | 优先级 | 建议 | 完成定义 |
 |---|---|---|---|
-| 0.4 | P0 | 保存人工布局与视口；重新扫描采用「保留已有布局 + 新增节点增量排布」策略；补图形编辑撤销/重做 | 图修订不会无故移动既有节点；撤销只回退视觉状态，不回退已批准的项目写入；有协议兼容与 bundle 兼容性验证 |
+| 0.4 | P0 | 保存人工布局与视口；重新扫描采用「保留已有布局 + 新增节点增量排布」策略；补图形编辑撤销/重做 | 布局保持已经交付：图修订不会无故移动既有节点，纯函数/MCP/HTTP 测试覆盖 ID 稳定、坐标/标签/批注/焦点保留、新增与删除节点，会话 bundle 校验有限坐标；视口与撤销栈仍待做，撤销只回退视觉状态，不回退已批准的项目写入 |
 | 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 示例能展示 `changes` → preflight → proposal → 人批准 → apply；任何只读中间产物都不含确认号 |
 | 0.4 | P1 | 引入机器可读 `focus` / 选中状态，并让批注、诊断和下一棒提示引用同一对象 | AI 能从上下文识别「人正在指哪个节点」；焦点变化不签发凭据、不自动解决线程 |
 | 0.4 | P2 | bundle 增加可读摘要与可复现导出清单；发布前用 `repo:check` / `docs:assets:check` 守住文案和资产一致性 | 同一会话导出的 JSON/SVG 摘要稳定；导入仍要求人类确认且清除批准凭据（验证可沿用现有 Vitest 协作集成测试） |

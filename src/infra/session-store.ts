@@ -18,6 +18,7 @@ import type {
   AnnotationPin,
   ChangeProposal,
   ConversationMessage,
+  GraphRevisionDiff,
   Participant,
   ProjectChange,
   ProposalStatus,
@@ -47,6 +48,11 @@ function trimList<T>(items: T[], max: number): T[] {
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function finiteCoordinate(value: unknown, label: string): void {
+  if (value !== undefined && (typeof value !== "number" || !Number.isFinite(value)))
+    throw new Error(`${label} must be a finite number`);
 }
 
 function createSession(workspaceRoot: string): SessionSnapshot {
@@ -114,6 +120,8 @@ function validateGraph(graph: VisualGraph): void {
       throw new Error(`Graph node has invalid path: ${node.id}`);
     if (node.group !== undefined && (typeof node.group !== "string" || !node.group.trim()))
       throw new Error(`Graph node has invalid group: ${node.id}`);
+    finiteCoordinate(node.x, `Graph node x: ${node.id}`);
+    finiteCoordinate(node.y, `Graph node y: ${node.id}`);
     if (nodeIds.has(node.id)) throw new Error("Graph contains duplicate node ids");
     nodeIds.add(node.id);
   }
@@ -135,6 +143,8 @@ function validateGraph(graph: VisualGraph): void {
     const validAnchorStatuses: ThreadAnchorStatus[] = ["anchored", "detached", "outdated"];
     if (annotation.anchorStatus !== undefined && !validAnchorStatuses.includes(annotation.anchorStatus))
       throw new Error(`Graph annotation has invalid anchorStatus: ${annotation.id}`);
+    finiteCoordinate(annotation.x, `Graph annotation x: ${annotation.id}`);
+    finiteCoordinate(annotation.y, `Graph annotation y: ${annotation.id}`);
     annotation.replies = parseAnnotationReplies(
       annotation.replies,
       `Graph annotation ${annotation.id} replies`,
@@ -302,7 +312,11 @@ export class SessionStore {
     return summarizeProposalImpact(proposal, await this.getProposalDiffs(id));
   }
 
-  async setGraph(graph: VisualGraph, activeDiagramId = graph.diagramId): Promise<SessionSnapshot> {
+  async setGraph(
+    graph: VisualGraph,
+    activeDiagramId = graph.diagramId,
+    source: GraphRevisionDiff["source"] = "human",
+  ): Promise<SessionSnapshot> {
     validateGraph(graph);
     const fromRevision = this.snapshot.graphRevision;
     const nextRevision = fromRevision + 1;
@@ -310,7 +324,7 @@ export class SessionStore {
       fromRevision,
       toRevision: nextRevision,
       createdAt: nowIso(),
-      source: "human",
+      source,
     });
     anchorAnnotations(graph, nextRevision);
     return this.mutate((draft) => {
@@ -344,6 +358,16 @@ export class SessionStore {
     if (!this.snapshot.focus) return;
     await this.mutate((draft) => {
       delete draft.focus;
+    });
+  }
+
+  async replaceFocus(focus: SessionFocus | undefined): Promise<void> {
+    const current = this.snapshot.focus;
+    if (!current && !focus) return;
+    if (current && focus && JSON.stringify(current) === JSON.stringify(focus)) return;
+    await this.mutate((draft) => {
+      if (focus) draft.focus = clone(focus);
+      else delete draft.focus;
     });
   }
 

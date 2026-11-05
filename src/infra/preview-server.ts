@@ -15,6 +15,7 @@
  *   GET  /api/collab/activity    derived compact activity timeline
  *   GET  /api/collab/diagnostics  read-only session health and next-action summary
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
+ *   POST /api/collab/rescan       human-confirmed workspace rescan with state preservation
  *   GET  /api/collab/bundle      portable session bundle for bug reports/examples
  *   POST /api/collab/bundle/import  import a reviewed session bundle
  *   GET  /api/collab/graph       current visual graph
@@ -42,6 +43,7 @@ import http from "node:http";
 import type { DiagramStore } from "./store.js";
 import type { AppConfig, DiagramRecord } from "./config.js";
 import type { SessionStore } from "./session-store.js";
+import type { VisualSyncService } from "./visual-sync-service.js";
 import type { VisualGraph } from "../domain/types.js";
 import { buildActivityTimeline } from "../domain/activity-timeline.js";
 import { buildSessionDiagnostics } from "../domain/session-diagnostics.js";
@@ -78,6 +80,7 @@ export class PreviewServer {
     private store: DiagramStore,
     private config: AppConfig,
     private sessions: SessionStore,
+    private visualSync: VisualSyncService,
   ) {
     this.app.use(express.json());
 
@@ -141,6 +144,29 @@ export class PreviewServer {
       const rawLimit = Number(req.query.limit ?? 5);
       const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(20, Math.floor(rawLimit))) : 5;
       res.json({ diffs: this.sessions.getGraphDiffs(limit) });
+    });
+
+    this.app.post("/api/collab/rescan", async (req, res) => {
+      const body = req.body as { confirmedBy?: string };
+      if (body.confirmedBy !== "human")
+        return res.status(403).json({ error: "Human confirmation is required" });
+      try {
+        const result = await this.visualSync.sync({
+          source: "human",
+          openPanel: false,
+        });
+        res.json({
+          ok: true,
+          diagramId: result.id,
+          title: result.title,
+          panelUrl: result.panelUrl,
+          graphRevision: result.graphRevision,
+          stats: result.scan.stats,
+          preservation: result.preservation,
+        });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
     });
 
     this.app.get("/api/collab/bundle", (_req, res) => {

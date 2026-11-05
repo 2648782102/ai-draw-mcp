@@ -7,14 +7,21 @@ const packageRoot = process.cwd();
 const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ai-draw-collab-"));
 const outputDir = path.join(tempDir, "output");
 const workspaceRoot = path.join(tempDir, "workspace");
+const rescanTempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ai-draw-rescan-"));
+const rescanOutputDir = path.join(rescanTempDir, "output");
+const rescanWorkspaceRoot = path.join(rescanTempDir, "workspace");
 await fs.mkdir(workspaceRoot, { recursive: true });
 await fs.writeFile(path.join(workspaceRoot, "README.md"), "# Demo\n", "utf8");
+await fs.mkdir(path.join(rescanWorkspaceRoot, "src"), { recursive: true });
+await fs.writeFile(path.join(rescanWorkspaceRoot, "README.md"), "# Rescan\n", "utf8");
+await fs.writeFile(path.join(rescanWorkspaceRoot, "src", "index.ts"), "export const value = 1;\n", "utf8");
 
 const { createServer } = await import(path.join(packageRoot, "dist/server.js"));
 
 describe("collaboration session", () => {
   afterAll(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.rm(rescanTempDir, { recursive: true, force: true });
   });
 
   it("supports graph edits, diffs, AI replies, and a one-time approval grant", async () => {
@@ -418,6 +425,121 @@ describe("collaboration session", () => {
       delete process.env.PREVIEW_PORT;
     }
   });
+
+  it("preserves human graph state through a human-confirmed rescan", async () => {
+    process.env.AI_DRAW_WORKSPACE_ROOT = rescanWorkspaceRoot;
+    process.env.OUTPUT_DIR = rescanOutputDir;
+    process.env.PREVIEW_PORT = "3413";
+    process.env.PUPPETEER_EXECUTABLE_PATH =
+      process.env.PUPPETEER_EXECUTABLE_PATH ??
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+
+    const { preview, sessions, visualSync } = await createServer();
+    await preview.start();
+    try {
+      const base = "http://127.0.0.1:3413";
+      const html = await fetch(`${base}/`).then((response) => response.text());
+      const token = html.match(/const PANEL_TOKEN = "([^"]+)"/)?.[1];
+      expect(token).toBeTruthy();
+      const headers = { "Content-Type": "application/json", "X-AI-Draw-Token": token };
+
+      const initial = await visualSync.sync({ source: "ai", title: "Rescan baseline", openPanel: false });
+      const readmeNode = initial.graph.nodes.find((node) => node.path === "README.md");
+      const srcNode = initial.graph.nodes.find((node) => node.path === "src");
+      expect(readmeNode).toBeTruthy();
+      const originalDiagramId = initial.id;
+
+      const humanGraph = {
+        ...initial.graph,
+        nodes: initial.graph.nodes.map((node) => node.id === readmeNode.id
+          ? { ...node, label: "项目说明.md", x: 987, y: 654, metadata: { ...(node.metadata ?? {}), layoutSource: "human" } }
+          : node),
+        annotations: [{
+          id: "ann_rescan",
+          nodeId: readmeNode.id,
+          nodeLabel: "项目说明.md",
+          nodePath: "README.md",
+          anchorStatus: "anchored",
+          body: "这里补充架构说明",
+          author: "human",
+          createdAt: new Date().toISOString(),
+        }],
+      };
+      const saved = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(humanGraph),
+      });
+      expect(saved.ok).toBe(true);
+      const focused = await fetch(`${base}/api/collab/focus`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ nodeId: readmeNode.id, confirmedBy: "human" }),
+      });
+      expect(focused.ok).toBe(true);
+
+      await fs.writeFile(path.join(rescanWorkspaceRoot, "src", "new.ts"), "export const next = 2;\n", "utf8");
+      const unauthorized = await fetch(`${base}/api/collab/rescan`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ confirmedBy: "ai" }),
+      });
+      expect(unauthorized.status).toBe(403);
+
+      const rescan = await fetch(`${base}/api/collab/rescan`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ confirmedBy: "human" }),
+      });
+      expect(rescan.ok).toBe(true);
+      const rescanResult = await rescan.json();
+      expect(rescanResult.diagramId).toBe(originalDiagramId);
+      expect(rescanResult.preservation).toMatchObject({
+        version: 1,
+        strategy: "stable-path-merge",
+        humanCoordinates: 1,
+        preservedLabels: 1,
+        detachedAnnotations: 0,
+        preservedFocus: true,
+      });
+      expect(rescanResult.preservation.newNodes).toBeGreaterThanOrEqual(1);
+
+      const after = await collabFetchGraph(base, headers);
+      const preservedReadme = after.nodes.find((node) => node.id === readmeNode.id);
+      expect(preservedReadme).toMatchObject({ label: "项目说明.md", x: 987, y: 654 });
+      expect(preservedReadme.metadata.layoutSource).toBe("human");
+      expect(after.nodes.some((node) => node.path === "src/new.ts")).toBe(true);
+      expect(after.nodes.find((node) => node.path === "src")?.id).toBe(srcNode.id);
+      expect(after.annotations[0]).toMatchObject({ nodeId: readmeNode.id, anchorStatus: "anchored", body: "这里补充架构说明" });
+      expect(sessions.getFocus()).toMatchObject({ nodeId: readmeNode.id, source: "human", graphRevision: rescanResult.graphRevision });
+      expect(sessions.getGraphDiffs(5).at(-1)).toMatchObject({ source: "human" });
+
+      await fs.rm(path.join(rescanWorkspaceRoot, "src", "new.ts"));
+      const removed = await fetch(`${base}/api/collab/rescan`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ confirmedBy: "human" }),
+      });
+      expect(removed.ok).toBe(true);
+      const removedResult = await removed.json();
+      expect(removedResult.preservation.removedNodes).toBeGreaterThanOrEqual(1);
+      expect((await collabFetchGraph(base, headers)).nodes.some((node) => node.path === "src/new.ts")).toBe(false);
+      expect((await collabFetchSession(base, headers)).focus).toMatchObject({ nodeId: readmeNode.id });
+      expect(await fs.readFile(path.join(rescanWorkspaceRoot, "README.md"), "utf8")).toBe("# Rescan\n");
+
+      const invalidCoordinate = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ ...after, nodes: after.nodes.map((node) => node.id === readmeNode.id ? { ...node, x: "oops" } : node) }),
+      });
+      expect(invalidCoordinate.status).toBe(400);
+    } finally {
+      await preview.stop().catch(() => {});
+      delete process.env.AI_DRAW_WORKSPACE_ROOT;
+      delete process.env.OUTPUT_DIR;
+      delete process.env.PREVIEW_PORT;
+    }
+  }, 30_000);
 });
 
 async function collabFetchGraph(base, headers) {

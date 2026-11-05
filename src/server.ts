@@ -15,6 +15,7 @@ import { loadConfig, ensureOutputDirWritable } from "./infra/config.js";
 import { DiagramStore } from "./infra/store.js";
 import { PreviewServer } from "./infra/preview-server.js";
 import { SessionStore } from "./infra/session-store.js";
+import { VisualSyncService } from "./infra/visual-sync-service.js";
 import { logger } from "./infra/logger.js";
 import { SERVER_VERSION } from "./infra/version.js";
 
@@ -55,11 +56,18 @@ export async function createServer() {
     workspaceRoot: config.workspaceRoot,
   });
 
-  const preview = new PreviewServer(store, config, sessions);
+  let preview: PreviewServer;
+  const visualSync = new VisualSyncService({
+    store,
+    config,
+    sessions,
+    get preview() { return preview; },
+  });
+  preview = new PreviewServer(store, config, sessions, visualSync);
 
   const mcp = new McpServer({ name: "ai-draw-mcp", version: SERVER_VERSION });
 
-  const ctx = { store, config, preview, sessions };
+  const ctx = { store, config, preview, sessions, visualSync };
 
   // ── Tool registrations ────────────────────────────────────────────────────
   // ← ADD NEW TOOL REGISTRATION HERE
@@ -84,5 +92,5 @@ export async function createServer() {
 
   logger.info(`${TOOL_COUNT} MCP tools registered`);
 
-  return { mcp, store, preview, config, sessions };
+  return { mcp, store, preview, config, sessions, visualSync };
 }

@@ -9,5 +9,6 @@ ADRs capture product and protocol decisions that contributors and AI coding agen
 | [0003-stale-annotation-anchors.md](0003-stale-annotation-anchors.md) | Accepted | Changed or removed graph nodes make linked discussions explicitly stale until human review. |
 | [0004-read-only-proposal-preflight.md](0004-read-only-proposal-preflight.md) | Accepted | AI checks candidate changes read-only before creating a proposal. |
 | [0005-human-focus-is-read-only-context.md](0005-human-focus-is-read-only-context.md) | Accepted | A human-selected node is shared attention context, never write authority. |
+| [0006-stable-scan-preserves-human-visual-state.md](0006-stable-scan-preserves-human-visual-state.md) | Accepted | Deterministic, read-only scans preserve human layout, threads, and focus without granting project writes. |
 
 Add a new ADR when a change affects the human/AI protocol, persisted state, tool surface, approval boundary, or public product direction. Keep the decision, alternatives, and safety consequence in one file.

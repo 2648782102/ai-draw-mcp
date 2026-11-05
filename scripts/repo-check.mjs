@@ -46,6 +46,13 @@ const governance = await read("docs/GOVERNANCE.md");
 const adrIndex = await read("docs/ADR/README.md");
 const releasing = await read("RELEASING.md");
 const changeTemplateDomain = await read("src/domain/change-templates.ts");
+const projectScanner = await read("src/infra/project-scanner.ts");
+const visualSyncService = await read("src/infra/visual-sync-service.ts");
+const visualGraphMerge = await read("src/domain/visual-graph-merge.ts");
+const scanTool = await read("src/tools/scan-project.ts");
+const roadmap = await read("ROADMAP.md");
+const research = await read("docs/COMPETITIVE_RESEARCH.md");
+const englishReadme = englishQuickstart;
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -84,6 +91,10 @@ for (const [id, needle] of [
   ["messageInput", 'id="messageInput"'],
   ["focusSummary", 'id="focusSummary"'],
   ["btnCopyAiContext", 'id="btnCopyAiContext"'],
+  ["rescanSummary", 'id="rescanSummary"'],
+  ["btnRescan", 'id="btnRescan"'],
+  ["node-x editor", 'class="node-x"'],
+  ["node-y editor", 'class="node-y"'],
 ]) {
   check(panel.includes(needle), `Collaboration panel is missing ${id}`);
 }
@@ -95,6 +106,7 @@ for (const endpoint of [
   "/api/collab/activity",
   "/api/collab/diagnostics",
   "/api/collab/graph/diffs",
+  "/api/collab/rescan",
   "/api/collab/bundle/import",
   "/api/collab/proposals/:id/impact",
 ]) {
@@ -129,6 +141,13 @@ for (const [label, file, needle] of [
   ["human focus context", getVisualContext, "focus"],
   ["human focus bundle parser", sessionBundle, "parseFocus"],
   ["copyable AI context prompt", panel, "buildAiContextPrompt"],
+  ["stable scanner IDs", projectScanner, "stableId"],
+  ["visual sync service", visualSyncService, "export class VisualSyncService"],
+  ["visual graph merge", visualGraphMerge, "export function mergeScannedGraph"],
+  ["scan preservation contract", scanTool, "PRESERVATION_JSON"],
+  ["human rescan panel", panel, "rescanProject"],
+  ["human rescan endpoint", previewServer, "/api/collab/rescan"],
+  ["finite coordinate validation", sessionStore, "finiteCoordinate"],
   ["annotation anchor status", types, "anchorStatus"],
   ["annotation anchor activity", activityTimeline, "annotation_anchor"],
   ["human re-anchor confirmation", previewServer, "Human confirmation is required"],
@@ -164,11 +183,20 @@ for (const [label, source, needle] of [
   ["governance metadata evidence", governance, "description: null"],
   ["ADR safety decisions", adrIndex, "0002-conversation-state-is-not-authority.md"],
   ["ADR focus decision", adrIndex, "0005-human-focus-is-read-only-context.md"],
+  ["ADR stable scan decision", adrIndex, "0006-stable-scan-preserves-human-visual-state.md"],
   ["README focus context", readme, "SessionFocus"],
   ["AGENTS focus context", agents, "SessionFocus"],
   ["architecture focus endpoint", architecture, "/api/collab/focus"],
   ["roadmap focus delivery", await read("ROADMAP.md"), "Versioned human focus"],
+  ["roadmap stable scan delivery", roadmap, "Stable-path project scans"],
   ["release governance checklist", releasing, "docs/GOVERNANCE.md"],
+  ["README stable scan", readme, "重新扫描不丢人工状态"],
+  ["English stable scan", englishReadme, "rescan"],
+  ["architecture stable scan", architecture, "ScanPreservationSummary"],
+  ["AGENTS stable scan", agents, "VisualSyncService"],
+  ["launch stable scan", launchKit, "Layout-preserving rescans"],
+  ["research layout delivered", research, "布局保持已交付"],
+  ["ADR docs map", documentationMap, "0006-stable-scan-preserves-human-visual-state.md"],
 ]) {
   check(source.includes(needle), `${label} is missing or drifted`);
 }

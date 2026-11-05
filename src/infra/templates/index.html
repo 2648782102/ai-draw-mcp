@@ -192,10 +192,10 @@
       border-radius: 6px; background: var(--bg); padding: 8px;
     }
     .graph-row {
-      display: grid; grid-template-columns: 18px 1fr .8fr 1.1fr .8fr 24px; gap: 4px; padding: 5px;
+      display: grid; grid-template-columns: 18px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 5px;
       border-bottom: 1px solid var(--border); align-items: center;
     }
-    .graph-row-header { display: grid; grid-template-columns: 18px 1fr .8fr 1.1fr .8fr 24px; gap: 4px; padding: 2px 5px; color: var(--text-muted); font-size: 9px; }
+    .graph-row-header { display: grid; grid-template-columns: 18px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 2px 5px; color: var(--text-muted); font-size: 9px; }
     .graph-row.selected { background: rgba(88, 166, 255, .12); }
     .graph-row input, .graph-row select, .edge-row input, .edge-row select {
       min-width: 0; background: var(--surface2); color: var(--text); border: 1px solid var(--border);
@@ -378,9 +378,10 @@
     <section class="collab-section">
       <h3>项目图 · 节点编辑</h3>
       <p class="collab-help">可编辑节点名称/类型/路径/分组与连线起点/终点/说明/类型；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
+      <p class="activity-summary" id="rescanSummary">重新同步 · 按路径保留人工坐标、标签、批注与焦点；只读扫描项目文件</p>
       <p class="activity-summary" id="focusSummary">当前焦点 · 未选中节点</p>
       <div class="graph-editor" id="graphEditor"></div>
-      <div class="graph-row-header"><span></span><span>名称</span><span>类型</span><span>路径</span><span>分组</span><span></span></div>
+      <div class="graph-row-header"><span></span><span>名称</span><span>类型</span><span>路径</span><span>分组</span><span>X</span><span>Y</span><span></span></div>
       <div class="edge-editor">
         <h4>连线 · from → to / label / kind</h4>
         <div class="edge-row-header"><span>起点</span><span>终点</span><span>说明</span><span>类型</span><span></span></div>
@@ -392,7 +393,7 @@
         <button id="btnSaveGraph">保存图形</button>
         <button id="btnExportSession">导出会话</button>
         <button id="btnImportSession">导入会话</button>
-        <button id="btnRescan">重新同步</button>
+        <button id="btnRescan" title="只读扫描工作区并保留人工视觉状态">重新扫描项目</button>
       </div>
     </section>
     <section class="collab-section">
@@ -1063,6 +1064,8 @@ function renderGraphEditor() {
       <input class="node-kind" value="${escapeHtml(node.kind)}" aria-label="节点类型" />
       <input class="node-path" value="${escapeHtml(node.path || '')}" aria-label="节点路径" placeholder="src/..." />
       <input class="node-group" value="${escapeHtml(node.group || '')}" aria-label="节点分组" placeholder="root" />
+      <input class="node-x" type="number" step="10" value="${node.x == null ? '' : escapeHtml(String(node.x))}" aria-label="节点 X 坐标" />
+      <input class="node-y" type="number" step="10" value="${node.y == null ? '' : escapeHtml(String(node.y))}" aria-label="节点 Y 坐标" />
       <button data-remove-node="${index}" title="删除节点">✕</button>
     </div>
   `).join('');
@@ -1528,6 +1531,15 @@ async function saveGraph() {
     else delete node.path;
     if (nodeGroup) node.group = nodeGroup;
     else delete node.group;
+    const nodeX = row.querySelector('.node-x').value.trim();
+    const nodeY = row.querySelector('.node-y').value.trim();
+    if (nodeX !== '' && Number.isFinite(Number(nodeX))) node.x = Number(nodeX);
+    else delete node.x;
+    if (nodeY !== '' && Number.isFinite(Number(nodeY))) node.y = Number(nodeY);
+    else delete node.y;
+    if ((nodeX !== '' && Number.isFinite(Number(nodeX))) || (nodeY !== '' && Number.isFinite(Number(nodeY)))) {
+      node.metadata = { ...(node.metadata || {}), layoutSource: 'human' };
+    }
   });
   const edgeRows = [...$('#edgeEditor').querySelectorAll('.edge-row')];
   edgeRows.forEach((row, index) => {
@@ -1567,6 +1579,28 @@ async function sendMessage() {
     await loadCollab();
   } catch (error) {
     showToast(`发送失败：${error.message}`);
+  }
+}
+
+async function rescanProject() {
+  const button = $('#btnRescan');
+  if (button.disabled) return;
+  button.disabled = true;
+  button.textContent = '扫描中…';
+  try {
+    const result = await collabFetch('/api/collab/rescan', {
+      method: 'POST',
+      body: JSON.stringify({ confirmedBy: 'human' }),
+    });
+    $('#rescanSummary').textContent = `重新同步完成 · rev ${result.graphRevision} · 保留 ${result.preservation.preservedCoordinates} 个节点坐标（${result.preservation.humanCoordinates} 个人工布局）/ ${result.preservation.preservedLabels} 个自定义标签 / ${result.preservation.carriedAnnotations} 条批注 · ${result.preservation.detachedAnnotations} 条失锚；此操作只读项目文件`;
+    showToast(`项目结构已同步 · 保留 ${result.preservation.humanCoordinates} 个人工布局`);
+    await loadCollab();
+  } catch (error) {
+    $('#rescanSummary').textContent = `重新同步失败：${error.message}`;
+    showToast(`重新同步失败：${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = '重新扫描项目';
   }
 }
 
@@ -1658,7 +1692,7 @@ $('#btnCollaborate').addEventListener('click', () => {
 });
 $('#btnCloseCollab').addEventListener('click', () => { $('#collabShell').hidden = true; });
 $('#btnSaveGraph').addEventListener('click', saveGraph);
-$('#btnRescan').addEventListener('click', loadCollab);
+$('#btnRescan').addEventListener('click', rescanProject);
 $('#btnAddNode').addEventListener('click', addNode);
 $('#btnAddEdge').addEventListener('click', addEdge);
 $('#btnExportSession').addEventListener('click', exportSession);

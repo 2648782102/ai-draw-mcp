@@ -44,7 +44,7 @@
 ## 功能
 
 - **18 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
-- **人机双向协作工作台** — 项目结构扫描、节点名称/类型/路径/分组与连线语义编辑、批注线程（回复/解决/重开/失锚）、会话诊断、对话、提案批准；WebSocket 实时同步给 AI 和面板
+- **人机双向协作工作台** — 项目结构扫描、节点名称/类型/路径/分组/坐标与连线语义编辑、重复扫描保留人工布局与批注/焦点、批注线程（回复/解决/重开/失锚）、会话诊断、对话、提案批准；WebSocket 实时同步给 AI 和面板
 - **人工确认的安全变更** — 面板批准只生成一次性凭据；AI 凭凭据应用提案，拒绝危险路径，写入失败自动回滚
 - **实时双向面板** — AI 绘图后通过 WebSocket 推送到面板；面板里也可手动编辑源码、实时预览、保存回磁盘
 - **双模式编辑器** — Mermaid DSL 模式 / SVG 全文本模式（`render_svg` 生成的图自动切换到 SVG 模式）
@@ -92,7 +92,7 @@ AI: preflight_visual_proposal → 只读检查路径/文件状态/重复内容
 AI: create_visual_proposal → 生成变更提案
 人: 查看逐行差异并点击「批准」→ 复制一次性确认号
 AI: apply_visual_proposal(确认号) → 安全写入工作区 → 失败自动回滚
-AI: 再次 scan_project → 图与代码保持一致
+AI: 再次 scan_project → 保留人工布局/批注/焦点并让图与代码保持一致
 ```
 
 > 示例：AI 根据项目结构画出现有模块；人在图上把 `utils` 改名为 `shared` 并批注「抽成公共层」，随后可在同一线程继续追问或重开讨论；AI 读取修订与 `annotationThreads.nextActor` 后提出目录迁移与 import 更新提案；人批准后项目真正变化。
@@ -110,6 +110,8 @@ AI: 再次 scan_project → 图与代码保持一致
 > **图形修订差异**：每次保存图形会记录字段级 `graphDiffs`（节点/连线增删、`label` / `kind` / `path` / `group` / 连线端点变化）；AI 通过 `get_visual_context.graphDiffs` 精确读取人改了哪张图，而不是从聊天文本猜测。面板可展开最近修订逐项查看字段前后值，活动时间线也会合并 `graph_diff` 派生事件。差异只是审计上下文，不自动生成或批准项目变更。
 
 > **只读变更模板**：`list_change_templates` 列出「更新文档 / 添加测试 / 创建模块」三个常见意图，并可把它们展开成带路径、完整 UTF-8 内容、`graphRevision` 与引用节点的候选草稿。模板只生成文本，不创建提案、不写文件、不签发确认号；AI 仍需先 `preflight_visual_proposal`，再由 `create_visual_proposal` 交给人类审阅。
+
+> **重新扫描不丢人工状态**：扫描器按工作区相对路径生成确定性节点/连线 ID；`VisualSyncService` 与 `mergeScannedGraph()` 会按稳定 ID 或路径迁移人工坐标、自定义名称、批注线程与 `SessionFocus`，新增节点才自动排布，删掉的文件会让相关讨论显式 `detached`。AI 的 `scan_project` 返回 `PRESERVATION_JSON`；面板「重新扫描项目」要求本机令牌与 `confirmedBy: "human"`。两者都只读项目文件，图形同步不等于批准或写入，详见 [ADR 0006](docs/ADR/0006-stable-scan-preserves-human-visual-state.md)。
 
 详细架构与安全模型见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)，贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
@@ -311,7 +313,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 | `delete_diagram` | 按 ID 删除磁盘文件 + 通知面板 |
 | `list_diagrams` | 列出全部已生成图表（含 ID、类型、路径） |
 | `open_preview` | 在 IDE 中打开预览面板，可 deep-link 到指定图 |
-| `scan_project` | 只读扫描工作区，生成项目结构图并设为协作会话当前图 |
+| `scan_project` | 只读扫描工作区，生成/刷新项目结构图；稳定路径 ID 保留人工布局、批注与焦点，并返回 `PRESERVATION_JSON` |
 | `get_visual_context` | 读取图形修订、批注线程、对话、意图摘要与 `activityTimeline`，供 AI 修改代码前理解上下文 |
 | `reply_to_visual_context` | AI 在面板里回复人类、回复节点批注线程，并可把消息/批注标记为已回答、已解决 |
 | `create_visual_proposal` | 创建待确认的项目变更提案，不直接写项目文件 |

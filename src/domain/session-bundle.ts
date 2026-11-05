@@ -44,6 +44,11 @@ function assertFiniteNumber(value: unknown, label: string): number {
   return value;
 }
 
+function optionalFiniteNumber(value: unknown, label: string): number | undefined {
+  if (value === undefined || value === null) return undefined;
+  return assertFiniteNumber(value, label);
+}
+
 function assertIsoTimestamp(value: unknown, label: string): string {
   const text = assertString(value, label);
   if (!Number.isFinite(Date.parse(text))) throw new Error(`${label} must be a valid timestamp`);
@@ -149,8 +154,8 @@ function parseNodes(value: unknown): GraphNode[] {
       kind: assertString(item.kind, `session.graph.nodes[${index}].kind`),
       path: typeof item.path === "string" ? item.path : undefined,
       group: typeof item.group === "string" ? item.group : undefined,
-      x: typeof item.x === "number" ? item.x : undefined,
-      y: typeof item.y === "number" ? item.y : undefined,
+      x: optionalFiniteNumber(item.x, `session.graph.nodes[${index}].x`),
+      y: optionalFiniteNumber(item.y, `session.graph.nodes[${index}].y`),
       metadata: isRecord(item.metadata) ? item.metadata : undefined,
     };
   });
@@ -183,8 +188,8 @@ function parseAnnotations(value: unknown): AnnotationPin[] {
       graphRevision: typeof item.graphRevision === "number" ? item.graphRevision : undefined,
       anchorStatus: item.anchorStatus === "anchored" || item.anchorStatus === "detached" || item.anchorStatus === "outdated"
         ? item.anchorStatus : undefined,
-      x: typeof item.x === "number" ? item.x : undefined,
-      y: typeof item.y === "number" ? item.y : undefined,
+      x: optionalFiniteNumber(item.x, `session.graph.annotations[${index}].x`),
+      y: optionalFiniteNumber(item.y, `session.graph.annotations[${index}].y`),
       body: assertString(item.body, `session.graph.annotations[${index}].body`),
       author: item.author === "ai" || item.author === "system" ? item.author : "human",
       createdAt: typeof item.createdAt === "string" ? item.createdAt : new Date().toISOString(),

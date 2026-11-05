@@ -141,6 +141,20 @@ export interface SessionSnapshot {
   proposals: ChangeProposal[];
 }
 
+export interface ScanPreservationSummary {
+  version: 1;
+  strategy: "stable-path-merge";
+  matchedNodes: number;
+  newNodes: number;
+  removedNodes: number;
+  preservedCoordinates: number;
+  humanCoordinates: number;
+  preservedLabels: number;
+  carriedAnnotations: number;
+  detachedAnnotations: number;
+  preservedFocus: boolean;
+}
+
 export interface GraphRevisionDiff {
   version: 1;
   fromRevision: number;

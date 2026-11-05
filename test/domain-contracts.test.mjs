@@ -18,7 +18,7 @@ const baseSession = {
   graph: {
     version: 1,
     diagramId: "diagram_contract",
-    nodes: [{ id: "readme", label: "README.md", kind: "documentation", path: "README.md" }],
+    nodes: [{ id: "readme", label: "README.md", kind: "documentation", path: "README.md", x: 42, y: 84, metadata: { layoutSource: "human" } }],
     edges: [],
     annotations: [{
       id: "ann_contract",
@@ -114,6 +114,10 @@ describe("session bundle contract", () => {
       graphRevision: 2,
     });
     expect(parsed.session.graph.annotations[0].replies).toHaveLength(1);
+    expect(parsed.session.graph.nodes[0]).toMatchObject({ x: 42, y: 84 });
+    const nonFiniteCoordinate = JSON.parse(JSON.stringify(bundle));
+    nonFiniteCoordinate.session.graph.nodes[0].x = "not-a-number";
+    expect(() => parseSessionBundle(nonFiniteCoordinate)).toThrow(/nodes\[0\]\.x must be a finite number/);
     expect(parsed.session.graphDiffs).toHaveLength(1);
     expect(parsed.session.focus).toMatchObject({ nodeId: "readme", source: "human" });
     expect(parsed.session.graphDiffs[0].items[0].fields[0]).toMatchObject({ field: "path", after: "README.zh.md" });

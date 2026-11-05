@@ -33,6 +33,7 @@ src/
 │   ├── activity-timeline.ts  消息/批注/提案生命周期的只读派生时间线
 │   ├── session-diagnostics.ts 会话健康、下一步动作与安全不变量的只读摘要
 │   ├── graph-diff.ts          图形修订之间的节点/连线字段差异
+│   ├── visual-graph-merge.ts  稳定路径重扫合并器：坐标/标签/批注/焦点保留
 │   ├── change-templates.ts    常见意图的只读变更模板目录与草稿展开
 │   ├── impact.ts             提案影响摘要：文件数、行数、字节数与安全说明
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
@@ -42,6 +43,7 @@ src/
 │   ├── store.ts              DiagramStore：旧图清单持久化
 │   ├── session-store.ts      SessionStore：图、消息、批注、提案、批准凭据、应用与回滚
 │   ├── project-scanner.ts    只读扫描项目结构与 import 关系
+│   ├── visual-sync-service.ts AI 扫描与人类重新扫描共用的同步、渲染和广播服务
 │   ├── renderer.ts           mmdc / sharp 渲染，SVG 包装
 │   ├── preview-server.ts     Express REST + WebSocket + 协作 API
 │   ├── ide-opener.ts         在 IDE 中打开 Simple Browser
@@ -51,7 +53,7 @@ src/
     ├── _shared.ts            ToolContext、渲染管道、响应格式
     ├── render-*.ts           7 个绘图工具
     ├── update/delete/list/open-preview.ts 旧图管理
-    ├── scan-project.ts       扫描工作区并生成协作图
+    ├── scan-project.ts       稳定路径只读扫描、保留人工视觉状态并生成/刷新协作图
     ├── get-visual-context.ts 读取人类意图
     ├── list-change-templates.ts 列出/展开只读变更模板草稿
     ├── create-visual-proposal.ts 创建待确认提案
@@ -71,6 +73,7 @@ docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
 docs/GOVERNANCE.md             开源治理、维护清单与元数据漂移证据
 docs/ADR/README.md             架构决策记录索引
 docs/ADR/0005-human-focus-is-read-only-context.md 当前焦点只读上下文决策
+docs/ADR/0006-stable-scan-preserves-human-visual-state.md 稳定扫描保留人工视觉状态决策
 docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
 ```
@@ -115,6 +118,10 @@ ROADMAP.md                   产品路线图与非目标
 
 每次 `setGraph()` 保存人类图形编辑时，服务端会在会话中保留 version 1 `graphDiffs`（最多 20 条）：记录节点/连线新增、删除，以及 `label` / `kind` / `path` / `group` / `from` / `to` 的字段级前后值。`get_visual_context.graphDiffs`、可展开的面板差异列表与 `GET /api/collab/graph/diffs` 让 AI 精确读取视觉改动；bundle 导入会严格校验差异契约。差异是只读审计记录，不直接生成文件变更，也不授权项目写入。
 
+`scan_project`、面板「重新扫描项目」与 `POST /api/collab/rescan` 共用 `VisualSyncService`。`project-scanner.ts` 用相对路径的 SHA-256 前缀生成确定性节点/连线 ID；`visual-graph-merge.ts` 按稳定 ID 或路径匹配旧图，保留有限 `x` / `y`、人工标签、`metadata.layoutSource`、仍可锚定的批注与 `SessionFocus`，新节点才自动排布，删除节点让线程 `detached`。版本 1 `ScanPreservationSummary` 通过 `PRESERVATION_JSON`、HTTP 响应、消息元数据和 `session_updated` 广播暴露保留计数。扫描器只读项目文件；图形同步只写 `OUTPUT_DIR` 的图资产与会话，绝不签发批准凭据或写项目文件。人工重新扫描端点要求本机面板令牌与 `confirmedBy: "human"`，详见 [ADR 0006](docs/ADR/0006-stable-scan-preserves-human-visual-state.md)。
+
+`GraphNode` / `AnnotationPin` 的 `x` / `y` 必须是有限数值；`SessionStore.validateGraph()` 与 `parseSessionBundle()` 都会拒绝非数字、`NaN` 或 `Infinity`。面板编辑坐标会标记 `metadata.layoutSource: "human"`，重新扫描会把它与自动布局区分开。
+
 `list_change_templates` 是只读工具：不带 `template_id` 时返回模板目录，带 `template_id` 时从当前 `graphRevision` 与可选 `node_id` 展开 `changes` 草稿。它不创建提案、不写项目文件、不签发批准凭据；草稿必须先交给 `preflight_visual_proposal`，再由 `create_visual_proposal` 进入人类审阅流程。
 
 ---
@@ -156,6 +163,7 @@ server.tool(
 | `GET /api/collab/activity` | 只读紧凑活动时间线；`limit` 默认 60、最大 200 |
 | `GET /api/collab/diagnostics` | 只读会话诊断：图/线程/提案计数、信号、下一步与安全不变量 |
 | `GET /api/collab/graph/diffs` | 最近图形修订差异；`limit` 默认 5、最大 20 |
+| `POST /api/collab/rescan` | 人类确认的只读重新扫描；保留人工视觉状态，不写项目文件 |
 | `GET /api/collab/bundle` | 导出可移植会话快照（不含一次性批准凭据） |
 | `POST /api/collab/bundle/import` | 人类确认后导入；清空气批准凭据，不写项目文件 |
 | `GET/PUT /api/collab/graph` | 读取/保存 VisualGraph |
@@ -169,7 +177,7 @@ server.tool(
 | `GET /api/collab/proposals/:id/impact` | 查看批准前的文件/行数/字节数影响摘要 |
 | `POST /api/collab/proposals/:id/approve` | 人类批准，返回一次性确认号；**不写项目文件** |
 | `POST /api/collab/proposals/:id/reject` | 人类拒绝提案 |
-| `WS /ws` | `graph_updated`、`chat_message`、`proposal_created`、`proposal_updated`、`session_updated` |
+| `WS /ws` | `diagram_update`、`graph_updated`、`chat_message`、`proposal_created`、`proposal_updated`、`session_updated` |
 
 ---
 

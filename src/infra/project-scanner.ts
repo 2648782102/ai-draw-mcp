@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { makeId, nowIso } from "../domain/ids.js";
+import { createHash } from "node:crypto";
+import { nowIso } from "../domain/ids.js";
 import { isPathInside } from "../domain/path-safety.js";
 import type {
   ProjectScanEdge,
@@ -45,6 +46,14 @@ function toPosix(value: string): string {
   return value.split(path.sep).join("/");
 }
 
+function stableHash(value: string): string {
+  return createHash("sha256").update(value).digest("hex").slice(0, 12);
+}
+
+function stableId(prefix: "node" | "edge", ...parts: string[]): string {
+  return `${prefix}_${stableHash(parts.join("|"))}`;
+}
+
 function extractImports(source: string): string[] {
   const matches = source.matchAll(/(?:from\s+|import\s*\(\s*|require\s*\(\s*)["']([^"']+)["']/g);
   return [...new Set([...matches].map((match) => match[1]))]
@@ -86,7 +95,7 @@ export async function scanProject(options: ScanOptions): Promise<ProjectScanResu
       const absolute = path.join(current, entry.name);
       const relative = path.relative(workspaceRoot, absolute);
       const isDirectory = entry.isDirectory();
-      const id = makeId("node");
+      const id = stableId("node", "path", toPosix(relative));
       nodes.push({
         id,
         label: nodeLabel(relative, isDirectory),
@@ -105,7 +114,7 @@ export async function scanProject(options: ScanOptions): Promise<ProjectScanResu
     }
   }
 
-  const rootId = makeId("node");
+  const rootId = stableId("node", "root", ".");
   nodes.push({
     id: rootId,
     label: path.basename(workspaceRoot) || "workspace",
@@ -121,7 +130,13 @@ export async function scanProject(options: ScanOptions): Promise<ProjectScanResu
     const absolute = absoluteById.get(node.id);
     if (!absolute) continue;
     const parentId = idByAbsolute.get(path.dirname(absolute)) ?? rootId;
-    edges.push({ id: makeId("edge"), from: parentId, to: node.id, label: "contains", kind: "contains" });
+    edges.push({
+      id: stableId("edge", "contains", parentId, node.id),
+      from: parentId,
+      to: node.id,
+      label: "contains",
+      kind: "contains",
+    });
   }
 
   for (const node of nodes) {
@@ -133,7 +148,13 @@ export async function scanProject(options: ScanOptions): Promise<ProjectScanResu
       const target = resolveImport(absolute, specifier);
       const targetId = target ? idByAbsolute.get(target) : undefined;
       if (!targetId || targetId === node.id) continue;
-      edges.push({ id: makeId("edge"), from: node.id, to: targetId, label: specifier, kind: "imports" });
+      edges.push({
+        id: stableId("edge", "imports", node.id, targetId, specifier),
+        from: node.id,
+        to: targetId,
+        label: specifier,
+        kind: "imports",
+      });
     }
   }
 
@@ -166,7 +187,7 @@ export function scanToVisualGraph(scan: ProjectScanResult, diagramId: string): V
       group: node.group,
       x: (index % 8) * 180,
       y: Math.floor(index / 8) * 100,
-      metadata: node.metadata,
+      metadata: { ...(node.metadata ?? {}), layoutSource: "auto" },
     })),
     edges: scan.edges.map((edge) => ({
       id: edge.id,

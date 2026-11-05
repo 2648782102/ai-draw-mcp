@@ -26,16 +26,18 @@ IDE / human browser
 
 ## Collaboration path (0.3)
 
-1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点）并生成 `VisualGraph`。
+1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点），按 POSIX 相对路径派生确定性节点/连线 ID；`visual-sync-service.ts` 把扫描结果交给 `mergeScannedGraph()` 生成 `VisualGraph`，同时复用同一套渲染、会话保存与 WebSocket 广播。
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
-3. 人类在面板「💬 协作」工作台改名称/类型/路径/分组、增删节点、编辑连线起点/终点/说明/类型、把批注绑定到选中节点、在批注线程里回复/解决/重开、发消息；每次写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、路径/分组/连线类型、回复结构与引用完整性。
+3. 人类在面板「💬 协作」工作台改名称/类型/路径/分组/坐标、增删节点、编辑连线起点/终点/说明/类型、把批注绑定到选中节点、在批注线程里回复/解决/重开、发消息，或点击「重新扫描项目」；每次图形写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、有限坐标、路径/分组/连线类型、回复结构与引用完整性。
 4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、人类当前选中节点的 `focus`、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`：节点改名或路径变化后标为 `outdated`，节点删除后标为 `detached`；`staleThreads` 不进入 `intentByNode`，AI 应等待人类确认或重锚，不能把旧讨论当作当前写入意图。
 5. AI 可选调用 `list_change_templates`：只读列出更新文档/添加测试/创建模块模板，或把模板展开为引用当前 `graphRevision` 与节点的 `changes` 草稿。它不写会话、不创建提案、不签发凭据。随后 AI 可先调用 `preflight_visual_proposal` 只读检查候选变更的路径、文件存在性、create/update 方向、重复路径、重复内容、编码与体积；这一步同样不写会话、不创建提案、不签发凭据。最后 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`，也只写会话，不碰项目文件。
 6. 面板通过 `/api/collab/proposals/:id/impact` 展示文件/行数/字节数摘要，并通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。
 7. 人类把确认号发给 AI；AI 调用 `apply_visual_proposal`，服务端校验凭据与内容哈希后写入项目，失败自动回滚。
-8. AI 可再次 `scan_project` 生成反映新结构的图，形成闭环。
+8. AI 可再次 `scan_project`，或人在面板触发 `POST /api/collab/rescan`，生成反映新结构的图；两者共用 `VisualSyncService` 并保留人工视觉状态，形成闭环。
 
-协作会话可导出为 `kind: "ai-draw-session-bundle"` 的 version 1 JSON。导出只包含图、消息和去敏后的提案；一次性批准凭据留在内存中且不写入 bundle。导入必须带 `confirmedBy: "human"`，服务端会重新校验图与提案路径、清空批准凭据、拒绝非法文件；导入绝不写项目文件。
+`POST /api/collab/rescan` 要求 `confirmedBy: "human"` 与本机面板令牌；`scan_project` 可设 `open_panel: false` 适配无头工作流。扫描器只用 `fs.readdir` / `fs.readFile` 读取工作区；图形同步写的是 `OUTPUT_DIR` 下的图资产和会话，不写 `AI_DRAW_WORKSPACE_ROOT`。`mergeScannedGraph()` 按稳定 ID 优先、路径次之匹配旧节点：保留有限 `x` / `y`、自定义标签、`metadata.layoutSource`、`human` 焦点以及可锚定批注；新节点占用空闲自动布局位，删除节点使相关线程 `detached`，标签/路径变化使线程 `outdated`。version 1 `ScanPreservationSummary` 通过 `PRESERVATION_JSON`、HTTP 响应、系统消息与 WebSocket `session_updated` 暴露计数；它只是审计信息，不签发批准凭据，也不授权项目写入。详见 [ADR 0006](ADR/0006-stable-scan-preserves-human-visual-state.md)。
+
+协作会话可导出为 `kind: "ai-draw-session-bundle"` 的 version 1 JSON。导出只包含图、有限人工坐标、消息和去敏后的提案；一次性批准凭据留在内存中且不写入 bundle。导入必须带 `confirmedBy: "human"`，服务端会重新校验图与提案路径、清空批准凭据、拒绝非法文件和非有限坐标；导入绝不写项目文件。
 
 面板选中节点时，`POST /api/collab/focus` 记录 version 1 `SessionFocus`。端点要求 `confirmedBy: "human"` 和本机面板令牌；`SessionStore` 只接受 `source: "human"`，并从当前图派生节点标签/路径/分组。`get_visual_context.focus`、诊断与 bundle 只读暴露该上下文。图修订会刷新仍存在节点的焦点字段；节点删除或 bundle 导入后找不到节点时清除焦点。选中状态不进入活动时间线，不签发凭据、不改变线程状态、不授权项目写入，详见 [ADR 0005](ADR/0005-human-focus-is-read-only-context.md)。
 
@@ -82,11 +84,11 @@ IDE / human browser
 
 WebSocket events：`diagram_added`、`diagram_update`、`diagram_removed`、`graph_updated`、`chat_message`、`proposal_created`、`proposal_updated`、`session_updated`。
 
-REST endpoints 以 `/api/diagrams`、`/api/diagram/:id` 提供旧图管理；`/api/collab/*` 提供会话、图形、消息、批注和提案。完整工具清单见 README。
+REST endpoints 以 `/api/diagrams`、`/api/diagram/:id` 提供旧图管理；`/api/collab/*` 提供会话、图形、消息、批注、人工确认重新扫描和提案。完整工具清单见 README。
 
 ## Extension points
 
 - 在 `src/tools/` 加工具：通过 `_shared.ts` 访问 `ToolContext`，并在 `server.ts` 注册与更新 `TOOL_COUNT`。
 - 在 `src/domain/types.ts` 扩展协议：保持 `version` 字段并更新集成测试。
-- 在 `project-scanner.ts` 增加语言/框架识别：输出仍是 `ProjectScanResult`，再转成 `VisualGraph`。
+- 在 `project-scanner.ts` 增加语言/框架识别：输出仍是 `ProjectScanResult`，并保持稳定 ID 与 `VisualSyncService` 的保留契约。
 - 在 `templates/index.html` 增加画布交互：通过 `/api/collab/graph` 保存，不要直接修改 Mermaid 源码来承载结构化语义。

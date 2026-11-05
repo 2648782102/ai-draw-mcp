@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 稳定扫描与人工视觉状态保留：`project-scanner.ts` 使用相对路径派生确定性节点/连线 ID；`visual-graph-merge.ts` 与 `visual-sync-service.ts` 让 `scan_project` 和人工确认的 `POST /api/collab/rescan` 共用一套只读扫描、布局保留、渲染与广播流程。
+- version 1 `ScanPreservationSummary` 与 `PRESERVATION_JSON`：AI 与面板可读地看到匹配/新增/删除节点、保留坐标、自定义标签、批注与焦点迁移计数；纯函数、MCP 与 HTTP 协作测试覆盖重复扫描、旧随机 ID 迁移、新文件增量排布和删除文件失锚。
+- 面板图形编辑器新增有限 `X` / `Y` 坐标输入与 `metadata.layoutSource: "human"` 标记；「重新扫描项目」按钮调用人类确认端点并展示保留摘要，不写项目文件、不签发批准凭据。
+- `docs/ADR/0006-stable-scan-preserves-human-visual-state.md`：记录稳定路径身份、视觉状态合并与扫描不授权写入的边界。
 - version 1 `SessionFocus`、`POST /api/collab/focus` 与面板「当前焦点」：把人当前选中的节点作为只读上下文交给 `get_visual_context`、诊断和会话 bundle；焦点变化不产生消息、不进入时间线、不签发凭据。
 - 面板「复制给 AI 的上下文」按钮：生成含会话、修订、焦点、诊断、下一步与安全边界的只读提示；不写会话、不发送消息、不签发凭据。
 - `docs/ADR/0005-human-focus-is-read-only-context.md`：记录选中状态只是注意力上下文，不能替代人工批准或写入凭据。
@@ -51,6 +55,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- `scan_project` 工具描述、响应和参数扩展 `PRESERVATION_JSON` 与 `open_panel`；重复扫描刷新同一图形而不是清空人工编辑，README、英文快速入门、AGENTS、架构、竞品调研、路线图、发布文案与离线一致性检查同步更新。
+- `SessionStore.validateGraph()` 与会话 bundle 严格校验节点/批注的有限坐标，拒绝非数字、`NaN`、`Infinity` 与注入结构。
 - `SessionStore.setGraph()` 与 bundle 导入会刷新仍存在节点的焦点字段、清除已删除节点的失锚焦点；bundle 严格校验 `focus` 的结构、来源、时间戳与未知属性。
 - 会话 bundle 的 `graphDiffs` 改为严格校验：拒绝损坏的 items/fields、非法计数、无效时间戳、未知属性与非法字段值；领域契约测试覆盖注入结构。
 - `activityTimeline` 新增只读 `graph_diff` 派生事件；`get_visual_context` 的下一棒提示指出图形修订数量，面板新增可展开的字段级差异列表。

@@ -157,4 +157,31 @@ describe("MCP server", () => {
       expect(expanded).toContain("preflight_visual_proposal");
     });
   }, 30_000);
+
+  it("scans into stable project nodes and returns a preservation contract for agents", async () => {
+    await withClient(3427, async (client) => {
+      const first = textOf(await client.callTool({
+        name: "scan_project",
+        arguments: { title: "Stable scan", open_panel: false },
+      }));
+      expect(first).toContain("PRESERVATION_JSON:");
+      const firstPreservation = jsonAfter(first, "PRESERVATION_JSON:");
+      expect(firstPreservation).toMatchObject({ version: 1, strategy: "stable-path-merge" });
+      const firstNodes = JSON.parse(first.match(/Nodes\/edges \(structured\): (\{.*\})/)?.[1] ?? "{}");
+      expect(firstNodes.nodes.length).toBeGreaterThan(1);
+      expect(firstNodes.nodes.every((node) => /^node_[0-9a-f]{12}$/.test(node.id))).toBe(true);
+
+      const second = textOf(await client.callTool({
+        name: "scan_project",
+        arguments: { title: "Stable scan", open_panel: false },
+      }));
+      const secondNodes = JSON.parse(second.match(/Nodes\/edges \(structured\): (\{.*\})/)?.[1] ?? "{}");
+      expect(secondNodes.nodes.map((node) => node.id)).toEqual(firstNodes.nodes.map((node) => node.id));
+      const secondPreservation = jsonAfter(second, "PRESERVATION_JSON:");
+      expect(secondPreservation.matchedNodes).toBe(firstNodes.nodes.length);
+      expect(secondPreservation.newNodes).toBe(0);
+      expect(secondPreservation.removedNodes).toBe(0);
+      expect(second).not.toContain("grantHash");
+    });
+  }, 30_000);
 });
