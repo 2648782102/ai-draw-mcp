@@ -35,6 +35,24 @@ const baseSession = {
       }],
     }],
   },
+  graphDiffs: [{
+    version: 1,
+    fromRevision: 1,
+    toRevision: 2,
+    createdAt: "2026-11-06T00:01:00.000Z",
+    source: "human",
+    diagramId: "diagram_contract",
+    nodes: { added: 0, removed: 0, updated: 1 },
+    edges: { added: 0, removed: 0, updated: 0 },
+    items: [{
+      entity: "node",
+      change: "updated",
+      id: "readme",
+      label: "README.md",
+      fields: [{ field: "path", before: "README.md", after: "README.zh.md" }],
+    }],
+    summary: ["0 nodes added, 0 removed, 1 updated"],
+  }],
   messages: [{
     id: "msg_contract",
     sessionId: "session_contract",
@@ -87,9 +105,14 @@ describe("session bundle contract", () => {
       graphRevision: 2,
     });
     expect(parsed.session.graph.annotations[0].replies).toHaveLength(1);
+    expect(parsed.session.graphDiffs).toHaveLength(1);
+    expect(parsed.session.graphDiffs[0].items[0].fields[0]).toMatchObject({ field: "path", after: "README.zh.md" });
     const malformed = JSON.parse(JSON.stringify(bundle));
     malformed.session.graph.annotations[0].replies = "broken";
     expect(() => parseSessionBundle(malformed)).toThrow(/replies must be an array/);
+    const malformedDiffs = JSON.parse(JSON.stringify(bundle));
+    malformedDiffs.session.graphDiffs = "broken";
+    expect(() => parseSessionBundle(malformedDiffs)).toThrow(/graphDiffs must be an array/);
     expect(() => parseSessionBundle({ ...malformed, kind: "other" })).toThrow(/version 1/);
   });
 });

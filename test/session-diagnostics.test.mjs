@@ -24,6 +24,18 @@ const snapshot = {
       anchorStatus: "detached",
     }],
   },
+  graphDiffs: [{
+    version: 1,
+    fromRevision: 3,
+    toRevision: 4,
+    createdAt: "2026-11-06T00:04:00.000Z",
+    source: "human",
+    diagramId: "diagram_diagnostics",
+    nodes: { added: 0, removed: 0, updated: 1 },
+    edges: { added: 0, removed: 0, updated: 0 },
+    items: [],
+    summary: ["0 nodes added, 0 removed, 1 updated"],
+  }],
   messages: [{
     id: "msg_pending",
     sessionId: "session_diagnostics",
@@ -79,8 +91,10 @@ describe("session diagnostics", () => {
       "pending_messages",
       "proposals_await_review",
       "failed_proposals",
+      "graph_diffs",
     ]));
     expect(diagnostics.nextActions.join(" ")).toContain("re-anchor");
+    expect(diagnostics.nextActions.join(" ")).toContain("graphDiffs");
   });
 
   it("asks for a scan when the graph is missing", () => {

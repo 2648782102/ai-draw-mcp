@@ -113,8 +113,19 @@ export function buildSessionDiagnostics(snapshot: SessionSnapshot): SessionDiagn
       count: proposalCounts.applied,
     });
   }
+  const graphDiffs = snapshot.graphDiffs ?? [];
+  if (graphDiffs.length > 0) {
+    const latest = graphDiffs.at(-1)!;
+    signals.push({
+      code: "graph_diffs",
+      level: "info",
+      message: `Recent graph revision diffs are available from rev ${latest.fromRevision} to ${latest.toRevision}.`,
+      count: graphDiffs.length,
+    });
+  }
   const nextActions: string[] = [];
   if (!snapshot.graph) nextActions.push("Run scan_project to create the current VisualGraph.");
+  if (graphDiffs.length > 0) nextActions.push("Read graphDiffs to understand exact node/edge edits before generating a proposal.");
   if (stale.length > 0) nextActions.push("Ask the human to resolve or re-anchor stale annotation threads; do not use stale text as current intent.");
   if (pendingMessages.length > 0 || threads.nextActor === "ai") nextActions.push("Use get_visual_context and reply_to_visual_context for the latest human intent.");
   if (proposalCounts.pending > 0) nextActions.push("Ask the human to review the line diff before approving a proposal.");
