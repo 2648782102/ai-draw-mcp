@@ -43,7 +43,7 @@
 
 ## 功能
 
-- **18 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
+- **19 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
 - **人机双向协作工作台** — 项目结构扫描、节点名称/类型/路径/分组/坐标与连线语义编辑、重复扫描保留人工布局与批注/焦点、批注线程（回复/解决/重开/失锚）、会话诊断、对话、提案批准；WebSocket 实时同步给 AI 和面板
 - **人工确认的安全变更** — 面板批准只生成一次性凭据；AI 凭凭据应用提案，拒绝危险路径，写入失败自动回滚
 - **实时双向面板** — AI 绘图后通过 WebSocket 推送到面板；面板里也可手动编辑源码、实时预览、保存回磁盘
@@ -85,6 +85,7 @@
 ```text
 AI: scan_project → 生成项目结构图
 人: 在「💬 协作」里改名 / 批注 / 发消息
+AI: get_agent_workflow → 读取八步顺序契约与 blocked 就绪提示
 AI: get_visual_context → 理解意图与活动时间线
 AI: reply_to_visual_context → 在面板里回信、回复节点批注线程并标记已处理
 AI: list_change_templates → 可选：把常见意图展开成只读候选草稿
@@ -111,6 +112,8 @@ AI: 再次 scan_project → 保留人工布局/批注/焦点并让图与代码�
 
 > **只读变更模板**：`list_change_templates` 列出「更新文档 / 添加测试 / 创建模块」三个常见意图，并可把它们展开成带路径、完整 UTF-8 内容、`graphRevision` 与引用节点的候选草稿。模板只生成文本，不创建提案、不写文件、不签发确认号；AI 仍需先 `preflight_visual_proposal`，再由 `create_visual_proposal` 交给人类审阅。
 
+> **可复现 Agent 工作流**：`get_agent_workflow` 从当前会话派生 version 1 `WORKFLOW_JSON`：八步顺序、每步 `requires` / `produces` / `readOnly` / `writes` / `grantsWriteAuthority`、陈旧线程与人类回合的 `blocked` 提示。它只是描述性契约，不创建提案、不写会话或项目文件、不签发确认号；唯一 `writes: "project"` 的步骤是 `apply_visual_proposal`，仍须逐行 diff、人工批准与一次性确认号。只读示例见 [examples/agent-workflow.mjs](examples/agent-workflow.mjs)，设计边界见 [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md)。
+
 > **重新扫描不丢人工状态**：扫描器按工作区相对路径生成确定性节点/连线 ID；`VisualSyncService` 与 `mergeScannedGraph()` 会按稳定 ID 或路径迁移人工坐标、自定义名称、批注线程与 `SessionFocus`，新增节点才自动排布，删掉的文件会让相关讨论显式 `detached`。AI 的 `scan_project` 返回 `PRESERVATION_JSON`；面板「重新扫描项目」要求本机令牌与 `confirmedBy: "human"`。两者都只读项目文件，图形同步不等于批准或写入，详见 [ADR 0006](docs/ADR/0006-stable-scan-preserves-human-visual-state.md)。
 
 详细架构与安全模型见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)，贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
@@ -120,6 +123,12 @@ AI: 再次 scan_project → 保留人工布局/批注/焦点并让图与代码�
 ```bash
 npm run build
 node examples/collab-demo.mjs
+```
+
+只查看 AI 应遵守的只读工作流（到 preflight 自动停止，不创建提案或写文件）：
+
+```bash
+npm run test:examples:workflow
 ```
 
 ---
@@ -298,7 +307,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 
 ## 工具列表
 
-> 当前版本 `0.3.0` 共 18 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT` 和测试保护。
+> 当前版本 `0.3.0` 共 19 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT`、离线检查与 MCP 测试保护。
 
 | 工具 | 用途 |
 |------|------|
@@ -315,6 +324,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 | `open_preview` | 在 IDE 中打开预览面板，可 deep-link 到指定图 |
 | `scan_project` | 只读扫描工作区，生成/刷新项目结构图；稳定路径 ID 保留人工布局、批注与焦点，返回 `PRESERVATION_JSON`；`render: false` 可供无头状态检查 |
 | `get_visual_context` | 读取图形修订、批注线程、对话、意图摘要与 `activityTimeline`，供 AI 修改代码前理解上下文 |
+| `get_agent_workflow` | 读取当前会话的八步 `WORKFLOW_JSON`、前后条件、就绪阻塞与写入边界；只读，不签发凭据或授权写入 |
 | `reply_to_visual_context` | AI 在面板里回复人类、回复节点批注线程，并可把消息/批注标记为已回答、已解决 |
 | `create_visual_proposal` | 创建待确认的项目变更提案，不直接写项目文件 |
 | `preflight_visual_proposal` | 创建提案前只读检查候选变更的路径、文件状态、重复内容与阻断项 |

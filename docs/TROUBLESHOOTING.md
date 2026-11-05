@@ -22,6 +22,7 @@ This guide covers first-run problems that are easiest to diagnose from the local
 | Collaboration workbench has no graph | No scan yet, or a fresh `OUTPUT_DIR` | Ask the AI to call `scan_project`, then click `💬 协作` and refresh. |
 | AI does not see a visual edit | The graph was changed locally but not saved | Click `保存图形`; the server validates the graph and increments `graphRevision`. |
 | AI needs a common change draft | Repeating the same proposal shape by hand | Call `list_change_templates`, then pass the returned `changes` through `preflight_visual_proposal` before creating a proposal. |
+| AI invents a collaboration sequence | The agent has not read the current workflow contract | Call `get_agent_workflow`, review `WORKFLOW_JSON.blocked`, and follow the ordered `requires` / `produces` fields. The contract itself never grants write authority. |
 | AI replies too early on an annotation thread | `annotationThreads.nextActor` is `human` | Wait for the human's next reply; AI can read the thread without creating or applying a proposal. |
 | A resolved thread still appears in history | Resolve is a conversation state, not deletion | Use `重开` to continue, or leave it resolved; it never approves or applies a proposal. |
 | A thread is marked `outdated` | The node label or path changed after the discussion | Review the note, then click `确认重锚` if the discussion still applies to the current node. |
@@ -70,4 +71,4 @@ Yes. The 11 legacy Mermaid/SVG tools work without the collaboration loop. Use `s
 
 ### What should an AI agent read first?
 
-[`AGENTS.md`](../AGENTS.md) for repository conventions, then `get_visual_context` for the live visual intent. The machine-readable `annotationThreads.nextActor` and `activityTimeline` are designed for that call.
+[`AGENTS.md`](../AGENTS.md) for repository conventions, then `get_agent_workflow` for the versioned step contract, then `get_visual_context` for the live visual intent. The machine-readable `annotationThreads.nextActor`, `blocked`, and `activityTimeline` are designed for those calls. `npm run test:examples:workflow` demonstrates the read-only prefix of the workflow.

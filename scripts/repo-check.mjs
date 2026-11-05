@@ -50,6 +50,15 @@ const projectScanner = await read("src/infra/project-scanner.ts");
 const visualSyncService = await read("src/infra/visual-sync-service.ts");
 const visualGraphMerge = await read("src/domain/visual-graph-merge.ts");
 const scanTool = await read("src/tools/scan-project.ts");
+const server = await read("src/server.ts");
+const agentWorkflowDomain = await read("src/domain/agent-workflow.ts");
+const getAgentWorkflowTool = await read("src/tools/get-agent-workflow.ts");
+const agentWorkflowExample = await read("examples/agent-workflow.mjs");
+const agentWorkflowTest = await read("test/agent-workflow.test.mjs");
+const workflowAdr = await read("docs/ADR/0007-agent-workflow-is-a-read-only-contract.md");
+const examplesReadme = await read("examples/README.md");
+const collaborationWorkflow = await read("examples/collaboration-workflow.md");
+const security = await read("SECURITY.md");
 const roadmap = await read("ROADMAP.md");
 const research = await read("docs/COMPETITIVE_RESEARCH.md");
 const englishReadme = englishQuickstart;
@@ -75,7 +84,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
-check(launchKit.includes("18 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 18 MCP tools");
+check(launchKit.includes("19 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 19 MCP tools");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -189,6 +198,37 @@ for (const [label, source, needle] of [
   ["ADR safety decisions", adrIndex, "0002-conversation-state-is-not-authority.md"],
   ["ADR focus decision", adrIndex, "0005-human-focus-is-read-only-context.md"],
   ["ADR stable scan decision", adrIndex, "0006-stable-scan-preserves-human-visual-state.md"],
+  ["ADR workflow decision", adrIndex, "0007-agent-workflow-is-a-read-only-contract.md"],
+  ["workflow ADR write boundary", workflowAdr, 'writes: "project"'],
+  ["workflow shared type", types, "export interface AgentWorkflow"],
+  ["workflow domain builder", agentWorkflowDomain, "export function buildAgentWorkflow"],
+  ["workflow domain thread reuse", agentWorkflowDomain, "summarizeAnnotationThreads"],
+  ["workflow tool name", getAgentWorkflowTool, '"get_agent_workflow"'],
+  ["workflow tool marker", getAgentWorkflowTool, '"WORKFLOW_JSON:"'],
+  ["workflow tool read-only boundary", getAgentWorkflowTool, "不写会话或项目文件"],
+  ["workflow step write target", agentWorkflowDomain, 'writes: "project"'],
+  ["workflow readiness blockers", agentWorkflowDomain, "blocked.push"],
+  ["workflow example", agentWorkflowExample, "get_agent_workflow"],
+  ["workflow example scan", agentWorkflowExample, '"scan_project"'],
+  ["workflow example stops at preflight", agentWorkflowExample, "Stopped before create_visual_proposal"],
+  ["workflow example assertion", agentWorkflowExample, "no proposal or project write"],
+  ["workflow contract test", agentWorkflowTest, "agent workflow contract"],
+  ["server tool count", server, "const TOOL_COUNT = 19"],
+  ["server workflow registration", server, "registerGetAgentWorkflow"],
+  ["CI workflow example", ci, "npm run test:examples:workflow"],
+  ["package workflow example", packageJson.scripts?.["test:examples:workflow"] ?? "", "node examples/agent-workflow.mjs"],
+  ["English workflow contract", englishQuickstart, "get_agent_workflow"],
+  ["README workflow decision link", readme, "0007-agent-workflow-is-a-read-only-contract.md"],
+  ["AGENTS workflow decision link", agents, "0007-agent-workflow-is-a-read-only-contract.md"],
+  ["architecture workflow decision link", architecture, "0007-agent-workflow-is-a-read-only-contract.md"],
+  ["launch workflow contract", launchKit, "WORKFLOW_JSON"],
+  ["research workflow delivery", research, "基础版已交付"],
+  ["roadmap workflow delivery", roadmap, "get_agent_workflow"],
+  ["security workflow boundary", security, "WORKFLOW_JSON"],
+  ["troubleshooting workflow", troubleshooting, "get_agent_workflow"],
+  ["examples workflow", examplesReadme, "agent-workflow.mjs"],
+  ["collaboration workflow", collaborationWorkflow, "WORKFLOW_JSON.blocked"],
+  ["documentation map workflow", documentationMap, "0007-agent-workflow-is-a-read-only-contract.md"],
   ["README focus context", readme, "SessionFocus"],
   ["AGENTS focus context", agents, "SessionFocus"],
   ["architecture focus endpoint", architecture, "/api/collab/focus"],
@@ -210,7 +250,13 @@ check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not do
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
-check(readme.includes("18 个 MCP 工具"), "README.md does not reflect the 18 MCP tools");
+check(readme.includes("19 个 MCP 工具"), "README.md does not reflect the 19 MCP tools");
+check(agents.includes("## 19 个 MCP 工具"), "AGENTS.md does not reflect the 19 MCP tools");
+check(roadmap.includes("19 MCP tools"), "ROADMAP.md does not reflect the 19 MCP tools");
+check(getAgentWorkflowTool.includes("get_agent_workflow"), "get-agent-workflow.ts is missing the tool name");
+check(agentWorkflowDomain.includes('grantsWriteAuthority: false'), "agent-workflow.ts is missing the no-authority invariant");
+check(agentWorkflowExample.includes('step.writes === "project"'), "workflow example does not verify the project-write boundary");
+check(packageJson.scripts?.check?.includes("npm run test:examples:workflow"), "npm run check does not execute the workflow example");
 check(readme.includes("list_change_templates"), "README.md does not document change templates");
 check(agents.includes("change-templates.ts"), "AGENTS.md does not list the change template module");
 check(agents.includes("list_change_templates"), "AGENTS.md does not document change templates");

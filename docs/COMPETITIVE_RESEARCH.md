@@ -69,7 +69,7 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 1. **布局保持与编辑撤销（P0，0.4；布局保持已交付）**：`GraphNode` 的可选坐标与 `metadata.layoutSource` 已通过稳定路径 ID、`ScanPreservationSummary` 和人工确认重新扫描得到保留；默认保留人的布局，仅新节点自动排布。仍可补视口状态与有限的图形撤销/重做栈；布局是视图状态，不是项目写入授权。
 2. **源码证据与「跳到代码」（P0，0.5）**：让 scanner 为文件节点记录稳定的 `path` 与可选 `line` / `symbol` / `import` 证据，面板支持从节点打开源码位置，`get_visual_context` 返回可引用证据。证据只读，不自动扩大提案路径权限；与 [`ROADMAP.md`](../ROADMAP.md) 的 source ranges 方向一致。
 3. **注意力状态（P1，0.4）**：在会话中记录当前选中节点/连线、展开的批注线程和最近查看的提案，作为 `get_visual_context` 的轻量 `focus` 字段；让人指着图说话时，AI 不必从整张图猜测对象。
-4. **可复现的 agent 工作流（P1，0.4）**：把 `list_change_templates` 的只读草稿、`preflight_visual_proposal` 的检查结果、`create_visual_proposal` 的候选变更串成有明确前后条件的示例与诊断提示，减少 LLM 自行发明步骤；所有中间产物仍不签发批准凭据。
+4. **可复现的 agent 工作流（P1，0.4；基础版已交付）**：0.3.x 已提供 `get_agent_workflow` 的 version 1 `WORKFLOW_JSON`、八步前后条件、`blocked` 就绪提示、`none` / `session` / `project` 写入边界，以及 CI 中实际执行的只读示例；后续可把工作流与提案 diff、诊断信号进一步联动。所有中间产物仍不签发批准凭据。
 5. **确定性、可迁移的会话工件（P2，0.4/0.5）**：继续强化 bundle 的版本、校验与不含凭据约束，提供稳定的 JSON 摘要、Mermaid/SVG 导出及「导入后只读审阅」模式；文本渲染与导出应可复现，便于 Issue 附档、回归测试和跨工具迁移。
 
 ### 明确非目标
@@ -86,7 +86,7 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 | 阶段 | 优先级 | 建议 | 完成定义 |
 |---|---|---|---|
 | 0.4 | P0 | 保存人工布局与视口；重新扫描采用「保留已有布局 + 新增节点增量排布」策略；补图形编辑撤销/重做 | 布局保持已经交付：图修订不会无故移动既有节点，纯函数/MCP/HTTP 测试覆盖 ID 稳定、坐标/标签/批注/焦点保留、新增与删除节点，会话 bundle 校验有限坐标；视口与撤销栈仍待做，撤销只回退视觉状态，不回退已批准的项目写入 |
-| 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 示例能展示 `changes` → preflight → proposal → 人批准 → apply；任何只读中间产物都不含确认号 |
+| 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 基础版已交付：19 个工具中的 `get_agent_workflow` 与 CI 只读示例覆盖 `WORKFLOW_JSON` → `changes` → preflight → 停止；提案人批准与 apply 由 `examples/collab-demo.mjs` 覆盖，且中间产物不含确认号；诊断信号联动仍待做 |
 | 0.4 | P1 | 引入机器可读 `focus` / 选中状态，并让批注、诊断和下一棒提示引用同一对象 | AI 能从上下文识别「人正在指哪个节点」；焦点变化不签发凭据、不自动解决线程 |
 | 0.4 | P2 | bundle 增加可读摘要与可复现导出清单；发布前用 `repo:check` / `docs:assets:check` 守住文案和资产一致性 | 同一会话导出的 JSON/SVG 摘要稳定；导入仍要求人类确认且清除批准凭据（验证可沿用现有 Vitest 协作集成测试） |
 | 0.5 | P0 | 语言感知扫描、source ranges、符号/测试/框架边界，以及节点到编辑器源码位置的只读跳转 | 节点可引用 `file + line` 证据；扫描器不写文件，提案仍只接受安全路径与显式人类批准 |

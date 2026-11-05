@@ -18,6 +18,7 @@ AI Draw MCP 在本机启动一个预览服务，默认绑定 `127.0.0.1`。面�
 ## Guarded operations
 
 - 提案应用器拒绝删除、路径逃逸、绝对路径越界、`.git`、`node_modules`、`dist`、`.env*`、锁文件。
+- `get_agent_workflow` 与 `WORKFLOW_JSON` 只是描述性契约；就绪 `blocked` 列表、只读草稿、预检结果和上下文都不构成批准凭据或写入能力。
 - 面板写 API 需要注入在 HTML 中的本机随机 `PANEL_TOKEN`。
 - 人类批准只签发 10 分钟一次性确认号；AI 必须在 `apply_visual_proposal` 中同时提供 `approval_id`、`approval_grant` 和过期时间。
 - 所有提案都需要 `approvedBy: "human"`，且凭据验证通过后才会应用。

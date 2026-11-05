@@ -11,6 +11,7 @@ The detailed Chinese README is [`README.md`](README.md). The full documentation 
 ```text
 AI: scan_project → editable VisualGraph
 Human: edit node path/group and edge semantics / reply in annotation threads / send a message
+AI: get_agent_workflow → eight ordered steps, readiness blockers, and explicit write boundaries
 AI: get_visual_context → intentByNode + annotationThreads.nextActor + staleThreads + graphDiffs + activityTimeline + diagnostics
 AI: list_change_templates → optional read-only draft for common intents
 AI: preflight_visual_proposal → safe paths + existing/new files + duplicate/no-op content
@@ -39,12 +40,19 @@ npm run doctor
 node examples/collab-demo.mjs
 ```
 
+Run the read-only agent workflow example, which stops after preflight and verifies that no proposal or project write occurred:
+
+```bash
+npm run test:examples:workflow
+```
+
 If Chrome is outside Puppeteer's cache, set `PUPPETEER_EXECUTABLE_PATH`. CI and hardened Linux environments may also need `MERMAID_CHROME_NO_SANDBOX=1`.
 
 ## Safety model
 
 - No account, no cloud service, and no public network binding by default.
 - Proposal approval is a human panel action; it does not write files.
+- `get_agent_workflow` returns a version 1 `WORKFLOW_JSON` with ordered steps, prerequisites, `blocked` readiness hints, and `writes: "none" | "session" | "project"` boundaries. It is descriptive only: no proposal, receipt, session write, or project write. Only `apply_visual_proposal` is marked as a project write and still requires the human receipt; see [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md).
 - `preflight_visual_proposal` is a read-only check before `create_visual_proposal`; it never writes files, creates proposals, or issues grants.
 - `list_change_templates` lists or expands common proposal drafts; it is read-only and must be followed by preflight and human review.
 - `apply_visual_proposal` requires a one-time receipt bound to a SHA-256 content hash.

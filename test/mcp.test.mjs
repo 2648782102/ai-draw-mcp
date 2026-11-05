@@ -10,6 +10,7 @@ const COLLAB_TOOLS = [
   "reply_to_visual_context",
   "preflight_visual_proposal",
   "list_change_templates",
+  "get_agent_workflow",
 ];
 
 async function withClient(port, callback) {
@@ -66,7 +67,7 @@ describe("MCP server", () => {
     await withClient(3421, async (client) => {
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name);
-      expect(names).toHaveLength(18);
+      expect(names).toHaveLength(19);
       expect(names).toContain("render_diagram");
       expect(names).toContain("delete_diagram");
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
@@ -155,6 +156,22 @@ describe("MCP server", () => {
       expect(draft.changes[0]).toMatchObject({ kind: "create", path: "examples/template-stub.ts" });
       expect(expanded).not.toContain("PROPOSAL_JSON:");
       expect(expanded).toContain("preflight_visual_proposal");
+    });
+  }, 30_000);
+
+  it("returns a reproducible read-only agent workflow", async () => {
+    await withClient(3428, async (client) => {
+      const text = textOf(await client.callTool({ name: "get_agent_workflow", arguments: {} }));
+      expect(text).toContain("WORKFLOW_JSON:");
+      const workflow = jsonAfter(text, "WORKFLOW_JSON:");
+      expect(workflow).toMatchObject({ version: 1 });
+      expect(Array.isArray(workflow.blocked)).toBe(true);
+      expect(workflow.steps.map((step) => step.id)).toContain("preflight");
+      expect(workflow.steps.every((step) => step.grantsWriteAuthority === false)).toBe(true);
+      expect(workflow.steps.filter((step) => step.writes === "project").map((step) => step.id)).toEqual(["apply"]);
+      expect(workflow.steps.find((step) => step.id === "apply").requires.join(" ")).toContain("one-time receipt");
+      expect(text).not.toContain("grantHash");
+      expect(text).not.toContain("approvalId");
     });
   }, 30_000);
 

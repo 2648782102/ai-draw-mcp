@@ -10,6 +10,8 @@ This walkthrough uses natural-language prompts in an MCP-capable IDE. It does no
 
 The AI should call `scan_project`, then the panel shows the structure graph. Use `get_visual_context` in the next AI turn to read the graph, pending messages, and annotations.
 
+To avoid inventing a different sequence, ask the AI to call `get_agent_workflow` first. Its `WORKFLOW_JSON` lists the eight ordered steps, prerequisites, readiness blockers, and explicit `none` / `session` / `project` write targets. The contract is read-only and never issues an approval receipt. A reproducible example that stops after preflight is [`agent-workflow.mjs`](agent-workflow.mjs); run it with `npm run test:examples:workflow`.
+
 ## 2. Human edits the graph and explains intent
 
 In the panel, open `💬 协作`:
@@ -26,6 +28,8 @@ In the panel, open `💬 协作`:
 ```
 
 The reply appears in the collaboration chat, the node-linked annotation thread, and the compact activity timeline. The message and annotation are marked as answered/resolved, so the next turn has a clean inbox.
+
+Before step 4, check `WORKFLOW_JSON.blocked`: stale threads must be reviewed or re-anchored by a human, and an `annotationThreads.nextActor` of `human` means the AI should wait.
 
 ## 4. AI creates a proposal, not a direct edit
 

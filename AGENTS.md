@@ -35,6 +35,7 @@ src/
 │   ├── graph-diff.ts          图形修订之间的节点/连线字段差异
 │   ├── visual-graph-merge.ts  稳定路径重扫合并器：坐标/标签/批注/焦点保留
 │   ├── change-templates.ts    常见意图的只读变更模板目录与草稿展开
+│   ├── agent-workflow.ts      当前会话的八步 agent 工作流契约与就绪阻塞
 │   ├── impact.ts             提案影响摘要：文件数、行数、字节数与安全说明
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
 ├── infra/
@@ -55,6 +56,7 @@ src/
     ├── update/delete/list/open-preview.ts 旧图管理
     ├── scan-project.ts       稳定路径只读扫描、保留人工视觉状态并生成/刷新协作图
     ├── get-visual-context.ts 读取人类意图
+    ├── get-agent-workflow.ts 读取八步 WORKFLOW_JSON 与写入边界
     ├── list-change-templates.ts 列出/展开只读变更模板草稿
     ├── create-visual-proposal.ts 创建待确认提案
     └── apply-visual-proposal.ts 凭一次性凭据应用已批准提案
@@ -74,6 +76,7 @@ docs/GOVERNANCE.md             开源治理、维护清单与元数据漂移证�
 docs/ADR/README.md             架构决策记录索引
 docs/ADR/0005-human-focus-is-read-only-context.md 当前焦点只读上下文决策
 docs/ADR/0006-stable-scan-preserves-human-visual-state.md 稳定扫描保留人工视觉状态决策
+docs/ADR/0007-agent-workflow-is-a-read-only-contract.md 只读工作流契约决策
 docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
 ```
@@ -94,7 +97,7 @@ ROADMAP.md                   产品路线图与非目标
 
 ---
 
-## 18 个 MCP 工具
+## 19 个 MCP 工具
 
 | 分组 | 工具 |
 |------|------|
@@ -103,8 +106,9 @@ ROADMAP.md                   产品路线图与非目标
 | 双向协作 | `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal` |
 | 提案预检 | `preflight_visual_proposal` |
 | 只读变更模板 | `list_change_templates` |
+| 只读工作流契约 | `get_agent_workflow` |
 
-协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信/内联回复并标记已处理；常见意图可用 `list_change_templates` 展开只读草稿，创建提案前用 `preflight_visual_proposal` 只读检查路径、文件存在性、create/update 与重复内容，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
+协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 可先调用 `get_agent_workflow` 读取八步 `WORKFLOW_JSON` 和 `blocked`，再调用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`；`nextActor` 为 AI 时用 `reply_to_visual_context` 回信/内联回复并标记已处理，`nextActor` 为 human 时等待。常见意图可用 `list_change_templates` 展开只读草稿，创建提案前用 `preflight_visual_proposal` 只读检查路径、文件存在性、create/update 与重复内容，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
 
 `get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；`focus` 记录人当前选中的节点；`activityTimeline` 把消息、`graph_diff` 图形修订、线程与提案生命周期合并为只读派生事件。生成提案时优先引用 `focus`、`intentByNode` 和活动顺序，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案；焦点与活动时间线都不授权项目写入。
 
@@ -125,6 +129,8 @@ ROADMAP.md                   产品路线图与非目标
 `GraphNode` / `AnnotationPin` 的 `x` / `y` 必须是有限数值；`SessionStore.validateGraph()` 与 `parseSessionBundle()` 都会拒绝非数字、`NaN` 或 `Infinity`。面板编辑坐标会标记 `metadata.layoutSource: "human"`，重新扫描会把它与自动布局区分开。
 
 `list_change_templates` 是只读工具：不带 `template_id` 时返回模板目录，带 `template_id` 时从当前 `graphRevision` 与可选 `node_id` 展开 `changes` 草稿。它不创建提案、不写项目文件、不签发批准凭据；草稿必须先交给 `preflight_visual_proposal`，再由 `create_visual_proposal` 进入人类审阅流程。
+
+`get_agent_workflow` 是只读描述性契约：version 1 `WORKFLOW_JSON` 含八步顺序、`requires` / `produces`、`readOnly`、`writes: "none" | "session" | "project"`、`grantsWriteAuthority: false` 和 `blocked` 就绪提示。它不写会话、不创建提案、不签发凭据；对话回复与提案创建是 session 写入，唯一 project 写入步骤是 `apply_visual_proposal`，仍须人工批准、一次性确认号、内容哈希、路径校验与失败回滚。陈旧线程或等待 human 时，`blocked` 会提示不得把旧讨论变成当前意图。共享类型在 `src/domain/types.ts`，构造逻辑在 `src/domain/agent-workflow.ts`，设计边界见 [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md)。
 
 ---
 

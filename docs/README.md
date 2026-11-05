@@ -14,6 +14,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [LAUNCH_KIT.md](LAUNCH_KIT.md) | Maintainers | Copy for GitHub About, releases, Show HN, X/Mastodon, and Chinese communities |
 | [GOVERNANCE.md](GOVERNANCE.md) | Maintainers, contributors | Public surfaces, maintainer checklist, and observed metadata drift |
 | [ADR/README.md](ADR/README.md) | Contributors, reviewers | Accepted protocol and safety decisions with consequences and alternatives |
+| [ADR/0007-agent-workflow-is-a-read-only-contract.md](ADR/0007-agent-workflow-is-a-read-only-contract.md) | AI agents, reviewers | Why the eight-step workflow is descriptive and never grants project-write authority |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
@@ -25,6 +26,8 @@ Portable `ai-draw-session-*.json` bundles are for bug reports and reproducible e
 
 Stable-path rescans are documented in [ADR 0006](ADR/0006-stable-scan-preserves-human-visual-state.md): deterministic IDs and a read-only visual-state merge preserve layout, labels, threads, and focus while keeping scans separate from the proposal/write boundary.
 
+Agent-facing workflow guidance is documented in [ADR 0007](ADR/0007-agent-workflow-is-a-read-only-contract.md): `get_agent_workflow` returns a session-derived `WORKFLOW_JSON` with readiness blockers and explicit `none` / `session` / `project` write targets, but never a capability token.
+
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 
-Test rule: `npm test` covers MCP integration, the collaboration loop, stable scan preservation, annotation threads, the derived activity timeline, and pure domain contracts for bundles, impact summaries, path safety, content hashes, and one-time approval grants.
+Test rule: `npm test` covers MCP integration, the collaboration loop, stable scan preservation, annotation threads, the derived activity timeline, the agent workflow contract, and pure domain contracts for bundles, impact summaries, path safety, content hashes, and one-time approval grants. `npm run test:examples:workflow` runs the read-only workflow example end to end in a temporary workspace.

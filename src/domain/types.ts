@@ -155,6 +155,40 @@ export interface ScanPreservationSummary {
   preservedFocus: boolean;
 }
 
+export type WorkflowActor = "human" | "ai" | "system";
+export type WorkflowWriteTarget = "none" | "session" | "project";
+
+export interface WorkflowStep {
+  version: 1;
+  order: number;
+  id: string;
+  actor: WorkflowActor;
+  tool?: string;
+  panelAction?: string;
+  input: string[];
+  output: string[];
+  requires: string[];
+  produces: string[];
+  readOnly: boolean;
+  writes: WorkflowWriteTarget;
+  grantsWriteAuthority: false;
+  description: string;
+}
+
+export interface AgentWorkflow {
+  version: 1;
+  sessionId: string;
+  graphRevision: number;
+  activeDiagramId?: string;
+  focus?: { nodeId: string; nodeLabel: string; nodePath?: string };
+  graph?: { nodes: number; edges: number; annotations: number; staleAnnotations: number };
+  conversation?: { pendingMessages: number; nextActor: string };
+  proposals?: { pending: number; approved: number };
+  blocked: string[];
+  steps: WorkflowStep[];
+  safety: string[];
+}
+
 export interface GraphRevisionDiff {
   version: 1;
   fromRevision: number;

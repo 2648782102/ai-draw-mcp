@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- version 1 `AgentWorkflow` 与第 19 个 MCP 工具 `get_agent_workflow`：返回八步 `WORKFLOW_JSON`、每步 `requires` / `produces` / `readOnly` / `writes` / `grantsWriteAuthority`、会话就绪 `blocked` 提示和安全不变量；只读，不创建提案、不写会话或项目文件、不签发凭据。
+- `examples/agent-workflow.mjs` 与 `npm run test:examples:workflow`：在临时工作区实际执行工作流契约 → 只读模板草稿 → preflight，断言没有确认号、没有提案、没有项目写入，并由 CI 在三个 Node 版本运行。
+- [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md)：记录工作流是描述性契约，明确 `none` / `session` / `project` 三层写入边界与唯一项目写入步骤。
 - 稳定扫描与人工视觉状态保留：`project-scanner.ts` 使用相对路径派生确定性节点/连线 ID；`visual-graph-merge.ts` 与 `visual-sync-service.ts` 让 `scan_project` 和人工确认的 `POST /api/collab/rescan` 共用一套只读扫描、布局保留、渲染与广播流程。
 - version 1 `ScanPreservationSummary` 与 `PRESERVATION_JSON`：AI 与面板可读地看到匹配/新增/删除节点、保留坐标、自定义标签、批注与焦点迁移计数；纯函数、MCP 与 HTTP 协作测试覆盖重复扫描、旧随机 ID 迁移、新文件增量排布和删除文件失锚。
 - 面板图形编辑器新增有限 `X` / `Y` 坐标输入与 `metadata.layoutSource: "human"` 标记；「重新扫描项目」按钮调用人类确认端点并展示保留摘要，不写项目文件、不签发批准凭据。
@@ -59,6 +62,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- MCP 工具从 18 增至 19；README、英文快速入门、AGENTS、架构、路线图、竞品调研、发布文案、离线一致性检查、工具数量常量、MCP 测试与治理记录同步更新。
+- CI 增加可复现只读工作流示例执行；`npm run check` 也运行该示例，避免文档声称的「可复现」只停留在语法检查。
 - `scan_project` 工具描述、响应和参数扩展 `PRESERVATION_JSON` 与 `open_panel`；重复扫描刷新同一图形而不是清空人工编辑，README、英文快速入门、AGENTS、架构、竞品调研、路线图、发布文案与离线一致性检查同步更新。
 - `SessionStore.validateGraph()` 与会话 bundle 严格校验节点/批注的有限坐标，拒绝非数字、`NaN`、`Infinity` 与注入结构。
 - `SessionStore.setGraph()` 与 bundle 导入会刷新仍存在节点的焦点字段、清除已删除节点的失锚焦点；bundle 严格校验 `focus` 的结构、来源、时间戳与未知属性。
