@@ -39,13 +39,13 @@ IDE / human browser
 
 失锚/过期状态是会话图上的版本化审计字段，bundle 会保留它们；`outdated` 线程只能经人类确认的 `/api/collab/annotations/:id/anchor` 重锚，`detached` 线程保留原 `nodeId` 且不自动重锚。重锚是讨论状态的确认，不签发批准凭据，也不授权项目写入。
 
-`GET /api/collab/activity` 与 `get_visual_context.activityTimeline` 从会话快照派生紧凑时间线：消息、批注创建/回复/解决、提案创建/批准/应用/拒绝/失败，以及 `nextActor` 与 guidance。时间线是 version 1 只读投影，不增加持久化协议，不签发凭据，也不能授权项目写入；原文与批准凭据仍以 `SessionSnapshot` 和内存中的 `ApprovalGrant` 为准。
+`GET /api/collab/activity` 与 `get_visual_context.activityTimeline` 从会话快照派生紧凑时间线：消息、`graphDiffs` 的图形修订事件、批注创建/回复/解决、提案创建/批准/应用/拒绝/失败，以及 `nextActor` 与 guidance。时间线是 version 1 只读投影，不增加持久化协议，不签发凭据，也不能授权项目写入；原文与批准凭据仍以 `SessionSnapshot` 和内存中的 `ApprovalGrant` 为准。
 
 `GET /api/collab/diagnostics` 与 `get_visual_context.diagnostics` 从同一快照派生 version 1 健康摘要：图/线程/提案计数、活动总量、信号、下一步动作，以及 `approvalGrantsExported: false`、`staleThreadsExcludedFromIntent: true`、`projectWritesRequireHumanApproval: true` 三个安全不变量。诊断只读、无持久化、无凭据，也不替代完整上下文。
 
 面板把诊断信号与下一步动作展开为可扫读清单；`action` 信号提示人或 AI 的下一棒，`warning` 提示已失败/等待应用的提案，`info` 只描述状态。清单不提供批准按钮，也不改变会话。
 
-`SessionStore.setGraph()` 会把前后 `VisualGraph` 交给 `src/domain/graph-diff.ts`，保留最近 20 条 version 1 `graphDiffs`。每条记录包含修订号、来源、节点/连线计数及字段级变化；bundle 也保留这些审计记录。`get_visual_context.graphDiffs` 和 `GET /api/collab/graph/diffs` 只读暴露它们，AI 应据此理解人类改图，而不是从自然语言猜测路径/分组/连线变化。
+`SessionStore.setGraph()` 会把前后 `VisualGraph` 交给 `src/domain/graph-diff.ts`，保留最近 20 条 version 1 `graphDiffs`。每条记录包含修订号、来源、节点/连线计数及字段级变化；bundle 也保留这些审计记录，导入时严格校验结构、计数、字段值与时间戳并拒绝未知属性。`get_visual_context.graphDiffs` 和 `GET /api/collab/graph/diffs` 只读暴露它们；面板展开最近修订的字段前后值，时间线合并 `graph_diff` 事件。AI 应据此理解人类改图，而不是从自然语言猜测路径/分组/连线变化。
 
 ## Safety model
 

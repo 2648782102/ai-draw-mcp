@@ -102,13 +102,13 @@ ROADMAP.md                   产品路线图与非目标
 
 协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信/内联回复并标记已处理；常见意图可用 `list_change_templates` 展开只读草稿，创建提案前用 `preflight_visual_proposal` 只读检查路径、文件存在性、create/update 与重复内容，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
 
-`get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；`activityTimeline` 把消息、线程与提案生命周期合并为只读派生事件。生成提案时优先引用 `intentByNode` 和活动顺序，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案；活动时间线不授权项目写入。
+`get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；`activityTimeline` 把消息、`graph_diff` 图形修订、线程与提案生命周期合并为只读派生事件。生成提案时优先引用 `intentByNode` 和活动顺序，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案；活动时间线不授权项目写入。
 
 节点批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`。节点标签或路径变化后线程标记为 `outdated`，节点删除后标记为 `detached`；`staleThreads` 与活动时间线 `annotation_anchor` 事件会提示 AI 不要把旧讨论当成当前意图。`outdated` 线程必须由人在面板点击「确认重锚」或调用 `/api/collab/annotations/:id/anchor`（`confirmedBy: "human"`）才能恢复；`detached` 线程保留原 `nodeId` 供审计，不得自动重锚。
 
 `diagnostics` 是同一会话的只读健康摘要，包含失锚线程、待处理消息、提案状态分布、活动时间线计数、下一步动作与三个安全不变量；它不签发批准凭据，也不替代 `get_visual_context` 的原文上下文。
 
-每次 `setGraph()` 保存人类图形编辑时，服务端会在会话中保留 version 1 `graphDiffs`（最多 20 条）：记录节点/连线新增、删除，以及 `label` / `kind` / `path` / `group` / `from` / `to` 的字段级前后值。`get_visual_context.graphDiffs`、面板摘要与 `GET /api/collab/graph/diffs` 让 AI 精确读取视觉改动；差异是只读审计记录，不直接生成文件变更，也不授权项目写入。
+每次 `setGraph()` 保存人类图形编辑时，服务端会在会话中保留 version 1 `graphDiffs`（最多 20 条）：记录节点/连线新增、删除，以及 `label` / `kind` / `path` / `group` / `from` / `to` 的字段级前后值。`get_visual_context.graphDiffs`、可展开的面板差异列表与 `GET /api/collab/graph/diffs` 让 AI 精确读取视觉改动；bundle 导入会严格校验差异契约。差异是只读审计记录，不直接生成文件变更，也不授权项目写入。
 
 `list_change_templates` 是只读工具：不带 `template_id` 时返回模板目录，带 `template_id` 时从当前 `graphRevision` 与可选 `node_id` 展开 `changes` 草稿。它不创建提案、不写项目文件、不签发批准凭据；草稿必须先交给 `preflight_visual_proposal`，再由 `create_visual_proposal` 进入人类审阅流程。
 

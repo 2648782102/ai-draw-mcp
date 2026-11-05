@@ -50,18 +50,18 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 
 ## 2026-11-06 增量调研
 
-本轮只补充上一节尚未覆盖的产品形态与 2026 年公开信号，不重复 Mermaid Live、通用白板、评论线程和基础 MCP 渲染的比较。结论基于公开页面与仓库说明，不是性能基准；同名项目若无法稳定定位到唯一官网，以下按产品主张记录，不推断其功能已正式发布。下文「现状」仅描述仓库当前版本，功能建议均为后续候选，不代表已经交付或已写入路线图承诺。
+本轮只补充上一节尚未覆盖的产品形态与 2026 年公开信号，不重复 Mermaid Live、通用白板、评论线程和基础 MCP 渲染的比较。结论基于公开页面、仓库元数据与 README 中的产品自述，不是性能基准或安装验证；同名项目若无法稳定定位到唯一官网，以下按产品主张记录，不推断其功能已正式发布。下文「现状」仅描述仓库当前版本，功能建议均为后续候选，不代表已经交付或已写入路线图承诺。
 
 ### 增量对比
 
 | 产品 / 类别 | 新一轮观察 | 对 AI Draw MCP 的启示 | 边界与差异 |
 |---|---|---|---|
 | [Mermaid Chart MCP / AI](https://mermaid.ai/docs/ai/mcp-server) 与需要账号的图表 MCP | 把 Mermaid 生成、校验、渲染包装成 IDE 可调用的工具；部分服务把图表管理放在云端并要求登录 | AI 工具应返回结构化、可校验的中间产物，而不是只给一张图片 | AI Draw MCP 保留 Mermaid 作为渲染/导出格式，但协作状态是本地 `VisualGraph`；核心闭环不依赖账号或云图表库 |
-| [Archyne（调研输入亦记作 Arhyne）](https://github.com/archyne/archyne) / [Mermaid Manual layout](https://mermaid-25331.zendesk.com/hc/en-us/articles/51052468630547-Editing-Layout) | 本地优先 Mermaid 画布与文本双向同步、保留手工布局、本地文件由编辑器拥有、撤销/重做与导出；生成后的图仍归人控制 | 图重新扫描后不应抹掉人工摆放；视觉编辑需要可回滚，并与文件内容变更的回滚区分 | AI Draw MCP 当前已有结构化编辑、会话 bundle、提案回滚与 `GraphNode` 的可选坐标；但重新扫描会生成带网格坐标的新图，布局保持与图形撤销栈仍待验证；人工批准门槛仍只适用于项目文件写入 |
-| [OpenFlowKit](https://github.com/openflowkit/openflowkit) | 仓库地图的箭头引用到 `file + line`；本地优先、MCP；文本 DSL、画布、助手、CLI 共用同一套语言与 TypeScript 编译器 | 节点应能回到源码证据；扩展机制应保持低门槛和类型一致 | 0.3 的扫描器以文件树/import 为主；0.5 可补 source ranges，但不得把「能定位代码」变成「可以据此自动写文件」 |
+| [Archyne（调研输入亦记作 Arhyne）](https://github.com/archyne/archyne) | README 自述为本地优先 Mermaid 画布与文本双向同步；把人工坐标保存在 Mermaid 注释中，LLM 重写图时尽量保留既有节点布局；本地文件由编辑器拥有，并提供撤销/重做、MCP 校验写入与导出 | 图重新扫描后不应抹掉人工摆放；视觉编辑需要可回滚，并与文件内容变更的回滚区分 | AI Draw MCP 当前已有结构化编辑、会话 bundle、提案回滚与 `GraphNode` 的可选坐标；但重新扫描会生成带网格坐标的新图，布局保持与图形撤销栈仍待验证；人工批准门槛仍只适用于项目文件写入 |
+| [OpenFlowKit](https://github.com/openflowkit/openflowkit)（原 `Vrun-design` 路径当前返回永久重定向） | 调研输入称其仓库地图的箭头引用到 `file + line`；本地优先、MCP；文本 DSL、画布、助手、CLI 共用同一套语言与 TypeScript 编译器 | 节点应能回到源码证据；扩展机制应保持低门槛和类型一致 | 0.3 的扫描器以文件树/import 为主；0.5 可补 source ranges，但不得把「能定位代码」变成「可以据此自动写文件」。重定向目标未能在本轮公开 API 工具中稳定复核，因此该条只作候选信号 |
 | [tldraw AI](https://tldraw.dev/docs/ai)、[agent starter kit](https://tldraw.dev/starter-kits/agent) 与 [workflow starter kit](https://tldraw.dev/starter-kits/overview) | Agent 直接读取/修改画布，把视觉操作组织成可组合的工作流 | 人需要看见 AI 改了什么、在哪里改、能撤回；工具描述要把 agent 的下一步讲清楚 | AI Draw MCP 的 AI 不直接写项目文件；画布/图的编辑与项目写入由会话、逐行 diff、人工批准和一次性凭据分层 |
-| [Nereid](https://github.com/bnomei/nereid)（TUI + MCP 参考形态） | 确定性文本渲染、显式注意力/选中状态、基于文件夹的会话持久化，让终端里的 AI 与人对同一对象工作；其为 noncommercial source-available，不是 MIT 类开源项目 | 把「当前选中了什么」变成机器可读上下文，并保留可恢复的会话；输出要可复现、可 diff | 本项目已有 WebSocket 面板与 bundle，不计划把 TUI 变成核心界面，也不借鉴其商业使用限制 |
-| [AgentDraw](https://github.com/agentdraw/agentdraw) / [DrawCMS](https://github.com/drawcms/drawcms) | 本地可编辑白板、生成结果校验/修复、可视化语法，以及 AI 批量编辑作为单次可撤销历史记录 | 视觉语法需要足够小且有约束；每次 agent 编辑都应有可审计的 before/after | 本项目已记录字段级 `graphDiffs`，可继续补图形编辑撤销栈；不能借「撤销」绕过 `ChangeProposal` 的批准模型 |
+| [Nereid](https://github.com/bnomei/nereid)（TUI + MCP 参考形态） | 确定性文本渲染、显式注意力/选中状态、基于文件夹的会话持久化，让终端里的 AI 与人对同一对象工作；其 `LICENSE` 明确为非商业、禁止修改与衍生作品的 source-available 许可 | 把「当前选中了什么」变成机器可读上下文，并保留可恢复的会话；输出要可复现、可 diff | 本项目已有 WebSocket 面板与 bundle，不计划把 TUI 变成核心界面，也不借鉴其源码使用限制 |
+| [AgentDraw](https://github.com/agentdraw/agentdraw) / [DrawCMS](https://github.com/drawcms/drawcms) | AgentDraw README 自述用受限 SVG/Mermaid 生成可编辑 JSON，并提供 repair / validate / 本地编辑器；DrawCMS README 自述有视觉语法校验和作为单次可撤销历史记录的 agent 批量编辑 | 视觉语法需要足够小且有约束；每次 agent 编辑都应有可审计的 before/after | 本项目已记录字段级 `graphDiffs`，可继续补图形编辑撤销栈；不能借「撤销」绕过 `ChangeProposal` 的批准模型。DrawCMS 为 AGPL-3.0-only，本轮不引入其代码 |
 | [Excalidraw JSON format](https://docs.excalidraw.com/docs/codebase/json-schema) / [Miro Mermaid](https://help.miro.com/hc/en-us/articles/7004628130962-Create-Mermaid-diagrams) | Excalidraw 的开放 `.excalidraw` JSON 格式强调可迁移；Miro 把 Mermaid 当作可回写的 source of truth | 版本化工件、双向转换与可迁移导出能降低锁定感；文本 DSL 与画布状态需要明确谁是真源 | AI Draw MCP 以版本化 `SessionSnapshot` / `VisualGraph` 为协作真源，Mermaid/SVG 是视图；不追求托管协作，也不让云白板拥有项目真源 |
 
 ### 5 个高价值可借鉴能力
@@ -115,11 +115,11 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 
 ### 2026-11-06 增量来源
 
-- [Archyne repository](https://github.com/archyne/archyne) and [Mermaid Editing & Layout](https://mermaid-25331.zendesk.com/hc/en-us/articles/51052468630547-Editing-Layout) — local-first visual Mermaid editing, manual layout, editor-owned files, undo/redo and exports. The research input used the name `Arhyne`; the canonical public repository is `Archyne`.
-- [OpenFlowKit](https://github.com/openflowkit/openflowkit) — local-first repository mapping with file/line evidence, MCP support, and one text DSL plus TypeScript compiler shared by canvas, assistant, CLI and tools. The research input used the `Vrun-design/openflowkit` path; the canonical repository redirects to the organization.
+- [Archyne repository](https://github.com/archyne/archyne) and its [README](https://github.com/archyne/archyne/blob/main/README.md) — local-first visual Mermaid editing, layout comments preserved through LLM writes, editor-owned files, MCP validation, undo/redo and exports. The research input used the name `Arhyne`; the canonical public repository is `Archyne`.
+- [OpenFlowKit](https://github.com/openflowkit/openflowkit) — research input for local-first repository mapping with file/line evidence, MCP support, and one text DSL plus TypeScript compiler shared by canvas, assistant, CLI and tools. The former `Vrun-design` GitHub path currently returns a permanent redirect whose target could not be verified with this round's public API tools; treat the detailed claims as unverified candidates.
 - [tldraw AI integrations](https://tldraw.dev/docs/ai), [agent starter kit](https://tldraw.dev/starter-kits/agent), and [workflow starter kits](https://tldraw.dev/starter-kits/overview) — agent-readable canvas, direct editor manipulation, and composable visual workflows.
-- [Nereid](https://github.com/bnomei/nereid) — terminal-first Mermaid-backed TUI + MCP, deterministic text renders, attention/selection state, and folder-based session persistence; source-available noncommercial license.
-- [AgentDraw](https://github.com/agentdraw/agentdraw) and [DrawCMS](https://github.com/drawcms/drawcms) — editable local whiteboards, generated-output validation/repair, visual grammar, and undoable agent edit batches.
+- [Nereid](https://github.com/bnomei/nereid) and its [LICENSE](https://github.com/bnomei/nereid/blob/main/LICENSE) — terminal-first Mermaid-backed TUI + MCP, deterministic text renders, attention/selection state, and folder-based session persistence; the license explicitly forbids commercial use, modification, and derivative works.
+- [AgentDraw](https://github.com/agentdraw/agentdraw) and [DrawCMS](https://github.com/drawcms/drawcms) READMEs — editable local whiteboards, generated-output validation/repair, visual grammar, and undoable agent edit batches. DrawCMS is AGPL-3.0-only.
 - [Mermaid Chart MCP Server](https://mermaid.ai/docs/ai/mcp-server) — account-backed Mermaid MCP comparison point; its documentation states that every tool call requires a Mermaid account.
 - [Excalidraw JSON schema](https://docs.excalidraw.com/docs/codebase/json-schema) — open, portable plaintext JSON visual artifact.
 - [Miro Mermaid diagrams](https://help.miro.com/hc/en-us/articles/7004628130962-Create-Mermaid-diagrams) — Mermaid as a board-editable source of truth.

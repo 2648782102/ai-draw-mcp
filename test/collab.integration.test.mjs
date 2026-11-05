@@ -275,6 +275,7 @@ describe("collaboration session", () => {
       const activity = (await activityResponse.json()).timeline;
       expect(activity).toMatchObject({ version: 1 });
       expect(activity.items.map((item) => item.kind)).toContain("annotation_replied");
+      expect(activity.items.map((item) => item.kind)).toContain("graph_diff");
       expect(activity.items.map((item) => item.kind)).toContain("proposal_created");
       expect(activity.items.some((item) => item.proposalId === proposal.id)).toBe(true);
 

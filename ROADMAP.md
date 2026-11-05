@@ -26,6 +26,7 @@ Product principle: **the visual workspace is the shared language between humans 
 ## Shipped in 0.3.x maintenance
 
 - `list_change_templates`: a read-only catalogue and draft expander for update-documentation, add-test, and create-module intents; drafts must still pass preflight and human review.
+- Field-level graph revision diffs with a strict portable-bundle contract, expandable panel details, and derived `graph_diff` timeline events.
 
 - Read-only `preflight_visual_proposal` for path, filesystem-state, duplicate, and no-op change checks before a proposal is created.
 - Add, remove, rename, and retype nodes from the panel.

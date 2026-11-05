@@ -75,7 +75,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         graphDiffs,
         nextActor: annotationThreads.nextActor,
         nextActions: [
-          `Activity timeline: ${activityTimeline.total} derived events; next actor ${activityTimeline.nextActor}.`,
+          `Activity timeline: ${activityTimeline.total} derived events, including ${activityTimeline.kinds.graph_diff} graph revisions; next actor ${activityTimeline.nextActor}.`,
           `Stale annotation threads: ${staleThreads.length}; detached ${annotationThreads.detached}, outdated ${annotationThreads.outdated}.`,
           `Graph diffs: ${graphDiffs.length} recent human graph revisions; use graphDiffs.items for exact field changes.`,
           "Use annotationThreads.nextActor to see whose turn it is; use intentByNode and pendingMessages as the human's latest intent.",
@@ -109,7 +109,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           "Read graphDiffs for node/edge field changes such as path, group, kind, or label; do not infer visual edits from prose alone.",
           "Use create_visual_proposal to record change proposals; never write project files directly from this tool.",
           "Ask the human to approve a proposal in the panel before anything is applied.",
-          "Use activityTimeline for compact chronology of messages, annotation threads, and proposal lifecycle events.",
+          "Use activityTimeline for compact chronology of messages, graph revisions, annotation threads, and proposal lifecycle events.",
           "Use diagnostics.signals and diagnostics.nextActions for a concise session health check; diagnostics never grants write authority.",
         ],
       };

@@ -8,6 +8,7 @@ export type ActivityKind =
   | "annotation_replied"
   | "annotation_status"
   | "annotation_anchor"
+  | "graph_diff"
   | "proposal_created"
   | "proposal_status";
 
@@ -182,6 +183,18 @@ export function buildActivityTimeline(
     }
   }
 
+  for (const diff of snapshot.graphDiffs ?? []) {
+    items.push({
+      id: `activity:graph-diff:${diff.diagramId}:${diff.toRevision}`,
+      kind: "graph_diff",
+      actor: diff.source === "ai" ? "ai" : diff.source === "system" ? "system" : "human",
+      body: `图形修订 rev ${diff.fromRevision} → ${diff.toRevision}：${diff.summary.join("；")}`,
+      createdAt: diff.createdAt,
+      graphRevision: diff.toRevision,
+      derived: true,
+    });
+  }
+
   items.sort((left, right) => {
     const byTime = left.createdAt.localeCompare(right.createdAt);
     return byTime || left.id.localeCompare(right.id);
@@ -198,6 +211,7 @@ export function buildActivityTimeline(
     annotation_anchor: 0,
     proposal_created: 0,
     proposal_status: 0,
+    graph_diff: 0,
   });
   const annotationThreads = summarizeAnnotationThreads(snapshot.graph);
   const staleThreads = annotationThreads.detached + annotationThreads.outdated;

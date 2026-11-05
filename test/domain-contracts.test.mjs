@@ -113,6 +113,15 @@ describe("session bundle contract", () => {
     const malformedDiffs = JSON.parse(JSON.stringify(bundle));
     malformedDiffs.session.graphDiffs = "broken";
     expect(() => parseSessionBundle(malformedDiffs)).toThrow(/graphDiffs must be an array/);
+    const injectedDiffItem = JSON.parse(JSON.stringify(bundle));
+    injectedDiffItem.session.graphDiffs[0].items = ["not-an-object"];
+    expect(() => parseSessionBundle(injectedDiffItem)).toThrow(/items\[0\] must be an object/);
+    const injectedDiffField = JSON.parse(JSON.stringify(bundle));
+    injectedDiffField.session.graphDiffs[0].items[0].fields[0].after = { nested: "object" };
+    expect(() => parseSessionBundle(injectedDiffField)).toThrow(/after must be a string/);
+    const injectedDiffProperty = JSON.parse(JSON.stringify(bundle));
+    injectedDiffProperty.session.graphDiffs[0].items[0].grant = "write-everything";
+    expect(() => parseSessionBundle(injectedDiffProperty)).toThrow(/unknown property grant/);
     expect(() => parseSessionBundle({ ...malformed, kind: "other" })).toThrow(/version 1/);
   });
 });

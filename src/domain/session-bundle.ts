@@ -5,9 +5,9 @@ import type {
   ConversationMessage,
   GraphEdge,
   GraphNode,
+  GraphRevisionDiff,
   SessionSnapshot,
   VisualGraph,
-  GraphRevisionDiff,
 } from "./types.js";
 import { parseAnnotationReplies } from "./annotation-thread.js";
 
@@ -35,6 +35,77 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 function assertString(value: unknown, label: string): string {
   if (typeof value !== "string" || !value.trim()) throw new Error(`${label} must be a non-empty string`);
   return value;
+}
+
+function assertFiniteNumber(value: unknown, label: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(`${label} must be a finite number`);
+  return value;
+}
+
+function assertIsoTimestamp(value: unknown, label: string): string {
+  const text = assertString(value, label);
+  if (!Number.isFinite(Date.parse(text))) throw new Error(`${label} must be a valid timestamp`);
+  return text;
+}
+
+function assertGraphDiffCounts(value: unknown, label: string): { added: number; removed: number; updated: number } {
+  if (!isRecord(value)) throw new Error(`${label} must be an object`);
+  return {
+    added: assertFiniteNumber(value.added, `${label}.added`),
+    removed: assertFiniteNumber(value.removed, `${label}.removed`),
+    updated: assertFiniteNumber(value.updated, `${label}.updated`),
+  };
+}
+
+function assertGraphDiffFieldValue(value: unknown, label: string): string | number | boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    if (typeof value === "number" && !Number.isFinite(value)) throw new Error(`${label} must be finite`);
+    return value;
+  }
+  throw new Error(`${label} must be a string, finite number, boolean, or undefined`);
+}
+
+function parseGraphDiffItems(value: unknown, label: string): GraphRevisionDiff["items"] {
+  if (!Array.isArray(value)) throw new Error(`${label} must be an array`);
+  return value.map((entry, index) => {
+    const itemLabel = `${label}[${index}]`;
+    if (!isRecord(entry)) throw new Error(`${itemLabel} must be an object`);
+    if (entry.entity !== "node" && entry.entity !== "edge") throw new Error(`${itemLabel}.entity is invalid`);
+    if (entry.change !== "added" && entry.change !== "removed" && entry.change !== "updated") {
+      throw new Error(`${itemLabel}.change is invalid`);
+    }
+    const parsed: GraphRevisionDiff["items"][number] = {
+      entity: entry.entity,
+      change: entry.change,
+      id: assertString(entry.id, `${itemLabel}.id`),
+    };
+    if (typeof entry.label === "string") parsed.label = entry.label;
+    else if (entry.label !== undefined) throw new Error(`${itemLabel}.label must be a string`);
+    if (entry.fields !== undefined && !Array.isArray(entry.fields)) {
+      throw new Error(`${itemLabel}.fields must be an array`);
+    }
+    if (entry.fields !== undefined) {
+      parsed.fields = entry.fields.map((field, fieldIndex) => {
+        const fieldLabel = `${itemLabel}.fields[${fieldIndex}]`;
+        if (!isRecord(field)) throw new Error(`${fieldLabel} must be an object`);
+        for (const key of Object.keys(field)) {
+          if (!["field", "before", "after"].includes(key)) throw new Error(`${fieldLabel} has unknown property ${key}`);
+        }
+        return {
+          field: assertString(field.field, `${fieldLabel}.field`),
+          before: assertGraphDiffFieldValue(field.before, `${fieldLabel}.before`),
+          after: assertGraphDiffFieldValue(field.after, `${fieldLabel}.after`),
+        };
+      });
+    }
+    for (const key of Object.keys(entry)) {
+      if (!["entity", "change", "id", "label", "fields"].includes(key)) {
+        throw new Error(`${itemLabel} has unknown property ${key}`);
+      }
+    }
+    return parsed;
+  });
 }
 
 function parseNodes(value: unknown): GraphNode[] {
@@ -106,29 +177,31 @@ function parseGraphDiffs(value: unknown): GraphRevisionDiff[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) throw new Error("session.graphDiffs must be an array");
   return value.map((item, index) => {
-    if (!isRecord(item)) throw new Error(`session.graphDiffs[${index}] must be an object`);
-    if (item.version !== 1) throw new Error(`session.graphDiffs[${index}] has unsupported version`);
-    const nodes = isRecord(item.nodes) ? item.nodes : {};
-    const edges = isRecord(item.edges) ? item.edges : {};
+    const label = `session.graphDiffs[${index}]`;
+    if (!isRecord(item)) throw new Error(`${label} must be an object`);
+    if (item.version !== 1) throw new Error(`${label} has unsupported version`);
+    if (item.source !== "human" && item.source !== "ai" && item.source !== "system") {
+      throw new Error(`${label}.source is invalid`);
+    }
+    if (!Array.isArray(item.summary) || item.summary.some((line) => typeof line !== "string")) {
+      throw new Error(`${label}.summary must be an array of strings`);
+    }
+    for (const key of Object.keys(item)) {
+      if (!["version", "fromRevision", "toRevision", "createdAt", "source", "diagramId", "nodes", "edges", "items", "summary"].includes(key)) {
+        throw new Error(`${label} has unknown property ${key}`);
+      }
+    }
     return {
       version: 1,
-      fromRevision: typeof item.fromRevision === "number" ? item.fromRevision : 0,
-      toRevision: typeof item.toRevision === "number" ? item.toRevision : 0,
-      createdAt: typeof item.createdAt === "string" ? item.createdAt : new Date().toISOString(),
-      source: item.source === "ai" || item.source === "system" ? item.source : "human",
-      diagramId: assertString(item.diagramId, `session.graphDiffs[${index}].diagramId`),
-      nodes: {
-        added: typeof nodes.added === "number" ? nodes.added : 0,
-        removed: typeof nodes.removed === "number" ? nodes.removed : 0,
-        updated: typeof nodes.updated === "number" ? nodes.updated : 0,
-      },
-      edges: {
-        added: typeof edges.added === "number" ? edges.added : 0,
-        removed: typeof edges.removed === "number" ? edges.removed : 0,
-        updated: typeof edges.updated === "number" ? edges.updated : 0,
-      },
-      items: Array.isArray(item.items) ? item.items as GraphRevisionDiff["items"] : [],
-      summary: Array.isArray(item.summary) ? item.summary.filter((line): line is string => typeof line === "string") : [],
+      fromRevision: assertFiniteNumber(item.fromRevision, `${label}.fromRevision`),
+      toRevision: assertFiniteNumber(item.toRevision, `${label}.toRevision`),
+      createdAt: assertIsoTimestamp(item.createdAt, `${label}.createdAt`),
+      source: item.source,
+      diagramId: assertString(item.diagramId, `${label}.diagramId`),
+      nodes: assertGraphDiffCounts(item.nodes, `${label}.nodes`),
+      edges: assertGraphDiffCounts(item.edges, `${label}.edges`),
+      items: parseGraphDiffItems(item.items, `${label}.items`),
+      summary: item.summary as string[],
     };
   });
 }

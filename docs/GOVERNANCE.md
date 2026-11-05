@@ -24,7 +24,7 @@ This repository is maintained in public. Product copy, architecture decisions, r
 
 ## Observed maintenance boundary
 
-As of 2026-11-06 03:00 CST, `npm run github:check` reports that the public repository has `description: null`, `homepage: null`, and `topics: []`. The repository already contains the desired versioned copy and a metadata workflow, but this environment has no `gh` binary, no `GH_TOKEN`/`GITHUB_TOKEN`, and the available GitHub connector exposes no repository-admin PATCH endpoint. The drift is therefore tracked, not silently rewritten or treated as a release blocker. A maintainer should apply the metadata through the versioned workflow with an administration-capable token.
+As of 2026-11-06 03:45 CST, `npm run github:check` again reports that the public repository has `description: null`, `homepage: null`, and `topics: []`. The repository already contains the desired versioned copy and a metadata workflow, but this environment has no `gh` binary, no `GH_TOKEN`/`GITHUB_TOKEN`, and the available GitHub connector exposes no repository-admin PATCH endpoint. The GitHub connector also has no Release creation or manual workflow-dispatch endpoint, and no tags/releases were listed in the earlier audit. The drift is therefore tracked, not silently rewritten or treated as a release blocker. A maintainer should apply the metadata through the versioned workflow with an administration-capable token.
 
 ## Decision process
 

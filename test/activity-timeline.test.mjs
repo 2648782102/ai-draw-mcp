@@ -109,4 +109,34 @@ describe("activity timeline", () => {
     expect(timeline.guidance).toContain("detached or outdated");
     expect(timeline.nextActor).toBe("human");
   });
+
+  it("derives graph revision events without persisting new timeline state", () => {
+    const withDiffs = {
+      ...snapshot,
+      graphDiffs: [{
+        version: 1,
+        fromRevision: 1,
+        toRevision: 2,
+        createdAt: "2026-11-06T00:02:30.000Z",
+        source: "human",
+        diagramId: "diagram_test",
+        nodes: { added: 1, removed: 0, updated: 0 },
+        edges: { added: 0, removed: 0, updated: 0 },
+        items: [{ entity: "node", change: "added", id: "shared", label: "shared" }],
+        summary: ["1 nodes added, 0 removed, 0 updated"],
+      }],
+    };
+    const timeline = buildActivityTimeline(withDiffs);
+    const event = timeline.items.find((item) => item.kind === "graph_diff");
+    expect(event).toMatchObject({
+      actor: "human",
+      graphRevision: 2,
+      derived: true,
+    });
+    expect(event.body).toContain("rev 1 → 2");
+    expect(timeline.kinds.graph_diff).toBe(1);
+    expect(timeline.items.map((item) => item.id)).toEqual(expect.arrayContaining([
+      "activity:graph-diff:diagram_test:2",
+    ]));
+  });
 });

@@ -270,6 +270,12 @@
     .diagnostics-list .signal.warning { color: #f0a868; }
     .diagnostics-list .next-action { margin: 0 0 3px; color: var(--text); word-break: break-word; }
     .diagnostics-list .next-action::before { content: '→ '; color: var(--accent); }
+    .graph-diff-list { flex: 0 0 150px; max-height: 150px; overflow-y: auto; margin-bottom: 6px; }
+    .graph-diff-list details { margin-bottom: 5px; padding: 5px 7px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface2); font-size: 10px; line-height: 1.45; }
+    .graph-diff-list summary { cursor: pointer; color: var(--text); }
+    .graph-diff-meta { display: block; color: var(--text-muted); font-size: 9px; margin-top: 3px; }
+    .graph-diff-item { margin-top: 5px; padding-left: 7px; border-left: 2px solid var(--accent); word-break: break-word; }
+    .graph-diff-fields { display: block; color: var(--text-muted); font-size: 9px; margin-top: 2px; }
     .collab-section textarea, .collab-section > input {
       width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 5px;
       background: var(--bg); color: var(--text); padding: 8px; font: inherit; font-size: 11px;
@@ -394,6 +400,7 @@
       <p class="activity-summary" id="diagnosticsSummary">会话诊断加载中…</p>
       <div class="diagnostics-list" id="diagnosticsList"></div>
       <p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p>
+      <div class="chat-log graph-diff-list" id="graphDiffList"></div>
       <div class="chat-log activity-list" id="activityList"></div>
       <div class="chat-log" id="chatLog"></div>
       <div class="chat-log" id="annotationList"></div>
@@ -1170,6 +1177,27 @@ function renderGraphDiffs(diffs) {
     ? `图形修订差异 · rev ${escapeHtml(String(latest.fromRevision || 0))} → ${escapeHtml(String(latest.toRevision || 0))} · ${changes} 项字段/结构变化 · ${items.length} 个最近修订`
     : '图形修订差异 · 暂无记录';
   target.title = items.map((diff) => `rev ${diff.fromRevision}→${diff.toRevision}: ${diff.summary.join('; ')}`).join('\n');
+  const list = $('#graphDiffList');
+  if (!list) return;
+  list.innerHTML = items.length ? [...items].reverse().map((diff, index) => {
+    const changes = Array.isArray(diff.items) ? diff.items : [];
+    const label = `rev ${diff.fromRevision || 0} → ${diff.toRevision || 0} · ${changes.length} 项变化`;
+    const changeHtml = changes.length ? changes.map((change) => {
+      const fields = Array.isArray(change.fields) ? change.fields : [];
+      const fieldText = fields.map((field) => `${field.field}: ${field.before ?? '∅'} → ${field.after ?? '∅'}`).join(' · ');
+      return `<div class="graph-diff-item">${escapeHtml(graphDiffEntityLabel(change.entity))} ${escapeHtml(graphDiffChangeLabel(change.change))} · ${escapeHtml(change.label || change.id)}${fieldText ? `<span class="graph-diff-fields">${escapeHtml(fieldText)}</span>` : ''}</div>`;
+    }).join('') : '<div class="collab-help">此修订没有字段级变化。</div>';
+    return `<details ${index === 0 ? 'open' : ''}><summary>${escapeHtml(label)}</summary><span class="graph-diff-meta">${escapeHtml(diff.source || 'human')} · ${escapeHtml(diff.createdAt || '')}</span>${changeHtml}</details>`;
+  }).join('') : '<div class="collab-help">暂无图形修订。保存节点或连线后，这里会显示字段级差异。</div>';
+  list.title = '只读差异视图不生成提案、不签发批准凭据，也不授权项目写入。';
+}
+
+function graphDiffEntityLabel(entity) {
+  return entity === 'edge' ? '连线' : '节点';
+}
+
+function graphDiffChangeLabel(change) {
+  return ({ added: '新增', removed: '删除', updated: '更新' })[change] || '变化';
 }
 
 function activityKindLabel(kind) {
@@ -1180,6 +1208,7 @@ function activityKindLabel(kind) {
     annotation_replied: '线程回复',
     annotation_status: '线程状态',
     annotation_anchor: '失锚/过期',
+    graph_diff: '图形修订',
     proposal_created: '提案',
     proposal_status: '提案状态',
   })[kind] || kind;
