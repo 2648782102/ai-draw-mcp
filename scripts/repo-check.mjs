@@ -53,6 +53,7 @@ const scanTool = await read("src/tools/scan-project.ts");
 const roadmap = await read("ROADMAP.md");
 const research = await read("docs/COMPETITIVE_RESEARCH.md");
 const englishReadme = englishQuickstart;
+const ci = await read(".github/workflows/ci.yml");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -141,10 +142,14 @@ for (const [label, file, needle] of [
   ["human focus context", getVisualContext, "focus"],
   ["human focus bundle parser", sessionBundle, "parseFocus"],
   ["copyable AI context prompt", panel, "buildAiContextPrompt"],
+  ["copyable graph diff detail", panel, "latestGraphDiff"],
+  ["CI reproducible docs assets", ci, "npm run docs:assets:check"],
+  ["CI offline repository check", ci, "npm run repo:check"],
   ["stable scanner IDs", projectScanner, "stableId"],
   ["visual sync service", visualSyncService, "export class VisualSyncService"],
   ["visual graph merge", visualGraphMerge, "export function mergeScannedGraph"],
   ["scan preservation contract", scanTool, "PRESERVATION_JSON"],
+  ["headless scan parameter", scanTool, "render"],
   ["human rescan panel", panel, "rescanProject"],
   ["human rescan endpoint", previewServer, "/api/collab/rescan"],
   ["finite coordinate validation", sessionStore, "finiteCoordinate"],

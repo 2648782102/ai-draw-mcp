@@ -1,3 +1,4 @@
+import path from "node:path";
 import { makeId, nowIso } from "../domain/ids.js";
 import { mergeScannedGraph } from "../domain/visual-graph-merge.js";
 import type { ScanPreservationSummary, VisualGraph } from "../domain/types.js";
@@ -17,6 +18,7 @@ export interface VisualSyncOptions {
   format?: AppConfig["defaultFormat"];
   source: "ai" | "human";
   openPanel?: boolean;
+  render?: boolean;
 }
 
 export interface VisualSyncResult {
@@ -93,9 +95,11 @@ export class VisualSyncService {
     const mermaidCode = graphToMermaid(graph.nodes, graph.edges);
     const format = options.format ?? config.defaultFormat;
     const existing = store.get(id);
-    const svg = await renderMermaidToSvg(mermaidCode, config.defaultTheme);
-    const svgPath = await saveSvg(svg, config.outputDir, `${id}.svg`);
-    const pngPath = format === "png"
+    const shouldRender = options.render !== false;
+    const svgPath = shouldRender
+      ? await saveSvg(await renderMermaidToSvg(mermaidCode, config.defaultTheme), config.outputDir, `${id}.svg`)
+      : existing?.svgPath ?? path.join(config.outputDir, `${id}.svg`);
+    const pngPath = shouldRender && format === "png"
       ? await renderMermaidToPng(mermaidCode, config.outputDir, `${id}.png`, config.defaultTheme)
       : existing?.pngPath;
     await store.add({
@@ -109,8 +113,10 @@ export class VisualSyncService {
       mermaidCode,
       visualSync: true,
     });
-    if (existing) preview.notifyDiagramUpdate(id, title, mermaidCode);
-    else preview.notifyNewDiagram(id, title, mermaidCode);
+    if (shouldRender) {
+      if (existing) preview.notifyDiagramUpdate(id, title, mermaidCode);
+      else preview.notifyNewDiagram(id, title, mermaidCode);
+    }
 
     await sessions.setGraph(graph, id, options.source);
     const focusRevision = sessions.getSnapshot().graphRevision;

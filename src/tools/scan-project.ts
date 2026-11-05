@@ -8,7 +8,7 @@ export function registerScanProject(server: McpServer, ctx: ToolContext) {
     "扫描当前工作区结构，生成或刷新可编辑的项目结构图，并把它设为双向协作会话的当前图。" +
     " 重复扫描会按路径使用确定性节点 ID，保留人工坐标、自定义标签、仍可锚定的批注线程与当前焦点；新增节点才自动排布。" +
     " AI 可用它快速理解项目，人类随后可在面板里改图、批注、发消息；返回结构化 nodes/edges、PRESERVATION_JSON 摘要和预览链接。" +
-    " 可用 open_panel=false 抑制自动打开面板，适合无头/脚本工作流。" +
+    " 可用 open_panel=false 抑制自动打开面板；render=false 可跳过 mmdc 渲染，仅做无头图状态检查。" +
     " 只读扫描项目文件，不写源代码；图形与会话保存不等于项目写入授权。如需根据批注修改代码，请使用 get_visual_context 生成提案。",
     {
       title: z.string().optional().describe("Diagram title"),
@@ -17,8 +17,9 @@ export function registerScanProject(server: McpServer, ctx: ToolContext) {
       include_hidden: z.boolean().optional().describe("Include dotfiles/directories other than protected ones (default false)"),
       output_format: z.enum(["svg", "png"]).optional(),
       open_panel: z.boolean().optional().describe("Open the preview panel in the IDE (default true); set false for headless workflows"),
+      render: z.boolean().optional().describe("Render SVG/PNG assets (default true); set false only for fast headless graph/state checks"),
     },
-    async ({ title, max_depth, max_files, include_hidden, output_format, open_panel }) => {
+    async ({ title, max_depth, max_files, include_hidden, output_format, open_panel, render }) => {
       try {
         const result = await ctx.visualSync.sync({
           title,
@@ -28,6 +29,7 @@ export function registerScanProject(server: McpServer, ctx: ToolContext) {
           format: output_format ?? ctx.config.defaultFormat,
           source: "ai",
           openPanel: open_panel,
+          render,
         });
 
         const context = [

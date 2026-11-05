@@ -162,7 +162,7 @@ describe("MCP server", () => {
     await withClient(3427, async (client) => {
       const first = textOf(await client.callTool({
         name: "scan_project",
-        arguments: { title: "Stable scan", open_panel: false },
+        arguments: { title: "Stable scan", open_panel: false, render: false },
       }));
       expect(first).toContain("PRESERVATION_JSON:");
       const firstPreservation = jsonAfter(first, "PRESERVATION_JSON:");
@@ -173,7 +173,7 @@ describe("MCP server", () => {
 
       const second = textOf(await client.callTool({
         name: "scan_project",
-        arguments: { title: "Stable scan", open_panel: false },
+        arguments: { title: "Stable scan", open_panel: false, render: false },
       }));
       const secondNodes = JSON.parse(second.match(/Nodes\/edges \(structured\): (\{.*\})/)?.[1] ?? "{}");
       expect(secondNodes.nodes.map((node) => node.id)).toEqual(firstNodes.nodes.map((node) => node.id));

@@ -120,6 +120,8 @@ ROADMAP.md                   产品路线图与非目标
 
 `scan_project`、面板「重新扫描项目」与 `POST /api/collab/rescan` 共用 `VisualSyncService`。`project-scanner.ts` 用相对路径的 SHA-256 前缀生成确定性节点/连线 ID；`visual-graph-merge.ts` 按稳定 ID 或路径匹配旧图，保留有限 `x` / `y`、人工标签、`metadata.layoutSource`、仍可锚定的批注与 `SessionFocus`，新节点才自动排布，删除节点让线程 `detached`。版本 1 `ScanPreservationSummary` 通过 `PRESERVATION_JSON`、HTTP 响应、消息元数据和 `session_updated` 广播暴露保留计数。扫描器只读项目文件；图形同步只写 `OUTPUT_DIR` 的图资产与会话，绝不签发批准凭据或写项目文件。人工重新扫描端点要求本机面板令牌与 `confirmedBy: "human"`，详见 [ADR 0006](docs/ADR/0006-stable-scan-preserves-human-visual-state.md)。
 
+`scan_project` 的 `render: false` 是面向无头测试/状态检查的快速路径：它仍然扫描、合并、保存 `VisualGraph` 与会话并返回 `PRESERVATION_JSON`，但跳过重复 `mmdc` 渲染和面板图更新广播；默认路径与人工重新扫描仍会渲染完整 SVG/PNG。它不改变协议或安全边界，也不写项目文件。
+
 `GraphNode` / `AnnotationPin` 的 `x` / `y` 必须是有限数值；`SessionStore.validateGraph()` 与 `parseSessionBundle()` 都会拒绝非数字、`NaN` 或 `Infinity`。面板编辑坐标会标记 `metadata.layoutSource: "human"`，重新扫描会把它与自动布局区分开。
 
 `list_change_templates` 是只读工具：不带 `template_id` 时返回模板目录，带 `template_id` 时从当前 `graphRevision` 与可选 `node_id` 展开 `changes` 草稿。它不创建提案、不写项目文件、不签发批准凭据；草稿必须先交给 `preflight_visual_proposal`，再由 `create_visual_proposal` 进入人类审阅流程。
@@ -205,8 +207,9 @@ server.tool(
 npm run lint       # TypeScript --noEmit
 npm run build
 npm test           # Vitest：MCP 工具、渲染链路、协作闭环
+npm run docs:assets:check # 确认 README 概念图可由版本化脚本复现
+npm run repo:check   # 离线检查公开文案、链接、面板 ID 与端点是否漂移
 npm run github:check # 只读检查 GitHub description/homepage/topics 是否漂移
-npm run repo:check   # 离线检查仓库内公开文案、链接与维护脚本是否一致
 npm run doctor     # 含真实 Mermaid 渲染探针
 npm run check      # 全量检查（含 GitHub 元数据漂移检查）
 ```

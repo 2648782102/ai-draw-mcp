@@ -15,7 +15,7 @@ This repository is maintained in public. Product copy, architecture decisions, r
 
 ## Maintainer checklist
 
-1. Run `npm run check` and `node examples/collab-demo.mjs` before merging user-visible changes.
+1. Run `npm run check` and `node examples/collab-demo.mjs` before merging user-visible changes. CI also runs `npm run docs:assets:check` and `npm run repo:check` on Node 20, 22, and 24.
 2. Run `npm run github:check` to compare repository description, homepage, and topics with `docs/LAUNCH_KIT.md`.
 3. Trigger **Maintain GitHub metadata** with `dry_run=true`; if drift is reported, configure repository secret `GH_TOKEN` with `Administration: read and write`, then rerun with `dry_run=false`.
 4. Keep Issue #8 current when the tool count, safety model, docs, or feedback questions change.
@@ -24,7 +24,9 @@ This repository is maintained in public. Product copy, architecture decisions, r
 
 ## Observed maintenance boundary
 
-As of 2026-11-06 03:45 CST, `npm run github:check` again reports that the public repository has `description: null`, `homepage: null`, and `topics: []`. The repository already contains the desired versioned copy and a metadata workflow, but this environment has no `gh` binary, no `GH_TOKEN`/`GITHUB_TOKEN`, and the available GitHub connector exposes no repository-admin PATCH endpoint. The GitHub connector also has no Release creation or manual workflow-dispatch endpoint, and no tags/releases were listed in the earlier audit. The drift is therefore tracked, not silently rewritten or treated as a release blocker. A maintainer should apply the metadata through the versioned workflow with an administration-capable token.
+As of 2026-11-06 04:14 CST, `npm run github:check` again reports that the public repository has `description: null`, `homepage: null`, and `topics: []`. The repository already contains the desired versioned copy and a metadata workflow, but this environment has no `gh` binary, no `GH_TOKEN`/`GITHUB_TOKEN`, and the available GitHub connector exposes no repository-admin PATCH endpoint. The GitHub connector also has no Release creation or manual workflow-dispatch endpoint, and no tags/releases were listed in the earlier audit. The drift is therefore tracked, not silently rewritten or treated as a release blocker. A maintainer should apply the metadata through the versioned workflow with an administration-capable token.
+
+Local iteration `2c1cc06` was pushed with `npm run check` passing (10 test files, 36 tests), with the layout-preserving scan decision recorded in [ADR 0006](ADR/0006-stable-scan-preserves-human-visual-state.md), and with Issue #8 updated to describe `PRESERVATION_JSON` and the new feedback questions. Its CI run [42101490013](https://github.com/2648782102/ai-draw-mcp/actions/runs/42101490013) failed at `npm test` on all three Node versions while local checks passed; the job-log download API requires repository-admin rights in this environment, so the exact console line is unavailable. The new MCP scan test rendered the full repository twice through `mmdc`, making CI Chrome startup cost the most likely environment-dependent failure. A subsequent iteration adds `scan_project(render: false)` for headless graph/state checks, keeps full rendering in the HTTP collaboration integration test, adds `docs:assets:check` / `repo:check` to the CI matrix, and records this diagnosis. Release-oriented actions must wait for a green CI run that includes the fix.
 
 ## Decision process
 

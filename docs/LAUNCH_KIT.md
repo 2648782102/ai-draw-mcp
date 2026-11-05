@@ -96,6 +96,7 @@ AI Draw MCP 0.3 已开源，本地运行、MIT、无需账号。欢迎来拍砖�
 - [ ] README value proposition, screenshot, Quickstart, and non-goals reviewed.
 - [ ] Chinese README, English quickstart, troubleshooting FAQ, and concept diagrams reviewed together.
 - [ ] `npm run docs:assets:check` confirms concept diagrams are reproducible from versioned source.
+- [ ] `npm run repo:check` passes locally and in CI across the supported Node matrix.
 - [ ] `npm run check` and `node examples/collab-demo.mjs` pass locally.
 - [ ] `npm run doctor` passes with the same Chrome setup users will have.
 - [ ] GitHub description, homepage, and topics match `scripts/github-maintenance.mjs`.

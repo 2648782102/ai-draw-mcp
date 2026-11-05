@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - version 1 `ScanPreservationSummary` 与 `PRESERVATION_JSON`：AI 与面板可读地看到匹配/新增/删除节点、保留坐标、自定义标签、批注与焦点迁移计数；纯函数、MCP 与 HTTP 协作测试覆盖重复扫描、旧随机 ID 迁移、新文件增量排布和删除文件失锚。
 - 面板图形编辑器新增有限 `X` / `Y` 坐标输入与 `metadata.layoutSource: "human"` 标记；「重新扫描项目」按钮调用人类确认端点并展示保留摘要，不写项目文件、不签发批准凭据。
 - `docs/ADR/0006-stable-scan-preserves-human-visual-state.md`：记录稳定路径身份、视觉状态合并与扫描不授权写入的边界。
+- 「复制给 AI 的上下文」增加最近一次 `graphDiffs` 的字段级摘要（最多 8 项），并提醒以 `get_visual_context.graphDiffs.items` 的原文为准；复制仍是只读浏览器行为，不写会话、不签发凭据。
+- `.github/workflows/ci.yml` 在 Node 20/22/24 矩阵中增加 `npm run docs:assets:check` 与 `npm run repo:check`，让版本化概念图和离线仓库文案在 CI 中与本地 `npm run check` 对齐。
+- `scan_project` 增加 `render: false` 无头状态检查参数：跳过重复 `mmdc` 渲染但保留扫描、合并、会话保存和 `PRESERVATION_JSON`；MCP 稳定扫描测试用它避免大型工作区在 CI 里触发渲染超时。
 - version 1 `SessionFocus`、`POST /api/collab/focus` 与面板「当前焦点」：把人当前选中的节点作为只读上下文交给 `get_visual_context`、诊断和会话 bundle；焦点变化不产生消息、不进入时间线、不签发凭据。
 - 面板「复制给 AI 的上下文」按钮：生成含会话、修订、焦点、诊断、下一步与安全边界的只读提示；不写会话、不发送消息、不签发凭据。
 - `docs/ADR/0005-human-focus-is-read-only-context.md`：记录选中状态只是注意力上下文，不能替代人工批准或写入凭据。

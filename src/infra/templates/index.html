@@ -1487,6 +1487,10 @@ function buildAiContextPrompt() {
   const signals = Array.isArray(collabDiagnostics?.signals) ? collabDiagnostics.signals : [];
   const nextActions = Array.isArray(collabDiagnostics?.nextActions) ? collabDiagnostics.nextActions : [];
   const latestDiff = collabGraphDiffs.at(-1);
+  const latestDiffFields = Array.isArray(latestDiff?.items)
+    ? latestDiff.items.flatMap((item) => (Array.isArray(item.fields) ? item.fields : [])
+      .map((field) => `${item.entity}:${item.change} ${item.label || item.id} · ${field.field}: ${field.before ?? '∅'} → ${field.after ?? '∅'}`))
+    : [];
   const lines = [
     '请先用 get_visual_context 读取当前协作会话，再结合下面的只读提示理解我的意图：',
     `- session: ${collabSessionId || '未加载'}`,
@@ -1494,11 +1498,13 @@ function buildAiContextPrompt() {
     `- graphRevision: ${collabRevision}`,
     `- focus: ${focus ? `${focus.nodeLabel} (${focus.nodeId})${focus.nodePath ? ` · ${focus.nodePath}` : ''}` : '未选中节点'}`,
     `- graphDiffs: ${collabGraphDiffs.length} 个最近修订${latestDiff ? `，最新 rev ${latestDiff.fromRevision} → ${latestDiff.toRevision}` : ''}`,
+    `- latestGraphDiff: ${latestDiff ? `${latestDiff.items.length} 项变化${latestDiffFields.length ? `：${latestDiffFields.slice(0, 8).join('；')}${latestDiffFields.length > 8 ? `；另有 ${latestDiffFields.length - 8} 项见 graphDiffs` : ''}` : '无字段级变化'}` : '无'}`,
     `- nextActor: ${collabDiagnostics?.activity?.nextActor || 'unknown'}`,
     `- signals: ${signals.length ? signals.map((signal) => signal.code).join(', ') : 'none'}`,
     `- nextActions: ${nextActions.length ? nextActions.join(' / ') : 'none'}`,
     '',
     '请先阅读 annotationThreads.nextActor、staleThreads、focus、graphDiffs、activityTimeline 与 diagnostics；失锚讨论不要当成当前意图。',
+    '上面的 latestGraphDiff 只摘要最近一次图修订；请以 get_visual_context.graphDiffs.items 的完整字段值为准，不要把它当成项目写入许可。',
     '如需改动项目，先 preflight_visual_proposal，再 create_visual_proposal；等我查看逐行 diff、批准并提供一次性确认号后才可 apply_visual_proposal。',
     '本提示只是上下文，不签发批准凭据，也不授权项目写入。',
   ];
