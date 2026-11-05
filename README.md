@@ -43,10 +43,11 @@
 
 ## 功能
 
-- **22 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`get_shared_brief`、`get_decision_trail`、`get_node_context`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
+- **23 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`get_shared_brief`、`get_decision_trail`、`get_node_context`、`get_source_navigation`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
 - **人机双向协作工作台** — 项目结构扫描、节点名称/类型/路径/分组/坐标与连线语义编辑、重复扫描保留人工布局与批注/焦点、批注线程（回复/解决/重开/失锚）、会话诊断、对话、提案批准；WebSocket 实时同步给 AI 和面板
 - **有界图形撤销 / 重做** — 12 步视觉状态历史，人类确认后恢复节点/连线/批注为一次新图形修订；不回退项目文件、提案状态或一次性批准凭据
 - **只读源码证据** — 扫描时为源码/文档节点记录少量 `file:line` 定义、导入或标题线索，AI 与面板可引用代码位置；证据不自动改代码、不扩大提案路径，也不签发批准凭据
+- **可复制源码跳转** — `get_source_navigation` 与面板「复制源码跳转」返回 version 1 `SOURCE_NAVIGATION_JSON`：有界、工作区相对 `file:line`、`vscode://` / `cursor://` URI 文本和 `code --goto` 提示；只复制，不打开文件、启动 IDE、执行命令或授权项目写入，详见 [ADR 0016](docs/ADR/0016-source-navigation-is-copyable-context.md)
 - **单节点上下文** — `get_node_context` 把焦点节点的源码证据、批注线程、入/出连线、相关图形差异与焦点聚合成 version 1 只读投影；面板显示同一视图，AI 不必从完整会话里手工拼装
 - **共享简报** — `get_shared_brief` 与面板「复制共享简报」使用同一份 version 1 `BRIEF_JSON`：紧凑列出焦点、就绪阻塞、待处理意图、失锚讨论、最近图形修订、源码证据和下一步；不含批准凭据，也不授权写入
 - **可审计决策链** — `get_decision_trail` 与面板「复制决策链」使用同一份 version 1 `DECISION_TRAIL_JSON`：把人的意图、有效/失锚批注、字段级图修订、提案变更摘要、批准/应用状态与时间线按证据类型串联；提案变更行只是有界投影，批准仍需查看完整逐行 diff，输出永不含确认号
@@ -117,6 +118,8 @@ AI: 再次 scan_project → 保留人工布局/批注/焦点并让图与代码�
 > **可复核导出清单**：`GET /api/collab/bundle/manifest` 与面板下载的 `exportManifest` 返回从同一会话 bundle 派生的 version 1 `EXPORT_MANIFEST_JSON`：列出格式/版本、建议文件名、图/批注/证据/消息/提案计数、已降级的批准状态，以及刻意排除的一次性批准凭据、图形历史和视口。清单是只读清单，不持久化、不充当导入真源、不签发凭据、不批准变更、不写项目文件；详见 [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md)。
 
 > **审阅就绪诊断**：`GET /api/collab/review-readiness`、`CONTEXT_JSON.diagnostics.reviewReadiness` 与面板「审阅就绪」返回同一份 version 1 `REVIEW_READINESS_JSON`：把 `BRIEF_JSON` 的就绪阻塞和 `DECISION_TRAIL_JSON` 的证据缺口汇总为 `ready` / `review` / `blocked`，并给出对应的诊断信号与下一步提示。它是派生只读投影，不批准变更、不签发凭据、不写会话或项目文件；工作流示例实际读取它，批准前仍须查看完整逐行 diff。详见 [ADR 0015](docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md)。
+
+> **只读源码跳转**：`get_source_navigation`、`GET /api/collab/source-navigation` 与面板「复制源码跳转」返回同一份 version 1 `SOURCE_NAVIGATION_JSON`：把已有 `GraphSourceEvidence` 投影成有界的相对 `file:line` 清单、编辑器 URI 文本和命令行提示。它过滤绝对路径、目录穿越、受保护目录与 `.env`-like 名称，不重复读项目文件、不打开文件、不启动 IDE/执行命令、不改会话/焦点/线程/提案、不进入 bundle、不签发凭据，也不授权项目写入；详见 [ADR 0016](docs/ADR/0016-source-navigation-is-copyable-context.md)。
 
 > **当前焦点**：人在面板选中节点后，服务端会记录 version 1 `SessionFocus`，把节点 ID、当前标签/路径/分组与图形修订交给 `get_visual_context.focus`、诊断和会话 bundle。AI 能据此理解「这个模块」「这里」指的是哪个对象；节点删除后焦点自动清除。焦点只是注意力上下文，不签发批准凭据、不解决线程、不创建提案，也不授权项目写入。
 

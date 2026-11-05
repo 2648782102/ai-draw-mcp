@@ -41,7 +41,7 @@ Title: `v0.3.0 — Human ↔ AI visual collaboration`
 AI Draw MCP is no longer just a diagram renderer. It is a local-first visual workspace where an AI scans a project, a human edits the graph and leaves annotations, and the pair reviews a file-change proposal before anything is written.
 
 Highlights:
-- 22 MCP tools, including scan, visual context, a read-only shared handoff brief, a read-only decision trail, a read-only single-node context projection, a read-only agent workflow contract, AI reply, read-only change templates, proposal preflight, proposal creation, and receipt-gated apply.
+- 23 MCP tools, including scan, visual context, a read-only shared handoff brief, a read-only decision trail, a read-only single-node context projection, a read-only copyable source-navigation projection, a read-only agent workflow contract, AI reply, read-only change templates, proposal preflight, proposal creation, and receipt-gated apply.
 - `get_agent_workflow` and `WORKFLOW_JSON`: eight ordered steps with prerequisites, readiness blockers, and explicit `none` / `session` / `project` write boundaries, plus a reproducible read-only CI example.
 - Bounded, human-confirmed visual undo/redo with field-level graph diffs; visual history never reverses project files, approved proposals, or one-time receipts.
 - Bounded `file:line` source evidence on source/Markdown nodes, exposed through MCP context, diagnostics, a read-only endpoint, and the panel; evidence never grants write authority.
@@ -50,6 +50,7 @@ Highlights:
 - `get_decision_trail` returns a read-only version 1 `DECISION_TRAIL_JSON` linking human intent, anchored and stale threads, graph diffs, bounded proposal change summaries, proposal stages, activity events, and evidence gaps. The panel displays and can copy the same chronology; it is a derived projection, excludes approval grants, and never replaces the full line diff or human approval; see [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md).
 - Portable session bundle downloads include a derived, credential-free version 1 `EXPORT_MANIFEST_JSON` inventory with bounded counts, excluded credential/history/viewport fields, and a suggested filename; strict import validation remains unchanged; see [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md).
 - `REVIEW_READINESS_JSON` gives agents and humans one bounded, read-only readiness signal by aggregating `BRIEF_JSON` blockers and `DECISION_TRAIL_JSON` evidence gaps; diagnostics, the panel, and the reproducible workflow example use the same projection without granting writes; see [ADR 0015](docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md).
+- `SOURCE_NAVIGATION_JSON` turns existing bounded `file:line` evidence into workspace-relative, copyable VS Code/Cursor URI and `code --goto` text for humans and agents. The panel displays and copies the same view; the server never opens files, launches an IDE, executes commands, exposes absolute paths, or grants writes; see [ADR 0016](docs/ADR/0016-source-navigation-is-copyable-context.md).
 - Human viewport attention is a bounded, throttled read-only zoom/pan hint for AI; the panel publishes it with an authenticated `keepalive fetch`, and it never changes graph revisions, timelines, bundles, approval grants, or project files; see [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md).
 - A read-only change-template catalogue for common intents: drafts cite the current graph revision and must still pass preflight and human review.
 - A shared human focus: select a node and the AI sees exactly which object the conversation is about, without that selection granting write authority.
@@ -96,7 +97,7 @@ AI Draw MCP 0.3 已开源，本地运行、MIT、无需账号。欢迎来拍砖�
 - 开头：展示「AI 画架构图」之后的真实痛点——图不能把人的意图安全带回代码。
 - 演示：用 `examples/collab-demo.mjs` 录一个 60 秒闭环，重点拍节点改名、批注、diff、批准确认号、文件变化。
 - 设计：本地优先、MCP 工具面向 LLM、结构化 `VisualGraph` 与 `ChangeProposal`、人工批准不可绕过。
-- 差异化：与「AI 生成一张图」和「云端白板账号」相比，这里强调无需账号、本地会话可导出且带只读清单、重复扫描保留人工布局/批注/焦点、有界视觉撤销/重做、只读 `file:line` 源码证据、单节点只读上下文、共享简报、可审计决策链与有界视口注意力、选中节点可作为 AI 上下文、字段级图修订可展开、只读 agent 工作流/变更模板/预检、逐行 diff 与一次性批准凭据；不与 Miro/Excalidraw 比拼自由画布形状库。详见 [COMPETITIVE_RESEARCH.md 的「2026-11-06 增量调研」](COMPETITIVE_RESEARCH.md#2026-11-06-增量调研)。
+- 差异化：与「AI 生成一张图」和「云端白板账号」相比，这里强调无需账号、本地会话可导出且带只读清单、重复扫描保留人工布局/批注/焦点、有界视觉撤销/重做、只读 `file:line` 源码证据与无副作用可复制源码跳转、单节点只读上下文、共享简报、可审计决策链与有界视口注意力、选中节点可作为 AI 上下文、字段级图修订可展开、只读 agent 工作流/变更模板/预检、逐行 diff 与一次性批准凭据；不与 Miro/Excalidraw 比拼自由画布形状库。详见 [COMPETITIVE_RESEARCH.md 的「2026-11-06 增量调研」](COMPETITIVE_RESEARCH.md#2026-11-06-增量调研)。
 - 边界：不是 Miro/Excalidraw 替代品，不做托管服务，不做自动写库，不做删除/二进制写入。
 - 邀请：最需要反馈的是扫描器、图形编辑体验、提案模板和 MCP 客户端适配。
 

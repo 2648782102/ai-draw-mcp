@@ -42,6 +42,40 @@ export interface GraphSourceEvidence {
   excerpt: string;
 }
 
+export interface SourceNavigationItem {
+  nodeId: string;
+  nodeLabel: string;
+  kind: GraphSourceEvidence["kind"];
+  path: string;
+  line: number;
+  excerpt: string;
+  fileLine: string;
+  vscodeUri: string;
+  cursorUri: string;
+  editorCommand: string;
+}
+
+export interface SourceNavigation {
+  version: 1;
+  readOnly: true;
+  sessionId: string;
+  graphRevision: number;
+  nodeId?: string;
+  totalEvidence: number;
+  returnedItems: number;
+  items: SourceNavigationItem[];
+  copyText: string;
+  guidance: string[];
+  safety: {
+    readOnly: true;
+    grantsWriteAuthority: false;
+    excludesApprovalGrants: true;
+    excludesAbsolutePaths: true;
+    doesNotOpenFiles: true;
+    projectWritesRequireHumanApproval: true;
+  };
+}
+
 export interface GraphEdge {
   id: string;
   from: string;

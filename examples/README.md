@@ -15,6 +15,7 @@ These examples are intentionally small and contain no secrets or absolute paths.
 - `BRIEF_JSON.viewport` — bounded human zoom/pan attention context; it is read-only and never becomes a graph revision, timeline event, bundle field, or approval grant.
 - `EXPORT_MANIFEST_JSON` — a derived, credential-free inventory attached to downloaded session bundles; it lists counts, exclusions, and read-only safety flags, and is not required for strict bundle import.
 - `REVIEW_READINESS_JSON` — a derived, read-only diagnostic in `CONTEXT_JSON.diagnostics.reviewReadiness` and the panel; `agent-workflow.mjs` verifies its status before preflight without approving or writing files. See [ADR 0015](../docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md).
+- `SOURCE_NAVIGATION_JSON` — a bounded, read-only, workspace-relative `file:line` navigation hint from `get_source_navigation`; `agent-workflow.mjs` verifies its no-side-effect contract before preflight. It returns copyable VS Code/Cursor URI and CLI text but never opens files or launches an IDE. See [ADR 0016](../docs/ADR/0016-source-navigation-is-copyable-context.md).
 - `collaboration-workflow.md` — a human ↔ AI walkthrough for scanning, annotating, approving, and applying a proposal.
 
 Run the client after `npm run build`:

@@ -32,6 +32,7 @@ src/
 │   ├── annotation-thread.ts  节点批注线程聚合、回复校验与 nextActor 队列
 │   ├── activity-timeline.ts  消息/批注/提案生命周期的只读派生时间线
 │   ├── session-diagnostics.ts 会话健康、下一步动作与安全不变量的只读摘要
+│   ├── source-navigation.ts   SOURCE_NAVIGATION_JSON 可复制只读源码跳转投影
 │   ├── graph-diff.ts          图形修订之间的节点/连线字段差异
 │   ├── graph-history.ts       有界视觉撤销/重做历史契约解析
 │   ├── graph-source-evidence  GraphNode.sourceEvidence 只读契约（见 types.ts / session-bundle.ts）
@@ -113,7 +114,7 @@ ROADMAP.md                   产品路线图与非目标
 
 ---
 
-## 22 个 MCP 工具
+## 23 个 MCP 工具
 
 | 分组 | 工具 |
 |------|------|
@@ -122,9 +123,9 @@ ROADMAP.md                   产品路线图与非目标
 | 双向协作 | `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal` |
 | 提案预检 | `preflight_visual_proposal` |
 | 只读变更模板 | `list_change_templates` |
-| 只读工作流契约 / 交接简报 / 节点上下文 / 决策链 | `get_agent_workflow`、`get_shared_brief`、`get_node_context`、`get_decision_trail` |
+| 只读工作流契约 / 交接简报 / 节点上下文 / 决策链 / 源码跳转 | `get_agent_workflow`、`get_shared_brief`、`get_node_context`、`get_decision_trail`、`get_source_navigation` |
 
-协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 可先调用 `get_agent_workflow` 读取八步 `WORKFLOW_JSON`、`blocked` 与紧凑只读 `reviewReadiness`，用 `get_shared_brief` 读取紧凑 `BRIEF_JSON` 交接，再调用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages`、`unresolvedAnnotations` 与完整 `REVIEW_READINESS_JSON`；针对焦点节点可调用 `get_node_context` 获取紧凑 `NODE_CONTEXT_JSON`，复盘「为什么做这个改动」时可调用 `get_decision_trail` 读取只读 `DECISION_TRAIL_JSON`。`nextActor` 为 AI 时用 `reply_to_visual_context` 回信/内联回复并标记已处理，`nextActor` 为 human 时等待。常见意图可用 `list_change_templates` 展开只读草稿，创建提案前用 `preflight_visual_proposal` 只读检查路径、文件存在性、create/update 与重复内容，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
+协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 可先调用 `get_agent_workflow` 读取八步 `WORKFLOW_JSON`、`blocked` 与紧凑只读 `reviewReadiness`，用 `get_shared_brief` 读取紧凑 `BRIEF_JSON` 交接，再调用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages`、`unresolvedAnnotations` 与完整 `REVIEW_READINESS_JSON`；针对焦点节点可调用 `get_node_context` 获取紧凑 `NODE_CONTEXT_JSON`，用 `get_source_navigation` 复制相对 `file:line` 跳转提示，复盘「为什么做这个改动」时可调用 `get_decision_trail` 读取只读 `DECISION_TRAIL_JSON`。`nextActor` 为 AI 时用 `reply_to_visual_context` 回信/内联回复并标记已处理，`nextActor` 为 human 时等待。常见意图可用 `list_change_templates` 展开只读草稿，创建提案前用 `preflight_visual_proposal` 只读检查路径、文件存在性、create/update 与重复内容，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
 
 `get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；`focus` 记录人当前选中的节点；`activityTimeline` 把消息、`graph_diff` 图形修订、线程与提案生命周期合并为只读派生事件。生成提案时优先引用 `focus`、`intentByNode` 和活动顺序，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案；焦点与活动时间线都不授权项目写入。
 
@@ -137,6 +138,8 @@ ROADMAP.md                   产品路线图与非目标
 `buildExportManifest()` 与 `GET /api/collab/bundle/manifest` 从同一个导出 `SessionBundle` 派生 version 1 `EXPORT_MANIFEST_JSON`：列出格式/版本、建议文件名、图/批注/证据/消息/提案计数、已降级批准状态，以及刻意排除的一次性批准凭据、图形历史与视口。面板下载时把它作为顶层 `exportManifest` 注释附在 JSON 里；`parseSessionBundle()` 仍只投影严格校验的 `session` 字段，旧 bundle 与带清单 bundle 都可导入。构建器拒绝非 version 1 和 credential-like proposal metadata；清单只读、不持久化、不签发凭据、不批准变更、不写项目文件，详见 [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md)。
 
 `buildReviewReadiness()` 与 `GET /api/collab/review-readiness` 从同一 `SessionSnapshot` 派生 version 1 `REVIEW_READINESS_JSON`：把 `BRIEF_JSON` 就绪阻塞和 `DECISION_TRAIL_JSON` 证据缺口汇总为 `ready` / `review` / `blocked`，并进入 `CONTEXT_JSON.diagnostics.reviewReadiness`、诊断信号、下一步动作、面板和可复现工作流示例。它固定只读与不含批准凭据的安全标记，不持久化、不批准/应用提案、不写会话或项目文件，也不替代完整逐行 diff；详见 [ADR 0015](docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md)。
+
+`get_source_navigation` 与 `GET /api/collab/source-navigation` 是 `src/domain/source-navigation.ts` 的 version 1 只读派生投影：从当前 `VisualGraph` 的 `GraphSourceEvidence` 生成有界的相对 `file:line`、`vscode://` / `cursor://` URI 文本、`code --goto` 提示与可复制清单。`SOURCE_NAVIGATION_JSON` 固定 `readOnly: true` 与 `projectWritesRequireHumanApproval: true`，过滤绝对路径、目录穿越、受保护目录和 `.env`-like 名称；不重复读取项目文件、不打开编辑器、不启动进程/执行命令、不写会话/项目文件、不签发凭据、不进入 bundle，也不扩大提案允许路径；面板显示并可复制同一视图，详见 [ADR 0016](docs/ADR/0016-source-navigation-is-copyable-context.md)。
 
 `SessionViewport` 是 `src/domain/viewport.ts` 校验的 version 1 有界缩放/平移注意力状态。只有本机面板可通过 `POST /api/collab/viewport` 以 `PANEL_TOKEN` 与 `confirmedBy: "human"` 发布；面板使用带令牌的 `keepalive fetch`，不能使用无法设置自定义头的 `sendBeacon`。`get_visual_context.viewport`、`BRIEF_JSON.viewport`、诊断和面板只读显示。它不改 `graphRevision`、不产生消息/时间线/`graphDiffs`/批准凭据、不进入 bundle、不写项目文件；导入会话会清除视口，详见 [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md)。
 
@@ -212,6 +215,7 @@ server.tool(
 | `GET /api/collab/decision-trail` | 只读决策链；`eventLimit` 默认 60 最大 120，`proposalLimit` 默认 6 最大 20，`graphDiffLimit` 默认 4 最大 20，`lineLimit` 默认 12 最大 40 |
 | `GET /api/collab/bundle/manifest` | 只读导出清单；从当前会话导出的 bundle 派生，不写会话或项目文件 |
 | `GET /api/collab/review-readiness` | 只读审阅就绪；聚合 `BRIEF_JSON` 阻塞与 `DECISION_TRAIL_JSON` 缺口，不签发凭据 |
+| `GET /api/collab/source-navigation` | 只读可复制源码跳转；有界相对 `file:line`，不打开 IDE 或执行命令 |
 | `POST /api/collab/viewport` | 人类面板发布有界缩放/平移注意力状态；严格校验有限数值、范围、来源和未知属性，不改图修订或签发凭据 |
 | `POST /api/collab/graph/undo` | 人类确认的视觉撤销；生成新图修订，不写项目文件 |
 | `POST /api/collab/graph/redo` | 人类确认的视觉重做；生成新图修订，不写项目文件 |

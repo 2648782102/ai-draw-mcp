@@ -14,6 +14,7 @@ const COLLAB_TOOLS = [
   "get_node_context",
   "get_shared_brief",
   "get_decision_trail",
+  "get_source_navigation",
 ];
 
 async function withClient(port, callback) {
@@ -70,7 +71,7 @@ describe("MCP server", () => {
     await withClient(3421, async (client) => {
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name);
-      expect(names).toHaveLength(22);
+      expect(names).toHaveLength(23);
       expect(names).toContain("render_diagram");
       expect(names).toContain("delete_diagram");
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
@@ -182,6 +183,30 @@ describe("MCP server", () => {
       expect(workflow.steps.find((step) => step.id === "apply").requires.join(" ")).toContain("one-time receipt");
       expect(text).not.toContain("grantHash");
       expect(text).not.toContain("approvalId");
+    });
+  }, 30_000);
+
+  it("returns bounded, read-only source navigation", async () => {
+    await withClient(3430, async (client) => {
+      const scanText = textOf(await client.callTool({
+        name: "scan_project",
+        arguments: { title: "Navigation", open_panel: false, render: false },
+      }));
+      expect(scanText).toContain("PRESERVATION_JSON:");
+      const text = textOf(await client.callTool({ name: "get_source_navigation", arguments: { limit: 5 } }));
+      expect(text).toContain("SOURCE_NAVIGATION_JSON:");
+      const navigation = jsonAfter(text, "SOURCE_NAVIGATION_JSON:");
+      expect(navigation).toMatchObject({ version: 1, readOnly: true, returnedItems: 5 });
+      expect(navigation.safety).toMatchObject({
+        readOnly: true,
+        grantsWriteAuthority: false,
+        excludesAbsolutePaths: true,
+        doesNotOpenFiles: true,
+        projectWritesRequireHumanApproval: true,
+      });
+      expect(navigation.returnedItems).toBeLessThanOrEqual(5);
+      expect(text).not.toContain("approvalGrant");
+      expect(text).not.toContain(process.cwd());
     });
   }, 30_000);
 

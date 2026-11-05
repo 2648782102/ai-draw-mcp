@@ -19,5 +19,6 @@ ADRs capture product and protocol decisions that contributors and AI coding agen
 | [0013-decision-trail-is-a-read-only-projection.md](0013-decision-trail-is-a-read-only-projection.md) | Accepted | A derived decision trail links intent and proposal evidence without approval grants or write authority. |
 | [0014-export-manifest-is-a-derived-inventory.md](0014-export-manifest-is-a-derived-inventory.md) | Accepted | A portable bundle's derived inventory describes contents and exclusions without granting writes. |
 | [0015-review-readiness-is-a-derived-diagnostic.md](0015-review-readiness-is-a-derived-diagnostic.md) | Accepted | A composed review-readiness status remains a diagnostic, never a new workflow state or write grant. |
+| [0016-source-navigation-is-copyable-context.md](0016-source-navigation-is-copyable-context.md) | Accepted | Source navigation is bounded, relative copyable text; the server never opens a file or launches an editor. |
 
 Add a new ADR when a change affects the human/AI protocol, persisted state, tool surface, approval boundary, or public product direction. Keep the decision, alternatives, and safety consequence in one file.

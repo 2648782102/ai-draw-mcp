@@ -6,7 +6,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Now — 0.3.x: trustworthy closed loop
 
-- Keep the 22 MCP tools small, composable, and easy for an LLM to call correctly.
+- Keep the 23 MCP tools small, composable, and easy for an LLM to call correctly.
 - Make CI reliable on Node 20, 22, and 24, including headless Chrome environments.
 - Preserve the human approval gate: no project write without a proposal, a reviewable diff, and a one-time receipt.
 - Improve first-run clarity: a 30-second Quickstart, troubleshooting, and a reproducible end-to-end demo.
@@ -17,11 +17,13 @@ Product principle: **the visual workspace is the shared language between humans 
 
 - Diagnose readiness from `BRIEF_JSON` blockers and `DECISION_TRAIL_JSON` gaps with a versioned, read-only review projection in diagnostics and the panel; show the next safe action without replacing human approval.
 - Add language-aware symbol ranges and IDE source-range navigation on top of bounded `file:line` evidence.
+- Keep `SOURCE_NAVIGATION_JSON` copyable and side-effect-free; one-click editor integration remains an optional client-side adapter, not a server process launch.
 - Explore multi-diagram sessions over one workspace while keeping thread anchors and write authority explicit.
 - Keep thread resolution separate from proposal approval and one-time write receipts; conversation controls must stay distinct from server-side write authorization.
 
 ## Shipped in 0.3.x maintenance
 
+- `SOURCE_NAVIGATION_JSON`: a derived, bounded version 1 copyable source-navigation projection over workspace-relative `file:line` evidence, with VS Code/Cursor URI text and `code --goto` hints; the server never opens files, launches an IDE, executes commands, exposes absolute paths, or grants write authority; see [ADR 0016](docs/ADR/0016-source-navigation-is-copyable-context.md).
 - `REVIEW_READINESS_JSON`: a derived, read-only projection that aggregates `BRIEF_JSON` blockers and `DECISION_TRAIL_JSON` evidence gaps into `ready` / `review` / `blocked`, surfaces a diagnostic signal and next action, and appears in the panel and reproducible workflow example without granting writes.
 - A version 1 `EXPORT_MANIFEST_JSON` derived inventory for portable session bundles: counts, excluded credential/history/viewport fields, downgraded approval state, fixed read-only safety flags, and a suggested filename; strict import validation is unchanged; see [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md).
 - `get_decision_trail`: a versioned, read-only `DECISION_TRAIL_JSON` linking human intent, anchored/stale threads, graph diffs, bounded proposal change summaries, proposal stages, gaps, and activity events; full diff review and human approval remain mandatory; see [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md).

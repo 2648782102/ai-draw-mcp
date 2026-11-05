@@ -95,6 +95,19 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 
 厂商工程博客 [Beyond permission prompts](https://www.anthropic.com/engineering/claude-code-sandboxing) 的「内部使用减少 84% 权限提示」为未独立验证的自报数据，本轮只记录为市场信号，不用它证明本项目可以减少人工批准，也不据此放宽逐行 diff 门槛。
 
+### 源码导航与可视化 MCP 调研（2026-11-06 06:20 CST）
+
+本轮只读检索官方 IDE 文档与公开产品页面，重点核对「从图节点到源码」的可用性收益与服务端副作用边界。 [VS Code CLI 官方文档](https://code.visualstudio.com/docs/configure/command-line) 明确 `code --goto file:line[:character]` 与 `vscode://file/{full path}:line:column` 格式；[VS Code 终端文档](https://code.visualstudio.com/docs/terminal/basics) 也说明终端可识别 `file:1:2` 等常见链接格式。 [MCP Apps 官方扩展公告](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/) 强调交互式 UI 可以让模型实时看到用户选择，但它不要求 MCP server 代替用户启动本机应用；[Visual Nerve](https://www.visualnerve.com/) 把「把源码证据放在关系旁边」作为本地优先可视化工作区卖点，[Microsoft Visio Desktop MCP](https://microsoft.github.io/Visio-Desktop-MCP-Server/) 则展示本地 MCP server 与 IDE/AI 客户端集成。
+
+| 来源 | 已核对的公开主张 | 对 AI Draw MCP 的启示 | 安全边界 |
+|---|---|---|---|
+| VS Code CLI / 终端官方文档 | `file:line[:column]`、`code --goto` 与 `vscode://file/{full path}:line:column` 是受支持的导航文本 | 把已有 `GraphSourceEvidence` 投影成统一、有界、可复制的跳转清单，减少人和 AI 手工拼字符串 | 输出保持工作区相对路径；服务端不插入绝对路径、不打开 URI、不调用 `code`，Cursor URI 只作为 VS Code-family 复制约定 |
+| MCP Apps 官方扩展公告 | 工具可以返回交互式 UI，用户选择可实时进入模型上下文 | 面板可以展示同一份只读清单并复制给人/AI，不需要再持久化一个导航状态 | 导航提示不是权限授予；不写会话、不进 bundle、不含 `PANEL_TOKEN` 或批准凭据 |
+| Visual Nerve 产品页 | 本地优先可视化工作区强调让源码证据靠近关系图 | 「图 → 源码位置」是可理解性功能，值得进入 0.3.x 维护迭代 | 只复用扫描器已有证据，不重新遍历项目、不做语言感知索引、不扩大提案路径 |
+| Microsoft Visio Desktop MCP 官方文档 | 本地 MCP server 可与 VS Code/GitHub Copilot 等 AI 客户端集成 | IDE 生态里的 MCP 工具应把平台差异留给客户端 | 进程启动、编辑器协议和跨平台 URI 处理不进入核心 server；未来适配层也无权绕过人工批准 |
+
+结论：第一阶段只交付无副作用的 `SOURCE_NAVIGATION_JSON`，已覆盖「人/AI 可快速引用代码位置」的产品价值；语言感知符号范围、点击式 IDE 跳转和 LSP 适配器仍属于 0.4/0.5 的可选集成，不能把编辑器启动或路径执行变成 MCP server 的核心能力。
+
 ### 对 0.4 / 0.5 的建议与优先级
 
 | 阶段 | 优先级 | 建议 | 完成定义 |
@@ -105,6 +118,7 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 | 0.4 | P1 | 引入机器可读 `focus` / 选中状态，并让批注、诊断、节点上下文和下一棒提示引用同一对象 | 基础版已交付：`focus` 与 `NODE_CONTEXT_JSON` 让 AI 识别「人正在指哪个节点」并读取该节点证据/批注/连线/差异；焦点与单节点上下文不签发凭据、不自动解决线程 |
 | 0.4 | P2 | bundle 增加可读摘要与可复现导出清单；发布前用 `repo:check` / `docs:assets:check` 守住文案和资产一致性 | 基础版已交付：bundle 严格校验有限坐标、`graphDiffs`、`focus` 与 `sourceEvidence`，输出可读 JSON；version 1 `EXPORT_MANIFEST_JSON` 派生资产计数、建议文件名、排除字段与安全标记，下载时作为 `exportManifest` 附档；导入仍要求人类确认且清除批准凭据。稳定 SVG 摘要/导入后只读审阅模式仍待做 |
 | 0.5 | P0 | 语言感知扫描、source ranges、符号/测试/框架边界，以及节点到编辑器源码位置的只读跳转 | 基础版已交付：节点可引用有界 `file + line` 证据；扫描器不写文件，提案仍只接受安全路径与显式人类批准。语言感知符号范围/IDE 跳转仍待做 |
+| 0.5 | P2 | 可选客户端源码导航适配器：把相对 `file:line` 转换为本机 IDE 动作，而不改变 MCP server 的副作用边界 | 基础版已交付：`SOURCE_NAVIGATION_JSON` 提供有界、工作区相对、可复制的 `file:line` / URI / CLI 文本；服务端不打开文件、不启动 IDE、不执行命令、不暴露绝对路径，也不授权项目写入，详见 [ADR 0016](ADR/0016-source-navigation-is-copyable-context.md) |
 | 0.5 | P1 | 多视图会话（架构/流程/时序共享同一工作区）与可选插件适配器，保持同一编译器/类型体系 | 视图切换不丢失批注锚点；适配器不是核心依赖，也不改变批准协议 |
 | 0.5 | P1 | dry-run、测试命令建议、可选 Git worktree 隔离等审阅检查点 | 检查点只提供信息或隔离环境，不自动批准、不自动写入主工作区 |
 
@@ -138,3 +152,7 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 - [Mermaid Chart MCP Server](https://mermaid.ai/docs/ai/mcp-server) — account-backed Mermaid MCP comparison point; its documentation states that every tool call requires a Mermaid account.
 - [Excalidraw JSON schema](https://docs.excalidraw.com/docs/codebase/json-schema) — open, portable plaintext JSON visual artifact.
 - [Miro Mermaid diagrams](https://help.miro.com/hc/en-us/articles/7004628130962-Create-Mermaid-diagrams) — Mermaid as a board-editable source of truth.
+- [VS Code CLI](https://code.visualstudio.com/docs/configure/command-line) and [terminal basics](https://code.visualstudio.com/docs/terminal/basics) — official `code --goto`, `vscode://file/...:line:column`, and `file:line` link formats.
+- [MCP Apps official extension announcement](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/) — interactive UI returned by MCP tools and human decisions observed by models.
+- [Visual Nerve](https://www.visualnerve.com/) — local-first visual workspace positioning around source evidence and relationships.
+- [Microsoft Visio Desktop MCP Server](https://microsoft.github.io/Visio-Desktop-MCP-Server/) — local MCP server integration with AI clients and IDEs.

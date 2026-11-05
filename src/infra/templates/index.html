@@ -385,6 +385,8 @@
       <p class="activity-summary" id="graphHistorySummary">图形历史 · 尚无撤销记录；撤销只恢复视觉状态，不写项目文件</p>
       <p class="activity-summary" id="sourceEvidenceSummary">源码证据 · 等待扫描；只读 file:line 线索不授权项目写入</p>
       <div class="chat-log source-evidence-list" id="sourceEvidenceList"></div>
+      <p class="activity-summary" id="sourceNavigationSummary">源码跳转 · 等待扫描；只生成可复制的相对 file:line 提示，不自动打开 IDE</p>
+      <div class="diagnostics-list" id="sourceNavigationList"></div>
       <p class="activity-summary" id="nodeContextSummary">节点上下文 · 选中节点即可查看证据、批注、连线与相关图形差异；只读</p>
       <div class="chat-log source-evidence-list" id="nodeContextList"></div>
       <div class="graph-editor" id="graphEditor"></div>
@@ -428,6 +430,7 @@
         <button id="btnCopyAiContext" title="复制只读提示，不写入会话、不签发凭据">复制给 AI 的上下文</button>
         <button id="btnCopySharedBrief" title="复制紧凑只读 BRIEF_JSON，不写入会话、不签发凭据">复制共享简报</button>
         <button id="btnCopyDecisionTrail" title="复制只读 DECISION_TRAIL_JSON，不写入会话、不签发凭据">复制决策链</button>
+        <button id="btnCopySourceNavigation" title="复制只读相对 file:line 跳转清单，不打开文件或签发凭据">复制源码跳转</button>
       </div>
       <input id="annotationInput" placeholder="批注内容；先选中左侧节点即可绑定" />
     </section>
@@ -1082,6 +1085,7 @@ let collabGraphHistory = { version: 1, undo: 0, redo: 0, limit: 12 };
 let collabSourceEvidence = [];
 let collabSharedBrief = null;
 let collabDecisionTrail = null;
+let collabSourceNavigation = null;
 let collabViewport = null;
 
 function escapeHtml(value) {
@@ -1205,6 +1209,18 @@ function renderSourceEvidence() {
       ${escapeHtml(item.excerpt)}
     </div>
   `).join('') : '<div class="collab-help">暂无源码证据。让 AI 调用 scan_project 扫描包含源码/文档的工作区。</div>';
+}
+
+function renderSourceNavigation(navigation) {
+  const summary = $('#sourceNavigationSummary');
+  const target = $('#sourceNavigationList');
+  if (!summary || !target) return;
+  const items = Array.isArray(navigation?.items) ? navigation.items : [];
+  summary.textContent = `源码跳转 · ${navigation?.returnedItems ?? 0}/${navigation?.totalEvidence ?? 0} 条相对 file:line 提示 · 只读，不自动打开 IDE、不授权写入`;
+  summary.title = 'SOURCE_NAVIGATION_JSON 由 GraphSourceEvidence 派生；路径过滤绝对路径、目录穿越、受保护目录与 .env-like 名称。';
+  target.innerHTML = items.length
+    ? items.slice(0, 8).map((item) => `<p class="signal"><strong>${escapeHtml(item.nodeLabel)}</strong> · ${escapeHtml(item.kind)} · ${escapeHtml(item.fileLine)} · ${escapeHtml(item.excerpt)}</p>`).join('')
+    : '<p class="signal">暂无可跳转源码证据；让 AI 扫描包含源码/文档的工作区，或先选中一个节点。</p>';
 }
 
 async function renderNodeContext() {
@@ -1695,6 +1711,11 @@ async function loadCollab() {
     const sourceEvidence = await collabFetch('/api/collab/source-evidence');
     collabSourceEvidence = sourceEvidence.items || [];
     renderSourceEvidence();
+    const nodeScope = selectedNodeId || collabDiagnostics?.focus?.nodeId;
+    const navigationQuery = nodeScope ? `?nodeId=${encodeURIComponent(nodeScope)}&limit=30` : '?limit=30';
+    const sourceNavigation = await collabFetch(`/api/collab/source-navigation${navigationQuery}`);
+    collabSourceNavigation = sourceNavigation;
+    renderSourceNavigation(sourceNavigation);
     const sharedBrief = await collabFetch('/api/collab/brief');
     collabSharedBrief = sharedBrief;
     renderSharedBrief(sharedBrief);
@@ -1790,6 +1811,29 @@ async function copyDecisionTrail() {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
     showToast('剪贴板不可用，已把决策链放入消息框（尚未发送）');
+  }
+}
+
+async function copySourceNavigation() {
+  if (!collabSourceNavigation) {
+    showToast('源码跳转尚未加载；请先刷新协作会话');
+    return;
+  }
+  const prompt = [
+    '请结合这份只读 SOURCE_NAVIGATION_JSON 从图节点定位源码，再用 get_visual_context 读取完整原文：',
+    'SOURCE_NAVIGATION_JSON:',
+    JSON.stringify(collabSourceNavigation, null, 2),
+    '',
+    '这些相对 file:line 与 URI 只是可复制提示，不代表我可以批准写入，也不代表服务端已打开文件或执行 IDE 命令。',
+    '如需改动项目，先 preflight_visual_proposal，再 create_visual_proposal；等我查看逐行 diff、批准并提供一次性确认号后才可 apply_visual_proposal。',
+  ].join('\n');
+  try {
+    await navigator.clipboard.writeText(prompt);
+    showToast('已复制只读源码跳转清单；它不包含确认号或绝对路径');
+  } catch {
+    $('#messageInput').value = prompt;
+    $('#messageInput').focus();
+    showToast('剪贴板不可用，已把源码跳转清单放入消息框（尚未发送）');
   }
 }
 
@@ -1989,6 +2033,7 @@ $('#btnAddAnnotation').addEventListener('click', addAnnotation);
 $('#btnCopyAiContext').addEventListener('click', copyAiContext);
 $('#btnCopySharedBrief').addEventListener('click', copySharedBrief);
 $('#btnCopyDecisionTrail').addEventListener('click', copyDecisionTrail);
+$('#btnCopySourceNavigation').addEventListener('click', copySourceNavigation);
 
 // ── Init ──
 loadList();

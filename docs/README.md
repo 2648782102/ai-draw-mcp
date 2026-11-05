@@ -23,6 +23,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0013-decision-trail-is-a-read-only-projection.md](ADR/0013-decision-trail-is-a-read-only-projection.md) | AI agents, reviewers | Why a derived decision trail excludes approval grants and never replaces the full proposal diff |
 | [ADR/0014-export-manifest-is-a-derived-inventory.md](ADR/0014-export-manifest-is-a-derived-inventory.md) | Maintainers, reviewers | Why a portable export manifest describes contents and exclusions without granting writes |
 | [ADR/0015-review-readiness-is-a-derived-diagnostic.md](ADR/0015-review-readiness-is-a-derived-diagnostic.md) | AI agents, reviewers | Why review readiness combines brief blockers and trail gaps without becoming approval or a second state machine |
+| [ADR/0016-source-navigation-is-copyable-context.md](ADR/0016-source-navigation-is-copyable-context.md) | AI agents, reviewers | Why source navigation stays relative, copyable, read-only, and free of editor side effects |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
@@ -51,6 +52,8 @@ Decision trails are documented in [ADR 0013](ADR/0013-decision-trail-is-a-read-o
 Export manifests are documented in [ADR 0014](ADR/0014-export-manifest-is-a-derived-inventory.md): a downloaded session bundle can carry a derived, credential-free inventory of its contents and intentional exclusions; strict import validation still treats only the versioned `session` object as authority.
 
 Review readiness is documented in [ADR 0015](ADR/0015-review-readiness-is-a-derived-diagnostic.md): a bounded `ready` / `review` / `blocked` status composes shared-brief blockers and decision-trail gaps, but never persists a duplicate state, exports approval grants, or replaces full line-diff review.
+
+Source navigation is documented in [ADR 0016](ADR/0016-source-navigation-is-copyable-context.md): bounded workspace-relative `file:line` hints are derived from scanner evidence for copying into an editor, while the server never opens files, launches an IDE, executes commands, or grants writes.
 
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 

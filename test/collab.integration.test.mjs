@@ -385,6 +385,20 @@ describe("collaboration session", () => {
       expect(reviewReadiness.safety).toMatchObject({ readOnly: true, grantsWriteAuthority: false, excludesApprovalGrants: true });
       expect(JSON.stringify(reviewReadiness)).not.toContain("grantHash");
 
+      const navigationResponse = await fetch(`${base}/api/collab/source-navigation?limit=5`, { headers });
+      expect(navigationResponse.ok).toBe(true);
+      const navigation = await navigationResponse.json();
+      expect(navigation).toMatchObject({ version: 1, readOnly: true });
+      expect(navigation.safety).toMatchObject({
+        readOnly: true,
+        grantsWriteAuthority: false,
+        excludesAbsolutePaths: true,
+        doesNotOpenFiles: true,
+        projectWritesRequireHumanApproval: true,
+      });
+      expect(navigation.returnedItems).toBeLessThanOrEqual(5);
+      expect(JSON.stringify(navigation)).not.toContain("grantHash");
+
       const activityResponse = await fetch(`${base}/api/collab/activity?limit=100`, { headers });
       expect(activityResponse.ok).toBe(true);
       const activity = (await activityResponse.json()).timeline;

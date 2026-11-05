@@ -48,6 +48,8 @@ Iteration `e4c5038` adds version 1 `EXPORT_MANIFEST_JSON`, a derived read-only H
 
 The following in-progress iteration adds ADR 0015 for `REVIEW_READINESS_JSON`, a dedicated pure-function contract test, synchronized documentation, and a metadata workflow that applies the versioned GitHub About copy on master pushes when an administration-capable `GH_TOKEN` secret exists. It also records the green `e4c5038` CI evidence and keeps the no-token drift boundary explicit.
 
+The next maintenance iteration adds the 23rd MCP tool `get_source_navigation`, version 1 `SOURCE_NAVIGATION_JSON`, a read-only HTTP endpoint and panel copy view, ADR 0016, official VS Code navigation-format research, and synchronized public docs. Navigation is derived from existing scanner evidence and stays workspace-relative: the server never opens files, launches an IDE, executes commands, exposes absolute paths, or grants writes. A read-only drift check at 06:20 CST still observes `description: null`, `homepage: null`, and `topics: []` through the GitHub connector; no `gh` binary or `GH_TOKEN`/`GITHUB_TOKEN` is available here, so automatic repository metadata convergence remains delegated to the versioned workflow once the maintainer supplies an administration-capable secret.
+
 ## Decision process
 
 Protocol and safety changes need an ADR, tests, and updates to `docs/ARCHITECTURE.md`, `AGENTS.md`, and `SECURITY.md`. Product-direction changes need a roadmap update and, when user-facing, an Issue #8 note. Dependency upgrades follow [`DEPENDENCY_MAINTENANCE.md`](DEPENDENCY_MAINTENANCE.md); major versions are reviewed individually rather than merged together.

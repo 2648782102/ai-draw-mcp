@@ -130,6 +130,16 @@ try {
   }
   console.log(`    Review readiness: ${readiness.diagnostics.reviewReadiness.status} (${readiness.diagnostics.reviewReadiness.blockers} blockers / ${readiness.diagnostics.reviewReadiness.gaps} gaps)`);
 
+  const navigationText = textOf(await client.callTool({ name: "get_source_navigation", arguments: { limit: 5 } }));
+  const navigation = jsonAfter(navigationText, "SOURCE_NAVIGATION_JSON:");
+  if (navigation.version !== 1 || navigation.safety?.doesNotOpenFiles !== true || navigation.safety?.grantsWriteAuthority !== false) {
+    throw new Error("Source navigation unexpectedly lost its read-only, no-side-effect contract");
+  }
+  if (navigationText.includes("approvalGrant") || navigationText.includes(process.cwd())) {
+    throw new Error("Source navigation unexpectedly exposed an approval credential or absolute workspace path");
+  }
+  console.log(`    Source navigation: ${navigation.returnedItems}/${navigation.totalEvidence} bounded copyable file:line hints`);
+
   const draftText = textOf(await client.callTool({
     name: "list_change_templates",
     arguments: {

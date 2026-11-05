@@ -19,6 +19,7 @@
  *   GET  /api/collab/node-context  read-only context for a selected graph node
  *   GET  /api/collab/brief       compact read-only shared handoff brief
  *   GET  /api/collab/decision-trail  read-only chronological decision trail
+ *   GET  /api/collab/source-navigation  copyable, read-only source navigation hints
  *   GET  /api/collab/review-readiness  derived BRIEF_JSON blockers + DECISION_TRAIL_JSON gaps
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/graph/history  bounded visual undo/redo availability
@@ -61,6 +62,7 @@ import { buildNodeContext } from "../domain/node-context.js";
 import { buildSharedBrief } from "../domain/shared-brief.js";
 import { buildDecisionTrail } from "../domain/decision-trail.js";
 import { buildReviewReadiness } from "../domain/review-readiness.js";
+import { buildSourceNavigation } from "../domain/source-navigation.js";
 import { buildExportManifest } from "../domain/session-bundle.js";
 import { makeId, nowIso } from "../domain/ids.js";
 import { logger } from "./logger.js";
@@ -230,6 +232,17 @@ export class PreviewServer {
 
     this.app.get("/api/collab/review-readiness", (_req, res) => {
       res.json(buildReviewReadiness(this.sessions.getSnapshot()));
+    });
+
+    this.app.get("/api/collab/source-navigation", (req, res) => {
+      const nodeId = typeof req.query.nodeId === "string" ? req.query.nodeId : undefined;
+      const rawLimit = Number(req.query.limit ?? 30);
+      const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(60, Math.floor(rawLimit))) : 30;
+      try {
+        res.json(buildSourceNavigation(this.sessions.getSnapshot(), { nodeId, limit }));
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
     });
 
     const restoreGraphHistory = async (

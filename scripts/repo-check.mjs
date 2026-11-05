@@ -71,6 +71,10 @@ const decisionTrailAdr = await read("docs/ADR/0013-decision-trail-is-a-read-only
 const exportManifestAdr = await read("docs/ADR/0014-export-manifest-is-a-derived-inventory.md");
 const reviewReadinessAdr = await read("docs/ADR/0015-review-readiness-is-a-derived-diagnostic.md");
 const reviewReadinessDomain = await read("src/domain/review-readiness.ts");
+const sourceNavigationDomain = await read("src/domain/source-navigation.ts");
+const getSourceNavigationTool = await read("src/tools/get-source-navigation.ts");
+const sourceNavigationTest = await read("test/source-navigation.test.mjs");
+const sourceNavigationAdr = await read("docs/ADR/0016-source-navigation-is-copyable-context.md");
 const reviewReadinessTest = await read("test/review-readiness.test.mjs");
 const sessionDiagnosticsDomain = await read("src/domain/session-diagnostics.ts");
 const sessionDiagnosticsTest = await read("test/session-diagnostics.test.mjs");
@@ -113,7 +117,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
-check(launchKit.includes("22 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 22 MCP tools");
+check(launchKit.includes("23 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 23 MCP tools");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -130,6 +134,7 @@ for (const [id, needle] of [
   ["messageInput", 'id="messageInput"'],
   ["focusSummary", 'id="focusSummary"'],
   ["btnCopyAiContext", 'id="btnCopyAiContext"'],
+  ["btnCopySourceNavigation", 'id="btnCopySourceNavigation"'],
   ["rescanSummary", 'id="rescanSummary"'],
   ["btnRescan", 'id="btnRescan"'],
   ["node-x editor", 'class="node-x"'],
@@ -142,6 +147,7 @@ for (const endpoint of [
   "/api/collab/decision-trail",
   "/api/collab/bundle/manifest",
   "/api/collab/review-readiness",
+  "/api/collab/source-navigation",
   "/api/collab/node-context",
   "/api/collab/graph/history",
   "/api/collab/graph/undo",
@@ -382,7 +388,7 @@ for (const [label, file, needle] of [
   ["viewport AGENTS token transport", agents, "sendBeacon"],
   ["viewport architecture token transport", architecture, "sendBeacon"],
   ["viewport troubleshooting token transport", troubleshooting, "PANEL_TOKEN"],
-  ["server tool count", server, "const TOOL_COUNT = 22"],
+  ["server tool count", server, "const TOOL_COUNT = 23"],
   ["server workflow registration", server, "registerGetAgentWorkflow"],
   ["CI workflow example", ci, "npm run test:examples:workflow"],
   ["package workflow example", packageJson.scripts?.["test:examples:workflow"] ?? "", "node examples/agent-workflow.mjs"],
@@ -506,6 +512,36 @@ for (const [label, file, needle] of [
   ["review readiness workflow AGENTS docs", agents, "紧凑只读 `reviewReadiness`"],
   ["review readiness workflow architecture", architecture, "buildReviewReadiness()"],
   ["review readiness HTTP test", collaborationTest, "/api/collab/review-readiness"],
+  ["source navigation domain", sourceNavigationDomain, "export function buildSourceNavigation"],
+  ["source navigation shared type", types, "export interface SourceNavigation"],
+  ["source navigation top-level readOnly", sourceNavigationDomain, "readOnly: true,"],
+  ["source navigation no authority", sourceNavigationDomain, "grantsWriteAuthority: false"],
+  ["source navigation does not open", sourceNavigationDomain, "doesNotOpenFiles: true"],
+  ["source navigation human approval invariant", sourceNavigationDomain, "projectWritesRequireHumanApproval: true"],
+  ["source navigation absolute path guard", sourceNavigationDomain, "excludesAbsolutePaths: true"],
+  ["source navigation tool", getSourceNavigationTool, "get_source_navigation"],
+  ["source navigation endpoint", previewServer, "/api/collab/source-navigation"],
+  ["source navigation panel", panel, 'id="sourceNavigationList"'],
+  ["source navigation copy button", panel, 'id="btnCopySourceNavigation"'],
+  ["source navigation pure test", sourceNavigationTest, "read-only source navigation"],
+  ["source navigation MCP test", mcpTest, "get_source_navigation"],
+  ["source navigation HTTP test", collaborationTest, "/api/collab/source-navigation"],
+  ["source navigation ADR index", adrIndex, "0016-source-navigation-is-copyable-context.md"],
+  ["source navigation ADR boundary", sourceNavigationAdr, "doesNotOpenFiles"],
+  ["source navigation official VS Code research", research, "VS Code CLI"],
+  ["source navigation docs map", documentationMap, "0016-source-navigation-is-copyable-context.md"],
+  ["source navigation Chinese docs", readme, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation English docs", englishQuickstart, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation AGENTS docs", agents, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation architecture", architecture, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation security", security, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation roadmap", roadmap, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation launch", launchKit, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation research", research, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation troubleshooting", troubleshooting, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation examples map", examplesReadme, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation examples workflow", agentWorkflowExample, "SOURCE_NAVIGATION_JSON"],
+  ["source navigation workflow example", agentWorkflowExample, "Source navigation:"],
   ["review readiness English docs", englishQuickstart, "REVIEW_READINESS_JSON"],
   ["review readiness Chinese docs", readme, "REVIEW_READINESS_JSON"],
   ["review readiness AGENTS docs", agents, "REVIEW_READINESS_JSON"],
@@ -523,9 +559,9 @@ check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not do
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
-check(readme.includes("22 个 MCP 工具"), "README.md does not reflect the 22 MCP tools");
-check(agents.includes("## 22 个 MCP 工具"), "AGENTS.md does not reflect the 22 MCP tools");
-check(roadmap.includes("22 MCP tools"), "ROADMAP.md does not reflect the 22 MCP tools");
+check(readme.includes("23 个 MCP 工具"), "README.md does not reflect the 23 MCP tools");
+check(agents.includes("## 23 个 MCP 工具"), "AGENTS.md does not reflect the 23 MCP tools");
+check(roadmap.includes("23 MCP tools"), "ROADMAP.md does not reflect the 23 MCP tools");
 const roadmapNextLines = roadmap.split("\n").slice(
   roadmap.split("\n").findIndex((line) => line.startsWith("## Next")),
   roadmap.split("\n").findIndex((line) => line.startsWith("## Shipped")),
