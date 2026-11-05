@@ -28,6 +28,7 @@ src/
 │   ├── types.ts              版本化协作协议：VisualGraph / SessionSnapshot / ChangeProposal
 │   ├── ids.ts                统一 ID 与时间戳
 │   ├── approval.ts           一次性批准凭据
+│   ├── session-bundle.ts     可移植会话快照的创建与解析
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
 ├── infra/
 │   ├── config.ts             AppConfig + loadConfig + 配置类型
@@ -125,6 +126,8 @@ server.tool(
 | Endpoint | 用途 |
 |----------|------|
 | `GET /api/collab/session` | 完整会话快照 |
+| `GET /api/collab/bundle` | 导出可移植会话快照（不含一次性批准凭据） |
+| `POST /api/collab/bundle/import` | 人类确认后导入；清空气批准凭据，不写项目文件 |
 | `GET/PUT /api/collab/graph` | 读取/保存 VisualGraph |
 | `POST /api/collab/messages` | 人类或 AI 发消息 |
 | `POST /api/collab/annotations` | 给当前图加批注；`nodeId` 必须引用现有节点 |
@@ -176,5 +179,6 @@ npm run check      # 全量检查（含 GitHub 元数据漂移检查）
 - 不要实现 `delete` 变更、放宽路径校验，或把会话文件写进项目源码树。
 - 不要在 `stdout` 输出日志、调试文本或 Mermaid 内容。
 - 不要提交 `dist/`、`output/*.svg|png`、`output/.ai-draw/session.json`、`.env` 或本机配置。
+- 会话 bundle 不得包含一次性批准凭据或已批准提案的可用状态；导入必须要求 `confirmedBy: "human"`。
 - 不要把 token、`.env`、本机凭据或 GitHub API 响应中的敏感字段写入仓库。
 - 不要绕过 `scripts/github-maintenance.mjs` 手工维护 About/topics，避免文档与仓库元数据漂移。

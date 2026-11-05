@@ -5,6 +5,11 @@ import {
   assertSafeWorkspacePath,
   toWorkspaceRelative,
 } from "../domain/path-safety.js";
+import {
+  createSessionBundle,
+  parseSessionBundle,
+  type SessionBundle,
+} from "../domain/session-bundle.js";
 import type { ApprovalGrant, ApprovalReceipt } from "../domain/approval.js";
 import { assertProposalHash, proposalContentHash } from "../domain/proposal-hash.js";
 import type {
@@ -152,6 +157,30 @@ export class SessionStore {
   getProposal(id: string): ChangeProposal | undefined {
     const proposal = this.snapshot.proposals.find((item) => item.id === id);
     return proposal ? clone(proposal) : undefined;
+  }
+
+  exportBundle(): SessionBundle {
+    return createSessionBundle(this.getSnapshot());
+  }
+
+  async importBundle(input: unknown): Promise<SessionSnapshot> {
+    const bundle = parseSessionBundle(input);
+    const graph = bundle.session.graph;
+    if (graph) validateGraph(graph);
+    for (const proposal of bundle.session.proposals) {
+      for (const change of proposal.changes) validateChange(this.workspaceRoot, change);
+    }
+    this.approvalGrants.clear();
+    return this.mutate((draft) => {
+      draft.id = bundle.session.id;
+      draft.title = bundle.session.title;
+      draft.createdAt = bundle.session.createdAt;
+      draft.graphRevision = bundle.session.graphRevision;
+      draft.activeDiagramId = bundle.session.activeDiagramId;
+      draft.graph = graph;
+      draft.messages = trimList(bundle.session.messages, MAX_MESSAGES);
+      draft.proposals = trimList(bundle.session.proposals, MAX_PROPOSALS);
+    });
   }
 
   async getProposalDiffs(id: string): Promise<ProposalFileDiff[]> {

@@ -35,6 +35,8 @@ IDE / human browser
 7. 人类把确认号发给 AI；AI 调用 `apply_visual_proposal`，服务端校验凭据与内容哈希后写入项目，失败自动回滚。
 8. AI 可再次 `scan_project` 生成反映新结构的图，形成闭环。
 
+协作会话可导出为 `kind: "ai-draw-session-bundle"` 的 version 1 JSON。导出只包含图、消息和去敏后的提案；一次性批准凭据留在内存中且不写入 bundle。导入必须带 `confirmedBy: "human"`，服务端会重新校验图与提案路径、清空批准凭据、拒绝非法文件；导入绝不写项目文件。
+
 ## Safety model
 
 - 预览服务默认只监听 `PREVIEW_HOST`（`127.0.0.1`）。
@@ -54,6 +56,7 @@ IDE / human browser
 | `output/diagrams.json` | legacy diagram manifest |
 | `output/<id>.svg` / `.png` | rendered diagram assets |
 | `output/.ai-draw/session.json` | versioned collaboration session |
+| `ai-draw-session-*.json` | portable session bundle for bug reports and examples |
 
 所有持久化结构都有 `version: 1`，后续迁移在 `SessionStore.create()` 与类型层处理。
 

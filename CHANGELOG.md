@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `scripts/github-maintenance.mjs`：检查/同步仓库 description、homepage、topics，并可从 CHANGELOG 创建 Release。
 - `scripts/repo-check.mjs`：离线检查发布文案、README 链接、维护脚本与 CHANGELOG 是否一致。
 - `docs/README.md`：面向贡献者与新用户的文档地图。
+- `src/domain/session-bundle.ts`：版本化协作会话快照的创建、解析与安全降级。
+- 面板「导出会话 / 导入会话」按钮，方便把可复现会话附到 Issue、示例或回归报告。
+- `GET /api/collab/bundle` 与 `POST /api/collab/bundle/import`：导出只读快照；导入需要人类确认，清除一次性批准凭据，不写项目文件。
 - `npm run github:check` / `npm run github:sync`，把开源元数据维护纳入本地验证与发布流程。
 - 协作面板支持新增/删除节点、编辑与删除连线、选中节点后绑定批注，让人可以直接改「项目结构」而不只改文字。
 - `VisualGraph` 服务端校验补齐节点/连线/批注 ID、字段完整性与引用完整性，拒绝损坏的图形状态。
@@ -26,12 +29,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `npm run check` 增加离线仓库一致性检查；`npm run github:check` 作为显式、只读的 GitHub 元数据漂移检查，不需要凭据。
 - README 增加最短体验路径和公开文档入口；ROADMAP 中「结构化图形编辑」从下一阶段前移到当前已交付能力。
 - MCP 集成测试覆盖 `get_visual_context` 的机器可读意图摘要与下一步动作提示。
+- 协作集成测试覆盖会话 bundle 的版本、批准凭据不外泄、已批准提案降级、人类确认与非法文件拒绝。
 
 ### Fixed
 
 - `create_visual_proposal` 的 `metadata` schema 使用 `z.record(z.string(), z.unknown())`，兼容 Zod 3 与 Zod 4。
 - `mmdc` 渲染与 `doctor` 探针在 CI / 无 sandbox 的 Chrome 环境下自动使用临时 Puppeteer 配置，避免 Chrome 启动失败。
 - `/api/collab/annotations` 拒绝不存在的 `nodeId`，避免批注悬挂到无效节点。
+- 会话导出会把未消费的 `approved` 提案降级为 `pending` 并清除批准时间，避免导入后重放旧确认号。
 
 ## [0.3.0] - 2026-11-06
 

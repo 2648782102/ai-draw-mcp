@@ -183,6 +183,35 @@ describe("collaboration session", () => {
       await expect(sessions.applyProposal(proposal.id, "human")).resolves.toMatchObject({ status: "applied" });
       expect(await fs.readFile(path.join(workspaceRoot, "README.md"), "utf8")).toContain("双向协作示例");
       expect(sessions.getSnapshot().graphRevision).toBeGreaterThanOrEqual(1);
+
+      const bundleResponse = await fetch(`${base}/api/collab/bundle`, { headers });
+      expect(bundleResponse.ok).toBe(true);
+      const bundle = await bundleResponse.json();
+      expect(bundle.kind).toBe("ai-draw-session-bundle");
+      expect(bundle.version).toBe(1);
+      expect(JSON.stringify(bundle)).not.toContain(approval.receipt.grantHash);
+
+      const rejectedBundleImport = await fetch(`${base}/api/collab/bundle/import`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ bundle, confirmedBy: "ai" }),
+      });
+      expect(rejectedBundleImport.status).toBe(403);
+
+      const invalidBundleImport = await fetch(`${base}/api/collab/bundle/import`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ bundle: { kind: "wrong" }, confirmedBy: "human" }),
+      });
+      expect(invalidBundleImport.status).toBe(400);
+
+      const restoredBundle = await fetch(`${base}/api/collab/bundle/import`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ bundle, confirmedBy: "human" }),
+      });
+      expect(restoredBundle.ok).toBe(true);
+      expect(sessions.getSnapshot().proposals[0].status).toBe("applied");
     } finally {
       await preview.stop().catch(() => {});
       delete process.env.AI_DRAW_WORKSPACE_ROOT;

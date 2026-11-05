@@ -339,7 +339,9 @@
         <button id="btnAddNode">＋ 节点</button>
         <button id="btnAddEdge">＋ 连线</button>
         <button id="btnSaveGraph">保存图形</button>
-        <button id="btnRescan">重新同步会话</button>
+        <button id="btnExportSession">导出会话</button>
+        <button id="btnImportSession">导入会话</button>
+        <button id="btnRescan">重新同步</button>
       </div>
     </section>
     <section class="collab-section">
@@ -359,6 +361,7 @@
       <div class="proposal-list" id="proposalList"></div>
     </section>
   </div>
+  <input id="bundleFileInput" type="file" accept="application/json,.json" hidden />
 </div>
 
 <script type="module">
@@ -1234,6 +1237,43 @@ async function decideProposal(id, decision) {
   }
 }
 
+async function exportSession() {
+  try {
+    const bundle = await collabFetch('/api/collab/bundle');
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ai-draw-session-${bundle.session?.id || 'snapshot'}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToast('会话快照已导出（不含一次性批准凭据）');
+  } catch (error) {
+    showToast(`导出失败：${error.message}`);
+  }
+}
+
+async function importSession(event) {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) return showToast('会话文件不能超过 5 MB');
+  if (!confirm('导入会替换当前协作会话快照，但不会写入项目文件；批准后的一次性确认号会失效。继续？')) return;
+  try {
+    const bundle = JSON.parse(await file.text());
+    const result = await collabFetch('/api/collab/bundle/import', {
+      method: 'POST',
+      body: JSON.stringify({ bundle, confirmedBy: 'human' }),
+    });
+    showToast(`会话已导入 · revision ${result.graphRevision}`);
+    await loadCollab();
+  } catch (error) {
+    showToast(`导入失败：${error.message}`);
+  }
+}
+
 $('#btnCollaborate').addEventListener('click', () => {
   $('#collabShell').hidden = false;
   loadCollab();
@@ -1243,6 +1283,9 @@ $('#btnSaveGraph').addEventListener('click', saveGraph);
 $('#btnRescan').addEventListener('click', loadCollab);
 $('#btnAddNode').addEventListener('click', addNode);
 $('#btnAddEdge').addEventListener('click', addEdge);
+$('#btnExportSession').addEventListener('click', exportSession);
+$('#btnImportSession').addEventListener('click', () => $('#bundleFileInput').click());
+$('#bundleFileInput').addEventListener('change', importSession);
 $('#btnSendMessage').addEventListener('click', sendMessage);
 $('#messageInput').addEventListener('keydown', (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') sendMessage();

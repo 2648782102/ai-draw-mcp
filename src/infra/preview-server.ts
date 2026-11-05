@@ -11,6 +11,8 @@
  *   GET  /api/diagram/:id/png   serve PNG file
  *   DEL  /api/diagram/:id       delete diagram
  *   GET  /api/collab/session     collaboration snapshot
+ *   GET  /api/collab/bundle      portable session bundle for bug reports/examples
+ *   POST /api/collab/bundle/import  import a reviewed session bundle
  *   GET  /api/collab/graph       current visual graph
  *   PUT  /api/collab/graph       save human graph edits
  *   POST /api/collab/messages    send a human/AI message
@@ -95,6 +97,27 @@ export class PreviewServer {
         ...this.sessions.getSnapshot(),
         workspaceRoot: this.sessions.getWorkspaceRoot(),
       });
+    });
+
+    this.app.get("/api/collab/bundle", (_req, res) => {
+      res.json(this.sessions.exportBundle());
+    });
+
+    this.app.post("/api/collab/bundle/import", async (req, res) => {
+      const body = req.body as { bundle?: unknown; confirmedBy?: string };
+      if (body.confirmedBy !== "human")
+        return res.status(403).json({ error: "Human confirmation is required" });
+      if (!body.bundle) return res.status(400).json({ error: "bundle is required" });
+      try {
+        const snapshot = await this.sessions.importBundle(body.bundle);
+        const message = await this.sessions.addMessage("system", "导入了协作会话快照；导入不会应用任何项目变更。", {
+          metadata: { event: "session_imported" },
+        });
+        this.broadcast({ type: "session_updated", reason: "session_imported", sessionId: snapshot.id, message });
+        res.json({ ok: true, sessionId: snapshot.id, graphRevision: snapshot.graphRevision });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
     });
 
     this.app.get("/api/collab/graph", (_req, res) => {
