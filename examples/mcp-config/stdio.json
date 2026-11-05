@@ -1,0 +1,8 @@
+{
+  "command": "npx",
+  "args": ["ai-draw-mcp"],
+  "env": {
+    "AI_DRAW_WORKSPACE_ROOT": "<absolute-path-to-your-project>",
+    "OUTPUT_DIR": "./output"
+  }
+}

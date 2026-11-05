@@ -10,6 +10,16 @@
  *   GET  /api/diagram/:id/svg   serve SVG file
  *   GET  /api/diagram/:id/png   serve PNG file
  *   DEL  /api/diagram/:id       delete diagram
+ *   GET  /api/collab/session     collaboration snapshot
+ *   GET  /api/collab/graph       current visual graph
+ *   PUT  /api/collab/graph       save human graph edits
+ *   POST /api/collab/messages    send a human/AI message
+ *   POST /api/collab/annotations add a graph annotation
+ *   GET  /api/collab/proposals   list change proposals
+ *   GET  /api/collab/proposals/:id/diff  file diffs for a proposal
+ *   POST /api/collab/proposals   create a proposal
+ *   POST /api/collab/proposals/:id/approve  human approval (issues one-time grant)
+ *   POST /api/collab/proposals/:id/reject   human rejection
  *   WS   /ws                    WebSocket: diagram_added | diagram_update | diagram_removed
  */
 
@@ -22,10 +32,15 @@ import { WebSocketServer } from "ws";
 import http from "node:http";
 import type { DiagramStore } from "./store.js";
 import type { AppConfig, DiagramRecord } from "./config.js";
+import type { SessionStore } from "./session-store.js";
+import type { VisualGraph } from "../domain/types.js";
+import { makeId, nowIso } from "../domain/ids.js";
 import { logger } from "./logger.js";
 import { renderMermaidToSvg, saveSvg } from "./renderer.js";
+import crypto from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const panelToken = crypto.randomBytes(24).toString("hex");
 
 /** Resolve mermaid's dist folder via Node module resolution (works for local dev and npx install). */
 function resolveMermaidDist(): string {
@@ -48,7 +63,11 @@ export class PreviewServer {
   private server: http.Server | null = null;
   private wss: WebSocketServer | null = null;
 
-  constructor(private store: DiagramStore, private config: AppConfig) {
+  constructor(
+    private store: DiagramStore,
+    private config: AppConfig,
+    private sessions: SessionStore,
+  ) {
     this.app.use(express.json());
 
     const mermaidDist = resolveMermaidDist();
@@ -60,13 +79,173 @@ export class PreviewServer {
     }
 
     this.setupRoutes();
+    this.setupCollabRoutes();
+  }
+
+  private setupCollabRoutes(): void {
+    this.app.use("/api/collab", (req, res, next) => {
+      if (req.method === "GET") return next();
+      if (req.header("X-AI-Draw-Token") !== panelToken)
+        return res.status(401).json({ error: "Invalid panel token" });
+      next();
+    });
+
+    this.app.get("/api/collab/session", (_req, res) => {
+      res.json({
+        ...this.sessions.getSnapshot(),
+        workspaceRoot: this.sessions.getWorkspaceRoot(),
+      });
+    });
+
+    this.app.get("/api/collab/graph", (_req, res) => {
+      const graph = this.sessions.getGraph();
+      if (!graph) return res.status(404).json({ error: "No graph yet" });
+      res.json(graph);
+    });
+
+    this.app.put("/api/collab/graph", async (req, res) => {
+      const graph = req.body as VisualGraph;
+      try {
+        const snapshot = await this.sessions.setGraph(graph);
+        const message = await this.sessions.addMessage("human", "更新了可视化图形", {
+          diagramId: graph.diagramId,
+          status: "pending",
+          metadata: { event: "graph_updated", graphRevision: snapshot.graphRevision },
+        });
+        this.broadcast({
+          type: "graph_updated",
+          graph,
+          revision: snapshot.graphRevision,
+          message,
+        });
+        res.json({ ok: true, graphRevision: snapshot.graphRevision });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+
+    this.app.post("/api/collab/messages", async (req, res) => {
+      const body = req.body as { body?: string; author?: "human" | "ai" | "system"; diagramId?: string };
+      if (!body.body?.trim()) return res.status(400).json({ error: "Message body is required" });
+      const author = body.author === "ai" ? "ai" : "human";
+      const message = await this.sessions.addMessage(author, body.body.trim(), {
+        diagramId: body.diagramId,
+        status: author === "human" ? "pending" : "answered",
+        metadata: { event: "chat_message" },
+      });
+      this.broadcast({ type: "chat_message", message });
+      res.json(message);
+    });
+
+    this.app.post("/api/collab/annotations", async (req, res) => {
+      const body = req.body as { body?: string; nodeId?: string; x?: number; y?: number };
+      if (!body.body?.trim()) return res.status(400).json({ error: "Annotation body is required" });
+      const current = this.sessions.getGraph();
+      if (!current) return res.status(404).json({ error: "No graph yet" });
+      const annotation = {
+        id: makeId("ann"),
+        nodeId: body.nodeId,
+        x: body.x,
+        y: body.y,
+        body: body.body.trim(),
+        author: "human" as const,
+        createdAt: nowIso(),
+      };
+      current.annotations.push(annotation);
+      const snapshot = await this.sessions.setGraph(current);
+      const message = await this.sessions.addMessage("human", `批注：${annotation.body}`, {
+        diagramId: current.diagramId,
+        status: "pending",
+        metadata: { event: "annotation_added", annotationId: annotation.id },
+      });
+      this.broadcast({ type: "graph_updated", graph: current, revision: snapshot.graphRevision, message });
+      res.json({ ok: true, annotation, graphRevision: snapshot.graphRevision });
+    });
+
+    this.app.get("/api/collab/proposals", (_req, res) => {
+      res.json({ proposals: this.sessions.getProposals(100) });
+    });
+
+    this.app.get("/api/collab/proposals/:id/diff", async (req, res) => {
+      try {
+        res.json({ diffs: await this.sessions.getProposalDiffs(req.params.id) });
+      } catch (error) {
+        res.status(404).json({ error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+
+    this.app.post("/api/collab/proposals", async (req, res) => {
+      const body = req.body as {
+        title?: string;
+        summary?: string;
+        changes?: Array<{ id?: string; kind: "create" | "update" | "mkdir"; path: string; content?: string }>;
+        diagramId?: string;
+      };
+      if (!body.title?.trim() || !body.summary?.trim())
+        return res.status(400).json({ error: "title and summary are required" });
+      try {
+        const proposal = await this.sessions.createProposal({
+          title: body.title.trim(),
+          summary: body.summary.trim(),
+          changes: (body.changes ?? []).map((change, index) => ({
+            ...change,
+            id: change.id ?? `change_${index + 1}`,
+          })),
+          diagramId: body.diagramId,
+          createdBy: "human",
+        });
+        const message = await this.sessions.addMessage("human", `创建提案：${proposal.title}`, {
+          diagramId: body.diagramId,
+          status: "pending",
+          metadata: { event: "proposal_created", proposalId: proposal.id },
+        });
+        this.broadcast({ type: "proposal_created", proposal, message });
+        res.json(proposal);
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+
+    this.app.post("/api/collab/proposals/:id/approve", async (req, res) => {
+      const request = req.body as { approvedBy?: string };
+      if (request.approvedBy !== "human")
+        return res.status(403).json({ error: "Human approval is required" });
+      const proposal = this.sessions.getProposal(req.params.id);
+      if (!proposal) return res.status(404).json({ error: "Not found" });
+      if (proposal.status !== "pending")
+        return res.status(409).json({ error: `Proposal is ${proposal.status}` });
+      const approved = await this.sessions.setProposalStatus(proposal.id, "approved", { approvedAt: nowIso() });
+      const receipt = await this.sessions.issueApproval(proposal.id);
+      const message = await this.sessions.addMessage("human", `批准提案「${approved.title}」；请让 AI 使用一次性确认号应用。`, {
+        diagramId: approved.diagramId,
+        status: "pending",
+        metadata: { event: "proposal_approved", proposalId: approved.id, approvalId: receipt.approvalId },
+      });
+      this.broadcast({ type: "proposal_updated", proposal: approved, message, receipt });
+      res.json({ proposal: approved, receipt, instruction: "在 AI 对话中提供该确认号，让 AI 调用 apply_visual_proposal。" });
+    });
+
+    this.app.post("/api/collab/proposals/:id/reject", async (req, res) => {
+      const proposal = this.sessions.getProposal(req.params.id);
+      if (!proposal) return res.status(404).json({ error: "Not found" });
+      if (proposal.status !== "pending" && proposal.status !== "approved")
+        return res.status(409).json({ error: `Proposal is ${proposal.status}` });
+      const rejected = await this.sessions.setProposalStatus(proposal.id, "rejected", { rejectedAt: nowIso() });
+      await this.sessions.markMessageForProposal(proposal.id, "rejected");
+      this.broadcast({ type: "proposal_updated", proposal: rejected });
+      res.json(rejected);
+    });
   }
 
   private async serveHtml(_req: express.Request, res: express.Response) {
     const compiled = path.join(__dirname, "templates", "index.html");
     const source   = path.resolve(__dirname, "../../src/infra/templates/index.html");
     for (const p of [compiled, source]) {
-      try { res.type("html").send(await fs.readFile(p, "utf-8")); return; } catch {}
+      try {
+        const html = (await fs.readFile(p, "utf-8")).replace("__AI_DRAW_PANEL_TOKEN__", panelToken);
+        res.type("html").send(html);
+        return;
+      } catch {}
     }
     res.status(404).send("Template not found");
   }
@@ -167,7 +346,7 @@ export class PreviewServer {
         reject(err);
       };
       this.server!.once("error", onError);
-      this.server!.listen(this.config.previewPort, () => {
+      this.server!.listen(this.config.previewPort, this.config.previewHost, () => {
         this.server!.removeListener("error", onError);
         logger.info(`Preview server at http://${this.config.previewHost}:${this.config.previewPort}`);
         resolve();
@@ -187,8 +366,11 @@ export class PreviewServer {
     this.broadcast(JSON.stringify({ type: "diagram_removed", id: diagramId }));
   }
 
-  private broadcast(message: string): void {
-    this.wss?.clients.forEach((client) => { if (client.readyState === 1) client.send(message); });
+  broadcast(message: string | Record<string, unknown>): void {
+    const data = typeof message === "string" ? message : JSON.stringify(message);
+    this.wss?.clients.forEach((client) => {
+      if (client.readyState === 1) client.send(data);
+    });
   }
 
   async stop(): Promise<void> {

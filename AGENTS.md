@@ -1,147 +1,130 @@
 # AGENTS.md — AI Agent 操作手册
 
-本文件是给 AI coding agent（Cursor、GitHub Copilot 等）的操作手册。
-人类阅读 README.md；AI 阅读本文件。
+本文件是给 AI coding agent 看的操作手册。人类阅读 `README.md`，架构阅读 `docs/ARCHITECTURE.md`，贡献流程阅读 `CONTRIBUTING.md`。
 
 ---
 
 ## 项目是什么
 
-`ai-draw-mcp` 是一个 MCP Server，给 IDE 里的 AI 提供绘图能力。
-AI 调用工具 → 渲染 Mermaid/SVG → 推送到本机预览面板（HTTP + WebSocket）。
+`ai-draw-mcp` 是本机优先的 MCP Server，给 IDE 里的 AI 提供绘图能力，并给人一个可编辑、可批注、可对话、可批准变更提案的可视化面板。
+
+0.3 起，核心不只是「AI 画一张图」，而是闭环：
+
+```text
+AI 扫描项目 → 生成结构图 → 人改图/批注/对话 → AI 读取上下文 → AI 生成提案 → 人批准并给确认号 → AI 凭凭据安全写入 → 再扫描
+```
+
+安全底线：**AI 不得绕过提案、人工批准与一次性确认号直接修改项目文件**。所有项目写入都经过 `src/domain/path-safety.ts` 和 `SessionStore.applyProposal()`。
 
 ---
 
 ## 目录地图
 
-```
+```text
 src/
-├── index.ts              入口：启动预览服务，连接 MCP stdio
-├── server.ts             组装根：创建所有实例，注册全部工具（含 TOOL_COUNT 常量）
-├── tools/
-│   ├── _shared.ts        工具共享层（必读）：ToolContext、渲染管道、响应格式化
-│   ├── render-diagram.ts    工具：通用 Mermaid DSL
-│   ├── render-flowchart.ts  工具：结构化流程图
-│   ├── render-sequence.ts   工具：时序图
-│   ├── render-architecture.ts 工具：架构/组件图
-│   ├── render-class.ts      工具：UML 类图
-│   ├── render-mindmap.ts    工具：思维导图
-│   ├── render-svg.ts        工具：自由 SVG
-│   ├── update-diagram.ts    工具：更新已有图
-│   ├── delete-diagram.ts    工具：删除图
-│   ├── list-diagrams.ts     工具：列出全部图
-│   └── open-preview.ts      工具：在 IDE 中打开预览面板
-└── infra/
-    ├── config.ts         AppConfig + loadConfig + 全部类型定义（DiagramRecord 等）
-    ├── store.ts          DiagramStore：内存 + JSON 文件持久化
-    ├── renderer.ts       renderMermaidToSvg/Png, saveSvg, wrapSvg, svgToPng
-    ├── preview-server.ts Express HTTP + WebSocket 预览服务
-    ├── ide-opener.ts     openPanelInIDE：在 IDE 中打开 Simple Browser
-    ├── logger.ts         轻量 logger，写 stderr 避免污染 MCP stdio
-    └── templates/
-        └── index.html    预览面板前端（Mermaid 渲染、缩放/平移、小地图、WebSocket）
+├── index.ts                  入口：启动预览服务，连接 MCP stdio
+├── server.ts                 组装根：创建实例，注册全部工具与 TOOL_COUNT
+├── domain/
+│   ├── types.ts              版本化协作协议：VisualGraph / SessionSnapshot / ChangeProposal
+│   ├── ids.ts                统一 ID 与时间戳
+│   ├── approval.ts           一次性批准凭据
+│   └── path-safety.ts        工作区路径校验，提案应用的安全边界
+├── infra/
+│   ├── config.ts             AppConfig + loadConfig + 配置类型
+│   ├── workspace.ts          AI_DRAW_WORKSPACE_ROOT / 包根目录解析
+│   ├── store.ts              DiagramStore：旧图清单持久化
+│   ├── session-store.ts      SessionStore：图、消息、批注、提案、批准凭据、应用与回滚
+│   ├── project-scanner.ts    只读扫描项目结构与 import 关系
+│   ├── renderer.ts           mmdc / sharp 渲染，SVG 包装
+│   ├── preview-server.ts     Express REST + WebSocket + 协作 API
+│   ├── ide-opener.ts         在 IDE 中打开 Simple Browser
+│   ├── logger.ts             stderr logger
+│   └── templates/index.html  预览面板 + 双向协作工作台
+└── tools/
+    ├── _shared.ts            ToolContext、渲染管道、响应格式
+    ├── render-*.ts           7 个绘图工具
+    ├── update/delete/list/open-preview.ts 旧图管理
+    ├── scan-project.ts       扫描工作区并生成协作图
+    ├── get-visual-context.ts 读取人类意图
+    ├── create-visual-proposal.ts 创建待确认提案
+    └── apply-visual-proposal.ts 凭一次性凭据应用已批准提案
 
-extensions/ai-draw-panel/   可选 VS Code/Cursor 扩展，处理 vscode:// URI
-scripts/doctor.mjs          环境自检脚本
-test/smoke.test.mjs         集成冒烟测试
+test/                         Vitest：MCP 集成测试、协作集成测试
+scripts/doctor.mjs            环境自检（含真实 Mermaid 渲染探针）
+.github/                      Issue/PR 模板与 CI
+docs/ARCHITECTURE.md          架构、协议、安全模型
 ```
 
 ---
 
-## 如何添加新工具（3 步）
+## 架构约定
 
-### 第 1 步：新建 `src/tools/render-xxx.ts`
+- 所有日志写 `stderr`，**禁止**写 `stdout`：会污染 MCP JSON-RPC。
+- 工具名用 `snake_case`，注册函数名用 `registerXxx`，文件名用 `kebab-case`。
+- 工具描述面向 LLM：说清适用场景，并提示何时用其他工具替代。
+- 工具文件只通过 `_shared.ts` 访问基础设施；不要从工具直接改项目文件。
+- MCP server 版本从 `package.json` 读取，不要在 `server.ts` 硬编码。
+- 新增共享类型放 `src/domain/types.ts`；新增配置类型放 `src/infra/config.ts`。
+- `VisualGraph` 与 `SessionSnapshot` 都是 `version: 1`，改协议时必须考虑向后兼容与迁移。
+- 预览服务默认绑定 `PREVIEW_HOST = 127.0.0.1`，不要改回监听所有网卡。
+- 面板 HTML 注入随机 `PANEL_TOKEN`；`/api/collab/*` 的非 GET 写操作必须带 `X-AI-Draw-Token`。
 
-复制以下模板，按需修改 DSL 构建逻辑：
+---
+
+## 16 个 MCP 工具
+
+| 分组 | 工具 |
+|------|------|
+| Mermaid / SVG 绘图 | `render_diagram`、`render_flowchart`、`render_sequence`、`render_architecture`、`render_class_diagram`、`render_mindmap`、`render_svg` |
+| 图管理 | `update_diagram`、`delete_diagram`、`list_diagrams`、`open_preview` |
+| 双向协作 | `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal` |
+
+协作工作流：先 `scan_project`，人改图后 AI 用 `get_visual_context` 读取 `pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信并标记已处理，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
+
+---
+
+## 如何添加新工具（4 步）
+
+1. 在 `src/tools/` 新建 `render-xxx.ts`，复制现有工具风格；参数用 `zod`，错误处理用 `errorResult`。
+2. 在 `src/server.ts` 顶部加 import，在 `createServer()` 内加 `registerXxx(mcp, ctx)`。
+3. 同步更新 `TOOL_COUNT`、README 工具表、本文件工具表、CHANGELOG 和 `test/mcp.test.mjs`。
+4. 如果涉及协议/持久化/项目写入，必须更新 `src/domain/types.ts`、ARCHITECTURE、协作集成测试与安全边界说明。
+
+工具模板要点：
 
 ```typescript
-import { z } from "zod";
-import { nanoid } from "nanoid";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { renderMermaidAndRespond, errorResult, type ToolContext } from "./_shared.js";
-
-export function registerRenderXxx(server: McpServer, ctx: ToolContext) {
-  server.tool(
-    "render_xxx",
-    "工具描述：一句话说清楚用途和适用场景。",
-    {
-      title: z.string().optional(),
-      // ← 在这里定义工具参数的 zod schema
-      theme: z.enum(["default", "dark", "forest", "neutral"]).optional(),
-      output_format: z.enum(["svg", "png"]).optional(),
-    },
-    async ({ title, theme, output_format, ...params }) => {
-      const id = nanoid(10);
-      try {
-        // ← 在这里把 params 拼装成 Mermaid DSL 字符串
-        const mermaidCode = buildDsl(params);
-        return await renderMermaidAndRespond({
-          id,
-          title: title ?? `Xxx ${id}`,
-          diagramType: "custom", // 或具体类型
-          mermaidCode,
-          theme: theme ?? ctx.config.defaultTheme,
-          format: output_format ?? ctx.config.defaultFormat,
-          ctx,
-        });
-      } catch (err) {
-        return errorResult("render_xxx", err);
-      }
+server.tool(
+  "render_xxx",
+  "一句话说明用途、适用场景以及何时改用其他工具。",
+  { title: z.string().optional(), /* params */ },
+  async (params) => {
+    const id = nanoid(10);
+    try {
+      return await renderMermaidAndRespond({ id, /* ... */, ctx });
+    } catch (err) {
+      return errorResult("render_xxx", err);
     }
-  );
-}
-
-function buildDsl(params: unknown): string {
-  // ← 实现 DSL 拼装
-  return "";
-}
+  }
+);
 ```
 
-如果是纯 SVG 工具（不走 Mermaid），用 `renderSvgAndRespond` 替代 `renderMermaidAndRespond`。
-
-### 第 2 步：在 `src/server.ts` 顶部加一行 import
-
-```typescript
-// ← ADD NEW TOOL IMPORT HERE
-import { registerRenderXxx } from "./tools/render-xxx.js";
-```
-
-### 第 3 步：在 `src/server.ts` 的 `createServer()` 内加一行注册
-
-```typescript
-// ← ADD NEW TOOL REGISTRATION HERE
-registerRenderXxx(mcp, ctx);
-```
-
-完成。工具数量常量 `TOOL_COUNT` 也要同步更新（当前值为 `11`，每加一个工具 +1）。
+纯 SVG 工具用 `renderSvgAndRespond`；协作工具直接操作 `ctx.sessions`，并通过 `ctx.preview.broadcast()` 通知面板。
 
 ---
 
-## infra/ 各文件职责速查
+## 协作 API 速查
 
-| 文件 | 导出的关键符号 | 何时修改 |
-|------|--------------|---------|
-| `config.ts` | `AppConfig`, `loadConfig()`, 所有 `interface`/`type` | 加环境变量、加类型定义 |
-| `store.ts` | `DiagramStore` | 修改存储逻辑 |
-| `renderer.ts` | `renderMermaidToSvg`, `renderMermaidToPng`, `saveSvg`, `wrapSvg`, `svgToPng` | 修改渲染引擎 |
-| `preview-server.ts` | `PreviewServer` | 修改 HTTP 路由或 WebSocket 事件 |
-| `ide-opener.ts` | `openPanelInIDE`, `resetPanelState` | 修改 IDE 检测或打开逻辑 |
-| `logger.ts` | `logger` | 几乎不需要改 |
-
----
-
-## tools/_shared.ts 导出速查
-
-| 符号 | 类型 | 用途 |
-|------|------|------|
-| `ToolContext` | interface | 工具函数的第二个参数类型 |
-| `renderMermaidAndRespond(opts)` | async fn | Mermaid 工具的完整管道（渲染→存储→通知→打开→响应） |
-| `renderSvgAndRespond(opts)` | async fn | SVG 工具的完整管道 |
-| `errorResult(toolName, err)` | fn | 统一错误响应格式 |
-| `jsonLine(payload)` | fn | 生成供模型解析的 JSON 行 |
-| `RenderOpts` | interface | `renderMermaidAndRespond` 的参数类型 |
-| `SvgOpts` | interface | `renderSvgAndRespond` 的参数类型 |
-| `ToolResult` | type | 工具返回值类型 |
+| Endpoint | 用途 |
+|----------|------|
+| `GET /api/collab/session` | 完整会话快照 |
+| `GET/PUT /api/collab/graph` | 读取/保存 VisualGraph |
+| `POST /api/collab/messages` | 人类或 AI 发消息 |
+| `POST /api/collab/annotations` | 给当前图加批注 |
+| `GET/POST /api/collab/proposals` | 列出/创建变更提案 |
+| `GET /api/collab/proposals/:id/diff` | 查看逐行变更差异 |
+| `POST /api/collab/proposals/:id/approve` | 人类批准，返回一次性确认号；**不写项目文件** |
+| `POST /api/collab/proposals/:id/reject` | 人类拒绝提案 |
+| `WS /ws` | `graph_updated`、`chat_message`、`proposal_created`、`proposal_updated`、`session_updated` |
 
 ---
 
@@ -150,19 +133,34 @@ registerRenderXxx(mcp, ctx);
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
 | `PREVIEW_PORT` | `3399` | 预览服务端口 |
-| `PREVIEW_HOST` | `127.0.0.1` | 面板 URL 主机名 |
-| `AI_DRAW_URI_AUTHORITY` | `2648782102.ai-draw-panel` | vscode:// URI authority；设为空字符串则禁用 |
-| `OUTPUT_DIR` | `./output` | 图表输出目录（建议绝对路径） |
-| `DEFAULT_THEME` | `default` | Mermaid 主题：default/dark/forest/neutral |
-| `DEFAULT_FORMAT` | `svg` | 默认输出格式：svg/png |
-| `LOG_LEVEL` | `info` | 日志级别：debug/info/warn/error |
+| `PREVIEW_HOST` | `127.0.0.1` | 面板 URL 主机名，也是 HTTP 监听地址 |
+| `AI_DRAW_WORKSPACE_ROOT` | 包根目录 | 项目扫描与提案写入的目标工作区 |
+| `OUTPUT_DIR` | `./output` | 图与会话输出目录；建议绝对路径 |
+| `DEFAULT_THEME` | `default` | Mermaid 主题 |
+| `DEFAULT_FORMAT` | `svg` | 默认输出格式 |
+| `LOG_LEVEL` | `info` | 日志级别 |
+| `PUPPETEER_EXECUTABLE_PATH` | 自动检测 | 本机 Chrome/Chromium，供 `mmdc` 使用 |
+| `AI_DRAW_URI_AUTHORITY` | `2648782102.ai-draw-panel` | 保留给可选 IDE URI 扩展 |
 
 ---
 
-## 关键约定
+## 开发验证
 
-- 所有日志写 `stderr`，**禁止**写 `stdout`（会污染 MCP JSON-RPC 通道）
-- 工具名用 `snake_case`，注册函数名用 `registerXxx`，文件名用 `kebab-case`
-- 工具描述字符串面向 LLM：说清适用场景，提示何时用其他工具作替代
-- `infra/` 的文件对工具层来说是黑盒，通过 `_shared.ts` 统一访问
-- 新增类型定义放 `infra/config.ts`（不要新建类型文件）
+```bash
+npm run lint       # TypeScript --noEmit
+npm run build
+npm test           # Vitest：MCP 工具、渲染链路、协作闭环
+npm run doctor     # 含真实 Mermaid 渲染探针
+```
+
+若 `mmdc` 找不到 Chrome，先设置 `PUPPETEER_EXECUTABLE_PATH`。测试使用独立端口 `3411–3422`，不要复用正在运行的 3399。
+
+---
+
+## 禁止事项
+
+- 不要删掉人工批准门槛，也不要让 `apply_visual_proposal` 接受 AI 自动批准或缺失的一次性凭据。
+- 不要实现 `delete` 变更、放宽路径校验，或把会话文件写进项目源码树。
+- 不要在 `stdout` 输出日志、调试文本或 Mermaid 内容。
+- 不要提交 `dist/`、`output/*.svg|png`、`output/.ai-draw/session.json`、`.env` 或本机配置。
+- 不要推送远端、打 tag 或发布 npm；本任务只改本地工作区。

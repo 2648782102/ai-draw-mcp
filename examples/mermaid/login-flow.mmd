@@ -1,0 +1,11 @@
+graph TD
+  A[Visit login page] --> B[Enter credentials]
+  B --> C{Valid format?}
+  C -->|No| D[Show format error]
+  D --> B
+  C -->|Yes| E[POST /login]
+  E --> F{Credentials valid?}
+  F -->|No| G[Show auth error]
+  G --> B
+  F -->|Yes| H[Issue token]
+  H --> I[Redirect to app]

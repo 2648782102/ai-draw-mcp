@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible problem
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先运行 `npm run doctor`，并把输出中不含敏感信息的部分贴出来。
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 0.3.0
+    validations:
+      required: true
+  - type: dropdown
+    id: ide
+    attributes:
+      label: MCP host
+      options:
+        - Cursor
+        - VS Code
+        - Windsurf
+        - Trae
+        - Zed
+        - Claude Desktop
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: What did you or the AI do, and what happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: stderr logs, browser console, and doctor output
+      render: shell

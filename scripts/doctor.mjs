@@ -37,10 +37,25 @@ try {
   const q = process.platform === "win32" ? `"${mmdc}"` : JSON.stringify(mmdc);
   await execAsyncShell(`${q} --version`, { cwd: root, timeout: 25000 });
   pass("mmdc --version 可执行");
+
+  const probeDir = fs.mkdtempSync(path.join(os.tmpdir(), "ai-draw-doctor-"));
+  const input = path.join(probeDir, "input.mmd");
+  const output = path.join(probeDir, "output.svg");
+  fs.writeFileSync(input, "graph TD\n  A[Doctor] --> B[OK]\n", "utf8");
+  try {
+    await execAsyncShell(`${q} -i ${JSON.stringify(input)} -o ${JSON.stringify(output)} -t default --quiet`, {
+      cwd: root,
+      timeout: 60000,
+    });
+    if (fs.existsSync(output) && fs.statSync(output).size > 0) pass("mmdc 最小 Mermaid 渲染可执行");
+    else fail("mmdc 渲染未生成 SVG");
+  } finally {
+    fs.rmSync(probeDir, { recursive: true, force: true });
+  }
 } catch (e) {
   try {
     await execAsyncShell("npx -y @mermaid-js/mermaid-cli --version", { cwd: root, timeout: 30000 });
-    pass("mmdc 通过 npx 可执行");
+    warn("仅 npx mmdc --version 可用；请安装 Puppeteer Chrome 或设置 PUPPETEER_EXECUTABLE_PATH");
   } catch (e2) {
     fail(`mmdc 执行失败: ${e?.message ?? e}（npx 回退: ${e2?.message ?? e2}）`);
   }
@@ -80,6 +95,11 @@ if (fs.existsSync(mermaidMin))
   pass("Mermaid 本地包可用于预览（离线，不依赖 CDN）");
 else
   warn("未找到 mermaid/dist/mermaid.min.js — 请执行 npm install");
+
+// ── Collaboration state directories ──────────────────────────────
+const sessionDir = path.join(outDir, ".ai-draw");
+if (fs.existsSync(sessionDir)) info(`协作会话目录存在: ${sessionDir}`);
+else info("协作会话目录尚未创建（首次启动 MCP 后自动创建）");
 
 // ── MCP config locations hint ────────────────────────────────────
 console.log("");

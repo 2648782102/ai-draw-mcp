@@ -13,6 +13,7 @@ import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { logger } from "./logger.js";
+import { resolveWorkspaceRoot } from "./workspace.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "../..");
@@ -30,6 +31,7 @@ export interface AppConfig {
   outputDir: string;
   defaultTheme: z.infer<typeof themeSchema>;
   defaultFormat: z.infer<typeof formatSchema>;
+  workspaceRoot: string;
 }
 
 function parsePort(raw: string | undefined, fallback: number): number {
@@ -56,7 +58,15 @@ export function loadConfig(): AppConfig {
   const defaultFormat = formatParsed.success ? formatParsed.data : "svg";
   if (formatRaw && !formatParsed.success) logger.warn(`DEFAULT_FORMAT invalid (${JSON.stringify(formatRaw)}), falling back to "svg"`);
 
-  return { previewHost, panelUriAuthority, previewPort, outputDir, defaultTheme, defaultFormat };
+  return {
+    previewHost,
+    panelUriAuthority,
+    previewPort,
+    outputDir,
+    defaultTheme,
+    defaultFormat,
+    workspaceRoot: resolveWorkspaceRoot(),
+  };
 }
 
 export async function ensureOutputDirWritable(outputDir: string): Promise<void> {

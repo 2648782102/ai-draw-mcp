@@ -19,6 +19,7 @@ import { openPanelInIDE } from "../infra/ide-opener.js";
 import { logger } from "../infra/logger.js";
 import type { DiagramStore } from "../infra/store.js";
 import type { PreviewServer } from "../infra/preview-server.js";
+import type { SessionStore } from "../infra/session-store.js";
 import type { AppConfig, DiagramType, MermaidTheme, OutputFormat } from "../infra/config.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
@@ -31,6 +32,7 @@ export interface ToolContext {
   store: DiagramStore;
   config: AppConfig;
   preview: PreviewServer;
+  sessions: SessionStore;
 }
 
 // ─── ToolResult ───────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 {
   "name": "ai-draw-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MCP Server that gives AI drawing capabilities in IDEs (Cursor, VS Code, Windsurf, Trae, Zed, etc.)",
   "type": "module",
   "bin": {
@@ -10,7 +10,9 @@
     "dist/",
     "scripts/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "repository": {
     "type": "git",
@@ -25,8 +27,11 @@
     "prepublishOnly": "npm run build",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "lint": "eslint src/",
+    "lint": "tsc --noEmit",
     "test": "vitest run",
+    "test:mcp": "vitest run test/mcp.test.mjs",
+    "test:examples": "node --check examples/node-client.mjs && node --check examples/collab-demo.mjs",
+    "check": "npm run lint && npm run build && npm test && npm run test:examples && npm run doctor && npm pack --dry-run",
     "doctor": "node scripts/doctor.mjs"
   },
   "keywords": [
@@ -45,6 +50,9 @@
     "llm"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20.0.0"
   },

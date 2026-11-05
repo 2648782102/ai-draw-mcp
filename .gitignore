@@ -8,8 +8,9 @@ output/manifest.json
 *.log
 .env
 .DS_Store
-*.mjs
-!scripts/*.mjs
+.codex/
+output/.ai-draw/
+test-results/
 
 extensions/ai-draw-panel/out/
 extensions/ai-draw-panel/node_modules/

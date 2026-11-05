@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - name: Install headless Chrome for Mermaid rendering
+        run: npx puppeteer browsers install chrome-headless-shell
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+      - run: npm run test:examples
+      - run: npm run doctor
+      - run: npm pack --dry-run

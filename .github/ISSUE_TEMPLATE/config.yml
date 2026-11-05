@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/2648782102/ai-draw-mcp/security/advisories/new
+    about: Please report vulnerabilities privately, not in a public issue.
+  - name: Documentation
+    url: https://github.com/2648782102/ai-draw-mcp#readme
+    about: Start with the README and AGENTS.md for contributor-facing docs.

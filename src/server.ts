@@ -1,7 +1,7 @@
 /**
  * server.ts — Composition root
  *
- * Creates all instances and registers all 11 MCP tools.
+ * Creates all instances and registers all MCP tools.
  * To add a new tool: see AGENTS.md → "如何添加新工具（3 步）"
  *
  * Quick summary:
@@ -14,7 +14,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { loadConfig, ensureOutputDirWritable } from "./infra/config.js";
 import { DiagramStore } from "./infra/store.js";
 import { PreviewServer } from "./infra/preview-server.js";
+import { SessionStore } from "./infra/session-store.js";
 import { logger } from "./infra/logger.js";
+import { SERVER_VERSION } from "./infra/version.js";
 
 // ── Tool imports ──────────────────────────────────────────────────────────────
 // ← ADD NEW TOOL IMPORT HERE
@@ -29,8 +31,13 @@ import { registerUpdateDiagram }       from "./tools/update-diagram.js";
 import { registerDeleteDiagram }       from "./tools/delete-diagram.js";
 import { registerListDiagrams }        from "./tools/list-diagrams.js";
 import { registerOpenPreview }         from "./tools/open-preview.js";
+import { registerScanProject }         from "./tools/scan-project.js";
+import { registerGetVisualContext }   from "./tools/get-visual-context.js";
+import { registerCreateVisualProposal } from "./tools/create-visual-proposal.js";
+import { registerApplyVisualProposal } from "./tools/apply-visual-proposal.js";
+import { registerReplyToVisualContext } from "./tools/reply-to-visual-context.js";
 
-const TOOL_COUNT = 11; // keep in sync when adding tools
+const TOOL_COUNT = 16; // keep in sync when adding tools
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -41,11 +48,16 @@ export async function createServer() {
   const store = new DiagramStore(config.outputDir);
   await store.init();
 
-  const preview = new PreviewServer(store, config);
+  const sessions = await SessionStore.create({
+    outputDir: config.outputDir,
+    workspaceRoot: config.workspaceRoot,
+  });
 
-  const mcp = new McpServer({ name: "ai-draw-mcp", version: "0.2.0" });
+  const preview = new PreviewServer(store, config, sessions);
 
-  const ctx = { store, config, preview };
+  const mcp = new McpServer({ name: "ai-draw-mcp", version: SERVER_VERSION });
+
+  const ctx = { store, config, preview, sessions };
 
   // ── Tool registrations ────────────────────────────────────────────────────
   // ← ADD NEW TOOL REGISTRATION HERE
@@ -60,8 +72,13 @@ export async function createServer() {
   registerDeleteDiagram(mcp, ctx);
   registerListDiagrams(mcp, ctx);
   registerOpenPreview(mcp, ctx);
+  registerScanProject(mcp, ctx);
+  registerGetVisualContext(mcp, ctx);
+  registerCreateVisualProposal(mcp, ctx);
+  registerApplyVisualProposal(mcp, ctx);
+  registerReplyToVisualContext(mcp, ctx);
 
   logger.info(`${TOOL_COUNT} MCP tools registered`);
 
-  return { mcp, store, preview, config };
+  return { mcp, store, preview, config, sessions };
 }
