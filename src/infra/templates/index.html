@@ -382,6 +382,8 @@
       <p class="activity-summary" id="rescanSummary">重新同步 · 按路径保留人工坐标、标签、批注与焦点；只读扫描项目文件</p>
       <p class="activity-summary" id="focusSummary">当前焦点 · 未选中节点</p>
       <p class="activity-summary" id="graphHistorySummary">图形历史 · 尚无撤销记录；撤销只恢复视觉状态，不写项目文件</p>
+      <p class="activity-summary" id="sourceEvidenceSummary">源码证据 · 等待扫描；只读 file:line 线索不授权项目写入</p>
+      <div class="chat-log source-evidence-list" id="sourceEvidenceList"></div>
       <div class="graph-editor" id="graphEditor"></div>
       <div class="graph-row-header"><span></span><span>名称</span><span>类型</span><span>路径</span><span>分组</span><span>X</span><span>Y</span><span></span></div>
       <div class="edge-editor">
@@ -1032,6 +1034,7 @@ let collabWorkspaceRoot = null;
 let collabDiagnostics = null;
 let collabGraphDiffs = [];
 let collabGraphHistory = { version: 1, undo: 0, redo: 0, limit: 12 };
+let collabSourceEvidence = [];
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -1127,6 +1130,23 @@ function renderGraphHistory() {
   const redo = $('#btnRedoGraph');
   if (undo) undo.disabled = collabGraphHistory.undo === 0;
   if (redo) redo.disabled = collabGraphHistory.redo === 0;
+}
+
+function renderSourceEvidence() {
+  const target = $('#sourceEvidenceList');
+  const summary = $('#sourceEvidenceSummary');
+  const items = Array.isArray(collabSourceEvidence) ? collabSourceEvidence : [];
+  if (summary) {
+    summary.textContent = `源码证据 · ${items.length} 条只读 file:line 线索 · 仅帮助 AI/人定位代码，不授权项目写入`;
+    summary.title = '扫描器只读取工作区内 1 MiB 以下的文本，最多为每文件保留 5 条定义/导入/标题证据。';
+  }
+  if (!target) return;
+  target.innerHTML = items.length ? items.slice(0, 20).map((item) => `
+    <div class="chat-item system">
+      <span class="meta">${escapeHtml(item.kind)} · ${escapeHtml(item.path)}:${escapeHtml(item.line)} · ${escapeHtml(item.nodeLabel || item.nodeId)}</span>
+      ${escapeHtml(item.excerpt)}
+    </div>
+  `).join('') : '<div class="collab-help">暂无源码证据。让 AI 调用 scan_project 扫描包含源码/文档的工作区。</div>';
 }
 
 async function restoreGraphHistory(direction) {
@@ -1513,6 +1533,9 @@ async function loadCollab() {
     const graphHistory = await collabFetch('/api/collab/graph/history');
     collabGraphHistory = graphHistory.history || { version: 1, undo: 0, redo: 0, limit: 12 };
     renderGraphHistory();
+    const sourceEvidence = await collabFetch('/api/collab/source-evidence');
+    collabSourceEvidence = sourceEvidence.items || [];
+    renderSourceEvidence();
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
   }
@@ -1632,7 +1655,7 @@ async function rescanProject() {
   try {
     const result = await collabFetch('/api/collab/rescan', {
       method: 'POST',
-      body: JSON.stringify({ confirmedBy: 'human' }),
+      body: JSON.stringify({ confirmedBy: 'human', render: true }),
     });
     $('#rescanSummary').textContent = `重新同步完成 · rev ${result.graphRevision} · 保留 ${result.preservation.preservedCoordinates} 个节点坐标（${result.preservation.humanCoordinates} 个人工布局）/ ${result.preservation.preservedLabels} 个自定义标签 / ${result.preservation.carriedAnnotations} 条批注 · ${result.preservation.detachedAnnotations} 条失锚；此操作只读项目文件`;
     showToast(`项目结构已同步 · 保留 ${result.preservation.humanCoordinates} 个人工布局`);

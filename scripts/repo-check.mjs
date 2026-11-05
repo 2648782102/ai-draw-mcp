@@ -57,8 +57,10 @@ const agentWorkflowExample = await read("examples/agent-workflow.mjs");
 const agentWorkflowTest = await read("test/agent-workflow.test.mjs");
 const workflowAdr = await read("docs/ADR/0007-agent-workflow-is-a-read-only-contract.md");
 const visualHistoryAdr = await read("docs/ADR/0008-visual-undo-is-not-project-undo.md");
+const sourceEvidenceAdr = await read("docs/ADR/0009-source-evidence-is-read-only-context.md");
 const graphHistoryDomain = await read("src/domain/graph-history.ts");
 const graphHistoryTest = await read("test/graph-history.test.mjs");
+const sourceEvidenceTest = await read("test/source-evidence.test.mjs");
 const examplesReadme = await read("examples/README.md");
 const collaborationWorkflow = await read("examples/collaboration-workflow.md");
 const security = await read("SECURITY.md");
@@ -112,6 +114,7 @@ for (const [id, needle] of [
   check(panel.includes(needle), `Collaboration panel is missing ${id}`);
 }
 for (const endpoint of [
+  "/api/collab/source-evidence",
   "/api/collab/graph/history",
   "/api/collab/graph/undo",
   "/api/collab/graph/redo",
@@ -165,6 +168,9 @@ for (const [label, file, needle] of [
   ["visual graph merge", visualGraphMerge, "export function mergeScannedGraph"],
   ["scan preservation contract", scanTool, "PRESERVATION_JSON"],
   ["headless scan parameter", scanTool, "render"],
+  ["typed human rescan render switch", previewServer, "render must be a boolean"],
+  ["panel keeps full rescan rendering", panel, "confirmedBy: 'human', render: true"],
+  ["bounded CI rescan test", await read("test/collab.integration.test.mjs"), "15_000"],
   ["human rescan panel", panel, "rescanProject"],
   ["human rescan endpoint", previewServer, "/api/collab/rescan"],
   ["finite coordinate validation", sessionStore, "finiteCoordinate"],
@@ -206,6 +212,27 @@ for (const [label, source, needle] of [
   ["ADR stable scan decision", adrIndex, "0006-stable-scan-preserves-human-visual-state.md"],
   ["ADR workflow decision", adrIndex, "0007-agent-workflow-is-a-read-only-contract.md"],
   ["ADR visual history decision", adrIndex, "0008-visual-undo-is-not-project-undo.md"],
+  ["ADR source evidence decision", adrIndex, "0009-source-evidence-is-read-only-context.md"],
+  ["source evidence ADR boundary", sourceEvidenceAdr, "never enlarges a proposal's permitted paths"],
+  ["source evidence shared type", types, "export interface GraphSourceEvidence"],
+  ["source evidence scanner", projectScanner, "sourceEvidenceFor"],
+  ["source evidence scan stats", projectScanner, "totalEvidence"],
+  ["source evidence graph conversion", projectScanner, "sourceEvidence: node.sourceEvidence"],
+  ["source evidence merge", visualGraphMerge, "sourceEvidence: scannedNode.sourceEvidence"],
+  ["source evidence validation", sessionStore, "sourceEvidence must contain at most 5 entries"],
+  ["source evidence bundle parser", sessionBundle, "parseSourceEvidence"],
+  ["source evidence MCP context", getVisualContext, "sourceEvidence"],
+  ["source evidence diagnostics", await read("src/domain/session-diagnostics.ts"), "sourceEvidence"],
+  ["source evidence endpoint", previewServer, "/api/collab/source-evidence"],
+  ["source evidence panel", panel, "id=\"sourceEvidenceList\""],
+  ["source evidence test", sourceEvidenceTest, "read-only source evidence"],
+  ["source evidence workflow", agentWorkflowDomain, "sourceEvidence"],
+  ["source evidence research", research, "基础证据已交付"],
+  ["source evidence roadmap", roadmap, "file:line` source evidence"],
+  ["source evidence launch", launchKit, "file:line` source evidence"],
+  ["source evidence docs map", documentationMap, "0009-source-evidence-is-read-only-context.md"],
+  ["source evidence security", security, "GraphSourceEvidence"],
+  ["source evidence troubleshooting", troubleshooting, "sourceEvidence"],
   ["visual history ADR boundary", visualHistoryAdr, "never writes `AI_DRAW_WORKSPACE_ROOT`"],
   ["visual history shared type", types, "export interface GraphHistoryState"],
   ["visual history parser", graphHistoryDomain, "parseGraphHistory"],

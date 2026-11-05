@@ -54,8 +54,14 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           kind: node.kind,
           path: node.path,
           group: node.group,
+          sourceEvidence: node.sourceEvidence,
           annotations: annotationsByNode.get(node.id) ?? [],
         })) ?? [];
+      const sourceEvidence = (graph?.nodes ?? []).flatMap((node) => (node.sourceEvidence ?? []).map((evidence) => ({
+        nodeId: node.id,
+        nodeLabel: node.label,
+        ...evidence,
+      })));
       const intentSummary = {
         graphRevision: snapshot.graphRevision,
         nodes: graph?.nodes.length ?? 0,
@@ -74,12 +80,14 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         annotationThreads,
         staleThreads,
         graphDiffs,
+        sourceEvidence,
         focus: focus ?? null,
         nextActor: annotationThreads.nextActor,
         nextActions: [
           `Activity timeline: ${activityTimeline.total} derived events, including ${activityTimeline.kinds.graph_diff} graph revisions; next actor ${activityTimeline.nextActor}.`,
           `Stale annotation threads: ${staleThreads.length}; detached ${annotationThreads.detached}, outdated ${annotationThreads.outdated}.`,
           `Graph diffs: ${graphDiffs.length} recent human graph revisions; use graphDiffs.items for exact field changes.`,
+          `Source evidence: ${sourceEvidence.length} read-only file:line references from the scanner; they are context, not write authority.`,
           focus ? `Human focus: ${focus.nodeLabel} (${focus.nodeId}); use it to disambiguate prose, but never treat focus as approval.` : "Human focus: none.",
           "Use annotationThreads.nextActor to see whose turn it is; use intentByNode and pendingMessages as the human's latest intent.",
           "create_visual_proposal should cite those nodes, then wait for human approval.",
@@ -101,6 +109,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         annotationThreads,
         staleThreads,
         graphDiffs,
+        sourceEvidence,
         focus: focus ?? null,
         activityTimeline,
         diagnostics,
@@ -115,6 +124,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           "Use create_visual_proposal to record change proposals; never write project files directly from this tool.",
           "Ask the human to approve a proposal in the panel before anything is applied.",
           "Use activityTimeline for compact chronology of messages, graph revisions, annotation threads, and proposal lifecycle events.",
+          "Use sourceEvidence to cite file:line definitions/imports/headings when explaining a node; never treat evidence as approval or write authority.",
           "Use diagnostics.signals and diagnostics.nextActions for a concise session health check; diagnostics never grants write authority.",
         ],
       };
@@ -129,6 +139,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
             `Annotation threads: ${annotationThreads.open} open / ${annotationThreads.total} · stale: ${staleThreads.length} · next actor: ${annotationThreads.nextActor}`,
             `Activity timeline: ${activityTimeline.returned}/${activityTimeline.total} events · latest ${activityTimeline.latestAt ?? "none"}`,
             `Graph diffs: ${graphDiffs.length} recent revisions`,
+            `Source evidence: ${sourceEvidence.length} read-only file:line references`,
             `Diagnostics: ${diagnostics.signals.length} signals · ${diagnostics.nextActions.length} next actions`,
             ``,
             jsonLine({

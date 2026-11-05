@@ -158,6 +158,19 @@ function validateGraph(graph: VisualGraph): void {
       throw new Error(`Graph node has invalid group: ${node.id}`);
     finiteCoordinate(node.x, `Graph node x: ${node.id}`);
     finiteCoordinate(node.y, `Graph node y: ${node.id}`);
+    if (node.sourceEvidence !== undefined) {
+      if (!Array.isArray(node.sourceEvidence) || node.sourceEvidence.length > 5)
+        throw new Error(`Graph node sourceEvidence must contain at most 5 entries: ${node.id}`);
+      for (const [index, evidence] of node.sourceEvidence.entries()) {
+        const label = `Graph node sourceEvidence[${index}]: ${node.id}`;
+        if (!evidence || evidence.version !== 1
+          || !["definition", "import", "heading"].includes(evidence.kind)
+          || typeof evidence.path !== "string" || !evidence.path.trim()
+          || !Number.isInteger(evidence.line) || evidence.line < 1
+          || typeof evidence.excerpt !== "string" || !evidence.excerpt.trim())
+          throw new Error(`${label} is invalid`);
+      }
+    }
     if (nodeIds.has(node.id)) throw new Error("Graph contains duplicate node ids");
     nodeIds.add(node.id);
   }

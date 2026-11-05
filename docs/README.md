@@ -16,6 +16,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/README.md](ADR/README.md) | Contributors, reviewers | Accepted protocol and safety decisions with consequences and alternatives |
 | [ADR/0007-agent-workflow-is-a-read-only-contract.md](ADR/0007-agent-workflow-is-a-read-only-contract.md) | AI agents, reviewers | Why the eight-step workflow is descriptive and never grants project-write authority |
 | [ADR/0008-visual-undo-is-not-project-undo.md](ADR/0008-visual-undo-is-not-project-undo.md) | Contributors, reviewers | Why bounded graph history never reverses approved project writes |
+| [ADR/0009-source-evidence-is-read-only-context.md](ADR/0009-source-evidence-is-read-only-context.md) | AI agents, reviewers | Why `file:line` scanner evidence is context, not write authority |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
@@ -31,6 +32,8 @@ Agent-facing workflow guidance is documented in [ADR 0007](ADR/0007-agent-workfl
 
 Visual history is documented in [ADR 0008](ADR/0008-visual-undo-is-not-project-undo.md): human-confirmed undo/redo restores a bounded graph snapshot as a new revision, while bundles omit the history and project writes stay outside its reach.
 
+Source evidence is documented in [ADR 0009](ADR/0009-source-evidence-is-read-only-context.md): bounded `file:line` references survive scans and portable bundles with strict validation, but never expand proposal paths or grant write authority.
+
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 
-Test rule: `npm test` covers MCP integration, the collaboration loop, stable scan preservation, bounded visual history, annotation threads, the derived activity timeline, the agent workflow contract, and pure domain contracts for bundles, impact summaries, path safety, content hashes, and one-time approval grants. `npm run test:examples:workflow` runs the read-only workflow example end to end in a temporary workspace.
+Test rule: `npm test` covers MCP integration, the collaboration loop, stable scan preservation, bounded visual history, source evidence, annotation threads, the derived activity timeline, the agent workflow contract, and pure domain contracts for bundles, impact summaries, path safety, content hashes, and one-time approval grants. `npm run test:examples:workflow` runs the read-only workflow example end to end in a temporary workspace.

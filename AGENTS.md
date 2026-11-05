@@ -34,6 +34,7 @@ src/
 │   ├── session-diagnostics.ts 会话健康、下一步动作与安全不变量的只读摘要
 │   ├── graph-diff.ts          图形修订之间的节点/连线字段差异
 │   ├── graph-history.ts       有界视觉撤销/重做历史契约解析
+│   ├── graph-source-evidence  GraphNode.sourceEvidence 只读契约（见 types.ts / session-bundle.ts）
 │   ├── visual-graph-merge.ts  稳定路径重扫合并器：坐标/标签/批注/焦点保留
 │   ├── change-templates.ts    常见意图的只读变更模板目录与草稿展开
 │   ├── agent-workflow.ts      当前会话的八步 agent 工作流契约与就绪阻塞
@@ -79,6 +80,7 @@ docs/ADR/0005-human-focus-is-read-only-context.md 当前焦点只读上下文决
 docs/ADR/0006-stable-scan-preserves-human-visual-state.md 稳定扫描保留人工视觉状态决策
 docs/ADR/0007-agent-workflow-is-a-read-only-contract.md 只读工作流契约决策
 docs/ADR/0008-visual-undo-is-not-project-undo.md 视觉撤销不等于项目写入撤销决策
+docs/ADR/0009-source-evidence-is-read-only-context.md 只读源码证据决策
 docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
 ```
@@ -126,7 +128,7 @@ ROADMAP.md                   产品路线图与非目标
 
 `scan_project`、面板「重新扫描项目」与 `POST /api/collab/rescan` 共用 `VisualSyncService`。`project-scanner.ts` 用相对路径的 SHA-256 前缀生成确定性节点/连线 ID；`visual-graph-merge.ts` 按稳定 ID 或路径匹配旧图，保留有限 `x` / `y`、人工标签、`metadata.layoutSource`、仍可锚定的批注与 `SessionFocus`，新节点才自动排布，删除节点让线程 `detached`。版本 1 `ScanPreservationSummary` 通过 `PRESERVATION_JSON`、HTTP 响应、消息元数据和 `session_updated` 广播暴露保留计数。扫描器只读项目文件；图形同步只写 `OUTPUT_DIR` 的图资产与会话，绝不签发批准凭据或写项目文件。人工重新扫描端点要求本机面板令牌与 `confirmedBy: "human"`，详见 [ADR 0006](docs/ADR/0006-stable-scan-preserves-human-visual-state.md)。
 
-`scan_project` 的 `render: false` 是面向无头测试/状态检查的快速路径：它仍然扫描、合并、保存 `VisualGraph` 与会话并返回 `PRESERVATION_JSON`，但跳过重复 `mmdc` 渲染和面板图更新广播；默认路径与人工重新扫描仍会渲染完整 SVG/PNG。它不改变协议或安全边界，也不写项目文件。
+`scan_project` 的 `render: false` 与 `VisualSyncService.sync({ render: false })` 是面向无头测试/状态检查的快速路径：它们仍然扫描、合并、保存 `VisualGraph` 与会话并返回 `PRESERVATION_JSON`，但跳过重复 `mmdc` 渲染和面板图更新广播。`POST /api/collab/rescan` 可选显式传 `render: false`；布尔类型外的任何值会被 400 拒绝，面板始终显式传 `render: true`。默认路径仍会渲染完整 SVG/PNG。该开关不改变协议或安全边界，也不写项目文件；协作集成测试用它避免 Node 20 CI 上多次浏览器渲染叠加超过 30 秒。
 
 `GraphNode` / `AnnotationPin` 的 `x` / `y` 必须是有限数值；`SessionStore.validateGraph()` 与 `parseSessionBundle()` 都会拒绝非数字、`NaN` 或 `Infinity`。面板编辑坐标会标记 `metadata.layoutSource: "human"`，重新扫描会把它与自动布局区分开。
 
@@ -135,6 +137,8 @@ ROADMAP.md                   产品路线图与非目标
 `get_agent_workflow` 是只读描述性契约：version 1 `WORKFLOW_JSON` 含八步顺序、`requires` / `produces`、`readOnly`、`writes: "none" | "session" | "project"`、`grantsWriteAuthority: false` 和 `blocked` 就绪提示。它不写会话、不创建提案、不签发凭据；对话回复与提案创建是 session 写入，唯一 project 写入步骤是 `apply_visual_proposal`，仍须人工批准、一次性确认号、内容哈希、路径校验与失败回滚。陈旧线程或等待 human 时，`blocked` 会提示不得把旧讨论变成当前意图。共享类型在 `src/domain/types.ts`，构造逻辑在 `src/domain/agent-workflow.ts`，设计边界见 [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md)。
 
 `SessionStore` 维护 version 1 `GraphHistoryState`：每次 `setGraph()` 把旧 `VisualGraph` 快照压入最多 12 步的 past 栈，人类确认的 undo/redo 端点恢复一个快照并把它记作新的 `graphRevision` / `graphDiffs`。历史只含视觉图，不含消息、提案、批准凭据或项目文件备份；`createSessionBundle()` 不导出历史，导入会重置历史。撤销/重做是 session 写入，不是 project 写入，也不能回退 `apply_visual_proposal` 已经写入的文件。设计边界见 [ADR 0008](docs/ADR/0008-visual-undo-is-not-project-undo.md)。
+
+`scanProject()` 对小于 1 MiB 的源码/Markdown 文本提取最多 5 条 version 1 `GraphSourceEvidence`：`definition` / `import` / `heading`、工作区相对 `path`、正整数 `line` 与 160 字 `excerpt`。`scanToVisualGraph()`、稳定扫描合并、`get_visual_context.sourceEvidence`、诊断计数、`GET /api/collab/source-evidence` 与面板只读暴露它们；`SessionStore.validateGraph()` 与 bundle 解析器拒绝损坏/注入字段。证据只帮助引用代码，不签发凭据、不扩大提案允许路径、不授权项目写入；详见 [ADR 0009](docs/ADR/0009-source-evidence-is-read-only-context.md)。
 
 ---
 
@@ -176,9 +180,10 @@ server.tool(
 | `GET /api/collab/diagnostics` | 只读会话诊断：图/线程/提案计数、信号、下一步与安全不变量 |
 | `GET /api/collab/graph/diffs` | 最近图形修订差异；`limit` 默认 5、最大 20 |
 | `GET /api/collab/graph/history` | 只读有界视觉撤销/重做计数 |
+| `GET /api/collab/source-evidence` | 只读 `file:line` 证据；`limit` 默认 100、最大 200 |
 | `POST /api/collab/graph/undo` | 人类确认的视觉撤销；生成新图修订，不写项目文件 |
 | `POST /api/collab/graph/redo` | 人类确认的视觉重做；生成新图修订，不写项目文件 |
-| `POST /api/collab/rescan` | 人类确认的只读重新扫描；保留人工视觉状态，不写项目文件 |
+| `POST /api/collab/rescan` | 人类确认的只读重新扫描；可选 `render: false` 跳过重复渲染，保留人工视觉状态，不写项目文件 |
 | `GET /api/collab/bundle` | 导出可移植会话快照（不含一次性批准凭据） |
 | `POST /api/collab/bundle/import` | 人类确认后导入；清空气批准凭据，不写项目文件 |
 | `GET/PUT /api/collab/graph` | 读取/保存 VisualGraph |

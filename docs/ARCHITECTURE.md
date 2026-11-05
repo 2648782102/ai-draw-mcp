@@ -26,7 +26,7 @@ IDE / human browser
 
 ## Collaboration path (0.3)
 
-1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点），按 POSIX 相对路径派生确定性节点/连线 ID；`visual-sync-service.ts` 把扫描结果交给 `mergeScannedGraph()` 生成 `VisualGraph`，同时复用同一套渲染、会话保存与 WebSocket 广播。
+1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点），按 POSIX 相对路径派生确定性节点/连线 ID；对 1 MiB 以下的源码/Markdown 文本提取最多 5 条 version 1 `GraphSourceEvidence`（`definition` / `import` / `heading` 的 `file:line` 证据）。`visual-sync-service.ts` 把扫描结果交给 `mergeScannedGraph()` 生成 `VisualGraph`，同时复用同一套渲染、会话保存与 WebSocket 广播。
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
 3. 人类在面板「💬 协作」工作台改名称/类型/路径/分组/坐标、增删节点、编辑连线起点/终点/说明/类型、把批注绑定到选中节点、在批注线程里回复/解决/重开、发消息，或点击「重新扫描项目」；每次图形写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、有限坐标、路径/分组/连线类型、回复结构与引用完整性。
 4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、人类当前选中节点的 `focus`、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`：节点改名或路径变化后标为 `outdated`，节点删除后标为 `detached`；`staleThreads` 不进入 `intentByNode`，AI 应等待人类确认或重锚，不能把旧讨论当作当前写入意图。
@@ -35,7 +35,7 @@ IDE / human browser
 7. 人类把确认号发给 AI；AI 调用 `apply_visual_proposal`，服务端校验凭据与内容哈希后写入项目，失败自动回滚。
 8. AI 可再次 `scan_project`，或人在面板触发 `POST /api/collab/rescan`，生成反映新结构的图；两者共用 `VisualSyncService` 并保留人工视觉状态，形成闭环。
 
-`POST /api/collab/rescan` 要求 `confirmedBy: "human"` 与本机面板令牌；`scan_project` 可设 `open_panel: false` 适配无头工作流。扫描器只用 `fs.readdir` / `fs.readFile` 读取工作区；图形同步写的是 `OUTPUT_DIR` 下的图资产和会话，不写 `AI_DRAW_WORKSPACE_ROOT`。`mergeScannedGraph()` 按稳定 ID 优先、路径次之匹配旧节点：保留有限 `x` / `y`、自定义标签、`metadata.layoutSource`、`human` 焦点以及可锚定批注；新节点占用空闲自动布局位，删除节点使相关线程 `detached`，标签/路径变化使线程 `outdated`。version 1 `ScanPreservationSummary` 通过 `PRESERVATION_JSON`、HTTP 响应、系统消息与 WebSocket `session_updated` 暴露计数；它只是审计信息，不签发批准凭据，也不授权项目写入。详见 [ADR 0006](ADR/0006-stable-scan-preserves-human-visual-state.md)。
+`POST /api/collab/rescan` 要求 `confirmedBy: "human"` 与本机面板令牌；`scan_project` 可设 `open_panel: false` 适配无头工作流。两者还可在测试/自动化场景显式传 `render: false`，跳过重复 `mmdc` 渲染但仍完成扫描、合并、会话保存与 `PRESERVATION_JSON`；面板始终传 `render: true`，未传时保持默认渲染，非布尔的 `render` 会被 rescan 端点以 400 拒绝。扫描器只用 `fs.readdir` / `fs.readFile` 读取工作区；图形同步写的是 `OUTPUT_DIR` 下的图资产和会话，不写 `AI_DRAW_WORKSPACE_ROOT`。`mergeScannedGraph()` 按稳定 ID 优先、路径次之匹配旧节点：保留有限 `x` / `y`、自定义标签、`metadata.layoutSource`、`human` 焦点以及可锚定批注；新节点占用空闲自动布局位，删除节点使相关线程 `detached`，标签/路径变化使线程 `outdated`。version 1 `ScanPreservationSummary` 通过 `PRESERVATION_JSON`、HTTP 响应、系统消息与 WebSocket `session_updated` 暴露计数；它只是审计信息，不签发批准凭据，也不授权项目写入。详见 [ADR 0006](ADR/0006-stable-scan-preserves-human-visual-state.md)。
 
 协作会话可导出为 `kind: "ai-draw-session-bundle"` 的 version 1 JSON。导出只包含图、有限人工坐标、消息和去敏后的提案；一次性批准凭据留在内存中且不写入 bundle。导入必须带 `confirmedBy: "human"`，服务端会重新校验图与提案路径、清空批准凭据、拒绝非法文件和非有限坐标；导入绝不写项目文件。
 
@@ -56,6 +56,8 @@ IDE / human browser
 `SessionStore.setGraph()` 会把前后 `VisualGraph` 交给 `src/domain/graph-diff.ts`，保留最近 20 条 version 1 `graphDiffs`。每条记录包含修订号、来源、节点/连线计数及字段级变化；bundle 也保留这些审计记录，导入时严格校验结构、计数、字段值与时间戳并拒绝未知属性。`get_visual_context.graphDiffs` 和 `GET /api/collab/graph/diffs` 只读暴露它们；面板展开最近修订的字段前后值，时间线合并 `graph_diff` 事件。AI 应据此理解人类改图，而不是从自然语言猜测路径/分组/连线变化。
 
 `src/domain/graph-history.ts` 校验 version 1 `GraphHistoryState`；`SessionStore` 在 `OUTPUT_DIR/.ai-draw/session.json` 中保存最多 12 步视觉图 past/future 快照。`GET /api/collab/graph/history` 只读返回计数；人类确认的 `POST /api/collab/graph/undo` 与 `/redo` 要求本机面板令牌和 `confirmedBy: "human"`，恢复的图通过 `setGraph()` 生成新 `graphRevision`、`graphDiffs`、焦点刷新与派生活动消息。历史不进入 bundle、导入会话会重置历史，且两个端点都不触碰工作区文件、提案状态、批准凭据或已应用的项目写入；详见 [ADR 0008](ADR/0008-visual-undo-is-not-project-undo.md)。
+
+`GraphNode.sourceEvidence` 是扫描器派生、随 `VisualGraph` 持久化的只读引用。`GET /api/collab/source-evidence` 拉平节点证据；`get_visual_context.sourceEvidence`、`intentByNode`、诊断计数与面板列表让 AI/人看到工作区相对 `path`、正整数 `line` 和短摘要。bundle 和 `validateGraph()` 严格校验版本、类型、行号、路径、摘要与未知属性；证据不签发确认号、不改变 `path-safety.ts` 允许范围，也不授权项目写入。详见 [ADR 0009](ADR/0009-source-evidence-is-read-only-context.md)。
 
 ## Safety model
 

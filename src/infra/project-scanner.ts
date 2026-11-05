@@ -7,6 +7,7 @@ import type {
   ProjectScanEdge,
   ProjectScanNode,
   ProjectScanResult,
+  GraphSourceEvidence,
   VisualGraph,
 } from "../domain/types.js";
 
@@ -22,6 +23,8 @@ const CONFIG_BASENAMES = new Set([
 const MAX_DEPTH = 4;
 const MAX_FILES = 400;
 const MAX_IMPORTS_PER_FILE = 8;
+const MAX_EVIDENCE_PER_FILE = 5;
+const MAX_FIRST_LINE_BYTES = 1024 * 1024;
 
 function classify(relativePath: string, isDirectory: boolean): ProjectScanNode["kind"] {
   if (isDirectory) return "directory";
@@ -52,6 +55,35 @@ function stableHash(value: string): string {
 
 function stableId(prefix: "node" | "edge", ...parts: string[]): string {
   return `${prefix}_${stableHash(parts.join("|"))}`;
+}
+
+function excerptAt(source: string, lineNumber: number): string {
+  return (source.split(/\r?\n/)[lineNumber - 1] ?? "").trim().replace(/\s+/g, " ").slice(0, 160);
+}
+
+function sourceEvidenceFor(source: string, relativePath: string): GraphSourceEvidence[] {
+  const evidence: GraphSourceEvidence[] = [];
+  const lines = source.split(/\r?\n/);
+  const patterns: Array<[GraphSourceEvidence["kind"], RegExp]> = [
+    ["definition", /^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?(?:class|function|interface|type|const|let|var|enum|struct|fn|def)\s+([A-Za-z_$][\w$]*)/],
+    ["heading", /^\s{0,3}#{1,6}\s+\S/],
+    ["import", /^\s*(?:import|from|use|require|#include)\b/],
+  ];
+  for (let index = 0; index < lines.length && evidence.length < MAX_EVIDENCE_PER_FILE; index += 1) {
+    const line = lines[index];
+    for (const [kind, pattern] of patterns) {
+      if (!pattern.test(line)) continue;
+      evidence.push({
+        version: 1,
+        kind,
+        path: relativePath,
+        line: index + 1,
+        excerpt: excerptAt(source, index + 1),
+      });
+      break;
+    }
+  }
+  return evidence;
 }
 
 function extractImports(source: string): string[] {
@@ -142,8 +174,12 @@ export async function scanProject(options: ScanOptions): Promise<ProjectScanResu
   for (const node of nodes) {
     if (node.kind === "directory" || node.kind === "package") continue;
     const absolute = absoluteById.get(node.id);
-    if (!absolute || !SOURCE_EXTENSIONS.has(path.extname(absolute))) continue;
+    if (!absolute || path.extname(absolute) !== ".md" && !SOURCE_EXTENSIONS.has(path.extname(absolute))) continue;
+    const stat = await fs.stat(absolute).catch(() => null);
+    if (!stat || stat.size > MAX_FIRST_LINE_BYTES) continue;
     const source = await fs.readFile(absolute, "utf8").catch(() => "");
+    if (source) node.sourceEvidence = sourceEvidenceFor(source, node.path);
+    if (!SOURCE_EXTENSIONS.has(path.extname(absolute))) continue;
     for (const specifier of extractImports(source)) {
       const target = resolveImport(absolute, specifier);
       const targetId = target ? idByAbsolute.get(target) : undefined;
@@ -171,6 +207,8 @@ export async function scanProject(options: ScanOptions): Promise<ProjectScanResu
       testFiles: nodes.filter((node) => node.kind === "test").length,
       configFiles: nodes.filter((node) => node.kind === "config").length,
       ignoredPaths,
+      evidencedNodes: nodes.filter((node) => (node.sourceEvidence?.length ?? 0) > 0).length,
+      totalEvidence: nodes.reduce((total, node) => total + (node.sourceEvidence?.length ?? 0), 0),
     },
   };
 }
@@ -185,6 +223,7 @@ export function scanToVisualGraph(scan: ProjectScanResult, diagramId: string): V
       kind: node.kind,
       path: node.path,
       group: node.group,
+      sourceEvidence: node.sourceEvidence,
       x: (index % 8) * 180,
       y: Math.floor(index / 8) * 100,
       metadata: { ...(node.metadata ?? {}), layoutSource: "auto" },

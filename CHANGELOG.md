@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 只读 version 1 `GraphSourceEvidence`：`scan_project` 为不超过 1 MiB 的源码/Markdown 节点提取最多 5 条 `definition` / `import` / `heading` 的 `file:line` 证据；`get_visual_context.sourceEvidence`、意图摘要、诊断计数、`GET /api/collab/source-evidence`、面板证据列表与工作流第一步可引用它，绝不扩大写入权限。
+- [ADR 0009](docs/ADR/0009-source-evidence-is-read-only-context.md)：记录源码证据的只读边界、体积限制与 bundle 严格校验。
+- 可复现源码证据测试：临时工作区覆盖 README 标题、TS 定义/导入行号、稳定扫描保留、bundle 往返与注入字段拒绝。
 - 有界 version 1 `GraphHistoryState` 与面板「撤销 / 重做」：保存图形时保留视觉快照，人类确认的 `GET/POST /api/collab/graph/history|undo|redo` 可查看和切换最多 12 步。恢复会生成新 `graphRevision` 与字段级 `graphDiffs`，但绝不写项目文件、恢复批准凭据或回退已应用的提案。
 - 会话诊断新增只读 `graphHistory` 计数；领域契约、MCP 诊断与 HTTP 协作集成测试覆盖撤销/重做、人类确认、bundle 不含历史及项目文件不变。
 - [ADR 0008](docs/ADR/0008-visual-undo-is-not-project-undo.md)：记录视觉撤销与项目写入撤销的边界。
@@ -65,6 +68,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- `POST /api/collab/rescan` 增加可选布尔 `render` 开关：面板显式 `render: true` 保持完整渲染，无头协作测试用 `render: false` 避免 Node 20 CI 中多次 `mmdc` 渲染叠加超时；非布尔值以 400 拒绝，扫描协议与安全边界不变。
+- `ProjectScanResult.stats` 新增 `evidencedNodes` / `totalEvidence`；扫描响应、会话消息元数据、README、英文快速入门、AGENTS、架构、路线图、竞品调研与发布文案同步说明证据只读。
 - 面板图形编辑区新增撤销/重做按钮、可用性计数和「不写项目文件」提示；架构、AGENTS、路线图、竞品调研、发布文案、故障排除与安全文档同步说明视觉历史边界。
 - MCP 工具从 18 增至 19；README、英文快速入门、AGENTS、架构、路线图、竞品调研、发布文案、离线一致性检查、工具数量常量、MCP 测试与治理记录同步更新。
 - CI 增加可复现只读工作流示例执行；`npm run check` 也运行该示例，避免文档声称的「可复现」只停留在语法检查。

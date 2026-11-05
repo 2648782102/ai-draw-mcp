@@ -12,5 +12,6 @@ ADRs capture product and protocol decisions that contributors and AI coding agen
 | [0006-stable-scan-preserves-human-visual-state.md](0006-stable-scan-preserves-human-visual-state.md) | Accepted | Deterministic, read-only scans preserve human layout, threads, and focus without granting project writes. |
 | [0007-agent-workflow-is-a-read-only-contract.md](0007-agent-workflow-is-a-read-only-contract.md) | Accepted | A versioned, machine-readable workflow describes prerequisites and side effects without granting write authority. |
 | [0008-visual-undo-is-not-project-undo.md](0008-visual-undo-is-not-project-undo.md) | Accepted | Bounded graph undo/redo creates a new visual revision and never reverses approved project writes. |
+| [0009-source-evidence-is-read-only-context.md](0009-source-evidence-is-read-only-context.md) | Accepted | Bounded `file:line` scanner evidence helps humans and AI cite code without granting write authority. |
 
 Add a new ADR when a change affects the human/AI protocol, persisted state, tool surface, approval boundary, or public product direction. Keep the decision, alternatives, and safety consequence in one file.

@@ -20,6 +20,7 @@ AI Draw MCP 在本机启动一个预览服务，默认绑定 `127.0.0.1`。面�
 - 提案应用器拒绝删除、路径逃逸、绝对路径越界、`.git`、`node_modules`、`dist`、`.env*`、锁文件。
 - `get_agent_workflow` 与 `WORKFLOW_JSON` 只是描述性契约；就绪 `blocked` 列表、只读草稿、预检结果和上下文都不构成批准凭据或写入能力。
 - 视觉撤销/重做只恢复 `VisualGraph` 快照并要求人类确认；它不会回退项目文件、恢复一次性确认号或撤销已应用的提案。
+- `GraphSourceEvidence` 的 `file:line` 引用只是扫描器派生的只读上下文；bundle 严格校验路径/行号/摘要，证据不扩大提案路径范围，也不签发批准凭据。
 - 面板写 API 需要注入在 HTML 中的本机随机 `PANEL_TOKEN`。
 - 人类批准只签发 10 分钟一次性确认号；AI 必须在 `apply_visual_proposal` 中同时提供 `approval_id`、`approval_grant` 和过期时间。
 - 所有提案都需要 `approvedBy: "human"`，且凭据验证通过后才会应用。

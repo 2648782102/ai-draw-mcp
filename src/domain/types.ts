@@ -30,7 +30,16 @@ export interface GraphNode {
   group?: string;
   x?: number;
   y?: number;
+  sourceEvidence?: GraphSourceEvidence[];
   metadata?: Record<string, unknown>;
+}
+
+export interface GraphSourceEvidence {
+  version: 1;
+  kind: "definition" | "import" | "heading";
+  path: string;
+  line: number;
+  excerpt: string;
 }
 
 export interface GraphEdge {
@@ -236,6 +245,7 @@ export interface ProjectScanNode {
   kind: "directory" | "file" | "package" | "test" | "documentation" | "config";
   path: string;
   group?: string;
+  sourceEvidence?: GraphSourceEvidence[];
   metadata?: Record<string, unknown>;
 }
 
@@ -260,5 +270,7 @@ export interface ProjectScanResult {
     testFiles: number;
     configFiles: number;
     ignoredPaths: number;
+    evidencedNodes: number;
+    totalEvidence: number;
   };
 }

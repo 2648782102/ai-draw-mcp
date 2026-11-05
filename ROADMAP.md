@@ -25,6 +25,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Shipped in 0.3.x maintenance
 
+- Bounded read-only `file:line` source evidence for source/Markdown nodes, exposed to AI, diagnostics, the panel, and strictly validated bundles; see [ADR 0009](docs/ADR/0009-source-evidence-is-read-only-context.md).
 - Bounded, human-confirmed visual undo/redo: restores `VisualGraph` snapshots as new revisions with field-level diffs, while never reversing project writes, proposals, or approval grants; see [ADR 0008](docs/ADR/0008-visual-undo-is-not-project-undo.md).
 - `get_agent_workflow`: a versioned, read-only eight-step `WORKFLOW_JSON` with prerequisites, readiness blockers, explicit `none` / `session` / `project` write targets, and a reproducible CI example; see [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md).
 - Stable-path project scans: deterministic IDs, human-coordinate/custom-label preservation, annotation/focus migration, incremental auto-layout, a human-confirmed panel rescan, and a read-only preservation summary; see [ADR 0006](docs/ADR/0006-stable-scan-preserves-human-visual-state.md).
@@ -44,7 +45,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Later — 0.5: deeper project intelligence
 
-- Language-aware scanners that surface imports, symbols, tests, and framework boundaries beyond the current file-tree scanner.
+- Language-aware scanners that surface precise symbol ranges, tests, and framework boundaries beyond the current bounded line-evidence heuristics.
 - A bidirectional mapping between graph nodes and source ranges so humans can click from a node to code.
 - Review checkpoints: dry-run, test-command suggestions, and optional Git worktree isolation for applied proposals.
 - Multi-diagram sessions: architecture, flow, and sequence views over the same workspace.

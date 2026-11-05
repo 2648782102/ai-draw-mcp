@@ -14,6 +14,7 @@
  *   POST /api/collab/focus       set the human's selected graph node
  *   GET  /api/collab/activity    derived compact activity timeline
  *   GET  /api/collab/diagnostics  read-only session health and next-action summary
+ *   GET  /api/collab/source-evidence  read-only file:line evidence derived from the visual graph
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/graph/history  bounded visual undo/redo availability
  *   POST /api/collab/graph/undo   human-confirmed visual undo
@@ -143,6 +144,18 @@ export class PreviewServer {
       res.json({ diagnostics: buildSessionDiagnostics(this.sessions.getSnapshot()) });
     });
 
+    this.app.get("/api/collab/source-evidence", (req, res) => {
+      const graph = this.sessions.getGraph();
+      const items = (graph?.nodes ?? []).flatMap((node) => (node.sourceEvidence ?? []).map((evidence) => ({
+        nodeId: node.id,
+        nodeLabel: node.label,
+        ...evidence,
+      })));
+      const rawLimit = Number(req.query.limit ?? 100);
+      const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(200, Math.floor(rawLimit))) : 100;
+      res.json({ version: 1, items: items.slice(0, limit), total: items.length });
+    });
+
     this.app.get("/api/collab/graph/diffs", (req, res) => {
       const rawLimit = Number(req.query.limit ?? 5);
       const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(20, Math.floor(rawLimit))) : 5;
@@ -182,13 +195,16 @@ export class PreviewServer {
     this.app.post("/api/collab/graph/redo", (req, res) => restoreGraphHistory(req, res, "redo"));
 
     this.app.post("/api/collab/rescan", async (req, res) => {
-      const body = req.body as { confirmedBy?: string };
+      const body = req.body as { confirmedBy?: string; render?: boolean };
       if (body.confirmedBy !== "human")
         return res.status(403).json({ error: "Human confirmation is required" });
+      if (body.render !== undefined && typeof body.render !== "boolean")
+        return res.status(400).json({ error: "render must be a boolean" });
       try {
         const result = await this.visualSync.sync({
           source: "human",
           openPanel: false,
+          render: body.render,
         });
         res.json({
           ok: true,

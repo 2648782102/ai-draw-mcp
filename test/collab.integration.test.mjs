@@ -457,7 +457,7 @@ describe("collaboration session", () => {
       expect(token).toBeTruthy();
       const headers = { "Content-Type": "application/json", "X-AI-Draw-Token": token };
 
-      const initial = await visualSync.sync({ source: "ai", title: "Rescan baseline", openPanel: false });
+      const initial = await visualSync.sync({ source: "ai", title: "Rescan baseline", openPanel: false, render: false });
       const readmeNode = initial.graph.nodes.find((node) => node.path === "README.md");
       const srcNode = initial.graph.nodes.find((node) => node.path === "src");
       expect(readmeNode).toBeTruthy();
@@ -496,14 +496,20 @@ describe("collaboration session", () => {
       const unauthorized = await fetch(`${base}/api/collab/rescan`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ confirmedBy: "ai" }),
+        body: JSON.stringify({ confirmedBy: "ai", render: false }),
       });
       expect(unauthorized.status).toBe(403);
+      const invalidRender = await fetch(`${base}/api/collab/rescan`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ confirmedBy: "human", render: "no" }),
+      });
+      expect(invalidRender.status).toBe(400);
 
       const rescan = await fetch(`${base}/api/collab/rescan`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ confirmedBy: "human" }),
+        body: JSON.stringify({ confirmedBy: "human", render: false }),
       });
       expect(rescan.ok).toBe(true);
       const rescanResult = await rescan.json();
@@ -517,6 +523,12 @@ describe("collaboration session", () => {
         preservedFocus: true,
       });
       expect(rescanResult.preservation.newNodes).toBeGreaterThanOrEqual(1);
+      const evidenceResponse = await fetch(`${base}/api/collab/source-evidence`, { headers });
+      expect(evidenceResponse.ok).toBe(true);
+      const evidence = await evidenceResponse.json();
+      expect(evidence).toMatchObject({ version: 1, total: expect.any(Number) });
+      expect(evidence.items.every((item) => item.version === 1 && Number.isInteger(item.line) && item.line >= 1)).toBe(true);
+      expect(evidence.items.every((item) => typeof item.path === "string" && typeof item.excerpt === "string")).toBe(true);
 
       const after = await collabFetchGraph(base, headers);
       const preservedReadme = after.nodes.find((node) => node.id === readmeNode.id);
@@ -532,7 +544,7 @@ describe("collaboration session", () => {
       const removed = await fetch(`${base}/api/collab/rescan`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ confirmedBy: "human" }),
+        body: JSON.stringify({ confirmedBy: "human", render: false }),
       });
       expect(removed.ok).toBe(true);
       const removedResult = await removed.json();
@@ -553,7 +565,7 @@ describe("collaboration session", () => {
       delete process.env.OUTPUT_DIR;
       delete process.env.PREVIEW_PORT;
     }
-  }, 30_000);
+  }, 15_000);
 
   it("undoes and redoes only visual graph state with human confirmation", async () => {
     const historyTempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ai-draw-history-"));

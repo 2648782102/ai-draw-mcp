@@ -8,6 +8,7 @@ export function registerScanProject(server: McpServer, ctx: ToolContext) {
     "扫描当前工作区结构，生成或刷新可编辑的项目结构图，并把它设为双向协作会话的当前图。" +
     " 重复扫描会按路径使用确定性节点 ID，保留人工坐标、自定义标签、仍可锚定的批注线程与当前焦点；新增节点才自动排布。" +
     " AI 可用它快速理解项目，人类随后可在面板里改图、批注、发消息；返回结构化 nodes/edges、PRESERVATION_JSON 摘要和预览链接。" +
+    " 扫描器会为小于 1 MiB 的源码/文档节点提取最多 5 条 version 1 file:line 证据（definition/import/heading），供 get_visual_context.sourceEvidence 只读引用；证据不构成批准或写入凭据。" +
     " 可用 open_panel=false 抑制自动打开面板；render=false 可跳过 mmdc 渲染，仅做无头图状态检查。" +
     " 只读扫描项目文件，不写源代码；图形与会话保存不等于项目写入授权。如需根据批注修改代码，请使用 get_visual_context 生成提案。",
     {
@@ -38,6 +39,7 @@ export function registerScanProject(server: McpServer, ctx: ToolContext) {
           `Graph revision: ${result.graphRevision}`,
           `Stats: ${JSON.stringify(result.scan.stats)}`,
           `Preservation: ${JSON.stringify(result.preservation)}`,
+          `Source evidence: ${result.scan.stats.evidencedNodes} nodes / ${result.scan.stats.totalEvidence} file:line references`,
           `PRESERVATION_JSON: ${JSON.stringify(result.preservation)}`,
           jsonLine({
             id: result.id,
@@ -47,6 +49,8 @@ export function registerScanProject(server: McpServer, ctx: ToolContext) {
             workspaceRoot: result.workspaceRoot,
             graphRevision: String(result.graphRevision),
             preservedCoordinates: String(result.preservation.preservedCoordinates),
+            evidencedNodes: String(result.scan.stats.evidencedNodes),
+            totalEvidence: String(result.scan.stats.totalEvidence),
           }),
           "",
           `Nodes/edges (structured): ${JSON.stringify({ nodes: result.graph.nodes, edges: result.graph.edges })}`,

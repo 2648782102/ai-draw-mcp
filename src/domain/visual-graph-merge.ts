@@ -122,6 +122,7 @@ export function mergeScannedGraph(
       const merged: GraphNode = {
         ...clone(scannedNode),
         label: humanLabel ? previous.label : scannedNode.label,
+        sourceEvidence: scannedNode.sourceEvidence,
         x: coordinate?.x,
         y: coordinate?.y,
         metadata: {

@@ -5,6 +5,7 @@ import type {
   ConversationMessage,
   GraphEdge,
   GraphNode,
+  GraphSourceEvidence,
   GraphRevisionDiff,
   SessionSnapshot,
   SessionFocus,
@@ -156,7 +157,33 @@ function parseNodes(value: unknown): GraphNode[] {
       group: typeof item.group === "string" ? item.group : undefined,
       x: optionalFiniteNumber(item.x, `session.graph.nodes[${index}].x`),
       y: optionalFiniteNumber(item.y, `session.graph.nodes[${index}].y`),
+      sourceEvidence: parseSourceEvidence(item.sourceEvidence, `session.graph.nodes[${index}].sourceEvidence`),
       metadata: isRecord(item.metadata) ? item.metadata : undefined,
+    };
+  });
+}
+
+function parseSourceEvidence(value: unknown, label: string): GraphSourceEvidence[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) throw new Error(`${label} must be an array`);
+  return value.slice(0, 5).map((entry, index) => {
+    const itemLabel = `${label}[${index}]`;
+    if (!isRecord(entry)) throw new Error(`${itemLabel} must be an object`);
+    if (entry.version !== 1) throw new Error(`${itemLabel} has unsupported version`);
+    if (entry.kind !== "definition" && entry.kind !== "import" && entry.kind !== "heading")
+      throw new Error(`${itemLabel}.kind is invalid`);
+    const line = assertFiniteNumber(entry.line, `${itemLabel}.line`);
+    if (!Number.isInteger(line) || line < 1) throw new Error(`${itemLabel}.line must be a positive integer`);
+    for (const key of Object.keys(entry)) {
+      if (!["version", "kind", "path", "line", "excerpt"].includes(key))
+        throw new Error(`${itemLabel} has unknown property ${key}`);
+    }
+    return {
+      version: 1,
+      kind: entry.kind,
+      path: assertString(entry.path, `${itemLabel}.path`),
+      line,
+      excerpt: assertString(entry.excerpt, `${itemLabel}.excerpt`).slice(0, 160),
     };
   });
 }

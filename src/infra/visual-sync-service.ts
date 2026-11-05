@@ -126,14 +126,15 @@ export class VisualSyncService {
     await sessions.addMessage(
       options.source === "human" ? "system" : "ai",
       options.source === "human"
-        ? `已从工作区重新同步图形；保留 ${merged.preservation.preservedCoordinates} 个节点坐标（${merged.preservation.humanCoordinates} 个人工布局），${merged.preservation.detachedAnnotations} 条批注失锚。`
-        : `已生成项目结构图：${title}`,
+        ? `已从工作区重新同步图形；保留 ${merged.preservation.preservedCoordinates} 个节点坐标（${merged.preservation.humanCoordinates} 个人工布局），${merged.preservation.detachedAnnotations} 条批注失锚，收集 ${scan.stats.totalEvidence} 条只读源码证据。`
+        : `已生成项目结构图：${title}；收集 ${scan.stats.evidencedNodes} 个节点的 ${scan.stats.totalEvidence} 条只读 file:line 证据。`,
       {
         diagramId: id,
         metadata: {
           event: "project_scan",
           source: options.source,
           stats: scan.stats,
+          sourceEvidence: { evidencedNodes: scan.stats.evidencedNodes, totalEvidence: scan.stats.totalEvidence },
           preservation: merged.preservation,
         },
       },
