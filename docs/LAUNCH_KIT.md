@@ -43,21 +43,12 @@ Verified outcome for `v0.3.3`: Release [v0.3.3 — Human ↔ AI visual collabora
 
 Title: `v0.3.3 — Human ↔ AI visual collaboration`
 
-## Release notes — 0.3.4
-
-Highlights in the current development tree:
-
-- 26 MCP tools and 19 ADRs, with a new `get_selection_workorder` tool and `GET /api/collab/selection-workorder`.
-- `SELECTION_WORKORDER_JSON`: a bounded, read-only pre-proposal checklist derived from human multi-node selection, in-scope intent, safe relative candidate paths, `file:line` evidence, review-readiness gaps, and next actions. It contains no `ProjectChange` content, line diff, proposal, approval grant, absolute workspace path, or new persisted state; `preflight_visual_proposal`, a human-reviewed full line diff, and a one-time receipt remain mandatory. See [ADR 0019](docs/ADR/0019-selection-workorder-is-read-only-preflight.md).
-- The panel displays the same derived workorder and can copy it into a prompt that tells an AI to read the full session, resolve gaps with the human, then explicitly draft changes rather than treating selected paths as write permissions.
-
 ```markdown
 AI Draw MCP is no longer just a diagram renderer. It is a local-first visual workspace where an AI scans a project, a human edits the graph and leaves annotations, and the pair reviews a file-change proposal before anything is written.
 
 Highlights:
 - 25 MCP tools, including scan, a read-only capability catalogue, visual context, a read-only shared handoff brief, a read-only decision trail, a read-only single-node context projection, a read-only bounded multi-node selection scope, a read-only copyable source-navigation projection, a read-only agent workflow contract, AI reply, read-only change templates, proposal preflight, proposal creation, and receipt-gated apply.
 - `SELECTION_SCOPE_JSON`: a version 1 read-only projection of at most 24 human-selected graph nodes, internal edges, safe relative `file:line` evidence, and focus membership. Selection stays ephemeral panel attention, is excluded from session bundles, and never grants write authority; see [ADR 0018](docs/ADR/0018-human-selection-is-read-only-scope.md).
-- `SELECTION_WORKORDER_JSON` is the next, unreleased 0.3.4 pre-proposal checklist; see the draft section above. Candidate paths are descriptive only and never become write permissions.
 - `CAPABILITIES_JSON`: one bounded, read-only discovery view of the tool/JSON surface, workflow readiness, suggested next action, and the unique receipt-gated project-write boundary; native MCP `tools/list` remains authoritative for tool names and schemas; see [ADR 0017](docs/ADR/0017-capability-catalogue-is-read-only-discovery.md).
 - `get_agent_workflow` and `WORKFLOW_JSON`: eight ordered steps with prerequisites, readiness blockers, and explicit `none` / `session` / `project` write boundaries, plus a reproducible read-only CI example.
 - Bounded, human-confirmed visual undo/redo with field-level graph diffs; visual history never reverses project files, approved proposals, or one-time receipts.
@@ -80,6 +71,17 @@ Highlights:
 
 Quickstart: https://github.com/2648782102/ai-draw-mcp#readme
 ```
+
+## Release notes — 0.3.4
+
+Title: `v0.3.4 — Human ↔ AI visual collaboration`
+
+Highlights in the current release:
+
+- 26 MCP tools and 19 ADRs, with a new `get_selection_workorder` tool and `GET /api/collab/selection-workorder`.
+- `SELECTION_WORKORDER_JSON`: a bounded, read-only pre-proposal checklist derived from human multi-node selection, in-scope intent, safe relative candidate paths, `file:line` evidence, review-readiness gaps, and next actions. It contains no `ProjectChange` content, line diff, proposal, approval grant, absolute workspace path, or new persisted state; `preflight_visual_proposal`, a human-reviewed full line diff, and a one-time receipt remain mandatory. See [ADR 0019](docs/ADR/0019-selection-workorder-is-read-only-preflight.md).
+- The panel displays the same derived workorder and can copy it into a prompt that tells an AI to read the full session, resolve gaps with the human, then explicitly draft changes rather than treating selected paths as write permissions.
+- Full local verification: 23 test files / 78 tests, a reproducible read-only workflow example, offline repository checks, and an `ai-draw-mcp-0.3.4.tgz` dry-run package of 275 files.
 
 ## Release notes — 0.3.2
 
