@@ -11,6 +11,7 @@ These examples are intentionally small and contain no secrets or absolute paths.
 - `agent-workflow.mjs` — a reproducible read-only workflow: ordered steps → template draft → preflight, without creating a proposal or writing files.
 - `get_node_context` — a read-only MCP tool for one focused node's evidence, threads, edges, graph diffs, and focus state; available after `scan_project`.
 - `get_shared_brief` — a read-only `BRIEF_JSON` handoff tool for readiness blockers, bounded intent, stale threads, latest graph diff, evidence, and next actions; `agent-workflow.mjs` verifies it before preflight.
+- `BRIEF_JSON.viewport` — bounded human zoom/pan attention context; it is read-only and never becomes a graph revision, timeline event, bundle field, or approval grant.
 - `collaboration-workflow.md` — a human ↔ AI walkthrough for scanning, annotating, approving, and applying a proposal.
 
 Run the client after `npm run build`:

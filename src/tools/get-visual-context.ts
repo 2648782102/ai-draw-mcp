@@ -31,6 +31,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       const diagnostics = buildSessionDiagnostics(snapshot);
       const graphDiffs = ctx.sessions.getGraphDiffs(graph_diff_limit ?? 5);
       const focus = snapshot.focus;
+      const viewport = snapshot.viewport ?? null;
       const nodeLabels = new Map(graph?.nodes.map((node) => [node.id, node.label]) ?? []);
       const annotationsByNode = new Map<string, string[]>();
       const generalAnnotations: string[] = [];
@@ -82,6 +83,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         graphDiffs,
         sourceEvidence,
         focus: focus ?? null,
+        viewport,
         nextActor: annotationThreads.nextActor,
         nextActions: [
           `Activity timeline: ${activityTimeline.total} derived events, including ${activityTimeline.kinds.graph_diff} graph revisions; next actor ${activityTimeline.nextActor}.`,
@@ -111,6 +113,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         graphDiffs,
         sourceEvidence,
         focus: focus ?? null,
+        viewport,
         activityTimeline,
         diagnostics,
         intentSummary,
@@ -126,6 +129,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           "Use activityTimeline for compact chronology of messages, graph revisions, annotation threads, and proposal lifecycle events.",
           "Use sourceEvidence to cite file:line definitions/imports/headings when explaining a node; never treat evidence as approval or write authority.",
           "Use diagnostics.signals and diagnostics.nextActions for a concise session health check; diagnostics never grants write authority.",
+          "Use viewport to understand which diagram region the human is inspecting; viewport is attention context only and never grants write authority.",
         ],
       };
       return {

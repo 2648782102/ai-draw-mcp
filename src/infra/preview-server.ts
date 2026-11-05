@@ -12,6 +12,7 @@
  *   DEL  /api/diagram/:id       delete diagram
  *   GET  /api/collab/session     collaboration snapshot
  *   POST /api/collab/focus       set the human's selected graph node
+ *   POST /api/collab/viewport    set the human panel's coarse zoom/pan attention state
  *   GET  /api/collab/activity    derived compact activity timeline
  *   GET  /api/collab/diagnostics  read-only session health and next-action summary
  *   GET  /api/collab/source-evidence  read-only file:line evidence derived from the visual graph
@@ -133,6 +134,18 @@ export class PreviewServer {
         const focus = await this.sessions.setFocus(body.nodeId.trim(), "human");
         this.broadcast({ type: "focus_updated", focus });
         res.json({ ok: true, focus });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+
+    this.app.post("/api/collab/viewport", async (req, res) => {
+      const body = req.body as { confirmedBy?: string; viewport?: unknown };
+      if (body.confirmedBy !== "human")
+        return res.status(403).json({ error: "Human panel confirmation is required" });
+      try {
+        const viewport = await this.sessions.setViewport(body.viewport, body.confirmedBy);
+        res.json({ ok: true, viewport });
       } catch (error) {
         res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
       }

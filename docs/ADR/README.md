@@ -15,5 +15,6 @@ ADRs capture product and protocol decisions that contributors and AI coding agen
 | [0009-source-evidence-is-read-only-context.md](0009-source-evidence-is-read-only-context.md) | Accepted | Bounded `file:line` scanner evidence helps humans and AI cite code without granting write authority. |
 | [0010-node-context-is-a-read-only-projection.md](0010-node-context-is-a-read-only-projection.md) | Accepted | Single-node context is a derived read-only view, never a focus mutation or write grant. |
 | [0011-shared-brief-is-a-read-only-projection.md](0011-shared-brief-is-a-read-only-projection.md) | Accepted | The compact shared handoff brief is derived, excludes approval grants, and never grants write authority. |
+| [0012-viewport-is-read-only-attention-context.md](0012-viewport-is-read-only-attention-context.md) | Accepted | Human zoom/pan state is bounded attention context, never a graph revision, timeline event, or write grant. |
 
 Add a new ADR when a change affects the human/AI protocol, persisted state, tool surface, approval boundary, or public product direction. Keep the decision, alternatives, and safety consequence in one file.

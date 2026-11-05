@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- version 1 `SessionViewport` 与 `POST /api/collab/viewport`：面板节流同步有界缩放/平移状态，`get_visual_context`、`BRIEF_JSON`、诊断和面板只读显示人正在看哪片图；不改图修订、不进入消息/时间线/差异/bundle、不签发凭据。
+- [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md)：记录视口是有限的人类注意力上下文，AI 不能设置或把它变成项目写入权限。
+- 视口纯函数、MCP 上下文、共享简报/诊断与 HTTP 协作测试：覆盖有限值、范围、来源、未知属性、人类确认、非法输入拒绝以及图形/消息/差异不变。
 - 第 21 个 MCP 工具 `get_shared_brief` 与 `GET /api/collab/brief`：version 1 `BRIEF_JSON` 把会话/图形版本、人类焦点、就绪阻塞、待处理消息、有效与失锚批注、最近图形修订、有界 `file:line` 证据、提案/活动计数和下一步聚合成紧凑交接视图；面板显示同一只读视图并提供「复制共享简报」。
 - [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md)：记录共享简报是派生投影、不持久化、不含批准凭据，也不授予写入权限。
 - 共享简报纯函数、MCP、HTTP、工作流示例与离线一致性测试：覆盖有界意图、失锚线程分离、焦点、缺图阻塞、凭据不外泄和 `grantsWriteAuthority: false`。
@@ -74,6 +77,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- 面板缩放/平移后以 400ms 节流同步 `SessionViewport`；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、安全、文档地图、离线一致性检查与示例同步说明其只读边界。
 - MCP 工具从 20 增至 21；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、示例、离线一致性检查、工具数量常量、工作流第一步输出与 MCP/HTTP 测试同步更新。
 - MCP 工具从 19 增至 20；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、离线一致性检查、工具数量常量、工作流契约和 MCP 测试同步更新。
 - `POST /api/collab/rescan` 增加可选布尔 `render` 开关：面板显式 `render: true` 保持完整渲染，无头协作测试用 `render: false` 避免 Node 20 CI 中多次 `mmdc` 渲染叠加超时；非布尔值以 400 拒绝，扫描协议与安全边界不变。

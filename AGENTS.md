@@ -39,6 +39,7 @@ src/
 │   ├── change-templates.ts    常见意图的只读变更模板目录与草稿展开
 │   ├── agent-workflow.ts      当前会话的八步 agent 工作流契约与就绪阻塞
 │   ├── shared-brief.ts        SharedBrief / BRIEF_JSON 派生只读交接投影
+│   ├── viewport.ts            SessionViewport 有界只读注意力状态校验
 │   ├── impact.ts             提案影响摘要：文件数、行数、字节数与安全说明
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
 ├── infra/
@@ -83,6 +84,7 @@ docs/ADR/0006-stable-scan-preserves-human-visual-state.md 稳定扫描保留人�
 docs/ADR/0007-agent-workflow-is-a-read-only-contract.md 只读工作流契约决策
 docs/ADR/0008-visual-undo-is-not-project-undo.md 视觉撤销不等于项目写入撤销决策
 docs/ADR/0011-shared-brief-is-a-read-only-projection.md 只读共享交接简报决策
+docs/ADR/0012-viewport-is-read-only-attention-context.md 视口是只读注意力上下文决策
 docs/ADR/0009-source-evidence-is-read-only-context.md 只读源码证据决策
 docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
@@ -122,6 +124,8 @@ ROADMAP.md                   产品路线图与非目标
 `get_node_context` 与 `GET /api/collab/node-context` 是 `src/domain/node-context.ts` 的 version 1 只读投影：默认取 `focus.nodeId`，也可用显式 `node_id`，聚合节点字段、`file:line` 证据、命中该节点的批注线程及失锚状态、入/出连线与相邻节点、相关 `graphDiffs`、焦点状态和固定 `safety`。它不持久化节点上下文、不改焦点、不解决/重锚线程、不创建提案、不写项目文件、不签发凭据；面板用同一端点展示选中节点，详见 [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md)。
 
 `get_shared_brief` 与 `GET /api/collab/brief` 是 `src/domain/shared-brief.ts` 的 version 1 只读交接投影：聚合会话/图形版本、人类焦点、就绪阻塞、待处理消息、有效与失锚批注、最近图形修订、有界 `file:line` 证据、提案/活动计数和下一步。`BRIEF_JSON` 不持久化、不进入 bundle、不含批准凭据、不改焦点/线程/提案、不写会话或项目文件；面板显示并可复制同一份视图，详见 [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md)。
+
+`SessionViewport` 是 `src/domain/viewport.ts` 校验的 version 1 有界缩放/平移注意力状态。只有本机面板可通过 `POST /api/collab/viewport` 以 `PANEL_TOKEN` 与 `confirmedBy: "human"` 发布；`get_visual_context.viewport`、`BRIEF_JSON.viewport`、诊断和面板只读显示。它不改 `graphRevision`、不产生消息/时间线/`graphDiffs`/批准凭据、不进入 bundle、不写项目文件；导入会话会清除视口，详见 [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md)。
 
 `POST /api/collab/focus` 只接受 `confirmedBy: "human"` 的本机面板选择，服务端写入 version 1 `SessionFocus`；节点删除后清除焦点，图修订会刷新仍存在节点的标签/路径/分组。`get_visual_context.focus`、诊断和 bundle 只读暴露它，bundle 导入会严格校验结构并丢弃失锚焦点。焦点不产生消息、不进入时间线、不签发凭据，也不解决线程或创建提案。
 
@@ -192,6 +196,7 @@ server.tool(
 | `GET /api/collab/source-evidence` | 只读 `file:line` 证据；`limit` 默认 100、最大 200 |
 | `GET /api/collab/node-context` | 只读单节点上下文；`nodeId` 默认当前焦点，`diffLimit` 默认 5、最大 20 |
 | `GET /api/collab/brief` | 只读共享交接简报；`messageLimit` 默认 5 最大 20，`graphDiffLimit` 默认 3 最大 10，`activityLimit` 默认 5 最大 20 |
+| `POST /api/collab/viewport` | 人类面板发布有界缩放/平移注意力状态；严格校验有限数值、范围、来源和未知属性，不改图修订或签发凭据 |
 | `POST /api/collab/graph/undo` | 人类确认的视觉撤销；生成新图修订，不写项目文件 |
 | `POST /api/collab/graph/redo` | 人类确认的视觉重做；生成新图修订，不写项目文件 |
 | `POST /api/collab/rescan` | 人类确认的只读重新扫描；可选 `render: false` 跳过重复渲染，保留人工视觉状态，不写项目文件 |

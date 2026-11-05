@@ -63,6 +63,9 @@ const sharedBriefDomain = await read("src/domain/shared-brief.ts");
 const sharedBriefTool = await read("src/tools/get-shared-brief.ts");
 const sharedBriefTest = await read("test/shared-brief.test.mjs");
 const sharedBriefAdr = await read("docs/ADR/0011-shared-brief-is-a-read-only-projection.md");
+const viewportDomain = await read("src/domain/viewport.ts");
+const viewportTest = await read("test/viewport.test.mjs");
+const viewportAdr = await read("docs/ADR/0012-viewport-is-read-only-attention-context.md");
 const nodeContextAdr = await read("docs/ADR/0010-node-context-is-a-read-only-projection.md");
 const workflowAdr = await read("docs/ADR/0007-agent-workflow-is-a-read-only-contract.md");
 const visualHistoryAdr = await read("docs/ADR/0008-visual-undo-is-not-project-undo.md");
@@ -330,6 +333,31 @@ for (const [label, source, needle] of [
   ["shared brief research", research, "BRIEF_JSON"],
   ["shared brief troubleshooting", troubleshooting, "BRIEF_JSON"],
   ["shared brief examples map", examplesReadme, "get_shared_brief"],
+  ["viewport shared type", types, "export interface SessionViewport"],
+  ["viewport domain", viewportDomain, "export function parseViewport"],
+  ["viewport bounded values", viewportDomain, "SCALE_MIN"],
+  ["viewport store validation", sessionStore, "parseViewport"],
+  ["viewport endpoint", previewServer, "/api/collab/viewport"],
+  ["viewport panel", panel, 'id="viewportSummary"'],
+  ["viewport panel sync", panel, "scheduleViewportSync"],
+  ["viewport MCP context", getVisualContext, "viewport"],
+  ["viewport brief", sharedBriefDomain, "viewport: snapshot.viewport"],
+  ["viewport diagnostics", await read("src/domain/session-diagnostics.ts"), "viewport: snapshot.viewport"],
+  ["viewport pure contract test", viewportTest, "read-only viewport attention context"],
+  ["viewport HTTP test", collaborationTest, "/api/collab/viewport"],
+  ["viewport ADR index", adrIndex, "0012-viewport-is-read-only-attention-context.md"],
+  ["viewport ADR boundary", viewportAdr, "project-write capability"],
+  ["viewport docs map", documentationMap, "0012-viewport-is-read-only-attention-context.md"],
+  ["viewport English docs", englishQuickstart, "SessionViewport"],
+  ["viewport Chinese docs", readme, "人类视口注意力"],
+  ["viewport AGENTS docs", agents, "SessionViewport"],
+  ["viewport architecture", architecture, "SessionViewport"],
+  ["viewport security", security, "SessionViewport"],
+  ["viewport roadmap", roadmap, "viewport attention"],
+  ["viewport launch", launchKit, "Human viewport attention"],
+  ["viewport research", research, "SessionViewport"],
+  ["viewport troubleshooting", troubleshooting, "BRIEF_JSON.viewport"],
+  ["viewport examples map", examplesReadme, "BRIEF_JSON.viewport"],
   ["server tool count", server, "const TOOL_COUNT = 21"],
   ["server workflow registration", server, "registerGetAgentWorkflow"],
   ["CI workflow example", ci, "npm run test:examples:workflow"],

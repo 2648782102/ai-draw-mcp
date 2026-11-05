@@ -94,6 +94,15 @@ export interface SessionFocus {
   source: "human";
 }
 
+export interface SessionViewport {
+  version: 1;
+  scale: number;
+  x: number;
+  y: number;
+  updatedAt: string;
+  source: "human";
+}
+
 export interface ConversationMessage {
   id: string;
   sessionId: string;
@@ -145,6 +154,7 @@ export interface SessionSnapshot {
   graphRevision: number;
   graph?: VisualGraph;
   focus?: SessionFocus;
+  viewport?: SessionViewport;
   graphDiffs?: GraphRevisionDiff[];
   graphHistory?: GraphHistoryState;
   messages: ConversationMessage[];
@@ -246,6 +256,7 @@ export interface SharedBrief {
     group?: string;
     source: "human";
   } | null;
+  viewport: SessionViewport | null;
   status: {
     graph: { nodes: number; edges: number; annotations: number; staleAnnotations: number } | null;
     sourceEvidence: { nodes: number; items: number };

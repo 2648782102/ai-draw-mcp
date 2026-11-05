@@ -118,6 +118,51 @@ describe("collaboration session", () => {
       });
       expect(unauthorizedFocus.status).toBe(403);
 
+      const viewportBefore = sessions.getSnapshot();
+      const viewportResponse = await fetch(`${base}/api/collab/viewport`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          confirmedBy: "human",
+          viewport: {
+            version: 1,
+            scale: 1.5,
+            x: -12.5,
+            y: 33.25,
+            updatedAt: new Date().toISOString(),
+            source: "human",
+          },
+        }),
+      });
+      expect(viewportResponse.ok).toBe(true);
+      const viewportResult = await viewportResponse.json();
+      expect(viewportResult.viewport).toMatchObject({ version: 1, scale: 1.5, source: "human" });
+      const viewportAfter = sessions.getSnapshot();
+      expect(viewportAfter.graphRevision).toBe(viewportBefore.graphRevision);
+      expect(viewportAfter.messages).toHaveLength(viewportBefore.messages.length);
+      expect(viewportAfter.graphDiffs).toEqual(viewportBefore.graphDiffs);
+      expect(viewportAfter.viewport).toMatchObject({ scale: 1.5, x: -12.5, y: 33.25 });
+      const briefWithViewport = await fetch(`${base}/api/collab/brief`, { headers }).then((response) => response.json());
+      expect(briefWithViewport.viewport).toMatchObject({ scale: 1.5, source: "human" });
+      const unauthorizedViewport = await fetch(`${base}/api/collab/viewport`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          confirmedBy: "ai",
+          viewport: { version: 1, scale: 1, x: 0, y: 0, updatedAt: new Date().toISOString(), source: "human" },
+        }),
+      });
+      expect(unauthorizedViewport.status).toBe(403);
+      const invalidViewport = await fetch(`${base}/api/collab/viewport`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          confirmedBy: "human",
+          viewport: { version: 1, scale: Number.NaN, x: 0, y: 0, updatedAt: new Date().toISOString(), source: "human" },
+        }),
+      });
+      expect(invalidViewport.status).toBe(400);
+
       const invalidGraphResponse = await fetch(`${base}/api/collab/graph`, {
         method: "PUT",
         headers,

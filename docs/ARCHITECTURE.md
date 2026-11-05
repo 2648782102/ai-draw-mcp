@@ -53,6 +53,8 @@ IDE / human browser
 
 `src/domain/shared-brief.ts` 复用活动时间线、批注线程聚合、会话状态与 `graphDiffs`，把当前 `SessionSnapshot` 投影成 `SharedBrief`。`get_shared_brief` 与 `GET /api/collab/brief` 返回 `BRIEF_JSON`，面板显示并可复制同一份视图；它不持久化、不进入 bundle、不含批准凭据、不写会话或项目文件，失锚线程与当前意图分离。详见 [ADR 0011](ADR/0011-shared-brief-is-a-read-only-projection.md)。
 
+`src/domain/viewport.ts` 校验 version 1 `SessionViewport`：有限且有界的 `scale` / `x` / `y`、合法时间戳与 `source: "human"`。只有本机面板能用 `PANEL_TOKEN`、`confirmedBy: "human"` 和 `POST /api/collab/viewport` 发布它；面板在缩放/平移后节流同步。`get_visual_context.viewport`、`BRIEF_JSON.viewport` 与诊断只读暴露这份注意力状态。它不改 `graphRevision`、不生成消息、`graphDiffs`、时间线事件或批准凭据，也不进入 bundle；导入会话会清除视口。详见 [ADR 0012](ADR/0012-viewport-is-read-only-attention-context.md)。
+
 面板把诊断信号与下一步动作展开为可扫读清单；`action` 信号提示人或 AI 的下一棒，`warning` 提示已失败/等待应用的提案，`info` 只描述状态。清单不提供批准按钮，也不改变会话。
 
 「复制给 AI 的上下文」按钮完全在浏览器端从已加载的会话、诊断与差异摘要拼出一段只读文本；它不调用写端点、不新增消息、不修改会话、不签发凭据。剪贴板不可用时，文本只进入尚未发送的消息输入框，是否发送仍由人决定。

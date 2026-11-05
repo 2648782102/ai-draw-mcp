@@ -58,6 +58,7 @@ export function buildSharedBrief(
       group: focusNode?.group ?? snapshot.focus.group,
       source: "human",
     } : null,
+    viewport: snapshot.viewport ?? null,
     status: {
       graph: snapshot.graph ? {
         nodes: snapshot.graph.nodes.length,

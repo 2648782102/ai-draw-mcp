@@ -13,6 +13,7 @@ import {
 import { parseAnnotationReplies, summarizeAnnotationThreads, type ThreadAnchorStatus } from "../domain/annotation-thread.js";
 import { diffVisualGraph } from "../domain/graph-diff.js";
 import { parseGraphHistory } from "../domain/graph-history.js";
+import { parseViewport } from "../domain/viewport.js";
 import type { ApprovalGrant, ApprovalReceipt } from "../domain/approval.js";
 import { assertProposalHash, proposalContentHash } from "../domain/proposal-hash.js";
 import type {
@@ -28,6 +29,7 @@ import type {
   ProposalStatus,
   SessionSnapshot,
   SessionFocus,
+  SessionViewport,
   VisualGraph,
 } from "../domain/types.js";
 import { logger } from "./logger.js";
@@ -272,6 +274,7 @@ export class SessionStore {
           ...parsed,
           workspaceRoot,
           graphHistory: parseGraphHistory(parsed.graphHistory, MAX_GRAPH_HISTORY) ?? emptyGraphHistory(),
+          viewport: parsed.viewport ? parseViewport(parsed.viewport) : undefined,
         };
       }
     } catch {
@@ -330,6 +333,7 @@ export class SessionStore {
       draft.activeDiagramId = bundle.session.activeDiagramId;
       draft.graph = graph;
       draft.focus = focus;
+      delete draft.viewport;
       draft.graphDiffs = graphDiffs;
       draft.graphHistory = pushGraphHistory(emptyGraphHistory(), graphHistoryEntry(draft.graph, draft.graphRevision, "human"));
       draft.messages = trimList(bundle.session.messages, MAX_MESSAGES);
@@ -475,6 +479,19 @@ export class SessionStore {
       if (focus) draft.focus = clone(focus);
       else delete draft.focus;
     });
+  }
+
+  async setViewport(input: unknown, confirmedBy: unknown): Promise<SessionViewport> {
+    if (confirmedBy !== "human") throw new Error("Human panel confirmation is required");
+    const viewport = parseViewport(input);
+    await this.mutate((draft) => {
+      draft.viewport = viewport;
+    });
+    return viewport;
+  }
+
+  getViewport(): SessionViewport | undefined {
+    return this.snapshot.viewport ? clone(this.snapshot.viewport) : undefined;
   }
 
   getGraphDiffs(limit = 5): NonNullable<SessionSnapshot["graphDiffs"]> {

@@ -381,6 +381,7 @@
       <p class="collab-help">可编辑节点名称/类型/路径/分组与连线起点/终点/说明/类型；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
       <p class="activity-summary" id="rescanSummary">重新同步 · 按路径保留人工坐标、标签、批注与焦点；只读扫描项目文件</p>
       <p class="activity-summary" id="focusSummary">当前焦点 · 未选中节点</p>
+      <p class="activity-summary" id="viewportSummary">当前视口 · 尚未同步；缩放/平移只作为只读注意力上下文，不改图或授权写入</p>
       <p class="activity-summary" id="graphHistorySummary">图形历史 · 尚无撤销记录；撤销只恢复视觉状态，不写项目文件</p>
       <p class="activity-summary" id="sourceEvidenceSummary">源码证据 · 等待扫描；只读 file:line 线索不授权项目写入</p>
       <div class="chat-log source-evidence-list" id="sourceEvidenceList"></div>
@@ -494,11 +495,48 @@ applyPrefs();
 // ── Zoom / Pan ──────────────────────────────────────────────────
 let zScale = 1, zX = 0, zY = 0;
 let isPanning = false, panStartX = 0, panStartY = 0;
+let viewportSyncTimer = null;
+let lastViewportPublished = null;
+
+function publishViewport() {
+  const payload = {
+    confirmedBy: 'human',
+    viewport: {
+      version: 1,
+      scale: Number(zScale.toFixed(4)),
+      x: Number(zX.toFixed(2)),
+      y: Number(zY.toFixed(2)),
+      updatedAt: new Date().toISOString(),
+      source: 'human',
+    },
+  };
+  const signature = `${payload.viewport.scale}|${payload.viewport.x}|${payload.viewport.y}`;
+  if (signature === lastViewportPublished) return;
+  lastViewportPublished = signature;
+  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+  if (!navigator.sendBeacon(`${API}/api/collab/viewport`, blob)) {
+    fetch(`${API}/api/collab/viewport`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-AI-Draw-Token': PANEL_TOKEN },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {});
+  }
+}
+
+function scheduleViewportSync() {
+  if (viewportSyncTimer !== null) return;
+  viewportSyncTimer = window.setTimeout(() => {
+    viewportSyncTimer = null;
+    publishViewport();
+  }, 400);
+}
 
 function applyTransform() {
   $('#diagramRender').style.transform = `translate(${zX}px,${zY}px) scale(${zScale})`;
   $('#zoomLabel').textContent = `${Math.round(zScale * 100)}%`;
   scheduleMinimapUpdate();
+  scheduleViewportSync();
 }
 
 function resetView() { zScale = 1; zX = 0; zY = 0; applyTransform(); }
@@ -1041,6 +1079,7 @@ let collabGraphDiffs = [];
 let collabGraphHistory = { version: 1, undo: 0, redo: 0, limit: 12 };
 let collabSourceEvidence = [];
 let collabSharedBrief = null;
+let collabViewport = null;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -1124,6 +1163,16 @@ function renderFocus(focus = null) {
     ? `当前焦点 · ${node.label}${node.path ? ` · ${node.path}` : ''} · 仅作为 AI 上下文，不授权写入`
     : '当前焦点 · 未选中节点；选中后 AI 会知道你正在指哪个对象';
   target.title = '选中状态只是只读上下文，不签发批准凭据，也不自动创建或应用提案。';
+}
+
+function renderViewport(viewport = null) {
+  const target = $('#viewportSummary');
+  if (!target) return;
+  const item = viewport || collabViewport;
+  target.textContent = item
+    ? `当前视口 · ${Math.round(item.scale * 100)}% · x ${Math.round(item.x)} / y ${Math.round(item.y)} · 只读注意力上下文，不改图修订或授权写入`
+    : '当前视口 · 尚未同步；缩放/平移只作为只读注意力上下文，不改图或授权写入';
+  target.title = '面板节流同步有限缩放/平移值；视口不进入活动时间线、图形差异、bundle 或批准凭据。';
 }
 
 function renderGraphHistory() {
@@ -1583,6 +1632,8 @@ async function loadCollab() {
     collabSessionId = session.id;
     collabWorkspaceRoot = session.workspaceRoot;
     $('#collabMeta').textContent = `session ${session.id} · revision ${session.graphRevision} · ${session.workspaceRoot}`;
+    collabViewport = session.viewport || null;
+    renderViewport(collabViewport);
     renderGraphEditor();
     restoreFocus();
     renderChat(session.messages || []);
@@ -1606,6 +1657,7 @@ async function loadCollab() {
     const sharedBrief = await collabFetch('/api/collab/brief');
     collabSharedBrief = sharedBrief;
     renderSharedBrief(sharedBrief);
+    renderViewport(sharedBrief.viewport || collabViewport);
     await renderNodeContext();
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;

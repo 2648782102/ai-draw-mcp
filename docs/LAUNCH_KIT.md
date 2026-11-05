@@ -47,6 +47,7 @@ Highlights:
 - Bounded `file:line` source evidence on source/Markdown nodes, exposed through MCP context, diagnostics, a read-only endpoint, and the panel; evidence never grants write authority.
 - `get_node_context` returns a read-only version 1 `NODE_CONTEXT_JSON` for one focused node: source evidence, linked annotation threads, adjacent edges, related graph diffs, and focus state; it never changes focus or grants write authority.
 - `get_shared_brief` returns a read-only version 1 `BRIEF_JSON` for compact handoffs: readiness blockers, current intent, stale threads, the latest graph diff, bounded source evidence, and next actions. The panel displays and can copy the same view; approval grants are absent by construction.
+- Human viewport attention is a bounded, throttled read-only zoom/pan hint for AI; it never changes graph revisions, timelines, bundles, approval grants, or project files; see [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md).
 - A read-only change-template catalogue for common intents: drafts cite the current graph revision and must still pass preflight and human review.
 - A shared human focus: select a node and the AI sees exactly which object the conversation is about, without that selection granting write authority.
 - Layout-preserving rescans: deterministic path IDs keep human coordinates, custom labels, annotation threads, and focus while new files are incrementally placed; scans remain read-only.

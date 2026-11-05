@@ -113,11 +113,13 @@ describe("MCP server", () => {
       expect(payload.diagnostics.sourceEvidence).toMatchObject({ nodes: expect.any(Number), items: expect.any(Number) });
       expect(payload).toHaveProperty("focus");
       expect(payload.intentSummary).toHaveProperty("focus");
+      expect(payload).toHaveProperty("viewport");
       expect(Array.isArray(payload.graphDiffs)).toBe(true);
       expect(Array.isArray(payload.sourceEvidence)).toBe(true);
       expect(Array.isArray(payload.intentSummary.sourceEvidence)).toBe(true);
       expect(payload.intentSummary.guidance).toContain("activityTimeline");
       expect(payload.nextActions.join(" ")).toContain("create_visual_proposal");
+      expect(payload.nextActions.join(" ")).toContain("viewport");
     });
   }, 30_000);
 
