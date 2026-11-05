@@ -29,6 +29,7 @@ src/
 │   ├── ids.ts                统一 ID 与时间戳
 │   ├── approval.ts           一次性批准凭据
 │   ├── session-bundle.ts     可移植会话快照的创建与解析
+│   ├── impact.ts             提案影响摘要：文件数、行数、字节数与安全说明
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
 ├── infra/
 │   ├── config.ts             AppConfig + loadConfig + 配置类型
@@ -134,6 +135,7 @@ server.tool(
 | `POST /api/collab/annotations` | 给当前图加批注；`nodeId` 必须引用现有节点 |
 | `GET/POST /api/collab/proposals` | 列出/创建变更提案 |
 | `GET /api/collab/proposals/:id/diff` | 查看逐行变更差异 |
+| `GET /api/collab/proposals/:id/impact` | 查看批准前的文件/行数/字节数影响摘要 |
 | `POST /api/collab/proposals/:id/approve` | 人类批准，返回一次性确认号；**不写项目文件** |
 | `POST /api/collab/proposals/:id/reject` | 人类拒绝提案 |
 | `WS /ws` | `graph_updated`、`chat_message`、`proposal_created`、`proposal_updated`、`session_updated` |

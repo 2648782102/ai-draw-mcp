@@ -134,6 +134,13 @@ describe("collaboration session", () => {
       expect(diffPayload.diffs[0].lines.some((line) => line.type === "add")).toBe(true);
       expect(proposal.contentHash).toBeTruthy();
 
+      const impactResponse = await fetch(`${base}/api/collab/proposals/${proposal.id}/impact`, { headers });
+      expect(impactResponse.ok).toBe(true);
+      const impact = (await impactResponse.json()).impact;
+      expect(impact).toMatchObject({ files: 1, updated: 1, existingFiles: 1, newFiles: 0, safePathsOnly: true });
+      expect(impact.addedLines).toBeGreaterThan(0);
+      expect(impact.contentBytes).toBeGreaterThan(0);
+
       const unsafeResponse = await fetch(`${base}/api/collab/proposals`, {
         method: "POST",
         headers,

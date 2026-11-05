@@ -31,7 +31,7 @@ IDE / human browser
 3. 人类在面板「💬 协作」工作台改名/改类型/增删节点、编辑连线、把批注绑定到选中节点、发消息；每次写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID 与引用完整性。
 4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、当前图，以及按节点聚合的 `intentSummary`；用 `reply_to_visual_context` 回信、标记已处理。
 5. AI 调用 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`。这一步只写会话，不碰项目文件。
-6. 面板通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。
+6. 面板通过 `/api/collab/proposals/:id/impact` 展示文件/行数/字节数摘要，并通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。
 7. 人类把确认号发给 AI；AI 调用 `apply_visual_proposal`，服务端校验凭据与内容哈希后写入项目，失败自动回滚。
 8. AI 可再次 `scan_project` 生成反映新结构的图，形成闭环。
 

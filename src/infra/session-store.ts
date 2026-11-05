@@ -24,6 +24,7 @@ import type {
 import { logger } from "./logger.js";
 import { resolveWorkspaceRoot } from "./workspace.js";
 import { diffTruncated, unifiedDiff, type ProposalFileDiff } from "../domain/diff.js";
+import { summarizeProposalImpact, type ProposalImpactSummary } from "../domain/impact.js";
 
 const SESSION_FILE = "session.json";
 const MAX_MESSAGES = 500;
@@ -205,6 +206,13 @@ export class SessionStore {
       });
     }
     return diffs;
+  }
+
+  async getProposalImpact(id: string): Promise<ProposalImpactSummary> {
+    const proposal = this.getProposal(id);
+    if (!proposal) throw new Error(`Proposal not found: ${id}`);
+    assertProposalHash(proposal);
+    return summarizeProposalImpact(proposal, await this.getProposalDiffs(id));
   }
 
   async setGraph(graph: VisualGraph, activeDiagramId = graph.diagramId): Promise<SessionSnapshot> {

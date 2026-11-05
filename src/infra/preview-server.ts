@@ -202,6 +202,14 @@ export class PreviewServer {
       }
     });
 
+    this.app.get("/api/collab/proposals/:id/impact", async (req, res) => {
+      try {
+        res.json({ impact: await this.sessions.getProposalImpact(req.params.id) });
+      } catch (error) {
+        res.status(404).json({ error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+
     this.app.post("/api/collab/proposals", async (req, res) => {
       const body = req.body as {
         title?: string;

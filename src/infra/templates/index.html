@@ -230,6 +230,8 @@
     .annotation-resolved { opacity: .55; text-decoration: line-through; }
     .proposal-facts { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 6px; }
     .proposal-facts code { font-size: 9px; padding: 2px 5px; border-radius: 3px; background: var(--bg); }
+    .proposal-impact { font-size: 10px; color: var(--text-muted); line-height: 1.5; margin: 0 0 6px; }
+    .proposal-impact strong { color: var(--text); }
     .annotation-target { color: var(--accent); font-size: 9px; }
     .collab-section textarea, .collab-section > input {
       width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 5px;
@@ -1100,6 +1102,7 @@ function renderProposals(proposals) {
         ${(proposal.changes || []).length > 4 ? `<code>+${(proposal.changes || []).length - 4} files</code>` : ''}
       </div>
       <p>${escapeHtml(proposal.summary)}</p>
+      <p class="proposal-impact" data-impact="${escapeHtml(proposal.id)}">影响摘要加载中…</p>
       <div>${proposal.changes.map((change) => `<code>${escapeHtml(change.kind)}:${escapeHtml(change.path)}</code>`).join('<br>')}</div>
       <details class="proposal-diff" data-diff="${escapeHtml(proposal.id)}">
         <summary>查看逐行差异</summary>
@@ -1136,6 +1139,20 @@ function renderProposals(proposals) {
         details.querySelector('pre').textContent = `差异加载失败：${error.message}`;
       }
     });
+  }
+  for (const target of $('#proposalList').querySelectorAll('[data-impact]')) {
+    loadProposalImpact(target);
+  }
+}
+
+async function loadProposalImpact(target) {
+  try {
+    const data = await collabFetch(`/api/collab/proposals/${encodeURIComponent(target.dataset.impact)}/impact`);
+    const impact = data.impact;
+    target.innerHTML = `<strong>${escapeHtml(impact.files)} files</strong> · +${escapeHtml(impact.addedLines)}/−${escapeHtml(impact.removedLines)} lines · ${escapeHtml(impact.contentBytes)} bytes · ${escapeHtml(impact.safePathsOnly ? 'safe paths only' : 'review paths')}`;
+    target.title = impact.notes.join(' ');
+  } catch (error) {
+    target.textContent = `影响摘要不可用：${error.message}`;
   }
 }
 
