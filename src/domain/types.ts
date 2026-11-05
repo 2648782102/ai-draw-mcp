@@ -365,6 +365,119 @@ export interface GraphHistorySummary {
   limit: number;
 }
 
+export type DecisionTrailEventCategory = "intent" | "graph" | "proposal" | "system";
+export type DecisionTrailEvidence =
+  | "session_record"
+  | "anchored_annotation"
+  | "stale_annotation"
+  | "graph_diff"
+  | "proposal_status";
+
+export interface DecisionTrailEvent {
+  version: 1;
+  order: number;
+  id: string;
+  category: DecisionTrailEventCategory;
+  kind: string;
+  actor: Participant;
+  createdAt: string;
+  graphRevision?: number;
+  nodeId?: string;
+  nodeLabel?: string;
+  proposalId?: string;
+  body: string;
+  evidence: DecisionTrailEvidence;
+  derived?: boolean;
+}
+
+export interface DecisionTrail {
+  version: 1;
+  sessionId: string;
+  graphRevision: number;
+  updatedAt: string;
+  activeDiagramId?: string;
+  focus: { nodeId: string; nodeLabel: string; nodePath?: string; source: "human" } | null;
+  intent: {
+    pendingMessages: number;
+    activeThreads: Array<{
+      id: string;
+      nodeId?: string;
+      nodeLabel?: string;
+      anchorStatus: "anchored" | "detached" | "outdated";
+      nextActor: "ai" | "human" | "none";
+      body: string;
+      replyCount: number;
+    }>;
+    staleThreads: Array<{
+      id: string;
+      nodeId?: string;
+      nodeLabel?: string;
+      anchorStatus: "anchored" | "detached" | "outdated";
+      body: string;
+    }>;
+    citedNodes: Array<{
+      id: string;
+      label: string;
+      roles: Array<"focus" | "thread_anchor">;
+    }>;
+  };
+  graphDiffs: Array<{
+    fromRevision: number;
+    toRevision: number;
+    createdAt: string;
+    source: "human" | "ai" | "system";
+    summary: string[];
+    items: Array<{
+      entity: "node" | "edge";
+      change: "added" | "removed" | "updated";
+      id: string;
+      label?: string;
+      fields?: Array<{ field: string; before?: string | number | boolean; after?: string | number | boolean }>;
+    }>;
+  }>;
+  proposals: Array<{
+    proposalId: string;
+    title: string;
+    summary: string;
+    graphRevision: number;
+    createdAt: string;
+    createdBy: Participant;
+    status: ProposalStatus;
+    contentHash?: string;
+    changes: Array<{
+      id: string;
+      kind: ProjectChangeKind;
+      path: string;
+      lines: Array<{ type: "context" | "add" | "remove"; text: string; oldLine?: number; newLine?: number }>;
+      truncated: boolean;
+      changeSummaryIsBoundedProjection: boolean;
+    }>;
+    approval: {
+      humanApprovalRecorded: boolean;
+      approvedAt?: string;
+      receiptExported: false;
+    };
+  }>;
+  events: DecisionTrailEvent[];
+  counts: {
+    events: number;
+    returnedEvents: number;
+    intent: number;
+    graphDiffs: number;
+    proposals: number;
+    staleThreads: number;
+  };
+  gaps: string[];
+  safety: {
+    readOnly: true;
+    grantsWriteAuthority: false;
+    excludesApprovalGrants: true;
+    staleThreadsExcludedFromIntent: true;
+    projectWritesRequireHumanApproval: true;
+  };
+  guidance: string[];
+}
+
 export interface ProjectScanNode {
   id: string;
   label: string;

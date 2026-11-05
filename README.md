@@ -43,12 +43,13 @@
 
 ## 功能
 
-- **21 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`get_shared_brief`、`get_node_context`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
+- **22 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`get_shared_brief`、`get_decision_trail`、`get_node_context`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
 - **人机双向协作工作台** — 项目结构扫描、节点名称/类型/路径/分组/坐标与连线语义编辑、重复扫描保留人工布局与批注/焦点、批注线程（回复/解决/重开/失锚）、会话诊断、对话、提案批准；WebSocket 实时同步给 AI 和面板
 - **有界图形撤销 / 重做** — 12 步视觉状态历史，人类确认后恢复节点/连线/批注为一次新图形修订；不回退项目文件、提案状态或一次性批准凭据
 - **只读源码证据** — 扫描时为源码/文档节点记录少量 `file:line` 定义、导入或标题线索，AI 与面板可引用代码位置；证据不自动改代码、不扩大提案路径，也不签发批准凭据
 - **单节点上下文** — `get_node_context` 把焦点节点的源码证据、批注线程、入/出连线、相关图形差异与焦点聚合成 version 1 只读投影；面板显示同一视图，AI 不必从完整会话里手工拼装
 - **共享简报** — `get_shared_brief` 与面板「复制共享简报」使用同一份 version 1 `BRIEF_JSON`：紧凑列出焦点、就绪阻塞、待处理意图、失锚讨论、最近图形修订、源码证据和下一步；不含批准凭据，也不授权写入
+- **可审计决策链** — `get_decision_trail` 与面板「复制决策链」使用同一份 version 1 `DECISION_TRAIL_JSON`：把人的意图、有效/失锚批注、字段级图修订、提案变更摘要、批准/应用状态与时间线按证据类型串联；提案变更行只是有界投影，批准仍需查看完整逐行 diff，输出永不含确认号
 - **人类视口注意力** — 面板的缩放/平移状态以有限值只读同步给 AI，帮助它判断人正在看整张图还是某个区域；不产生图修订、对话事件、差异或批准凭据
 - **人工确认的安全变更** — 面板批准只生成一次性凭据；AI 凭凭据应用提案，拒绝危险路径，写入失败自动回滚
 - **实时双向面板** — AI 绘图后通过 WebSocket 推送到面板；面板里也可手动编辑源码、实时预览、保存回磁盘
@@ -108,6 +109,8 @@ AI: 再次 scan_project → 保留人工布局/批注/焦点并让图与代码�
 > **紧凑活动时间线**：面板和 `get_visual_context.activityTimeline` 把消息、图形修订、节点批注回复、线程状态、提案创建与批准/应用/拒绝按时间合并成只读派生事件，帮助人和 AI 快速回顾「刚刚发生了什么」。时间线不替代原文、不签发批准凭据，也不授权项目写入。
 
 > **只读会话诊断**：面板、`/api/collab/diagnostics` 与 `get_visual_context.diagnostics` 汇总图/线程/提案状态、图形修订差异、待处理信号、下一步动作和安全不变量，帮助人和 AI 快速判断「现在该谁做什么」。诊断不写会话、不签发凭据、不授权项目写入。
+
+> **只读决策链**：`get_decision_trail`、`GET /api/collab/decision-trail` 与面板「复制决策链」返回同一份 version 1 `DECISION_TRAIL_JSON`：按时间把待处理消息、有效批注线程、失锚讨论、字段级图修订、提案变更摘要、批准/应用阶段和活动时间线串联起来，帮助人和 AI 复盘「为什么做这个改动」。失锚讨论只作为历史证据，提案变更行是有界投影而非完整逐行 diff，输出不含确认号、不持久化、不改会话、不批准变更、不授权项目写入；详见 [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md)。
 
 > **当前焦点**：人在面板选中节点后，服务端会记录 version 1 `SessionFocus`，把节点 ID、当前标签/路径/分组与图形修订交给 `get_visual_context.focus`、诊断和会话 bundle。AI 能据此理解「这个模块」「这里」指的是哪个对象；节点删除后焦点自动清除。焦点只是注意力上下文，不签发批准凭据、不解决线程、不创建提案，也不授权项目写入。
 
@@ -316,7 +319,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 
 ## 工具列表
 
-> 当前版本 `0.3.0` 共 20 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT`、离线检查与 MCP 测试保护。
+> 当前版本 `0.3.0` 共 22 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT`、离线检查与 MCP 测试保护。
 
 | 工具 | 用途 |
 |------|------|
@@ -335,6 +338,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 | `get_visual_context` | 读取图形修订、批注线程、对话、意图摘要与 `activityTimeline`，供 AI 修改代码前理解上下文 |
 | `get_agent_workflow` | 读取当前会话的八步 `WORKFLOW_JSON`、前后条件、就绪阻塞与写入边界；只读，不签发凭据或授权写入 |
 | `get_shared_brief` | 读取紧凑 `BRIEF_JSON` 交接视图：状态、焦点、阻塞、有效/失锚意图、最近修订、证据与下一步；只读，不含批准凭据 |
+| `get_decision_trail` | 读取 `DECISION_TRAIL_JSON` 只读决策链：意图 → 图形修订 → 有界提案变更摘要 → 批准/应用状态；不含确认号，不替代完整逐行 diff |
 | `get_node_context` | 读取单个节点的 `NODE_CONTEXT_JSON`：源码证据、批注线程、相邻连线、相关图形差异与焦点；默认取人类选中节点，只读 |
 | `reply_to_visual_context` | AI 在面板里回复人类、回复节点批注线程，并可把消息/批注标记为已回答、已解决 |
 | `create_visual_proposal` | 创建待确认的项目变更提案，不直接写项目文件 |

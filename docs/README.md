@@ -20,6 +20,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0010-node-context-is-a-read-only-projection.md](ADR/0010-node-context-is-a-read-only-projection.md) | AI agents, reviewers | Why a single-node context projection never changes focus or grants writes |
 | [ADR/0011-shared-brief-is-a-read-only-projection.md](ADR/0011-shared-brief-is-a-read-only-projection.md) | AI agents, reviewers | Why the compact shared handoff brief excludes approval grants and never grants writes |
 | [ADR/0012-viewport-is-read-only-attention-context.md](ADR/0012-viewport-is-read-only-attention-context.md) | AI agents, reviewers | Why human zoom/pan state never becomes a graph revision, timeline event, or write grant |
+| [ADR/0013-decision-trail-is-a-read-only-projection.md](ADR/0013-decision-trail-is-a-read-only-projection.md) | AI agents, reviewers | Why a derived decision trail excludes approval grants and never replaces the full proposal diff |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
@@ -42,6 +43,8 @@ Node context is documented in [ADR 0010](ADR/0010-node-context-is-a-read-only-pr
 Shared briefs are documented in [ADR 0011](ADR/0011-shared-brief-is-a-read-only-projection.md): `get_shared_brief` derives a bounded handoff view from the session, separates stale threads from current intent, excludes approval grants, and never grants project-write authority.
 
 Viewport attention is documented in [ADR 0012](ADR/0012-viewport-is-read-only-attention-context.md): the human panel publishes bounded, throttled zoom/pan state as read-only context; it never changes the graph, timeline, approval grants, or project files.
+
+Decision trails are documented in [ADR 0013](ADR/0013-decision-trail-is-a-read-only-projection.md): `get_decision_trail` derives a bounded, evidence-labelled chronology from the current session, separates stale threads from current intent, excludes approval grants, and points reviewers back to the full line diff before any project write.
 
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 

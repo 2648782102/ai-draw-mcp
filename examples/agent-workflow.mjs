@@ -88,6 +88,9 @@ try {
   if (workflow.steps.find((step) => step.id === "visual_context").output.join(",").indexOf("BRIEF_JSON") < 0) {
     throw new Error("The workflow no longer names BRIEF_JSON as a handoff output");
   }
+  if (!workflow.steps.find((step) => step.id === "visual_context").output.includes("DECISION_TRAIL_JSON")) {
+    throw new Error("The workflow no longer names DECISION_TRAIL_JSON as an optional review output");
+  }
 
   const briefText = textOf(await client.callTool({ name: "get_shared_brief", arguments: {} }));
   const brief = jsonAfter(briefText, "BRIEF_JSON:");
@@ -99,6 +102,16 @@ try {
   }
   console.log(`    Readiness blockers: ${workflow.blocked.length}${workflow.blocked.length ? ` — ${workflow.blocked.join("; ")}` : ""}`);
   console.log(`    Shared brief: ${brief.intent.blockers.length} blockers, ${brief.status.sourceEvidence.items} evidence items`);
+
+  const decisionTrailText = textOf(await client.callTool({ name: "get_decision_trail", arguments: { event_limit: 20 } }));
+  const decisionTrail = jsonAfter(decisionTrailText, "DECISION_TRAIL_JSON:");
+  if (decisionTrail.version !== 1 || decisionTrail.safety?.grantsWriteAuthority !== false || decisionTrail.safety?.excludesApprovalGrants !== true) {
+    throw new Error("The decision trail unexpectedly lost its read-only safety contract");
+  }
+  if (decisionTrailText.includes("approvalId") || decisionTrailText.includes("grantHash")) {
+    throw new Error("The decision trail unexpectedly exposed an approval credential");
+  }
+  console.log(`    Decision trail: ${decisionTrail.counts.returnedEvents}/${decisionTrail.counts.events} bounded events`);
 
   const draftText = textOf(await client.callTool({
     name: "list_change_templates",

@@ -13,6 +13,7 @@ const COLLAB_TOOLS = [
   "get_agent_workflow",
   "get_node_context",
   "get_shared_brief",
+  "get_decision_trail",
 ];
 
 async function withClient(port, callback) {
@@ -69,7 +70,7 @@ describe("MCP server", () => {
     await withClient(3421, async (client) => {
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name);
-      expect(names).toHaveLength(21);
+      expect(names).toHaveLength(22);
       expect(names).toContain("render_diagram");
       expect(names).toContain("delete_diagram");
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
@@ -248,6 +249,30 @@ describe("MCP server", () => {
       expect(Array.isArray(brief.intent.nextActions)).toBe(true);
       expect(briefText).not.toContain("approvalId");
       expect(briefText).not.toContain("grantHash");
+    });
+  }, 30_000);
+
+  it("returns a read-only decision trail without approval grants", async () => {
+    await withClient(3430, async (client) => {
+      const scan = textOf(await client.callTool({
+        name: "scan_project",
+        arguments: { title: "Decision trail scan", open_panel: false, render: false },
+      }));
+      expect(scan).toContain("PRESERVATION_JSON:");
+      const trailText = textOf(await client.callTool({ name: "get_decision_trail", arguments: {} }));
+      expect(trailText).toContain("DECISION_TRAIL_JSON:");
+      const trail = jsonAfter(trailText, "DECISION_TRAIL_JSON:");
+      expect(trail).toMatchObject({ version: 1, graphRevision: expect.any(Number) });
+      expect(trail.safety).toMatchObject({
+        readOnly: true,
+        grantsWriteAuthority: false,
+        excludesApprovalGrants: true,
+        projectWritesRequireHumanApproval: true,
+      });
+      expect(Array.isArray(trail.events)).toBe(true);
+      expect(Array.isArray(trail.proposals)).toBe(true);
+      expect(trailText).not.toContain("approvalId");
+      expect(trailText).not.toContain("grantHash");
     });
   }, 30_000);
 });

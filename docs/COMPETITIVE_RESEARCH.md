@@ -86,7 +86,7 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 | 阶段 | 优先级 | 建议 | 完成定义 |
 |---|---|---|---|
 | 0.4 | P0 | 保存人工布局与视口；重新扫描采用「保留已有布局 + 新增节点增量排布」策略；补图形编辑撤销/重做 | 布局保持、视口状态与视觉撤销栈已经交付：图修订不会无故移动既有节点；有界 `SessionViewport` 只读告诉 AI 人正在看哪片图，且不进入图修订/时间线/bundle；undo/redo 恢复视觉图并生成新 `graphRevision` / `graphDiffs`，纯函数/MCP/HTTP 测试覆盖 ID 稳定、坐标/标签/批注/焦点保留、人类确认、bundle 不含历史及项目文件不变；撤销不回退已批准的项目写入 |
-| 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 基础版已交付：21 个工具中的 `get_agent_workflow` 与 CI 只读示例覆盖 `WORKFLOW_JSON` → `BRIEF_JSON` → `changes` → preflight → 停止；`get_node_context` 可进一步收窄焦点节点上下文；提案人批准与 apply 由 `examples/collab-demo.mjs` 覆盖，且中间产物不含确认号；诊断信号联动仍待做 |
+| 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 基础版已交付：22 个工具中的 `get_agent_workflow` 与 CI 只读示例覆盖 `WORKFLOW_JSON` → `BRIEF_JSON` → `DECISION_TRAIL_JSON` → `changes` → preflight → 停止；`get_node_context` 可进一步收窄焦点节点上下文；提案人批准与 apply 由 `examples/collab-demo.mjs` 覆盖，且中间产物不含确认号；诊断信号联动仍待做 |
 | 0.4 | P1 | 引入机器可读 `focus` / 选中状态，并让批注、诊断、节点上下文和下一棒提示引用同一对象 | 基础版已交付：`focus` 与 `NODE_CONTEXT_JSON` 让 AI 识别「人正在指哪个节点」并读取该节点证据/批注/连线/差异；焦点与单节点上下文不签发凭据、不自动解决线程 |
 | 0.4 | P2 | bundle 增加可读摘要与可复现导出清单；发布前用 `repo:check` / `docs:assets:check` 守住文案和资产一致性 | 基础版已交付：bundle 严格校验有限坐标、`graphDiffs`、`focus` 与 `sourceEvidence`，输出可读 JSON；导入仍要求人类确认且清除批准凭据。可读摘要/导出清单与稳定 SVG 摘要仍待做 |
 | 0.5 | P0 | 语言感知扫描、source ranges、符号/测试/框架边界，以及节点到编辑器源码位置的只读跳转 | 基础版已交付：节点可引用有界 `file + line` 证据；扫描器不写文件，提案仍只接受安全路径与显式人类批准。语言感知符号范围/IDE 跳转仍待做 |

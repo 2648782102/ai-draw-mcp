@@ -42,8 +42,9 @@ import { registerListChangeTemplates } from "./tools/list-change-templates.js";
 import { registerGetAgentWorkflow } from "./tools/get-agent-workflow.js";
 import { registerGetNodeContext } from "./tools/get-node-context.js";
 import { registerGetSharedBrief } from "./tools/get-shared-brief.js";
+import { registerGetDecisionTrail } from "./tools/get-decision-trail.js";
 
-const TOOL_COUNT = 21; // keep in sync when adding tools
+const TOOL_COUNT = 22; // keep in sync when adding tools
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -95,6 +96,7 @@ export async function createServer() {
   registerGetAgentWorkflow(mcp, ctx);
   registerGetNodeContext(mcp, ctx);
   registerGetSharedBrief(mcp, ctx);
+  registerGetDecisionTrail(mcp, ctx);
 
   logger.info(`${TOOL_COUNT} MCP tools registered`);
 

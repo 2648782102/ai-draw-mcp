@@ -13,6 +13,7 @@ AI: scan_project → editable VisualGraph
 Human: edit node path/group and edge semantics / reply in annotation threads / send a message
 AI: get_agent_workflow → eight ordered steps, readiness blockers, and explicit write boundaries
 AI: get_visual_context → intentByNode + annotationThreads.nextActor + staleThreads + graphDiffs + activityTimeline + diagnostics
+AI: get_decision_trail → optional bounded chronology of human intent, graph revisions, proposal stages, and evidence gaps
 AI: list_change_templates → optional read-only draft for common intents
 AI: preflight_visual_proposal → safe paths + existing/new files + duplicate/no-op content
 AI: create_visual_proposal → line-by-line diff + impact summary
@@ -54,6 +55,7 @@ If Chrome is outside Puppeteer's cache, set `PUPPETEER_EXECUTABLE_PATH`. CI and 
 - Proposal approval is a human panel action; it does not write files.
 - `get_agent_workflow` returns a version 1 `WORKFLOW_JSON` with ordered steps, prerequisites, `blocked` readiness hints, and `writes: "none" | "session" | "project"` boundaries. It is descriptive only: no proposal, receipt, session write, or project write. Only `apply_visual_proposal` is marked as a project write and still requires the human receipt; see [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md).
 - `get_shared_brief` returns a compact version 1 `BRIEF_JSON` for handoffs: focus, readiness blockers, pending and stale intent, the latest graph diff, bounded source evidence, and suggested next actions. It excludes approval grants and never grants write authority; see [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md).
+- `get_decision_trail` returns a version 1 `DECISION_TRAIL_JSON` chronology of pending intent, anchored and stale threads, graph diffs, bounded proposal change summaries, proposal stages, gaps, and activity events. It is a derived read-only projection: proposal lines are not a complete diff, stale threads are historical evidence only, approval grants are excluded, and project writes still require human review plus a one-time receipt; see [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md).
 - Human zoom/pan state is a bounded, read-only `SessionViewport`: it tells AI which diagram region is being inspected, but never increments the graph revision, emits a timeline event, enters a bundle, or grants write authority; see [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md).
 - `preflight_visual_proposal` is a read-only check before `create_visual_proposal`; it never writes files, creates proposals, or issues grants.
 - `list_change_templates` lists or expands common proposal drafts; it is read-only and must be followed by preflight and human review.

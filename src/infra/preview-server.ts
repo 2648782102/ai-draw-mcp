@@ -18,6 +18,7 @@
  *   GET  /api/collab/source-evidence  read-only file:line evidence derived from the visual graph
  *   GET  /api/collab/node-context  read-only context for a selected graph node
  *   GET  /api/collab/brief       compact read-only shared handoff brief
+ *   GET  /api/collab/decision-trail  read-only chronological decision trail
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/graph/history  bounded visual undo/redo availability
  *   POST /api/collab/graph/undo   human-confirmed visual undo
@@ -56,6 +57,7 @@ import { buildActivityTimeline } from "../domain/activity-timeline.js";
 import { buildSessionDiagnostics } from "../domain/session-diagnostics.js";
 import { buildNodeContext } from "../domain/node-context.js";
 import { buildSharedBrief } from "../domain/shared-brief.js";
+import { buildDecisionTrail } from "../domain/decision-trail.js";
 import { makeId, nowIso } from "../domain/ids.js";
 import { logger } from "./logger.js";
 import { renderMermaidToSvg, saveSvg } from "./renderer.js";
@@ -200,6 +202,21 @@ export class PreviewServer {
         messageLimit: bounded(rawMessageLimit, 5, 20),
         graphDiffLimit: bounded(rawGraphDiffLimit, 3, 10),
         activityLimit: bounded(rawActivityLimit, 5, 20),
+      }));
+    });
+
+    this.app.get("/api/collab/decision-trail", (req, res) => {
+      const rawEventLimit = Number(req.query.eventLimit ?? 60);
+      const rawProposalLimit = Number(req.query.proposalLimit ?? 6);
+      const rawGraphDiffLimit = Number(req.query.graphDiffLimit ?? 4);
+      const rawLineLimit = Number(req.query.lineLimit ?? 12);
+      const bounded = (raw: number, fallback: number, max: number) =>
+        Number.isFinite(raw) ? Math.max(1, Math.min(max, Math.floor(raw))) : fallback;
+      res.json(buildDecisionTrail(this.sessions.getSnapshot(), {
+        eventLimit: bounded(rawEventLimit, 60, 120),
+        proposalLimit: bounded(rawProposalLimit, 6, 20),
+        graphDiffLimit: bounded(rawGraphDiffLimit, 4, 20),
+        lineLimit: bounded(rawLineLimit, 12, 40),
       }));
     });
 

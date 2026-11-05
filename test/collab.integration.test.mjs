@@ -368,6 +368,15 @@ describe("collaboration session", () => {
       expect(impact.addedLines).toBeGreaterThan(0);
       expect(impact.contentBytes).toBeGreaterThan(0);
 
+      const decisionTrailResponse = await fetch(`${base}/api/collab/decision-trail?eventLimit=30&lineLimit=4`, { headers });
+      expect(decisionTrailResponse.ok).toBe(true);
+      const decisionTrail = await decisionTrailResponse.json();
+      expect(decisionTrail).toMatchObject({ version: 1, graphRevision: expect.any(Number) });
+      expect(decisionTrail.proposals.some((item) => item.proposalId === proposal.id)).toBe(true);
+      expect(decisionTrail.events.some((item) => item.proposalId === proposal.id)).toBe(true);
+      expect(decisionTrail.safety).toMatchObject({ readOnly: true, grantsWriteAuthority: false, excludesApprovalGrants: true });
+      expect(JSON.stringify(decisionTrail)).not.toContain("approvalGrant");
+
       const activityResponse = await fetch(`${base}/api/collab/activity?limit=100`, { headers });
       expect(activityResponse.ok).toBe(true);
       const activity = (await activityResponse.json()).timeline;

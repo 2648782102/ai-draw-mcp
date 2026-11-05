@@ -409,6 +409,8 @@
       <h3>对话与批注</h3>
       <p class="activity-summary" id="sharedBriefSummary">共享简报 · 加载中；只读交接视图不含批准凭据</p>
       <div class="diagnostics-list" id="sharedBriefList"></div>
+      <p class="activity-summary" id="decisionTrailSummary">决策链 · 加载中；只读轨迹聚合意图、图修订与提案，不含确认号</p>
+      <div class="diagnostics-list" id="decisionTrailList"></div>
       <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
       <p class="activity-summary" id="diagnosticsSummary">会话诊断加载中…</p>
       <div class="diagnostics-list" id="diagnosticsList"></div>
@@ -423,6 +425,7 @@
         <button id="btnAddAnnotation">添加图形批注</button>
         <button id="btnCopyAiContext" title="复制只读提示，不写入会话、不签发凭据">复制给 AI 的上下文</button>
         <button id="btnCopySharedBrief" title="复制紧凑只读 BRIEF_JSON，不写入会话、不签发凭据">复制共享简报</button>
+        <button id="btnCopyDecisionTrail" title="复制只读 DECISION_TRAIL_JSON，不写入会话、不签发凭据">复制决策链</button>
       </div>
       <input id="annotationInput" placeholder="批注内容；先选中左侧节点即可绑定" />
     </section>
@@ -1076,6 +1079,7 @@ let collabGraphDiffs = [];
 let collabGraphHistory = { version: 1, undo: 0, redo: 0, limit: 12 };
 let collabSourceEvidence = [];
 let collabSharedBrief = null;
+let collabDecisionTrail = null;
 let collabViewport = null;
 
 function escapeHtml(value) {
@@ -1395,6 +1399,30 @@ function renderSharedBrief(brief) {
   list.innerHTML = `${focusHtml}${blockerHtml || '<p class="signal">暂无就绪阻塞。</p>'}${intentHtml || '<p class="signal">暂无待处理意图。</p>'}${diffHtml}${actionHtml}`;
 }
 
+function decisionTrailCategoryLabel(category) {
+  return ({ intent: '意图', graph: '图形', proposal: '提案', system: '系统' })[category] || category;
+}
+
+function renderDecisionTrail(trail) {
+  const summary = $('#decisionTrailSummary');
+  const list = $('#decisionTrailList');
+  if (!summary || !list) return;
+  if (!trail) {
+    summary.textContent = '决策链 · 暂不可用';
+    list.innerHTML = '<p class="signal">只读决策链暂不可用。</p>';
+    return;
+  }
+  const gaps = Array.isArray(trail.gaps) ? trail.gaps : [];
+  const events = Array.isArray(trail.events) ? trail.events : [];
+  summary.textContent = `决策链 · rev ${trail.graphRevision} · ${trail.counts?.returnedEvents ?? events.length}/${trail.counts?.events ?? events.length} 事件 · ${trail.counts?.proposals ?? 0} 提案 / ${trail.counts?.graphDiffs ?? 0} 图修订 · ${gaps.length} 项证据缺口 · 只读，不含确认号`;
+  summary.title = 'DECISION_TRAIL_JSON 聚合意图、图形修订和提案状态；失锚讨论只作历史证据，提案变更行只是有界投影，批准仍需人查看完整逐行 diff。';
+  const gapHtml = gaps.map((gap) => `<p class="signal action"><strong>证据缺口</strong> · ${escapeHtml(gap)}</p>`).join('');
+  const eventHtml = [...events].reverse().slice(0, 10).map((item) => `
+    <p class="signal"><strong>${escapeHtml(decisionTrailCategoryLabel(item.category))}</strong> · ${escapeHtml(item.kind)} · ${escapeHtml(item.actor)} · ${escapeHtml(item.createdAt)}${item.nodeLabel ? ` · @ ${escapeHtml(item.nodeLabel)}` : ''}<br>${escapeHtml(item.body)}</p>
+  `).join('');
+  list.innerHTML = `${gapHtml || '<p class="signal">暂无证据缺口；仍需打开完整 diff 审阅提案。</p>'}${eventHtml || '<p class="signal">暂无决策事件。</p>'}`;
+}
+
 function renderGraphDiffs(diffs) {
   const target = $('#graphDiffSummary');
   if (!target) return;
@@ -1655,6 +1683,9 @@ async function loadCollab() {
     collabSharedBrief = sharedBrief;
     renderSharedBrief(sharedBrief);
     renderViewport(sharedBrief.viewport || collabViewport);
+    const decisionTrail = await collabFetch('/api/collab/decision-trail?eventLimit=30&lineLimit=6');
+    collabDecisionTrail = decisionTrail;
+    renderDecisionTrail(decisionTrail);
     await renderNodeContext();
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
@@ -1721,6 +1752,28 @@ async function copySharedBrief() {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
     showToast('剪贴板不可用，已把简报放入消息框（尚未发送）');
+  }
+}
+
+async function copyDecisionTrail() {
+  if (!collabDecisionTrail) {
+    showToast('决策链尚未加载；请先刷新协作会话');
+    return;
+  }
+  const prompt = [
+    '请结合这份只读 DECISION_TRAIL_JSON 复盘协作决策链，再用 get_visual_context 读取完整原文：',
+    'DECISION_TRAIL_JSON:',
+    JSON.stringify(collabDecisionTrail, null, 2),
+    '',
+    '决策链不含批准凭据；失锚讨论只作历史证据，提案变更行只是有界投影，仍需打开完整逐行 diff。只有我查看逐行 diff、批准并提供一次性确认号后，才可 apply_visual_proposal。',
+  ].join('\n');
+  try {
+    await navigator.clipboard.writeText(prompt);
+    showToast('已复制只读决策链；它不包含确认号');
+  } catch {
+    $('#messageInput').value = prompt;
+    $('#messageInput').focus();
+    showToast('剪贴板不可用，已把决策链放入消息框（尚未发送）');
   }
 }
 
@@ -1914,6 +1967,7 @@ $('#messageInput').addEventListener('keydown', (event) => {
 $('#btnAddAnnotation').addEventListener('click', addAnnotation);
 $('#btnCopyAiContext').addEventListener('click', copyAiContext);
 $('#btnCopySharedBrief').addEventListener('click', copySharedBrief);
+$('#btnCopyDecisionTrail').addEventListener('click', copyDecisionTrail);
 
 // ── Init ──
 loadList();

@@ -6,7 +6,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Now — 0.3.x: trustworthy closed loop
 
-- Keep the 21 MCP tools small, composable, and easy for an LLM to call correctly.
+- Keep the 22 MCP tools small, composable, and easy for an LLM to call correctly.
 - Make CI reliable on Node 20, 22, and 24, including headless Chrome environments.
 - Preserve the human approval gate: no project write without a proposal, a reviewable diff, and a one-time receipt.
 - Improve first-run clarity: a 30-second Quickstart, troubleshooting, and a reproducible end-to-end demo.
@@ -15,7 +15,6 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Next — 0.4: a better visual conversation
 
-- Link annotation threads, decisive replies, `graphDiffs`, and proposal diffs in one reviewable decision trail.
 - Diagnose readiness from `BRIEF_JSON` blockers and show the next safe action in the panel without replacing human approval.
 - Add language-aware symbol ranges and IDE source-range navigation on top of bounded `file:line` evidence.
 - Explore multi-diagram sessions over one workspace while keeping thread anchors and write authority explicit.
@@ -23,6 +22,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Shipped in 0.3.x maintenance
 
+- `get_decision_trail`: a versioned, read-only `DECISION_TRAIL_JSON` linking human intent, anchored/stale threads, graph diffs, bounded proposal change summaries, proposal stages, gaps, and activity events; full diff review and human approval remain mandatory; see [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md).
 - `get_node_context`: a versioned, read-only single-node projection of source evidence, annotation threads, adjacent edges, related graph diffs, and human focus; see [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md).
 - `get_shared_brief`: a versioned, read-only `BRIEF_JSON` handoff projection for humans and AI, with readiness blockers, bounded intent, latest graph diff, evidence, and next actions; see [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md).
 - Human viewport attention: bounded, human-panel zoom/pan state is authenticated with the injected panel token and exposed to AI through `CONTEXT_JSON` / `BRIEF_JSON` / diagnostics without graph revisions, timeline noise, bundles, or write authority; see [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md).

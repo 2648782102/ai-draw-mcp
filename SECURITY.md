@@ -23,6 +23,7 @@ AI Draw MCP 在本机启动一个预览服务，默认绑定 `127.0.0.1`。面�
 - `GraphSourceEvidence` 的 `file:line` 引用只是扫描器派生的只读上下文；bundle 严格校验路径/行号/摘要，证据不扩大提案路径范围，也不签发批准凭据。
 - `get_node_context` / `NODE_CONTEXT_JSON` 是单节点只读投影；显式 `node_id` 不会冒充人类焦点，也不会改变焦点、重锚线程、扩大提案路径或签发批准凭据。详见 [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md)。
 - `get_shared_brief` / `BRIEF_JSON` 是紧凑只读交接投影；它排除批准凭据、把失锚线程与当前意图分离，不改变焦点/线程/提案，也不签发凭据或授权写入。详见 [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md)。
+- `get_decision_trail` / `DECISION_TRAIL_JSON` 是派生只读决策链；它按证据类型聚合意图、失锚讨论、图修订与提案阶段，但提案变更行只是有界投影，完整逐行 diff 仍须在面板或 `/api/collab/proposals/:id/diff` 审阅。输出排除一次性确认号、批准凭据与 metadata 凭据，不持久化、不改变会话、不批准/应用提案，也不授权写入。详见 [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md)。
 - `SessionViewport` 是本机面板发布的有界缩放/平移注意力状态；发布请求必须携带注入的 `PANEL_TOKEN`，服务端严格校验有限数值、范围、时间戳、`source: "human"` 与未知属性，AI 不能设置视口，视口不进入图形修订、时间线、bundle 或批准凭据，也不授权写入。详见 [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md)。
 - 面板写 API 需要注入在 HTML 中的本机随机 `PANEL_TOKEN`。
 - 人类批准只签发 10 分钟一次性确认号；AI 必须在 `apply_visual_proposal` 中同时提供 `approval_id`、`approval_grant` 和过期时间。

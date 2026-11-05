@@ -63,6 +63,10 @@ const sharedBriefDomain = await read("src/domain/shared-brief.ts");
 const sharedBriefTool = await read("src/tools/get-shared-brief.ts");
 const sharedBriefTest = await read("test/shared-brief.test.mjs");
 const sharedBriefAdr = await read("docs/ADR/0011-shared-brief-is-a-read-only-projection.md");
+const decisionTrailDomain = await read("src/domain/decision-trail.ts");
+const getDecisionTrailTool = await read("src/tools/get-decision-trail.ts");
+const decisionTrailTest = await read("test/decision-trail.test.mjs");
+const decisionTrailAdr = await read("docs/ADR/0013-decision-trail-is-a-read-only-projection.md");
 const viewportDomain = await read("src/domain/viewport.ts");
 const viewportTest = await read("test/viewport.test.mjs");
 const viewportAdr = await read("docs/ADR/0012-viewport-is-read-only-attention-context.md");
@@ -101,7 +105,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
-check(launchKit.includes("21 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 21 MCP tools");
+check(launchKit.includes("22 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 22 MCP tools");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -127,6 +131,7 @@ for (const [id, needle] of [
 }
 for (const endpoint of [
   "/api/collab/source-evidence",
+  "/api/collab/decision-trail",
   "/api/collab/node-context",
   "/api/collab/graph/history",
   "/api/collab/graph/undo",
@@ -208,7 +213,7 @@ for (const document of ["README.en.md", "docs/TROUBLESHOOTING.md", "docs/GOVERNA
 for (const document of ["../README.en.md", "TROUBLESHOOTING.md", "GOVERNANCE.md", "ADR/README.md"]) {
   check(documentationMap.includes(document), `docs/README.md does not link ${document}`);
 }
-for (const [label, source, needle] of [
+for (const [label, file, needle] of [
   ["Chinese README loop diagram", readme, "docs/collaboration-loop.svg"],
   ["Chinese README workbench diagram", readme, "docs/collaboration-workbench.svg"],
   ["English quickstart loop diagram", englishQuickstart, "docs/collaboration-loop.svg"],
@@ -367,7 +372,7 @@ for (const [label, source, needle] of [
   ["viewport AGENTS token transport", agents, "sendBeacon"],
   ["viewport architecture token transport", architecture, "sendBeacon"],
   ["viewport troubleshooting token transport", troubleshooting, "PANEL_TOKEN"],
-  ["server tool count", server, "const TOOL_COUNT = 21"],
+  ["server tool count", server, "const TOOL_COUNT = 22"],
   ["server workflow registration", server, "registerGetAgentWorkflow"],
   ["CI workflow example", ci, "npm run test:examples:workflow"],
   ["package workflow example", packageJson.scripts?.["test:examples:workflow"] ?? "", "node examples/agent-workflow.mjs"],
@@ -396,17 +401,53 @@ for (const [label, source, needle] of [
   ["launch stable scan", launchKit, "Layout-preserving rescans"],
   ["research layout delivered", research, "布局保持与视觉撤销栈已交付"],
   ["ADR docs map", documentationMap, "0006-stable-scan-preserves-human-visual-state.md"],
+  ["decision trail type", types, "export interface DecisionTrail"],
+  ["decision trail event type", types, "export interface DecisionTrailEvent"],
+  ["decision trail bounded projection field", types, "changeSummaryIsBoundedProjection: boolean"],
+  ["decision trail domain", decisionTrailDomain, "export function buildDecisionTrail"],
+  ["decision trail domain projection", decisionTrailDomain, "changeSummaryIsBoundedProjection: isBoundedProjection"],
+  ["decision trail stale intent separation", decisionTrailDomain, "staleThreadsExcludedFromIntent: true"],
+  ["decision trail no grants", decisionTrailDomain, "excludesApprovalGrants: true"],
+  ["decision trail no write authority", decisionTrailDomain, "grantsWriteAuthority: false"],
+  ["decision trail tool", getDecisionTrailTool, '"get_decision_trail"'],
+  ["decision trail marker", getDecisionTrailTool, '"DECISION_TRAIL_JSON:"'],
+  ["decision trail tool read-only boundary", getDecisionTrailTool, "不批准变更、不签发凭据"],
+  ["decision trail server registration", server, "registerGetDecisionTrail"],
+  ["decision trail endpoint", previewServer, "/api/collab/decision-trail"],
+  ["decision trail panel", panel, 'id="decisionTrailList"'],
+  ["decision trail panel copy button", panel, 'id="btnCopyDecisionTrail"'],
+  ["decision trail panel copy boundary", panel, "提案变更行只是有界投影"],
+  ["decision trail workflow output", agentWorkflowDomain, "DECISION_TRAIL_JSON"],
+  ["decision trail pure contract test", decisionTrailTest, "read-only decision trail"],
+  ["decision trail no-grant assertion", decisionTrailTest, "must-not-leak-grant"],
+  ["decision trail MCP test", await read("test/mcp.test.mjs"), "DECISION_TRAIL_JSON"],
+  ["decision trail HTTP test", collaborationTest, "/api/collab/decision-trail"],
+  ["decision trail workflow example", agentWorkflowExample, "get_decision_trail"],
+  ["decision trail workflow test", agentWorkflowTest, "DECISION_TRAIL_JSON"],
+  ["decision trail ADR index", adrIndex, "0013-decision-trail-is-a-read-only-projection.md"],
+  ["decision trail ADR boundary", decisionTrailAdr, "grantsWriteAuthority"],
+  ["decision trail docs map", documentationMap, "0013-decision-trail-is-a-read-only-projection.md"],
+  ["decision trail English docs", englishQuickstart, "DECISION_TRAIL_JSON"],
+  ["decision trail Chinese docs", readme, "DECISION_TRAIL_JSON"],
+  ["decision trail AGENTS docs", agents, "DECISION_TRAIL_JSON"],
+  ["decision trail architecture", architecture, "DECISION_TRAIL_JSON"],
+  ["decision trail security", security, "DECISION_TRAIL_JSON"],
+  ["decision trail roadmap", roadmap, "get_decision_trail"],
+  ["decision trail launch", launchKit, "DECISION_TRAIL_JSON"],
+  ["decision trail research", research, "DECISION_TRAIL_JSON"],
+  ["decision trail troubleshooting", troubleshooting, "DECISION_TRAIL_JSON"],
+  ["decision trail examples map", examplesReadme, "get_decision_trail"],
 ]) {
-  check(source.includes(needle), `${label} is missing or drifted`);
+  check(file.includes(needle), `${label} is missing or drifted`);
 }
 check(agents.includes("scripts/github-maintenance.mjs"), "AGENTS.md does not document GitHub maintenance script");
 check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not document the versioned documentation asset generator");
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
-check(readme.includes("21 个 MCP 工具"), "README.md does not reflect the 21 MCP tools");
-check(agents.includes("## 21 个 MCP 工具"), "AGENTS.md does not reflect the 21 MCP tools");
-check(roadmap.includes("21 MCP tools"), "ROADMAP.md does not reflect the 21 MCP tools");
+check(readme.includes("22 个 MCP 工具"), "README.md does not reflect the 22 MCP tools");
+check(agents.includes("## 22 个 MCP 工具"), "AGENTS.md does not reflect the 22 MCP tools");
+check(roadmap.includes("22 MCP tools"), "ROADMAP.md does not reflect the 22 MCP tools");
 const roadmapNextLines = roadmap.split("\n").slice(
   roadmap.split("\n").findIndex((line) => line.startsWith("## Next")),
   roadmap.split("\n").findIndex((line) => line.startsWith("## Shipped")),

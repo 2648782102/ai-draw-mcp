@@ -30,7 +30,7 @@ IDE / human browser
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
 3. 人类在面板「💬 协作」工作台改名称/类型/路径/分组/坐标、增删节点、编辑连线起点/终点/说明/类型、把批注绑定到选中节点、在批注线程里回复/解决/重开、发消息，或点击「重新扫描项目」；每次图形写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、有限坐标、路径/分组/连线类型、回复结构与引用完整性。
 4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、人类当前选中节点的 `focus`、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`：节点改名或路径变化后标为 `outdated`，节点删除后标为 `detached`；`staleThreads` 不进入 `intentByNode`，AI 应等待人类确认或重锚，不能把旧讨论当作当前写入意图。
-5. AI 可先调用 `get_agent_workflow` 读取从当前 `SessionSnapshot` 派生的 version 1 `WORKFLOW_JSON`：八步顺序、前置/产物、`readOnly`、`writes: "none" | "session" | "project"` 与 `blocked` 就绪提示；工具自身只读且不持久化步骤。交接时可调用 `get_shared_brief` 得到同一快照派生的 `BRIEF_JSON`：焦点、就绪阻塞、有界意图、失锚讨论、最近图形修订、源码证据、计数和下一步；它不持久化、不含批准凭据。需要聚焦某个节点时可调用 `get_node_context`，从同一 `SessionSnapshot` 派生 version 1 `NODE_CONTEXT_JSON`：节点字段、`file:line` 证据、命中节点的批注线程及失锚状态、入/出连线与相邻节点、相关 `graphDiffs`、焦点状态和固定只读安全标记；默认节点是人类焦点，显式 `node_id` 不改变焦点。随后 AI 可选调用 `list_change_templates`：只读列出更新文档/添加测试/创建模块模板，或把模板展开为引用当前 `graphRevision` 与节点的 `changes` 草稿。它不写会话、不创建提案、不签发凭据。随后 AI 可先调用 `preflight_visual_proposal` 只读检查候选变更的路径、文件存在性、create/update 方向、重复路径、重复内容、编码与体积；这一步同样不写会话、不创建提案、不签发凭据。最后 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`，也只写会话，不碰项目文件。
+5. AI 可先调用 `get_agent_workflow` 读取从当前 `SessionSnapshot` 派生的 version 1 `WORKFLOW_JSON`：八步顺序、前置/产物、`readOnly`、`writes: "none" | "session" | "project"` 与 `blocked` 就绪提示；工具自身只读且不持久化步骤。交接时可调用 `get_shared_brief` 得到同一快照派生的 `BRIEF_JSON`：焦点、就绪阻塞、有界意图、失锚讨论、最近图形修订、源码证据、计数和下一步；它不持久化、不含批准凭据。需要聚焦某个节点时可调用 `get_node_context`，从同一 `SessionSnapshot` 派生 version 1 `NODE_CONTEXT_JSON`：节点字段、`file:line` 证据、命中节点的批注线程及失锚状态、入/出连线与相邻节点、相关 `graphDiffs`、焦点状态和固定只读安全标记；默认节点是人类焦点，显式 `node_id` 不改变焦点。复盘决策依据时可调用 `get_decision_trail`，从同一快照派生 version 1 `DECISION_TRAIL_JSON`：把意图、失锚讨论、图修订、有界提案变更摘要、批准/应用阶段与活动时间线按证据类型串联；它是只读投影，不签发凭据。随后 AI 可选调用 `list_change_templates`：只读列出更新文档/添加测试/创建模块模板，或把模板展开为引用当前 `graphRevision` 与节点的 `changes` 草稿。它不写会话、不创建提案、不签发凭据。随后 AI 可先调用 `preflight_visual_proposal` 只读检查候选变更的路径、文件存在性、create/update 方向、重复路径、重复内容、编码与体积；这一步同样不写会话、不创建提案、不签发凭据。最后 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`，也只写会话，不碰项目文件。
 6. 面板通过 `/api/collab/proposals/:id/impact` 展示文件/行数/字节数摘要，并通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。
 7. 人类把确认号发给 AI；AI 调用 `apply_visual_proposal`，服务端校验凭据与内容哈希后写入项目，失败自动回滚。
 8. AI 可再次 `scan_project`，或人在面板触发 `POST /api/collab/rescan`，生成反映新结构的图；两者共用 `VisualSyncService` 并保留人工视觉状态，形成闭环。
@@ -53,6 +53,8 @@ IDE / human browser
 
 `src/domain/shared-brief.ts` 复用活动时间线、批注线程聚合、会话状态与 `graphDiffs`，把当前 `SessionSnapshot` 投影成 `SharedBrief`。`get_shared_brief` 与 `GET /api/collab/brief` 返回 `BRIEF_JSON`，面板显示并可复制同一份视图；它不持久化、不进入 bundle、不含批准凭据、不写会话或项目文件，失锚线程与当前意图分离。详见 [ADR 0011](ADR/0011-shared-brief-is-a-read-only-projection.md)。
 
+`src/domain/decision-trail.ts` 复用批注线程聚合、`graphDiffs`、提案状态与活动时间线，把当前 `SessionSnapshot` 投影成 `DecisionTrail`。`get_decision_trail` 与 `GET /api/collab/decision-trail` 返回 `DECISION_TRAIL_JSON`，面板显示并可复制同一份视图；事件和提案变更行都有上界，安全字段投影排除一次性确认号与 metadata 凭据，失锚讨论只作历史证据，提案完整逐行 diff 仍以 `/api/collab/proposals/:id/diff` 和面板为准。它不持久化、不进入 bundle、不改焦点/线程/提案、不批准变更、不签发凭据、不写会话或项目文件。详见 [ADR 0013](ADR/0013-decision-trail-is-a-read-only-projection.md)。
+
 `src/domain/viewport.ts` 校验 version 1 `SessionViewport`：有限且有界的 `scale` / `x` / `y`、合法时间戳与 `source: "human"`。只有本机面板能用 `PANEL_TOKEN`、`confirmedBy: "human"` 和 `POST /api/collab/viewport` 发布它；面板在缩放/平移后通过带令牌的 `keepalive fetch` 节流同步，不能使用无法设置自定义头的 `sendBeacon`。`get_visual_context.viewport`、`BRIEF_JSON.viewport` 与诊断只读暴露这份注意力状态。它不改 `graphRevision`、不生成消息、`graphDiffs`、时间线事件或批准凭据，也不进入 bundle；导入会话会清除视口。详见 [ADR 0012](ADR/0012-viewport-is-read-only-attention-context.md)。
 
 面板把诊断信号与下一步动作展开为可扫读清单；`action` 信号提示人或 AI 的下一棒，`warning` 提示已失败/等待应用的提案，`info` 只描述状态。清单不提供批准按钮，也不改变会话。
@@ -60,6 +62,8 @@ IDE / human browser
 「复制给 AI 的上下文」按钮完全在浏览器端从已加载的会话、诊断与差异摘要拼出一段只读文本；它不调用写端点、不新增消息、不修改会话、不签发凭据。剪贴板不可用时，文本只进入尚未发送的消息输入框，是否发送仍由人决定。
 
 「复制共享简报」按钮从 `GET /api/collab/brief` 已返回的 `BRIEF_JSON` 生成紧凑交接文本；它不调用写端点、不新增消息、不修改会话、不签发凭据，也不把确认号写入剪贴板。
+
+「复制决策链」按钮从 `GET /api/collab/decision-trail` 已返回的 `DECISION_TRAIL_JSON` 生成复盘提示；它不调用写端点、不新增消息、不修改会话、不签发凭据，也不把确认号写入剪贴板。
 
 `SessionStore.setGraph()` 会把前后 `VisualGraph` 交给 `src/domain/graph-diff.ts`，保留最近 20 条 version 1 `graphDiffs`。每条记录包含修订号、来源、节点/连线计数及字段级变化；bundle 也保留这些审计记录，导入时严格校验结构、计数、字段值与时间戳并拒绝未知属性。`get_visual_context.graphDiffs` 和 `GET /api/collab/graph/diffs` 只读暴露它们；面板展开最近修订的字段前后值，时间线合并 `graph_diff` 事件。AI 应据此理解人类改图，而不是从自然语言猜测路径/分组/连线变化。
 

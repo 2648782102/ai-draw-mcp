@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 第 22 个 MCP 工具 `get_decision_trail` 与 `GET /api/collab/decision-trail`：version 1 `DECISION_TRAIL_JSON` 从当前会话派生意图 → 图形修订 → 有界提案变更摘要 → 批准/应用状态的可读时间线；面板显示同一只读视图并提供「复制决策链」。
+- [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md)：记录决策链是派生只读投影，不含批准凭据、不改变会话、不授权写入，且提案完整逐行 diff 仍须人工审阅。
+- 决策链纯函数、MCP、HTTP、工作流示例与离线一致性测试：覆盖失锚讨论只作历史证据、有界事件/变更行、固定安全标记、确认号不外泄与 `grantsWriteAuthority: false`。
 - version 1 `SessionViewport` 与 `POST /api/collab/viewport`：面板节流同步有界缩放/平移状态，`get_visual_context`、`BRIEF_JSON`、诊断和面板只读显示人正在看哪片图；不改图修订、不进入消息/时间线/差异/bundle、不签发凭据。
 - [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md)：记录视口是有限的人类注意力上下文，AI 不能设置或把它变成项目写入权限。
 - 视口纯函数、MCP 上下文、共享简报/诊断与 HTTP 协作测试：覆盖有限值、范围、来源、未知属性、人类确认、非法输入拒绝以及图形/消息/差异不变。
@@ -77,6 +80,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- MCP 工具从 21 增至 22；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、安全、文档地图、ADR 索引、示例、离线一致性检查、工具数量常量、工作流第一步输出与 MCP/HTTP/工作流示例测试同步更新。
 - 路线图删除重复的 0.4 待办、把已交付的提案影响摘要/会话 bundle/doctor 移入已交付清单，并明确下一阶段聚焦决策链、语言感知符号范围与多视图会话；发布文案同步补充共享简报与视口注意力。
 - 面板缩放/平移后以 400ms 节流同步 `SessionViewport`；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、安全、文档地图、离线一致性检查与示例同步说明其只读边界。
 - MCP 工具从 20 增至 21；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、示例、离线一致性检查、工具数量常量、工作流第一步输出与 MCP/HTTP 测试同步更新。
