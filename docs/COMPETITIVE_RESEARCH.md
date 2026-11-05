@@ -132,6 +132,19 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 
 结论：`SELECTION_SCOPE_JSON` 只做 version 1、应用层、只读选择范围投影；`tools/list` 仍是工具 schema 权威，`apply_visual_proposal` 仍是唯一项目写入路径，`SessionSelection` 像 `SessionViewport` 一样属于本机 ephemeral attention，不进入可移植会话 bundle。
 
+### 选择范围到「审阅清单」的产品调研（2026-11-06 07:38 CST）
+
+本轮只读检索公开的 MCP Apps、IDE/agent 文档与新出现的「可视化执行计划/变更范围」项目。 [MCP Apps 官方扩展公告](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/) 把「需要用户做决定、做选择或探索时给出正确交互」列为核心价值，[MCP Apps 总览](https://apps.extensions.modelcontextprotocol.io/api/documents/overview.html) 同时强调交互式审批工作流与 UI 发起工具调用时的显式用户同意；[MCP Tool Annotations 文章](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/) 则提醒工具元数据只是风险提示，读私有数据、看到不可信内容与可能外泄三类风险不应被静默组合。 [GitHub Copilot CLI 权限文档](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference) 也写明 MCP 工具调用仍服从会话权限规则。新出现的 [Overture](https://github.com/SixHq/Overture) 把 agent 的执行计划变成写入代码前的交互流程图，[Birdview](https://github.com/Qiuner/birdview) 强调在架构图上显式展示「AI 声明的变更范围」，[Houston](https://github.com/houston-code/houston) 与 [Glimpse](https://github.com/YushengAuggie/glimpse) 分别展示审批门控/清单与本地双向可视化画布。这些来源共同支持：人类选择进入模型上下文是有价值的，但从「看到了范围」到「允许改变项目」之间必须保留可读清单、显式同意和短生命周期凭据。
+
+| 来源 | 已核对的公开主张 | 对 AI Draw MCP 的启示 | 安全边界 |
+|---|---|---|---|
+| MCP Apps 官方公告/总览 | 交互式 UI 可承载决定、选择、探索和多步审批；UI 发起的工具调用可要求显式同意 | 面板勾选节点后，AI 需要的不只是原始 ID，还应得到可审阅的缺口/路径/下一步清单 | 工作单不调用工具、不写会话、不签发批准凭据；仅作 preflight 前的上下文 |
+| MCP Tool Annotations 风险词汇文章 | 工具注解是风险提示，不等于运行时强制策略 | `readOnly` / `writes` / `writes: "none"` 必须与固定安全标记、端到端测试和唯一写入工具共同验证 | `get_selection_workorder` 不能因为只读就省略候选路径、失锚线程、证据缺口和绝对路径过滤 |
+| GitHub Copilot CLI 权限文档 | MCP 调用服从 session permission rules，外部只读操作也可能要求批准 | 工作流的下一步必须明确告诉 agent 去读完整会话、与人确认，再显式起草 changes | `ready`、候选路径和 `gaps` 都不是批准或运行时权限 |
+| Overture / Birdview / Houston / Glimpse | 执行计划、变更范围、审批清单和本地双向画布正成为 AI coding 可视化产品的核心语言 | 将 `SELECTION_SCOPE_JSON` 收束为 `SELECTION_WORKORDER_JSON`，让「这几个模块」可被人快速核对 | 不复制同类产品的自动执行/浏览器控制能力；服务端仍不启动进程、不打开 IDE、不写项目文件 |
+
+结论：0.3.4 只交付「选择 → 只读预提案工作单」这一段。工作单把候选相对路径、范围内意图、证据、审阅状态、缺口和下一步收束成有界清单，却刻意不含 `ProjectChange` 内容；后续 `preflight_visual_proposal`、完整逐行 diff、人工批准与一次性确认号仍是彼此独立的闸门。未来若做「工作单到模板草稿」，也应保持纯派生、可读、无写入内容或写入权限；MCP Apps 化、LSP 或点击式 IDE 跳转仍属于可选客户端适配层。
+
 ### 对 0.4 / 0.5 的建议与优先级
 
 | 阶段 | 优先级 | 建议 | 完成定义 |
@@ -182,3 +195,10 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 - [Microsoft Visio Desktop MCP Server](https://microsoft.github.io/Visio-Desktop-MCP-Server/) — local MCP server integration with AI clients and IDEs.
 - [MCP TypeScript SDK: Call tools, read resources, get prompts](https://ts.sdk.modelcontextprotocol.io/v2/clients/calling) — `listTools` discovery and `callTool` invocation.
 - [MCP Python SDK: The Client](https://py.sdk.modelcontextprotocol.io/client/) — `list_tools()` and tool name/description/schema discovery.
+- [MCP Apps official overview](https://apps.extensions.modelcontextprotocol.io/api/documents/overview.html) — interactive forms, approval workflows, app-only tools, and UI-initiated tool-call consent.
+- [MCP Tool Annotations as Risk Vocabulary](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/) — tool metadata as hints rather than enforced authority, and tainted-path risk composition.
+- [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference) — MCP tool invocations are subject to session permission rules.
+- [Overture](https://github.com/SixHq/Overture) — an interactive visual flowchart of an AI coding agent's execution plan before code writes.
+- [Birdview](https://github.com/Qiuner/birdview) — architecture-map visualization of an agent's declared change scope before implementation.
+- [Houston](https://github.com/houston-code/houston) — approval-gated coding-agent actions and a live checklist-shaped plan.
+- [Glimpse](https://github.com/YushengAuggie/glimpse) — a local, two-way visual canvas for AI coding agents.
