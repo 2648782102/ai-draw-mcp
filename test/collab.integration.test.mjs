@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -16,6 +17,23 @@ await fs.mkdir(path.join(rescanWorkspaceRoot, "src"), { recursive: true });
 await fs.writeFile(path.join(rescanWorkspaceRoot, "README.md"), "# Rescan\n", "utf8");
 await fs.writeFile(path.join(rescanWorkspaceRoot, "src", "index.ts"), "export const value = 1;\n", "utf8");
 
+function configureChrome() {
+  const configured = process.env.PUPPETEER_EXECUTABLE_PATH;
+  if (configured && existsSync(configured)) return configured;
+  const candidates = [
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  ];
+  const found = candidates.find((candidate) => existsSync(candidate));
+  if (found) {
+    process.env.PUPPETEER_EXECUTABLE_PATH = found;
+    return found;
+  }
+  return undefined;
+}
+
 const { createServer } = await import(path.join(packageRoot, "dist/server.js"));
 
 describe("collaboration session", () => {
@@ -28,9 +46,7 @@ describe("collaboration session", () => {
     process.env.AI_DRAW_WORKSPACE_ROOT = workspaceRoot;
     process.env.OUTPUT_DIR = outputDir;
     process.env.PREVIEW_PORT = "3412";
-    process.env.PUPPETEER_EXECUTABLE_PATH =
-      process.env.PUPPETEER_EXECUTABLE_PATH ??
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+    configureChrome();
 
     const { preview, sessions } = await createServer();
     await preview.start();
@@ -430,9 +446,7 @@ describe("collaboration session", () => {
     process.env.AI_DRAW_WORKSPACE_ROOT = rescanWorkspaceRoot;
     process.env.OUTPUT_DIR = rescanOutputDir;
     process.env.PREVIEW_PORT = "3413";
-    process.env.PUPPETEER_EXECUTABLE_PATH =
-      process.env.PUPPETEER_EXECUTABLE_PATH ??
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+    configureChrome();
 
     const { preview, sessions, visualSync } = await createServer();
     await preview.start();

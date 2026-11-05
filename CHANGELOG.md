@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - 「复制给 AI 的上下文」增加最近一次 `graphDiffs` 的字段级摘要（最多 8 项），并提醒以 `get_visual_context.graphDiffs.items` 的原文为准；复制仍是只读浏览器行为，不写会话、不签发凭据。
 - `.github/workflows/ci.yml` 在 Node 20/22/24 矩阵中增加 `npm run docs:assets:check` 与 `npm run repo:check`，让版本化概念图和离线仓库文案在 CI 中与本地 `npm run check` 对齐。
 - `scan_project` 增加 `render: false` 无头状态检查参数：跳过重复 `mmdc` 渲染但保留扫描、合并、会话保存和 `PRESERVATION_JSON`；MCP 稳定扫描测试用它避免大型工作区在 CI 里触发渲染超时。
+- 协作集成测试的 Chrome 探测改为跨平台候选路径；Linux CI 不再被 macOS 专属 `/Applications/Google Chrome...` 覆盖 Puppeteer 的 headless-shell 检测。
 - version 1 `SessionFocus`、`POST /api/collab/focus` 与面板「当前焦点」：把人当前选中的节点作为只读上下文交给 `get_visual_context`、诊断和会话 bundle；焦点变化不产生消息、不进入时间线、不签发凭据。
 - 面板「复制给 AI 的上下文」按钮：生成含会话、修订、焦点、诊断、下一步与安全边界的只读提示；不写会话、不发送消息、不签发凭据。
 - `docs/ADR/0005-human-focus-is-read-only-context.md`：记录选中状态只是注意力上下文，不能替代人工批准或写入凭据。
