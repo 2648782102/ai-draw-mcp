@@ -3,6 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { jsonLine, type ToolContext } from "./_shared.js";
 import { summarizeAnnotationThreads } from "../domain/annotation-thread.js";
 import { buildActivityTimeline } from "../domain/activity-timeline.js";
+import { buildSessionDiagnostics } from "../domain/session-diagnostics.js";
 
 export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
   server.tool(
@@ -26,6 +27,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       const annotationThreads = summarizeAnnotationThreads(graph);
       const staleThreads = annotationThreads.threads.filter((thread) => thread.anchorStatus !== "anchored");
       const activityTimeline = buildActivityTimeline(snapshot, activity_limit ?? 30);
+      const diagnostics = buildSessionDiagnostics(snapshot);
       const nodeLabels = new Map(graph?.nodes.map((node) => [node.id, node.label]) ?? []);
       const annotationsByNode = new Map<string, string[]>();
       const generalAnnotations: string[] = [];
@@ -89,6 +91,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         annotationThreads,
         staleThreads,
         activityTimeline,
+        diagnostics,
         intentSummary,
         messages,
         proposals,
@@ -98,6 +101,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           "Use create_visual_proposal to record change proposals; never write project files directly from this tool.",
           "Ask the human to approve a proposal in the panel before anything is applied.",
           "Use activityTimeline for compact chronology of messages, annotation threads, and proposal lifecycle events.",
+          "Use diagnostics.signals and diagnostics.nextActions for a concise session health check; diagnostics never grants write authority.",
         ],
       };
       return {
@@ -110,6 +114,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
             `Node-linked intents: ${intentByNode.length} · general annotations: ${generalAnnotations.length}`,
             `Annotation threads: ${annotationThreads.open} open / ${annotationThreads.total} · stale: ${staleThreads.length} · next actor: ${annotationThreads.nextActor}`,
             `Activity timeline: ${activityTimeline.returned}/${activityTimeline.total} events · latest ${activityTimeline.latestAt ?? "none"}`,
+            `Diagnostics: ${diagnostics.signals.length} signals · ${diagnostics.nextActions.length} next actions`,
             ``,
             jsonLine({
               id: snapshot.id,

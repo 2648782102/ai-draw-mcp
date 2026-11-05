@@ -79,6 +79,8 @@ describe("MCP server", () => {
       expect(payload.intentSummary.annotationThreads).toBeTruthy();
       expect(payload.intentSummary).toHaveProperty("nextActor");
       expect(payload.activityTimeline).toMatchObject({ version: 1 });
+      expect(payload.diagnostics).toMatchObject({ version: 1 });
+      expect(payload.diagnostics.safety.projectWritesRequireHumanApproval).toBe(true);
       expect(payload.intentSummary.guidance).toContain("activityTimeline");
       expect(payload.nextActions.join(" ")).toContain("create_visual_proposal");
     });

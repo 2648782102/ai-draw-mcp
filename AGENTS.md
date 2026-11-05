@@ -31,6 +31,7 @@ src/
 │   ├── session-bundle.ts     可移植会话快照的创建与解析
 │   ├── annotation-thread.ts  节点批注线程聚合、回复校验与 nextActor 队列
 │   ├── activity-timeline.ts  消息/批注/提案生命周期的只读派生时间线
+│   ├── session-diagnostics.ts 会话健康、下一步动作与安全不变量的只读摘要
 │   ├── impact.ts             提案影响摘要：文件数、行数、字节数与安全说明
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
 ├── infra/
@@ -101,6 +102,8 @@ ROADMAP.md                   产品路线图与非目标
 
 节点批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`。节点标签或路径变化后线程标记为 `outdated`，节点删除后标记为 `detached`；`staleThreads` 与活动时间线 `annotation_anchor` 事件会提示 AI 不要把旧讨论当成当前意图。`outdated` 线程必须由人在面板点击「确认重锚」或调用 `/api/collab/annotations/:id/anchor`（`confirmedBy: "human"`）才能恢复；`detached` 线程保留原 `nodeId` 供审计，不得自动重锚。
 
+`diagnostics` 是同一会话的只读健康摘要，包含失锚线程、待处理消息、提案状态分布、活动时间线计数、下一步动作与三个安全不变量；它不签发批准凭据，也不替代 `get_visual_context` 的原文上下文。
+
 ---
 
 ## 如何添加新工具（4 步）
@@ -138,6 +141,7 @@ server.tool(
 |----------|------|
 | `GET /api/collab/session` | 完整会话快照 |
 | `GET /api/collab/activity` | 只读紧凑活动时间线；`limit` 默认 60、最大 200 |
+| `GET /api/collab/diagnostics` | 只读会话诊断：图/线程/提案计数、信号、下一步与安全不变量 |
 | `GET /api/collab/bundle` | 导出可移植会话快照（不含一次性批准凭据） |
 | `POST /api/collab/bundle/import` | 人类确认后导入；清空气批准凭据，不写项目文件 |
 | `GET/PUT /api/collab/graph` | 读取/保存 VisualGraph |

@@ -306,6 +306,14 @@ describe("collaboration session", () => {
         .then((response) => response.json());
       expect(appliedActivity.timeline.items.some((item) => item.proposalStatus === "applied")).toBe(true);
 
+      const diagnosticsResponse = await fetch(`${base}/api/collab/diagnostics`, { headers });
+      expect(diagnosticsResponse.ok).toBe(true);
+      const diagnostics = (await diagnosticsResponse.json()).diagnostics;
+      expect(diagnostics).toMatchObject({ version: 1, graphRevision: sessions.getSnapshot().graphRevision });
+      expect(diagnostics.proposals.applied).toBe(1);
+      expect(diagnostics.safety.projectWritesRequireHumanApproval).toBe(true);
+      expect(diagnostics.nextActions.join(" ")).toContain("scan_project again");
+
       const bundleResponse = await fetch(`${base}/api/collab/bundle`, { headers });
       expect(bundleResponse.ok).toBe(true);
       const bundle = await bundleResponse.json();

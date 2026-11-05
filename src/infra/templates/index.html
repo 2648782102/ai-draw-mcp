@@ -381,6 +381,7 @@
     <section class="collab-section">
       <h3>对话与批注</h3>
       <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
+      <p class="activity-summary" id="diagnosticsSummary">会话诊断加载中…</p>
       <div class="chat-log activity-list" id="activityList"></div>
       <div class="chat-log" id="chatLog"></div>
       <div class="chat-log" id="annotationList"></div>
@@ -1124,6 +1125,18 @@ function renderActivity(timeline) {
   `).join('') : '<div class="collab-help">暂无活动。让 AI 扫描项目，或从消息与节点批注开始。</div>';
 }
 
+function renderDiagnostics(diagnostics) {
+  const target = $('#diagnosticsSummary');
+  if (!target) return;
+  const signals = Array.isArray(diagnostics?.signals) ? diagnostics.signals : [];
+  const actions = Array.isArray(diagnostics?.nextActions) ? diagnostics.nextActions : [];
+  const counts = diagnostics?.graph;
+  target.textContent = diagnostics
+    ? `会话诊断 · rev ${escapeHtml(String(diagnostics.graphRevision || 0))} · ${escapeHtml(String(counts?.nodes || 0))} 节点 / ${escapeHtml(String(counts?.staleAnnotations || 0))} 失锚 · ${signals.length} 信号 · ${actions.length} 下一步`
+    : '会话诊断不可用';
+  target.title = [...signals.map((signal) => signal.message), ...actions].join('\n');
+}
+
 function activityKindLabel(kind) {
   return ({
     session_created: '会话',
@@ -1139,6 +1152,10 @@ function activityKindLabel(kind) {
 
 function activityActorLabel(actor) {
   return actor === 'ai' ? 'AI' : actor === 'human' ? '人' : '无';
+}
+
+function diagnosticLevelLabel(level) {
+  return level === 'action' ? '待处理' : level === 'warning' ? '注意' : '信息';
 }
 
 function renderAnnotations(annotations) {
@@ -1325,6 +1342,8 @@ async function loadCollab() {
     renderProposals(proposals.proposals || []);
     const activity = await collabFetch('/api/collab/activity?limit=30');
     renderActivity(activity.timeline);
+    const diagnostics = await collabFetch('/api/collab/diagnostics');
+    renderDiagnostics(diagnostics.diagnostics);
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
   }

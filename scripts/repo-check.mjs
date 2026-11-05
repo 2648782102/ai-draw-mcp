@@ -89,6 +89,7 @@ for (const endpoint of [
   "/api/collab/annotations/:id/status",
   "/api/collab/annotations/:id/anchor",
   "/api/collab/activity",
+  "/api/collab/diagnostics",
   "/api/collab/bundle/import",
   "/api/collab/proposals/:id/impact",
 ]) {
@@ -107,6 +108,10 @@ for (const [label, file, needle] of [
   ["proposal preflight domain function", await read("src/domain/proposal-preflight.ts"), "inspectProposalChanges"],
   ["activity timeline derivation", activityTimeline, "export function buildActivityTimeline"],
   ["activity timeline context", getVisualContext, "activityTimeline"],
+  ["session diagnostics endpoint", previewServer, "buildSessionDiagnostics"],
+  ["session diagnostics context", getVisualContext, "buildSessionDiagnostics"],
+  ["session diagnostics panel", panel, "diagnosticsSummary"],
+  ["session diagnostics domain", await read("src/domain/session-diagnostics.ts"), "buildSessionDiagnostics"],
   ["annotation anchor status", types, "anchorStatus"],
   ["annotation anchor activity", activityTimeline, "annotation_anchor"],
   ["human re-anchor confirmation", previewServer, "Human confirmation is required"],
@@ -153,6 +158,7 @@ check(agents.includes("anchorStatus"), "AGENTS.md does not document stale annota
 check(architecture.includes("annotationThreads.nextActor"), "ARCHITECTURE.md does not document annotation thread handoff");
 check(architecture.includes("anchorStatus"), "ARCHITECTURE.md does not document stale annotation anchors");
 check(architecture.includes("activityTimeline"), "ARCHITECTURE.md does not document the derived activity timeline");
+check(architecture.includes("/api/collab/diagnostics"), "ARCHITECTURE.md does not document session diagnostics");
 check(agents.includes("activity-timeline.ts"), "AGENTS.md does not list the activity timeline module");
 check(agents.includes("/api/collab/activity"), "AGENTS.md does not document the activity endpoint");
 check(readme.includes("解决线程只是对话状态"), "README.md does not separate thread resolution from proposal approval");
