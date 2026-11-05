@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Maintenance
+
+- 记录 `v0.3.3` 的公开验证证据：CI #66、Release #3、两个已发布 Release 与 Issue #8 同步；仓库 About/topics 仍因缺少管理权限令牌保持版本化漂移记录。
+- 以已发布 Release 的实际通用标题为准记录 `v0.3.3`，保留重复的 `getReleaseByTag` 幂等检查；不改写已发布 Release 或旧标签。
+
 ## [0.3.3] - 2026-11-06
 
 ### Added

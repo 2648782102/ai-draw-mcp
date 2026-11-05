@@ -687,8 +687,13 @@ check(governance.includes("42124987808"), "GOVERNANCE.md is missing the 0.3.2 CI
 check(governance.includes("42124996768"), "GOVERNANCE.md is missing the 0.3.2 Release evidence");
 check(governance.includes("42124987876"), "GOVERNANCE.md is missing the 0.3.2 metadata-check evidence");
 check(governance.includes("releases/tag/v0.3.2"), "GOVERNANCE.md is missing the published 0.3.2 Release URL");
+check(governance.includes("42127902178"), "GOVERNANCE.md is missing the 0.3.3 CI evidence");
+check(governance.includes("42128152064"), "GOVERNANCE.md is missing the 0.3.3 Release evidence");
+check(governance.includes("releases/tag/v0.3.3"), "GOVERNANCE.md is missing the published 0.3.3 Release URL");
 check(launchKit.includes("tag workflow now creates"), "LAUNCH_KIT.md does not document automatic Release creation");
 check(launchKit.includes("releases/tag/v0.3.2"), "LAUNCH_KIT.md is missing the published 0.3.2 Release URL");
+check(launchKit.includes("releases/tag/v0.3.3"), "LAUNCH_KIT.md is missing the published 0.3.3 Release URL");
+check(releaseWorkflow.includes("Human ↔ AI visual collaboration"), "release workflow is missing the published Release title");
 check(agents.includes("release.yml"), "AGENTS.md does not document the versioned tag Release workflow");
 check(getCapabilitiesTool.includes("SERVER_VERSION, type ToolContext"), "get-capabilities.ts bypasses the shared infra boundary");
 check(!getCapabilitiesTool.includes('from "../infra/version.js"'), "get-capabilities.ts imports infra directly");
