@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `package.json` 与 `package-lock.json` 升至 `0.3.4`；README、AGENTS、架构、安全、路线图、宣发、示例、故障排除与离线检查同步到 26 个工具和 19 份 ADR。
 - 保留 `v0.3.3` 的公开验证证据与已发布 Release 实际标题；不改写任何现有标签或 Release。
+- 补强协作生命周期测试：bundle 明确排除 ephemeral 选择与 `exportManifest.contents.selection` 记录排除；导入后 `SELECTION_SCOPE_JSON` 与 `SELECTION_WORKORDER_JSON` 都回到空范围并提示先让人重新选择。
 
 ## [0.3.3] - 2026-11-06
 

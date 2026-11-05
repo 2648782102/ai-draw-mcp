@@ -652,6 +652,7 @@ for (const [label, file, needle] of [
   ["workorder pure contract test", selectionWorkorderTest, "read-only selection workorder"],
   ["workorder MCP test", mcpTest, "get_selection_workorder"],
   ["workorder HTTP test", collaborationTest, "/api/collab/selection-workorder"],
+  ["workorder bundle exclusion test", collaborationTest, 'manifest.contents.selection'],
   ["workorder ADR index", adrIndex, "0019-selection-workorder-is-read-only-preflight.md"],
   ["workorder ADR boundary", selectionWorkorderAdr, "grants project-write authority"],
   ["workorder Chinese docs", readme, "SELECTION_WORKORDER_JSON"],

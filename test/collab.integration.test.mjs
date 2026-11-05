@@ -540,6 +540,7 @@ describe("collaboration session", () => {
       expect(bundle.kind).toBe("ai-draw-session-bundle");
       expect(bundle.version).toBe(1);
       expect(JSON.stringify(bundle)).not.toContain(approval.receipt.grantHash);
+      expect(JSON.stringify(bundle)).not.toContain("selection");
       expect(bundle.session.graph.annotations[0].replies[0].body).toContain("已收到");
 
       const manifestResponse = await fetch(`${base}/api/collab/bundle/manifest`, { headers });
@@ -547,6 +548,7 @@ describe("collaboration session", () => {
       const manifest = await manifestResponse.json();
       expect(manifest).toMatchObject({ version: 1, kind: "ai-draw-export-manifest", sessionId: bundle.session.id });
       expect(manifest.contents.proposals.count).toBeGreaterThan(0);
+      expect(manifest.contents.selection).toMatchObject({ included: false, count: 0 });
       expect(manifest.safety).toMatchObject({ readOnly: true, grantsWriteAuthority: false, excludesApprovalGrants: true });
       expect(JSON.stringify(manifest)).not.toContain(approval.receipt.grantHash);
 
@@ -598,6 +600,18 @@ describe("collaboration session", () => {
       });
       expect(restoredBundle.ok).toBe(true);
       expect(sessions.getSnapshot().proposals[0].status).toBe("applied");
+      const restoredSelectionScope = await fetch(`${base}/api/collab/selection-scope`, { headers })
+        .then((response) => response.json());
+      expect(restoredSelectionScope).toMatchObject({ selectedCount: 0, source: "none", selectionRevision: null });
+      const restoredWorkorder = await fetch(`${base}/api/collab/selection-workorder`, { headers })
+        .then((response) => response.json());
+      expect(restoredWorkorder).toMatchObject({
+        selectedCount: 0,
+        source: "none",
+        selectionRevision: null,
+        safePaths: [],
+      });
+      expect(restoredWorkorder.gaps.join(" ")).toContain("No active human selection");
     } finally {
       await preview.stop().catch(() => {});
       delete process.env.AI_DRAW_WORKSPACE_ROOT;
