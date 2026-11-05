@@ -17,5 +17,6 @@ ADRs capture product and protocol decisions that contributors and AI coding agen
 | [0011-shared-brief-is-a-read-only-projection.md](0011-shared-brief-is-a-read-only-projection.md) | Accepted | The compact shared handoff brief is derived, excludes approval grants, and never grants write authority. |
 | [0012-viewport-is-read-only-attention-context.md](0012-viewport-is-read-only-attention-context.md) | Accepted | Human zoom/pan state is bounded attention context, never a graph revision, timeline event, or write grant. |
 | [0013-decision-trail-is-a-read-only-projection.md](0013-decision-trail-is-a-read-only-projection.md) | Accepted | A derived decision trail links intent and proposal evidence without approval grants or write authority. |
+| [0014-export-manifest-is-a-derived-inventory.md](0014-export-manifest-is-a-derived-inventory.md) | Accepted | A portable bundle's derived inventory describes contents and exclusions without granting writes. |
 
 Add a new ADR when a change affects the human/AI protocol, persisted state, tool surface, approval boundary, or public product direction. Keep the decision, alternatives, and safety consequence in one file.

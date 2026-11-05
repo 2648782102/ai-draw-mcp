@@ -13,6 +13,7 @@ These examples are intentionally small and contain no secrets or absolute paths.
 - `get_shared_brief` — a read-only `BRIEF_JSON` handoff tool for readiness blockers, bounded intent, stale threads, latest graph diff, evidence, and next actions; `agent-workflow.mjs` verifies it before preflight.
 - `get_decision_trail` — a read-only `DECISION_TRAIL_JSON` chronology linking human intent, graph diffs, bounded proposal change summaries, proposal stages, gaps, and activity events; `agent-workflow.mjs` verifies its no-grant boundary before preflight. It does not replace the full line diff.
 - `BRIEF_JSON.viewport` — bounded human zoom/pan attention context; it is read-only and never becomes a graph revision, timeline event, bundle field, or approval grant.
+- `EXPORT_MANIFEST_JSON` — a derived, credential-free inventory attached to downloaded session bundles; it lists counts, exclusions, and read-only safety flags, and is not required for strict bundle import.
 - `collaboration-workflow.md` — a human ↔ AI walkthrough for scanning, annotating, approving, and applying a proposal.
 
 Run the client after `npm run build`:

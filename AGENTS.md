@@ -40,6 +40,7 @@ src/
 │   ├── agent-workflow.ts      当前会话的八步 agent 工作流契约与就绪阻塞
 │   ├── shared-brief.ts        SharedBrief / BRIEF_JSON 派生只读交接投影
 │   ├── decision-trail.ts      DecisionTrail / DECISION_TRAIL_JSON 派生只读决策链
+│   ├── session-bundle.ts      SessionBundle 与 ExportManifest 派生只读导出清单
 │   ├── viewport.ts            SessionViewport 有界只读注意力状态校验
 │   ├── impact.ts             提案影响摘要：文件数、行数、字节数与安全说明
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
@@ -88,6 +89,7 @@ docs/ADR/0008-visual-undo-is-not-project-undo.md 视觉撤销不等于项目写�
 docs/ADR/0011-shared-brief-is-a-read-only-projection.md 只读共享交接简报决策
 docs/ADR/0012-viewport-is-read-only-attention-context.md 视口是只读注意力上下文决策
 docs/ADR/0013-decision-trail-is-a-read-only-projection.md 决策链是派生只读投影决策
+docs/ADR/0014-export-manifest-is-a-derived-inventory.md 导出清单是派生只读清单决策
 docs/ADR/0009-source-evidence-is-read-only-context.md 只读源码证据决策
 docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
@@ -129,6 +131,8 @@ ROADMAP.md                   产品路线图与非目标
 `get_shared_brief` 与 `GET /api/collab/brief` 是 `src/domain/shared-brief.ts` 的 version 1 只读交接投影：聚合会话/图形版本、人类焦点、就绪阻塞、待处理消息、有效与失锚批注、最近图形修订、有界 `file:line` 证据、提案/活动计数和下一步。`BRIEF_JSON` 不持久化、不进入 bundle、不含批准凭据、不改焦点/线程/提案、不写会话或项目文件；面板显示并可复制同一份视图，详见 [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md)。
 
 `get_decision_trail` 与 `GET /api/collab/decision-trail` 是 `src/domain/decision-trail.ts` 的 version 1 只读派生投影：把待处理消息、有效批注线程、失锚讨论、字段级图修订、提案变更摘要、批准/应用阶段与活动时间线按证据类型聚合。`DECISION_TRAIL_JSON` 只投影安全字段，不含 `approvalId` / `approvalGrant` / `approvalExpiresAt` / metadata 凭据；失锚讨论只作历史证据，提案变更行是有界 add-line 投影而非完整逐行 diff。它不持久化、不进入 bundle、不改焦点/线程/提案、不写会话或项目文件、不批准或签发凭据；面板显示并可复制同一份视图，批准前仍须查看 `/api/collab/proposals/:id/diff` 或面板完整 diff，详见 [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md)。
+
+`buildExportManifest()` 与 `GET /api/collab/bundle/manifest` 从同一个导出 `SessionBundle` 派生 version 1 `EXPORT_MANIFEST_JSON`：列出格式/版本、建议文件名、图/批注/证据/消息/提案计数、已降级批准状态，以及刻意排除的一次性批准凭据、图形历史与视口。面板下载时把它作为顶层 `exportManifest` 注释附在 JSON 里；`parseSessionBundle()` 仍只投影严格校验的 `session` 字段，旧 bundle 与带清单 bundle 都可导入。构建器拒绝非 version 1 和 credential-like proposal metadata；清单只读、不持久化、不签发凭据、不批准变更、不写项目文件，详见 [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md)。
 
 `SessionViewport` 是 `src/domain/viewport.ts` 校验的 version 1 有界缩放/平移注意力状态。只有本机面板可通过 `POST /api/collab/viewport` 以 `PANEL_TOKEN` 与 `confirmedBy: "human"` 发布；面板使用带令牌的 `keepalive fetch`，不能使用无法设置自定义头的 `sendBeacon`。`get_visual_context.viewport`、`BRIEF_JSON.viewport`、诊断和面板只读显示。它不改 `graphRevision`、不产生消息/时间线/`graphDiffs`/批准凭据、不进入 bundle、不写项目文件；导入会话会清除视口，详见 [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md)。
 
@@ -202,6 +206,7 @@ server.tool(
 | `GET /api/collab/node-context` | 只读单节点上下文；`nodeId` 默认当前焦点，`diffLimit` 默认 5、最大 20 |
 | `GET /api/collab/brief` | 只读共享交接简报；`messageLimit` 默认 5 最大 20，`graphDiffLimit` 默认 3 最大 10，`activityLimit` 默认 5 最大 20 |
 | `GET /api/collab/decision-trail` | 只读决策链；`eventLimit` 默认 60 最大 120，`proposalLimit` 默认 6 最大 20，`graphDiffLimit` 默认 4 最大 20，`lineLimit` 默认 12 最大 40 |
+| `GET /api/collab/bundle/manifest` | 只读导出清单；从当前会话导出的 bundle 派生，不写会话或项目文件 |
 | `POST /api/collab/viewport` | 人类面板发布有界缩放/平移注意力状态；严格校验有限数值、范围、来源和未知属性，不改图修订或签发凭据 |
 | `POST /api/collab/graph/undo` | 人类确认的视觉撤销；生成新图修订，不写项目文件 |
 | `POST /api/collab/graph/redo` | 人类确认的视觉重做；生成新图修订，不写项目文件 |

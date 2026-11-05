@@ -25,6 +25,7 @@
  *   POST /api/collab/graph/redo   human-confirmed visual redo
  *   POST /api/collab/rescan       human-confirmed workspace rescan with state preservation
  *   GET  /api/collab/bundle      portable session bundle for bug reports/examples
+ *   GET  /api/collab/bundle/manifest  read-only inventory of the portable bundle
  *   POST /api/collab/bundle/import  import a reviewed session bundle
  *   GET  /api/collab/graph       current visual graph
  *   PUT  /api/collab/graph       save human graph edits
@@ -58,6 +59,7 @@ import { buildSessionDiagnostics } from "../domain/session-diagnostics.js";
 import { buildNodeContext } from "../domain/node-context.js";
 import { buildSharedBrief } from "../domain/shared-brief.js";
 import { buildDecisionTrail } from "../domain/decision-trail.js";
+import { buildExportManifest } from "../domain/session-bundle.js";
 import { makeId, nowIso } from "../domain/ids.js";
 import { logger } from "./logger.js";
 import { renderMermaidToSvg, saveSvg } from "./renderer.js";
@@ -280,6 +282,10 @@ export class PreviewServer {
 
     this.app.get("/api/collab/bundle", (_req, res) => {
       res.json(this.sessions.exportBundle());
+    });
+
+    this.app.get("/api/collab/bundle/manifest", (_req, res) => {
+      res.json(buildExportManifest(this.sessions.exportBundle()));
     });
 
     this.app.post("/api/collab/bundle/import", async (req, res) => {

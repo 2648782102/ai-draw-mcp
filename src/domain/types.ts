@@ -365,6 +365,33 @@ export interface GraphHistorySummary {
   limit: number;
 }
 
+export interface ExportManifest {
+  version: 1;
+  kind: "ai-draw-export-manifest";
+  sessionId: string;
+  graphRevision: number;
+  exportedAt: string;
+  suggestedFilename: string;
+  format: { kind: "ai-draw-session-bundle"; version: 1; encoding: "utf8-json" };
+  contents: {
+    graph: { included: boolean; nodes: number; edges: number; annotations: number; replies: number; sourceEvidence: number };
+    focus: { included: boolean; nodeId?: string };
+    graphDiffs: { included: boolean; count: number };
+    messages: { included: boolean; count: number };
+    proposals: { included: boolean; count: number; approvedStateDowngraded: number };
+  };
+  excluded: Array<{ field: string; reason: string }>;
+  safety: {
+    readOnly: true;
+    grantsWriteAuthority: false;
+    excludesApprovalGrants: true;
+    excludesGraphHistory: true;
+    excludesViewport: true;
+    projectWritesRequireHumanApproval: true;
+  };
+  guidance: string[];
+}
+
 export type DecisionTrailEventCategory = "intent" | "graph" | "proposal" | "system";
 export type DecisionTrailEvidence =
   | "session_record"

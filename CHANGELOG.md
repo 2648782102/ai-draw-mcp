@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- version 1 `EXPORT_MANIFEST_JSON` 与 `GET /api/collab/bundle/manifest`：从导出的 `SessionBundle` 派生可读资产清单、建议文件名、有界计数、被排除的凭据/图形历史/视口字段、已降级批准状态与固定只读安全标记；面板下载的 bundle 附带 `exportManifest`，严格导入仍只信任 versioned `session`。
+- [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md)：记录导出清单是派生只读清单、不持久化、不改变导入契约、不签发凭据，也不授权写入。
+- 导出清单纯函数、HTTP、面板导出与离线一致性测试：覆盖确定性、版本校验、credential-like metadata 拒绝、凭据不外泄、固定安全标记和带清单旧字段的 bundle 导入兼容。
 - 第 22 个 MCP 工具 `get_decision_trail` 与 `GET /api/collab/decision-trail`：version 1 `DECISION_TRAIL_JSON` 从当前会话派生意图 → 图形修订 → 有界提案变更摘要 → 批准/应用状态的可读时间线；面板显示同一只读视图并提供「复制决策链」。
 - [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md)：记录决策链是派生只读投影，不含批准凭据、不改变会话、不授权写入，且提案完整逐行 diff 仍须人工审阅。
 - 决策链纯函数、MCP、HTTP、工作流示例与离线一致性测试：覆盖失锚讨论只作历史证据、有界事件/变更行、固定安全标记、确认号不外泄与 `grantsWriteAuthority: false`。

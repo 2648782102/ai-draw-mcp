@@ -22,6 +22,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Shipped in 0.3.x maintenance
 
+- A version 1 `EXPORT_MANIFEST_JSON` derived inventory for portable session bundles: counts, excluded credential/history/viewport fields, downgraded approval state, fixed read-only safety flags, and a suggested filename; strict import validation is unchanged; see [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md).
 - `get_decision_trail`: a versioned, read-only `DECISION_TRAIL_JSON` linking human intent, anchored/stale threads, graph diffs, bounded proposal change summaries, proposal stages, gaps, and activity events; full diff review and human approval remain mandatory; see [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md).
 - `get_node_context`: a versioned, read-only single-node projection of source evidence, annotation threads, adjacent edges, related graph diffs, and human focus; see [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md).
 - `get_shared_brief`: a versioned, read-only `BRIEF_JSON` handoff projection for humans and AI, with readiness blockers, bounded intent, latest graph diff, evidence, and next actions; see [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md).

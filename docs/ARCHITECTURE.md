@@ -65,6 +65,8 @@ IDE / human browser
 
 「复制决策链」按钮从 `GET /api/collab/decision-trail` 已返回的 `DECISION_TRAIL_JSON` 生成复盘提示；它不调用写端点、不新增消息、不修改会话、不签发凭据，也不把确认号写入剪贴板。
 
+`GET /api/collab/bundle/manifest` 从 `SessionStore.exportBundle()` 返回的同一份 `SessionBundle` 派生 version 1 `EXPORT_MANIFEST_JSON`。面板导出会话时把它作为顶层 `exportManifest` 附在下载 JSON 里，便于 Issue、示例和回归报告快速核对资产计数、建议文件名、被排除的凭据/图形历史/视口与固定安全标记。`parseSessionBundle()` 仍只投影严格校验的 `session` 字段，带清单的 bundle 与旧 bundle 均可导入；`buildExportManifest()` 会拒绝非 version 1 输入与 credential-like proposal metadata。清单不持久化、不签发凭据、不批准变更、不写会话或项目文件，详见 [ADR 0014](ADR/0014-export-manifest-is-a-derived-inventory.md)。
+
 `SessionStore.setGraph()` 会把前后 `VisualGraph` 交给 `src/domain/graph-diff.ts`，保留最近 20 条 version 1 `graphDiffs`。每条记录包含修订号、来源、节点/连线计数及字段级变化；bundle 也保留这些审计记录，导入时严格校验结构、计数、字段值与时间戳并拒绝未知属性。`get_visual_context.graphDiffs` 和 `GET /api/collab/graph/diffs` 只读暴露它们；面板展开最近修订的字段前后值，时间线合并 `graph_diff` 事件。AI 应据此理解人类改图，而不是从自然语言猜测路径/分组/连线变化。
 
 `src/domain/graph-history.ts` 校验 version 1 `GraphHistoryState`；`SessionStore` 在 `OUTPUT_DIR/.ai-draw/session.json` 中保存最多 12 步视觉图 past/future 快照。`GET /api/collab/graph/history` 只读返回计数；人类确认的 `POST /api/collab/graph/undo` 与 `/redo` 要求本机面板令牌和 `confirmedBy: "human"`，恢复的图通过 `setGraph()` 生成新 `graphRevision`、`graphDiffs`、焦点刷新与派生活动消息。历史不进入 bundle、导入会话会重置历史，且两个端点都不触碰工作区文件、提案状态、批准凭据或已应用的项目写入；详见 [ADR 0008](ADR/0008-visual-undo-is-not-project-undo.md)。

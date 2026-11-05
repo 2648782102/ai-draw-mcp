@@ -1912,16 +1912,21 @@ async function decideProposal(id, decision) {
 async function exportSession() {
   try {
     const bundle = await collabFetch('/api/collab/bundle');
-    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+    const manifest = await collabFetch('/api/collab/bundle/manifest');
+    const bundleWithManifest = {
+      ...bundle,
+      exportManifest: manifest,
+    };
+    const blob = new Blob([JSON.stringify(bundleWithManifest, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `ai-draw-session-${bundle.session?.id || 'snapshot'}.json`;
+    link.download = manifest.suggestedFilename || `ai-draw-session-${bundle.session?.id || 'snapshot'}.json`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    showToast('会话快照已导出（不含一次性批准凭据）');
+    showToast('会话快照与只读导出清单已导出（不含一次性批准凭据）');
   } catch (error) {
     showToast(`导出失败：${error.message}`);
   }

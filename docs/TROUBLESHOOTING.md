@@ -26,6 +26,7 @@ This guide covers first-run problems that are easiest to diagnose from the local
 | AI invents a collaboration sequence | The agent has not read the current workflow contract | Call `get_agent_workflow`, review `WORKFLOW_JSON.blocked`, and follow the ordered `requires` / `produces` fields. The contract itself never grants write authority. |
 | AI or a human needs a compact handoff | Full `CONTEXT_JSON` is too large for a status note | Call `get_shared_brief` or use the panel's `复制共享简报` button. `BRIEF_JSON` is bounded, read-only, excludes approval grants, and points to `get_visual_context` for full context. |
 | AI cannot explain why a change was proposed | The intent, visual edit, and proposal stages are scattered across several views | Call `get_decision_trail` or use the panel's `复制决策链` button. `DECISION_TRAIL_JSON` is a bounded, evidence-labelled chronology; stale threads are historical evidence and proposal lines are only a projection, so open the full line diff before approving. |
+| A session bundle is hard to review in a bug report | The full JSON is large and exclusion rules are implicit | Open `GET /api/collab/bundle/manifest` or the downloaded `exportManifest`. `EXPORT_MANIFEST_JSON` is a bounded, read-only inventory of contents, intentional exclusions, and downgraded approval state; it is not required for import and never contains credentials. |
 | AI keeps guessing the wrong diagram region | The selected node is clear, but the visible region is not | Read `CONTEXT_JSON.viewport` / `BRIEF_JSON.viewport`. It is a throttled, bounded human zoom/pan hint and never grants writes; zoom or pan in the panel to refresh it. If it stays empty, reload the panel from the current MCP server so the injected `PANEL_TOKEN` is fresh; viewport sync uses an authenticated `keepalive fetch`, not `sendBeacon`. |
 | A graph node has no source evidence | The file is binary, over 1 MiB, hidden/ignored, or has no definition/import/heading line | Check `scan_project` stats and the panel evidence list; `sourceEvidence` is a bounded read-only hint, not a full symbol index. |
 | `get_node_context` reports an unknown node | The graph was rescanned, the ID was mistyped, or no human focus exists | Read `get_visual_context.graph.nodes` for a current ID, pass `node_id`, or select a node in the panel. The call never changes focus or grants writes. |
@@ -54,6 +55,10 @@ No. Resolve/reopen and the activity timeline are conversation/derived views. The
 ### Does the decision trail approve or apply a proposal?
 
 No. `DECISION_TRAIL_JSON` is a read-only chronology derived from the current session. It records whether a human approval timestamp exists, but it never exports a one-time receipt, creates a proposal, applies a change, or grants write authority. Its proposal change lines are bounded projections; inspect `/api/collab/proposals/:id/diff` or the panel's line-by-line diff before approving.
+
+### Is an export manifest required to import a session bundle?
+
+No. `exportManifest` is an optional derived annotation for humans and reviewers. `parseSessionBundle()` still validates only the version 1 `session` object, clears live approval grants, requires `confirmedBy: "human"`, and never writes project files. Older bundles remain valid.
 
 ### Does visual undo reverse a project change?
 

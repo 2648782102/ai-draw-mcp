@@ -67,6 +67,7 @@ const decisionTrailDomain = await read("src/domain/decision-trail.ts");
 const getDecisionTrailTool = await read("src/tools/get-decision-trail.ts");
 const decisionTrailTest = await read("test/decision-trail.test.mjs");
 const decisionTrailAdr = await read("docs/ADR/0013-decision-trail-is-a-read-only-projection.md");
+const exportManifestAdr = await read("docs/ADR/0014-export-manifest-is-a-derived-inventory.md");
 const viewportDomain = await read("src/domain/viewport.ts");
 const viewportTest = await read("test/viewport.test.mjs");
 const viewportAdr = await read("docs/ADR/0012-viewport-is-read-only-attention-context.md");
@@ -132,6 +133,7 @@ for (const [id, needle] of [
 for (const endpoint of [
   "/api/collab/source-evidence",
   "/api/collab/decision-trail",
+  "/api/collab/bundle/manifest",
   "/api/collab/node-context",
   "/api/collab/graph/history",
   "/api/collab/graph/undo",
@@ -437,6 +439,30 @@ for (const [label, file, needle] of [
   ["decision trail research", research, "DECISION_TRAIL_JSON"],
   ["decision trail troubleshooting", troubleshooting, "DECISION_TRAIL_JSON"],
   ["decision trail examples map", examplesReadme, "get_decision_trail"],
+  ["export manifest type", types, "export interface ExportManifest"],
+  ["export manifest builder", sessionBundle, "export function buildExportManifest"],
+  ["export manifest deterministic filename", sessionBundle, "suggestedFilename: `ai-draw-session-"],
+  ["export manifest no-grant safety", sessionBundle, "excludesApprovalGrants: true"],
+  ["export manifest no-write authority", sessionBundle, "grantsWriteAuthority: false"],
+  ["export manifest credential metadata guard", sessionBundle, "CREDENTIAL_LIKE_KEY"],
+  ["export manifest endpoint", previewServer, "/api/collab/bundle/manifest"],
+  ["export manifest panel annotation", panel, "exportManifest: manifest"],
+  ["export manifest panel filename", panel, "manifest.suggestedFilename"],
+  ["export manifest pure contract test", domainContractsTest, "credential-free export manifest"],
+  ["export manifest HTTP test", collaborationTest, "/api/collab/bundle/manifest"],
+  ["export manifest ADR index", adrIndex, "0014-export-manifest-is-a-derived-inventory.md"],
+  ["export manifest ADR boundary", exportManifestAdr, "grantsWriteAuthority"],
+  ["export manifest docs map", documentationMap, "0014-export-manifest-is-a-derived-inventory.md"],
+  ["export manifest English docs", englishQuickstart, "EXPORT_MANIFEST_JSON"],
+  ["export manifest Chinese docs", readme, "EXPORT_MANIFEST_JSON"],
+  ["export manifest AGENTS docs", agents, "EXPORT_MANIFEST_JSON"],
+  ["export manifest architecture", architecture, "EXPORT_MANIFEST_JSON"],
+  ["export manifest security", security, "EXPORT_MANIFEST_JSON"],
+  ["export manifest roadmap", roadmap, "EXPORT_MANIFEST_JSON"],
+  ["export manifest launch", launchKit, "EXPORT_MANIFEST_JSON"],
+  ["export manifest research", research, "EXPORT_MANIFEST_JSON"],
+  ["export manifest troubleshooting", troubleshooting, "EXPORT_MANIFEST_JSON"],
+  ["export manifest examples map", examplesReadme, "EXPORT_MANIFEST_JSON"],
 ]) {
   check(file.includes(needle), `${label} is missing or drifted`);
 }

@@ -21,6 +21,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0011-shared-brief-is-a-read-only-projection.md](ADR/0011-shared-brief-is-a-read-only-projection.md) | AI agents, reviewers | Why the compact shared handoff brief excludes approval grants and never grants writes |
 | [ADR/0012-viewport-is-read-only-attention-context.md](ADR/0012-viewport-is-read-only-attention-context.md) | AI agents, reviewers | Why human zoom/pan state never becomes a graph revision, timeline event, or write grant |
 | [ADR/0013-decision-trail-is-a-read-only-projection.md](ADR/0013-decision-trail-is-a-read-only-projection.md) | AI agents, reviewers | Why a derived decision trail excludes approval grants and never replaces the full proposal diff |
+| [ADR/0014-export-manifest-is-a-derived-inventory.md](ADR/0014-export-manifest-is-a-derived-inventory.md) | Maintainers, reviewers | Why a portable export manifest describes contents and exclusions without granting writes |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
@@ -45,6 +46,8 @@ Shared briefs are documented in [ADR 0011](ADR/0011-shared-brief-is-a-read-only-
 Viewport attention is documented in [ADR 0012](ADR/0012-viewport-is-read-only-attention-context.md): the human panel publishes bounded, throttled zoom/pan state as read-only context; it never changes the graph, timeline, approval grants, or project files.
 
 Decision trails are documented in [ADR 0013](ADR/0013-decision-trail-is-a-read-only-projection.md): `get_decision_trail` derives a bounded, evidence-labelled chronology from the current session, separates stale threads from current intent, excludes approval grants, and points reviewers back to the full line diff before any project write.
+
+Export manifests are documented in [ADR 0014](ADR/0014-export-manifest-is-a-derived-inventory.md): a downloaded session bundle can carry a derived, credential-free inventory of its contents and intentional exclusions; strict import validation still treats only the versioned `session` object as authority.
 
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 

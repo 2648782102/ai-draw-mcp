@@ -3,6 +3,7 @@ import type {
   AnnotationReply,
   ChangeProposal,
   ConversationMessage,
+  ExportManifest,
   GraphEdge,
   GraphNode,
   GraphSourceEvidence,
@@ -29,6 +30,94 @@ export interface SessionBundle {
     graphDiffs?: GraphRevisionDiff[];
     messages: ConversationMessage[];
     proposals: ChangeProposal[];
+  };
+}
+
+const ALLOWED_PROPOSAL_METADATA_KEYS = new Set(["importedApprovalStateCleared"]);
+const CREDENTIAL_LIKE_KEY = /^(approval|grant|receipt|token|secret|password|credential)/i;
+
+function assertNoCredentialLikeMetadata(value: unknown, label: string): void {
+  if (value === undefined || value === null) return;
+  if (!isRecord(value)) throw new Error(`${label} must be an object`);
+  for (const [key, nested] of Object.entries(value)) {
+    if (CREDENTIAL_LIKE_KEY.test(key) || !ALLOWED_PROPOSAL_METADATA_KEYS.has(key))
+      throw new Error(`${label} has unknown proposal metadata: ${key}`);
+    if (typeof nested !== "boolean") throw new Error(`${label}.${key} must be a boolean`);
+  }
+}
+
+export function buildExportManifest(bundle: SessionBundle): ExportManifest {
+  if (!isRecord(bundle) || bundle.kind !== "ai-draw-session-bundle" || bundle.version !== 1)
+    throw new Error("Not a version 1 ai-draw session bundle");
+  if (!isRecord(bundle.session)) throw new Error("session must be an object");
+  const session = bundle.session;
+  const graph = session.graph;
+  if (graph !== undefined && !isRecord(graph)) throw new Error("session.graph must be an object");
+  const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
+  const annotations = Array.isArray(graph?.annotations) ? graph.annotations : [];
+  const proposals = Array.isArray(session.proposals) ? session.proposals : [];
+  for (const [index, proposal] of proposals.entries()) {
+    if (!isRecord(proposal)) throw new Error(`session.proposals[${index}] must be an object`);
+    assertNoCredentialLikeMetadata(proposal.metadata, `session.proposals[${index}].metadata`);
+  }
+  const replies = annotations.reduce((total, annotation) =>
+    total + (Array.isArray(annotation?.replies) ? annotation.replies.length : 0), 0);
+  const sourceEvidence = nodes.reduce((total, node) =>
+    total + (Array.isArray(node?.sourceEvidence) ? node.sourceEvidence.length : 0), 0);
+  const approvedStateDowngraded = proposals.filter((proposal) =>
+    isRecord(proposal) && proposal.metadata?.importedApprovalStateCleared === true).length;
+  const focus = isRecord(session.focus) ? session.focus : undefined;
+  const sessionId = assertString(session.id, "session.id");
+  const exportedAt = typeof bundle.exportedAt === "string" ? bundle.exportedAt : new Date().toISOString();
+  return {
+    version: 1,
+    kind: "ai-draw-export-manifest",
+    sessionId,
+    graphRevision: typeof session.graphRevision === "number" && Number.isFinite(session.graphRevision) ? session.graphRevision : 0,
+    exportedAt,
+    suggestedFilename: `ai-draw-session-${sessionId.replace(/[^a-zA-Z0-9._-]/g, "_")}.json`,
+    format: { kind: "ai-draw-session-bundle", version: 1, encoding: "utf8-json" },
+    contents: {
+      graph: {
+        included: graph !== undefined,
+        nodes: nodes.length,
+        edges: Array.isArray(graph?.edges) ? graph.edges.length : 0,
+        annotations: annotations.length,
+        replies,
+        sourceEvidence,
+      },
+      focus: {
+        included: focus !== undefined,
+        nodeId: typeof focus?.nodeId === "string" ? focus.nodeId : undefined,
+      },
+      graphDiffs: {
+        included: Array.isArray(session.graphDiffs),
+        count: Array.isArray(session.graphDiffs) ? session.graphDiffs.length : 0,
+      },
+      messages: { included: true, count: Array.isArray(session.messages) ? session.messages.length : 0 },
+      proposals: { included: true, count: proposals.length, approvedStateDowngraded },
+    },
+    excluded: [
+      { field: "approvalId", reason: "One-time approval identifiers stay in process memory." },
+      { field: "approvalGrant", reason: "A grant hash is a reusable write credential and is never exported." },
+      { field: "approvalExpiresAt", reason: "Receipt expiry belongs to the live approval grant, not a portable artifact." },
+      { field: "graphHistory", reason: "Visual undo/redo snapshots are local UI state and are not part of the bundle." },
+      { field: "viewport", reason: "Human zoom/pan attention is ephemeral and is cleared on bundle import." },
+    ],
+    safety: {
+      readOnly: true,
+      grantsWriteAuthority: false,
+      excludesApprovalGrants: true,
+      excludesGraphHistory: true,
+      excludesViewport: true,
+      projectWritesRequireHumanApproval: true,
+    },
+    guidance: [
+      "EXPORT_MANIFEST_JSON is a derived inventory of an exported session bundle, not a second source of truth.",
+      "Approved proposal state is downgraded to pending on export; no one-time receipt or approval grant is included.",
+      "Import still requires confirmedBy: human, clears live grants, validates the bundle, and never writes project files.",
+      "Use the full session bundle for reproduction; use the panel's line diff and human approval for any project change.",
+    ],
   };
 }
 

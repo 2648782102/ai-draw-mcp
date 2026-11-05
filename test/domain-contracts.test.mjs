@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSessionBundle, parseSessionBundle } from "../dist/domain/session-bundle.js";
+import { buildExportManifest, createSessionBundle, parseSessionBundle } from "../dist/domain/session-bundle.js";
 import { summarizeProposalImpact } from "../dist/domain/impact.js";
 import { assertSafeWorkspacePath, isPathInside, toWorkspaceRelative } from "../dist/domain/path-safety.js";
 import { proposalContentHash, assertProposalHash } from "../dist/domain/proposal-hash.js";
@@ -140,6 +140,38 @@ describe("session bundle contract", () => {
     injectedDiffProperty.session.graphDiffs[0].items[0].grant = "write-everything";
     expect(() => parseSessionBundle(injectedDiffProperty)).toThrow(/unknown property grant/);
     expect(() => parseSessionBundle({ ...malformed, kind: "other" })).toThrow(/version 1/);
+  });
+
+  it("builds a deterministic, credential-free export manifest", () => {
+    const exportedAt = "2026-11-06T00:05:00.000Z";
+    const bundle = createSessionBundle(baseSession, exportedAt);
+    const manifest = buildExportManifest(bundle);
+    expect(manifest).toMatchObject({
+      version: 1,
+      kind: "ai-draw-export-manifest",
+      sessionId: "session_contract",
+      graphRevision: 2,
+      exportedAt,
+      suggestedFilename: "ai-draw-session-session_contract.json",
+      safety: {
+        readOnly: true,
+        grantsWriteAuthority: false,
+        excludesApprovalGrants: true,
+        excludesGraphHistory: true,
+        excludesViewport: true,
+        projectWritesRequireHumanApproval: true,
+      },
+    });
+    expect(manifest.contents.graph).toMatchObject({ included: true, nodes: 1, edges: 0, annotations: 1, replies: 1, sourceEvidence: 0 });
+    expect(manifest.contents.proposals).toMatchObject({ included: true, count: 1, approvedStateDowngraded: 1 });
+    expect(manifest.excluded.map((item) => item.field)).toEqual(expect.arrayContaining(["approvalId", "approvalGrant", "approvalExpiresAt", "graphHistory", "viewport"]));
+    expect(JSON.stringify(manifest)).not.toContain("grantHash");
+    expect(Object.keys(manifest.excluded.find((item) => item.field === "approvalGrant") ?? {})).toEqual(["field", "reason"]);
+    expect(buildExportManifest(bundle)).toEqual(manifest);
+    expect(() => buildExportManifest({ ...bundle, version: 2 })).toThrow(/version 1/);
+    const injected = JSON.parse(JSON.stringify(bundle));
+    injected.session.proposals[0].metadata = { approvalGrant: "secret" };
+    expect(() => buildExportManifest(injected)).toThrow(/unknown proposal metadata/);
   });
 });
 

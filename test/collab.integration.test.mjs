@@ -457,6 +457,22 @@ describe("collaboration session", () => {
       expect(JSON.stringify(bundle)).not.toContain(approval.receipt.grantHash);
       expect(bundle.session.graph.annotations[0].replies[0].body).toContain("已收到");
 
+      const manifestResponse = await fetch(`${base}/api/collab/bundle/manifest`, { headers });
+      expect(manifestResponse.ok).toBe(true);
+      const manifest = await manifestResponse.json();
+      expect(manifest).toMatchObject({ version: 1, kind: "ai-draw-export-manifest", sessionId: bundle.session.id });
+      expect(manifest.contents.proposals.count).toBeGreaterThan(0);
+      expect(manifest.safety).toMatchObject({ readOnly: true, grantsWriteAuthority: false, excludesApprovalGrants: true });
+      expect(JSON.stringify(manifest)).not.toContain(approval.receipt.grantHash);
+
+      const manifestAnnotatedBundle = { ...bundle, exportManifest: manifest };
+      const manifestImport = await fetch(`${base}/api/collab/bundle/import`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ bundle: manifestAnnotatedBundle, confirmedBy: "human" }),
+      });
+      expect(manifestImport.ok).toBe(true);
+
       const malformedThreadBundle = await fetch(`${base}/api/collab/bundle/import`, {
         method: "POST",
         headers,
