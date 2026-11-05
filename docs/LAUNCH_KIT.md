@@ -41,7 +41,7 @@ Title: `v0.3.0 — Human ↔ AI visual collaboration`
 AI Draw MCP is no longer just a diagram renderer. It is a local-first visual workspace where an AI scans a project, a human edits the graph and leaves annotations, and the pair reviews a file-change proposal before anything is written.
 
 Highlights:
-- 16 MCP tools, including scan, visual context, AI reply, proposal creation, and receipt-gated apply.
+- 17 MCP tools, including scan, visual context, AI reply, proposal preflight, proposal creation, and receipt-gated apply.
 - A collaboration panel with node edits, annotations, chat, line-by-line diffs, and one-time approval receipts.
 - Path safety, content hashes, atomic writes, and rollback for approved proposals.
 - Offline Mermaid assets, local preview server, WebSocket updates, and an end-to-end example.

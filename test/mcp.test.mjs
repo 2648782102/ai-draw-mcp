@@ -8,6 +8,7 @@ const COLLAB_TOOLS = [
   "create_visual_proposal",
   "apply_visual_proposal",
   "reply_to_visual_context",
+  "preflight_visual_proposal",
 ];
 
 async function withClient(port, callback) {
@@ -39,7 +40,7 @@ describe("MCP server", () => {
     await withClient(3421, async (client) => {
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name);
-      expect(names.length).toBeGreaterThanOrEqual(16);
+      expect(names).toHaveLength(17);
       expect(names).toContain("render_diagram");
       expect(names).toContain("delete_diagram");
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
@@ -80,6 +81,26 @@ describe("MCP server", () => {
       expect(payload.activityTimeline).toMatchObject({ version: 1 });
       expect(payload.intentSummary.guidance).toContain("activityTimeline");
       expect(payload.nextActions.join(" ")).toContain("create_visual_proposal");
+    });
+  }, 30_000);
+
+  it("preflights candidate changes without writing files or creating proposals", async () => {
+    await withClient(3424, async (client) => {
+      const relativePath = `test/preflight-${Date.now()}.md`;
+      const result = await client.callTool({
+        name: "preflight_visual_proposal",
+        arguments: {
+          changes: [{ kind: "create", path: relativePath, content: "# Preflight\n" }],
+        },
+      });
+      const text = textOf(result);
+      expect(text).toContain("PREFLIGHT_JSON:");
+      const jsonStart = text.indexOf("PREFLIGHT_JSON:") + "PREFLIGHT_JSON:".length;
+      const summary = JSON.parse(text.slice(jsonStart));
+      expect(summary).toMatchObject({ version: 1, files: 1, newFiles: 1 });
+      expect(summary.safe).toBe(true);
+      expect(summary.findings.every((finding) => finding.severity !== "blocker")).toBe(true);
+      expect(text).not.toContain("PROPOSAL_JSON:");
     });
   }, 30_000);
 });

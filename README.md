@@ -43,7 +43,7 @@
 
 ## 功能
 
-- **16 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal`
+- **17 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`reply_to_visual_context`、`preflight_visual_proposal`、`create_visual_proposal`、`apply_visual_proposal`
 - **人机双向协作工作台** — 项目结构扫描、节点编辑、批注线程（回复/解决/重开）、对话、提案批准；WebSocket 实时同步给 AI 和面板
 - **人工确认的安全变更** — 面板批准只生成一次性凭据；AI 凭凭据应用提案，拒绝危险路径，写入失败自动回滚
 - **实时双向面板** — AI 绘图后通过 WebSocket 推送到面板；面板里也可手动编辑源码、实时预览、保存回磁盘
@@ -85,6 +85,7 @@ AI: scan_project → 生成项目结构图
 人: 在「💬 协作」里改名 / 批注 / 发消息
 AI: get_visual_context → 理解意图与活动时间线
 AI: reply_to_visual_context → 在面板里回信、回复节点批注线程并标记已处理
+AI: preflight_visual_proposal → 只读检查路径/文件状态/重复内容
 AI: create_visual_proposal → 生成变更提案
 人: 查看逐行差异并点击「批准」→ 复制一次性确认号
 AI: apply_visual_proposal(确认号) → 安全写入工作区 → 失败自动回滚
@@ -282,7 +283,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 
 ## 工具列表
 
-> 当前版本 `0.3.0` 共 16 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT` 和测试保护。
+> 当前版本 `0.3.0` 共 17 个工具；工具名与数量同步受 `src/server.ts` 的 `TOOL_COUNT` 和测试保护。
 
 | 工具 | 用途 |
 |------|------|
@@ -301,6 +302,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 | `get_visual_context` | 读取图形修订、批注线程、对话、意图摘要与 `activityTimeline`，供 AI 修改代码前理解上下文 |
 | `reply_to_visual_context` | AI 在面板里回复人类、回复节点批注线程，并可把消息/批注标记为已回答、已解决 |
 | `create_visual_proposal` | 创建待确认的项目变更提案，不直接写项目文件 |
+| `preflight_visual_proposal` | 创建提案前只读检查候选变更的路径、文件状态、重复内容与阻断项 |
 | `apply_visual_proposal` | 应用经人类批准的提案；拒绝危险路径，失败自动回滚 |
 
 ---

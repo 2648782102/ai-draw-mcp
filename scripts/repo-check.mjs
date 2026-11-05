@@ -29,6 +29,7 @@ const sessionBundle = await read("src/domain/session-bundle.ts");
 const sessionStore = await read("src/infra/session-store.ts");
 const getVisualContext = await read("src/tools/get-visual-context.ts");
 const replyTool = await read("src/tools/reply-to-visual-context.ts");
+const preflightTool = await read("src/tools/preflight-visual-proposal.ts");
 const annotationThread = await read("src/domain/annotation-thread.ts");
 const activityTimeline = await read("src/domain/activity-timeline.ts");
 const sessionBundleSource = await read("src/domain/session-bundle.ts");
@@ -62,6 +63,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
+check(launchKit.includes("17 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 17 MCP tools");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -97,6 +99,9 @@ for (const [label, file, needle] of [
   ["annotationThreads context", getVisualContext, "summarizeAnnotationThreads"],
   ["stale annotation threads context", getVisualContext, "staleThreads"],
   ["annotation_replies tool argument", replyTool, "annotation_replies"],
+  ["proposal preflight tool", preflightTool, "preflight_visual_proposal"],
+  ["proposal preflight read-only contract", preflightTool, "不写项目文件、不创建提案"],
+  ["proposal preflight domain function", await read("src/domain/proposal-preflight.ts"), "inspectProposalChanges"],
   ["activity timeline derivation", activityTimeline, "export function buildActivityTimeline"],
   ["activity timeline context", getVisualContext, "activityTimeline"],
   ["annotation anchor status", types, "anchorStatus"],
@@ -135,6 +140,9 @@ check(agents.includes("scripts/github-maintenance.mjs"), "AGENTS.md does not doc
 check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not document the versioned documentation asset generator");
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
+check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
+check(readme.includes("17 个 MCP 工具"), "README.md does not reflect the 17 MCP tools");
+check(packageJson.description?.includes("visual collaboration"), "package.json description is missing the product positioning");
 check(agents.includes("anchorStatus"), "AGENTS.md does not document stale annotation anchors");
 check(architecture.includes("annotationThreads.nextActor"), "ARCHITECTURE.md does not document annotation thread handoff");
 check(architecture.includes("anchorStatus"), "ARCHITECTURE.md does not document stale annotation anchors");

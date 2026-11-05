@@ -16,7 +16,7 @@ export function registerCreateVisualProposal(server: McpServer, ctx: ToolContext
     "create_visual_proposal",
     "根据面板里的人类批注/对话，创建一组待确认的项目变更提案。" +
     " 提案只写入协作会话，不修改项目文件；人类在面板查看逐行差异并批准后，apply_visual_proposal 才会凭一次性确认号原子地应用。" +
-    " 危险路径、删除、锁文件、.git/env/node_modules/dist 等会被拒绝。",
+    " 危险路径、删除、锁文件、.git/env/node_modules/dist 等会被拒绝；先用 preflight_visual_proposal 只读检查候选变更。",
     {
       title: z.string().describe("Short human-readable proposal title"),
       summary: z.string().describe("What will change and why"),

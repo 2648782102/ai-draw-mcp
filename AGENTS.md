@@ -84,15 +84,16 @@ ROADMAP.md                   产品路线图与非目标
 
 ---
 
-## 16 个 MCP 工具
+## 17 个 MCP 工具
 
 | 分组 | 工具 |
 |------|------|
 | Mermaid / SVG 绘图 | `render_diagram`、`render_flowchart`、`render_sequence`、`render_architecture`、`render_class_diagram`、`render_mindmap`、`render_svg` |
 | 图管理 | `update_diagram`、`delete_diagram`、`list_diagrams`、`open_preview` |
 | 双向协作 | `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal` |
+| 提案预检 | `preflight_visual_proposal` |
 
-协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信/内联回复并标记已处理，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
+协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信/内联回复并标记已处理；创建提案前用 `preflight_visual_proposal` 只读检查路径、文件存在性、create/update 与重复内容，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
 
 `get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；`activityTimeline` 把消息、线程与提案生命周期合并为只读派生事件。生成提案时优先引用 `intentByNode` 和活动顺序，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案；活动时间线不授权项目写入。
 

@@ -6,7 +6,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Now — 0.3.x: trustworthy closed loop
 
-- Keep the 16 MCP tools small, composable, and easy for an LLM to call correctly.
+- Keep the 17 MCP tools small, composable, and easy for an LLM to call correctly.
 - Make CI reliable on Node 20, 22, and 24, including headless Chrome environments.
 - Preserve the human approval gate: no project write without a proposal, a reviewable diff, and a one-time receipt.
 - Improve first-run clarity: a 30-second Quickstart, troubleshooting, and a reproducible end-to-end demo.
@@ -25,6 +25,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Shipped in 0.3.x maintenance
 
+- Read-only `preflight_visual_proposal` for path, filesystem-state, duplicate, and no-op change checks before a proposal is created.
 - Add, remove, rename, and retype nodes from the panel.
 - Add, remove, and reconnect edges without editing Mermaid source.
 - Select a node and pin an annotation to it; AI messages include the target node label.
