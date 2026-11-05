@@ -186,6 +186,14 @@ describe("collaboration session", () => {
       expect(impact.addedLines).toBeGreaterThan(0);
       expect(impact.contentBytes).toBeGreaterThan(0);
 
+      const activityResponse = await fetch(`${base}/api/collab/activity?limit=100`, { headers });
+      expect(activityResponse.ok).toBe(true);
+      const activity = (await activityResponse.json()).timeline;
+      expect(activity).toMatchObject({ version: 1 });
+      expect(activity.items.map((item) => item.kind)).toContain("annotation_replied");
+      expect(activity.items.map((item) => item.kind)).toContain("proposal_created");
+      expect(activity.items.some((item) => item.proposalId === proposal.id)).toBe(true);
+
       const unsafeResponse = await fetch(`${base}/api/collab/proposals`, {
         method: "POST",
         headers,
@@ -235,6 +243,10 @@ describe("collaboration session", () => {
       await expect(sessions.applyProposal(proposal.id, "human")).resolves.toMatchObject({ status: "applied" });
       expect(await fs.readFile(path.join(workspaceRoot, "README.md"), "utf8")).toContain("双向协作示例");
       expect(sessions.getSnapshot().graphRevision).toBeGreaterThanOrEqual(1);
+
+      const appliedActivity = await fetch(`${base}/api/collab/activity?limit=100`, { headers })
+        .then((response) => response.json());
+      expect(appliedActivity.timeline.items.some((item) => item.proposalStatus === "applied")).toBe(true);
 
       const bundleResponse = await fetch(`${base}/api/collab/bundle`, { headers });
       expect(bundleResponse.ok).toBe(true);

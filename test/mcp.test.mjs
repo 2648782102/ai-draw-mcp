@@ -77,6 +77,8 @@ describe("MCP server", () => {
       expect(payload.annotationThreads).toBeTruthy();
       expect(payload.intentSummary.annotationThreads).toBeTruthy();
       expect(payload.intentSummary).toHaveProperty("nextActor");
+      expect(payload.activityTimeline).toMatchObject({ version: 1 });
+      expect(payload.intentSummary.guidance).toContain("activityTimeline");
       expect(payload.nextActions.join(" ")).toContain("create_visual_proposal");
     });
   }, 30_000);

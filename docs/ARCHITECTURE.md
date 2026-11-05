@@ -29,13 +29,15 @@ IDE / human browser
 1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点）并生成 `VisualGraph`。
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
 3. 人类在面板「💬 协作」工作台改名/改类型/增删节点、编辑连线、把批注绑定到选中节点、在批注线程里回复/解决/重开、发消息；每次写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、回复结构与引用完整性。
-4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图，以及按节点聚合的 `intentSummary`；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。
+4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。
 5. AI 调用 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`。这一步只写会话，不碰项目文件。
 6. 面板通过 `/api/collab/proposals/:id/impact` 展示文件/行数/字节数摘要，并通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。
 7. 人类把确认号发给 AI；AI 调用 `apply_visual_proposal`，服务端校验凭据与内容哈希后写入项目，失败自动回滚。
 8. AI 可再次 `scan_project` 生成反映新结构的图，形成闭环。
 
 协作会话可导出为 `kind: "ai-draw-session-bundle"` 的 version 1 JSON。导出只包含图、消息和去敏后的提案；一次性批准凭据留在内存中且不写入 bundle。导入必须带 `confirmedBy: "human"`，服务端会重新校验图与提案路径、清空批准凭据、拒绝非法文件；导入绝不写项目文件。
+
+`GET /api/collab/activity` 与 `get_visual_context.activityTimeline` 从会话快照派生紧凑时间线：消息、批注创建/回复/解决、提案创建/批准/应用/拒绝/失败，以及 `nextActor` 与 guidance。时间线是 version 1 只读投影，不增加持久化协议，不签发凭据，也不能授权项目写入；原文与批准凭据仍以 `SessionSnapshot` 和内存中的 `ApprovalGrant` 为准。
 
 ## Safety model
 

@@ -251,6 +251,13 @@
     .proposal-impact { font-size: 10px; color: var(--text-muted); line-height: 1.5; margin: 0 0 6px; }
     .proposal-impact strong { color: var(--text); }
     .annotation-target { color: var(--accent); font-size: 9px; }
+    .activity-list { flex: 0 0 190px; max-height: 190px; }
+    .activity-item { padding: 5px 7px; margin-bottom: 5px; border-left: 2px solid var(--border); border-radius: 4px; background: var(--surface2); font-size: 10px; line-height: 1.4; word-break: break-word; }
+    .activity-item.human { border-left-color: var(--green); }
+    .activity-item.ai { border-left-color: var(--accent); }
+    .activity-item.system { border-left-color: var(--text-muted); }
+    .activity-meta { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 2px; }
+    .activity-summary { font-size: 9px; color: var(--text-muted); margin: 0 0 5px; }
     .collab-section textarea, .collab-section > input {
       width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 5px;
       background: var(--bg); color: var(--text); padding: 8px; font: inherit; font-size: 11px;
@@ -369,6 +376,8 @@
     </section>
     <section class="collab-section">
       <h3>对话与批注</h3>
+      <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
+      <div class="chat-log activity-list" id="activityList"></div>
       <div class="chat-log" id="chatLog"></div>
       <div class="chat-log" id="annotationList"></div>
       <textarea id="messageInput" placeholder="告诉 AI 你想怎样修改项目…"></textarea>
@@ -1096,6 +1105,37 @@ function renderChat(messages) {
   $('#chatLog').scrollTop = $('#chatLog').scrollHeight;
 }
 
+function renderActivity(timeline) {
+  const target = $('#activityList');
+  if (!target) return;
+  const items = Array.isArray(timeline?.items) ? timeline.items : [];
+  $('#activitySummary').textContent = timeline
+    ? `活动时间线 · ${timeline.returned}/${timeline.total} 个派生事件 · 下一棒 ${escapeHtml(activityActorLabel(timeline.nextActor))}`
+    : '活动时间线不可用';
+  target.innerHTML = items.length ? [...items].reverse().map((item) => `
+    <div class="activity-item ${escapeHtml(item.actor)}">
+      <span class="activity-meta">${escapeHtml(activityKindLabel(item.kind))} · ${escapeHtml(item.actor)} · ${escapeHtml(item.createdAt)}${item.nodeLabel ? ` · @ ${escapeHtml(item.nodeLabel)}` : ''}</span>
+      ${escapeHtml(item.body)}
+    </div>
+  `).join('') : '<div class="collab-help">暂无活动。让 AI 扫描项目，或从消息与节点批注开始。</div>';
+}
+
+function activityKindLabel(kind) {
+  return ({
+    session_created: '会话',
+    message: '消息',
+    annotation_created: '批注',
+    annotation_replied: '线程回复',
+    annotation_status: '线程状态',
+    proposal_created: '提案',
+    proposal_status: '提案状态',
+  })[kind] || kind;
+}
+
+function activityActorLabel(actor) {
+  return actor === 'ai' ? 'AI' : actor === 'human' ? '人' : '无';
+}
+
 function renderAnnotations(annotations) {
   const target = $('#annotationList');
   if (!target) return;
@@ -1254,6 +1294,8 @@ async function loadCollab() {
     renderAnnotations(session.graph?.annotations || []);
     const proposals = await collabFetch('/api/collab/proposals');
     renderProposals(proposals.proposals || []);
+    const activity = await collabFetch('/api/collab/activity?limit=30');
+    renderActivity(activity.timeline);
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
   }

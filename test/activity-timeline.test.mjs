@@ -1,0 +1,93 @@
+import { describe, expect, it } from "vitest";
+import { buildActivityTimeline } from "../dist/domain/activity-timeline.js";
+
+describe("activity timeline", () => {
+  const snapshot = {
+    version: 1,
+    id: "session_test",
+    title: "Demo session",
+    createdAt: "2026-11-06T00:00:00.000Z",
+    updatedAt: "2026-11-06T00:09:00.000Z",
+    workspaceRoot: "/workspace",
+    graphRevision: 2,
+    graph: {
+      version: 1,
+      diagramId: "diagram_test",
+      nodes: [{ id: "readme", label: "README.md", kind: "documentation", path: "README.md" }],
+      edges: [],
+      annotations: [{
+        id: "ann_1",
+        nodeId: "readme",
+        body: "把说明改成中文",
+        author: "human",
+        createdAt: "2026-11-06T00:02:00.000Z",
+        replies: [{
+          id: "reply_1",
+          author: "ai",
+          body: "我会更新 README。",
+          createdAt: "2026-11-06T00:03:00.000Z",
+        }],
+      }],
+    },
+    messages: [{
+      id: "msg_1",
+      sessionId: "session_test",
+      author: "human",
+      body: "请更新 README",
+      createdAt: "2026-11-06T00:01:00.000Z",
+      graphRevision: 1,
+      status: "pending",
+    }],
+    proposals: [{
+      id: "proposal_1",
+      sessionId: "session_test",
+      title: "更新 README",
+      summary: "加入中文说明",
+      graphRevision: 2,
+      status: "applied",
+      createdAt: "2026-11-06T00:04:00.000Z",
+      approvedAt: "2026-11-06T00:05:00.000Z",
+      appliedAt: "2026-11-06T00:06:00.000Z",
+      changes: [],
+      createdBy: "ai",
+    }],
+  };
+
+  it("merges messages, threads, and proposal lifecycle events in time order", () => {
+    const timeline = buildActivityTimeline(snapshot);
+    expect(timeline).toMatchObject({ version: 1, total: 7, nextActor: "human" });
+    expect(timeline.items.map((item) => item.kind)).toEqual([
+      "session_created",
+      "message",
+      "annotation_created",
+      "annotation_replied",
+      "proposal_created",
+      "proposal_status",
+      "proposal_status",
+    ]);
+    expect(timeline.items[2]).toMatchObject({
+      nodeLabel: "README.md",
+      annotationId: "ann_1",
+      derived: true,
+    });
+    expect(timeline.items.at(-1)).toMatchObject({
+      proposalId: "proposal_1",
+      proposalStatus: "applied",
+    });
+    expect(timeline.kinds.proposal_status).toBe(2);
+  });
+
+  it("returns the newest bounded slice and keeps total counts", () => {
+    const timeline = buildActivityTimeline(snapshot, 3);
+    expect(timeline.total).toBe(7);
+    expect(timeline.returned).toBe(3);
+    expect(timeline.items).toHaveLength(3);
+    expect(timeline.items[0].kind).toBe("proposal_created");
+  });
+
+  it("handles an empty session", () => {
+    const timeline = buildActivityTimeline({ ...snapshot, graph: undefined, messages: [], proposals: [] });
+    expect(timeline).toMatchObject({ total: 1, returned: 1, nextActor: "none" });
+    expect(timeline.items[0].kind).toBe("session_created");
+  });
+});

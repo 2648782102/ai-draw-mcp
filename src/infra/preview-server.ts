@@ -11,6 +11,7 @@
  *   GET  /api/diagram/:id/png   serve PNG file
  *   DEL  /api/diagram/:id       delete diagram
  *   GET  /api/collab/session     collaboration snapshot
+ *   GET  /api/collab/activity    derived compact activity timeline
  *   GET  /api/collab/bundle      portable session bundle for bug reports/examples
  *   POST /api/collab/bundle/import  import a reviewed session bundle
  *   GET  /api/collab/graph       current visual graph
@@ -38,6 +39,7 @@ import type { DiagramStore } from "./store.js";
 import type { AppConfig, DiagramRecord } from "./config.js";
 import type { SessionStore } from "./session-store.js";
 import type { VisualGraph } from "../domain/types.js";
+import { buildActivityTimeline } from "../domain/activity-timeline.js";
 import { makeId, nowIso } from "../domain/ids.js";
 import { logger } from "./logger.js";
 import { renderMermaidToSvg, saveSvg } from "./renderer.js";
@@ -99,6 +101,12 @@ export class PreviewServer {
         ...this.sessions.getSnapshot(),
         workspaceRoot: this.sessions.getWorkspaceRoot(),
       });
+    });
+
+    this.app.get("/api/collab/activity", (req, res) => {
+      const rawLimit = Number(req.query.limit ?? 60);
+      const timeline = buildActivityTimeline(this.sessions.getSnapshot(), rawLimit);
+      res.json({ timeline });
     });
 
     this.app.get("/api/collab/bundle", (_req, res) => {

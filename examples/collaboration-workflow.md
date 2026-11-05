@@ -25,7 +25,7 @@ In the panel, open `💬 协作`:
 调用 get_visual_context 读取我刚才的批注线程、annotationThreads.nextActor 和消息；用 reply_to_visual_context 在面板里回信、内联回复相关批注，并标记这些消息和批注已处理。
 ```
 
-The reply appears in the collaboration chat and in the node-linked annotation thread. The message and annotation are marked as answered/resolved, so the next turn has a clean inbox.
+The reply appears in the collaboration chat, the node-linked annotation thread, and the compact activity timeline. The message and annotation are marked as answered/resolved, so the next turn has a clean inbox.
 
 ## 4. AI creates a proposal, not a direct edit
 

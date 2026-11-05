@@ -30,6 +30,7 @@ src/
 │   ├── approval.ts           一次性批准凭据
 │   ├── session-bundle.ts     可移植会话快照的创建与解析
 │   ├── annotation-thread.ts  节点批注线程聚合、回复校验与 nextActor 队列
+│   ├── activity-timeline.ts  消息/批注/提案生命周期的只读派生时间线
 │   ├── impact.ts             提案影响摘要：文件数、行数、字节数与安全说明
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
 ├── infra/
@@ -91,7 +92,7 @@ ROADMAP.md                   产品路线图与非目标
 
 协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信/内联回复并标记已处理，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
 
-`get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；生成提案时优先引用 `intentByNode`，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案。
+`get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；`activityTimeline` 把消息、线程与提案生命周期合并为只读派生事件。生成提案时优先引用 `intentByNode` 和活动顺序，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案；活动时间线不授权项目写入。
 
 ---
 
@@ -129,6 +130,7 @@ server.tool(
 | Endpoint | 用途 |
 |----------|------|
 | `GET /api/collab/session` | 完整会话快照 |
+| `GET /api/collab/activity` | 只读紧凑活动时间线；`limit` 默认 60、最大 200 |
 | `GET /api/collab/bundle` | 导出可移植会话快照（不含一次性批准凭据） |
 | `POST /api/collab/bundle/import` | 人类确认后导入；清空气批准凭据，不写项目文件 |
 | `GET/PUT /api/collab/graph` | 读取/保存 VisualGraph |

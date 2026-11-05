@@ -47,7 +47,7 @@
 
 | 文档 | 内容 |
 |------|------|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构、状态模型、REST/WebSocket 协议、安全边界 |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构、状态模型、活动时间线、REST/WebSocket 协议、安全边界 |
 | [docs/README.md](docs/README.md) | 文档地图：按读者与用途查找全部资料 |
 | [ROADMAP.md](ROADMAP.md) | 产品方向、阶段目标与明确的非目标 |
 | [docs/COMPETITIVE_RESEARCH.md](docs/COMPETITIVE_RESEARCH.md) | Mermaid/白板/MCP 同类产品调研与定位 |
@@ -69,7 +69,7 @@
 ```text
 AI: scan_project → 生成项目结构图
 人: 在「💬 协作」里改名 / 批注 / 发消息
-AI: get_visual_context → 理解意图
+AI: get_visual_context → 理解意图与活动时间线
 AI: reply_to_visual_context → 在面板里回信、回复节点批注线程并标记已处理
 AI: create_visual_proposal → 生成变更提案
 人: 查看逐行差异并点击「批准」→ 复制一次性确认号
@@ -80,6 +80,8 @@ AI: 再次 scan_project → 图与代码保持一致
 > 示例：AI 根据项目结构画出现有模块；人在图上把 `utils` 改名为 `shared` 并批注「抽成公共层」，随后可在同一线程继续追问或重开讨论；AI 读取修订与 `annotationThreads.nextActor` 后提出目录迁移与 import 更新提案；人批准后项目真正变化。
 
 > **节点批注线程**：每个批注形成独立线程，保存根批注、人与 AI 的有序回复、解决/重开状态及关联节点标签。面板显示下一棒参与者，`get_visual_context` 把未解决线程和下一棒交给 AI。解决线程只是对话状态，**不等于批准变更**；项目文件仍须由人查看逐行 diff、批准并提供一次性确认号。当前版本保留线程历史但不提供失锚/过期标记，后续候选方向见 [docs/COMPETITIVE_RESEARCH.md](docs/COMPETITIVE_RESEARCH.md)。
+
+> **紧凑活动时间线**：面板和 `get_visual_context.activityTimeline` 把消息、节点批注回复、线程状态、提案创建与批准/应用/拒绝按时间合并成只读派生事件，帮助人和 AI 快速回顾「刚刚发生了什么」。时间线不替代原文、不签发批准凭据，也不授权项目写入。
 
 详细架构与安全模型见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)，贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
@@ -282,7 +284,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 | `list_diagrams` | 列出全部已生成图表（含 ID、类型、路径） |
 | `open_preview` | 在 IDE 中打开预览面板，可 deep-link 到指定图 |
 | `scan_project` | 只读扫描工作区，生成项目结构图并设为协作会话当前图 |
-| `get_visual_context` | 读取图形修订、批注、对话与待处理意图，供 AI 修改代码前理解上下文 |
+| `get_visual_context` | 读取图形修订、批注线程、对话、意图摘要与 `activityTimeline`，供 AI 修改代码前理解上下文 |
 | `reply_to_visual_context` | AI 在面板里回复人类、回复节点批注线程，并可把消息/批注标记为已回答、已解决 |
 | `create_visual_proposal` | 创建待确认的项目变更提案，不直接写项目文件 |
 | `apply_visual_proposal` | 应用经人类批准的提案；拒绝危险路径，失败自动回滚 |

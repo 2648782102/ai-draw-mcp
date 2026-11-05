@@ -20,7 +20,7 @@ Product principle: **the visual workspace is the shared language between humans 
 - Per-proposal impact summary: touched paths, line counts, detected existing files, and safety notices.
 - Export and import a collaboration session as a portable JSON artifact for bug reports and examples.
 - A richer `doctor` command that reports IDE config locations, browser detection, and remediation commands.
-- Versioned annotation-thread states for detached/outdated pins, filtered counts, decisive replies, and a compact activity timeline.
+- Versioned annotation-thread states for detached/outdated pins, filtered counts, decisive replies, and timelines linked to proposal diffs.
 - Keep thread resolution separate from proposal approval and one-time write receipts; conversation controls must stay distinct from server-side write authorization.
 
 ## Shipped in 0.3.x maintenance
@@ -29,6 +29,7 @@ Product principle: **the visual workspace is the shared language between humans 
 - Add, remove, and reconnect edges without editing Mermaid source.
 - Select a node and pin an annotation to it; AI messages include the target node label.
 - Node-linked annotation threads with one root thread per pin, ordered human/AI replies, resolve/reopen, an AI-readable next-actor queue, and validated portable replies in session bundles.
+- A compact derived activity timeline for messages, annotation threads, thread states, and proposal lifecycle events in the panel and `get_visual_context`.
 - Validate graph IDs, required fields, and edge/annotation references on the server.
 
 ## Later — 0.5: deeper project intelligence

@@ -30,6 +30,7 @@ const sessionStore = await read("src/infra/session-store.ts");
 const getVisualContext = await read("src/tools/get-visual-context.ts");
 const replyTool = await read("src/tools/reply-to-visual-context.ts");
 const annotationThread = await read("src/domain/annotation-thread.ts");
+const activityTimeline = await read("src/domain/activity-timeline.ts");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -71,6 +72,7 @@ for (const [id, needle] of [
 for (const endpoint of [
   "/api/collab/annotations/:id/reply",
   "/api/collab/annotations/:id/status",
+  "/api/collab/activity",
   "/api/collab/bundle/import",
   "/api/collab/proposals/:id/impact",
 ]) {
@@ -83,6 +85,8 @@ for (const [label, file, needle] of [
   ["annotation thread validation", sessionStore, "parseAnnotationReplies"],
   ["annotationThreads context", getVisualContext, "summarizeAnnotationThreads"],
   ["annotation_replies tool argument", replyTool, "annotation_replies"],
+  ["activity timeline derivation", activityTimeline, "export function buildActivityTimeline"],
+  ["activity timeline context", getVisualContext, "activityTimeline"],
 ]) {
   check(file.includes(needle), `${label} is missing or drifted`);
 }
@@ -94,6 +98,9 @@ check(agents.includes("scripts/github-maintenance.mjs"), "AGENTS.md does not doc
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(architecture.includes("annotationThreads.nextActor"), "ARCHITECTURE.md does not document annotation thread handoff");
+check(architecture.includes("activityTimeline"), "ARCHITECTURE.md does not document the derived activity timeline");
+check(agents.includes("activity-timeline.ts"), "AGENTS.md does not list the activity timeline module");
+check(agents.includes("/api/collab/activity"), "AGENTS.md does not document the activity endpoint");
 check(readme.includes("解决线程只是对话状态"), "README.md does not separate thread resolution from proposal approval");
 check(readme.includes("不等于批准变更"), "README.md does not document the thread approval boundary");
 check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased section");

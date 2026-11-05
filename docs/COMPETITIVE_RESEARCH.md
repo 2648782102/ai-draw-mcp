@@ -39,12 +39,12 @@ Short form for GitHub About:
 
 ## Annotation-thread protocol notes
 
-The shipped 0.3.x thread already covers one root annotation per node, ordered human/AI replies, resolve/reopen, a latest-reply-based `nextActor`, validation on save/import, and portable replies in session bundles. These research notes are **candidates for later versions**, not claims that the feature is already shipped:
+The shipped 0.3.x thread already covers one root annotation per node, ordered human/AI replies, resolve/reopen, a latest-reply-based `nextActor`, validation on save/import, portable replies in session bundles, and a compact derived activity timeline for messages, thread events, and proposal lifecycle events. These research notes are **candidates for later versions**, not claims that every detail is already shipped:
 
 - Preserve `detached` / `outdated` state when a node is removed or a graph revision changes its path; keep the old label/path with the thread instead of silently deleting history.
 - Add open/resolved/outdated/unread filters, counts, and a "show resolved" toggle; let `get_visual_context` prioritize open threads awaiting AI.
 - Let a resolve action point at a decisive `resolutionReplyId`, and label any generated summary as derived context rather than a replacement for the original replies.
-- Add versioned thread events (`created`, `replied`, `resolved`, `reopened`, `proposal-linked`) to a compact activity timeline that links to proposal diffs and approval records.
+- Add versioned thread events (`created`, `replied`, `resolved`, `reopened`, `proposal-linked`) that link the derived timeline to proposal diffs and approval records; keep derived summaries distinct from immutable source events.
 
 Keep these two boundaries explicit: `resolved` is a conversation state, never proposal approval or a project-write grant; conversation actions and one-time human write receipts are separate server-side checks. Some public sources describe client-side comment controls such as `canComment`; this project must not rely on hidden UI controls or client-supplied author fields for authorization.
 

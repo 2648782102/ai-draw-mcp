@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { jsonLine, type ToolContext } from "./_shared.js";
 import { summarizeAnnotationThreads } from "../domain/annotation-thread.js";
+import { buildActivityTimeline } from "../domain/activity-timeline.js";
 
 export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
   server.tool(
@@ -13,8 +14,9 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       include_graph: z.boolean().optional().describe("Include the full visual graph (default true)"),
       message_limit: z.number().int().min(1).max(200).optional().describe("Maximum recent messages (default 50)"),
       proposal_limit: z.number().int().min(1).max(100).optional().describe("Maximum recent proposals (default 20)"),
+      activity_limit: z.number().int().min(1).max(200).optional().describe("Maximum derived activity timeline items (default 30)"),
     },
-    async ({ include_graph, message_limit, proposal_limit }) => {
+    async ({ include_graph, message_limit, proposal_limit, activity_limit }) => {
       const snapshot = ctx.sessions.getSnapshot();
       const graph = include_graph === false ? undefined : snapshot.graph;
       const messages = ctx.sessions.getMessages(message_limit);
@@ -22,6 +24,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       const pending = messages.filter((message) => message.author === "human" && message.status === "pending");
       const unresolved = graph?.annotations.filter((annotation) => !annotation.resolved) ?? [];
       const annotationThreads = summarizeAnnotationThreads(graph);
+      const activityTimeline = buildActivityTimeline(snapshot, activity_limit ?? 30);
       const nodeLabels = new Map(graph?.nodes.map((node) => [node.id, node.label]) ?? []);
       const annotationsByNode = new Map<string, string[]>();
       const generalAnnotations: string[] = [];
@@ -60,7 +63,12 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         })) ?? [],
         annotationThreads,
         nextActor: annotationThreads.nextActor,
-        guidance: "Use annotationThreads.nextActor to see whose turn it is; use intentByNode and pendingMessages as the human's latest intent; create_visual_proposal should cite those nodes, then wait for human approval.",
+        nextActions: [
+          `Activity timeline: ${activityTimeline.total} derived events; next actor ${activityTimeline.nextActor}.`,
+          "Use annotationThreads.nextActor to see whose turn it is; use intentByNode and pendingMessages as the human's latest intent.",
+          "create_visual_proposal should cite those nodes, then wait for human approval.",
+        ],
+        guidance: "Use annotationThreads.nextActor to see whose turn it is; use activityTimeline for compact chronology; use intentByNode and pendingMessages as the human's latest intent; create_visual_proposal should cite those nodes, then wait for human approval.",
       };
       const payload = {
         session: {
@@ -75,6 +83,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         pendingMessages: pending,
         unresolvedAnnotations: unresolved,
         annotationThreads,
+        activityTimeline,
         intentSummary,
         messages,
         proposals,
@@ -82,6 +91,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           "Read annotationThreads, pendingMessages and unresolvedAnnotations; annotationThreads.nextActor tells you whether the AI should reply or wait for a human.",
           "Use create_visual_proposal to record change proposals; never write project files directly from this tool.",
           "Ask the human to approve a proposal in the panel before anything is applied.",
+          "Use activityTimeline for compact chronology of messages, annotation threads, and proposal lifecycle events.",
         ],
       };
       return {
@@ -93,6 +103,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
             `Pending human messages: ${pending.length} · unresolved annotations: ${unresolved.length}`,
             `Node-linked intents: ${intentByNode.length} · general annotations: ${generalAnnotations.length}`,
             `Annotation threads: ${annotationThreads.open} open / ${annotationThreads.total} · next actor: ${annotationThreads.nextActor}`,
+            `Activity timeline: ${activityTimeline.returned}/${activityTimeline.total} events · latest ${activityTimeline.latestAt ?? "none"}`,
             ``,
             jsonLine({
               id: snapshot.id,
