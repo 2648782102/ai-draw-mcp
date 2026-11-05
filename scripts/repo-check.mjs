@@ -35,6 +35,8 @@ const sessionBundleSource = await read("src/domain/session-bundle.ts");
 const pathSafety = await read("src/domain/path-safety.ts");
 const approval = await read("src/domain/approval.ts");
 const domainContractsTest = await read("test/domain-contracts.test.mjs");
+const dependabotConfig = await read(".github/dependabot.yml");
+const dependencyMaintenance = await read("docs/DEPENDENCY_MAINTENANCE.md");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -115,6 +117,8 @@ check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased sec
 check(packageJson.scripts?.["github:check"] === "node scripts/github-maintenance.mjs --check", "github:check script is missing");
 check(packageJson.scripts?.["github:sync"] === "node scripts/github-maintenance.mjs", "github:sync script is missing");
 check(!/gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}/.test(launchKit + githubMaintenance + readme + agents + changelog), "A GitHub token-like value appears in tracked maintenance copy");
+check(!/labels:\s*\[(?:[^\]]*\bdependencies\b|[^]]*\bci\b)/.test(dependabotConfig), "dependabot.yml references labels the repository does not own");
+check(dependencyMaintenance.includes("label references were removed"), "DEPENDENCY_MAINTENANCE.md does not record the label decision");
 
 if (failures.length) {
   console.error("❌ Offline repository checks failed:");

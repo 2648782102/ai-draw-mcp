@@ -19,6 +19,8 @@ A first wave of seven Dependabot PRs was opened against `27343a8`. Their CI fail
 - `@modelcontextprotocol/sdk@1.32.2`, `tsx@4.23.15`, `zod@4.6.7`: the Zod v4 CI type error was fixed on `master` with `z.record(z.string(), z.unknown())`; remaining upgrades should be re-tested after rebasing.
 - A local `npm ci` trial with all major upgrades was abandoned because install scripts did not complete; no lockfile changes were copied into the repository.
 
+The first wave also reported that the repository did not have the `dependencies` and `ci` labels configured in `dependabot.yml`. Those label references were removed on `master`: Dependabot can open and update PRs using repository defaults, and maintainers can triage with existing issue labels or add new labels deliberately. This avoids bot comments on every dependency PR while preserving reproducible upgrade review.
+
 ## Decision rules
 
 - Merge patch/minor upgrades only after the push CI is green on every supported Node version.

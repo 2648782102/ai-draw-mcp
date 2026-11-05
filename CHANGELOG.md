@@ -48,6 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- `.github/dependabot.yml` 移除仓库尚不存在的 `dependencies` / `ci` 标签引用，避免 Dependabot 每个 PR 重复报标签配置错误。
 - `create_visual_proposal` 的 `metadata` schema 使用 `z.record(z.string(), z.unknown())`，兼容 Zod 3 与 Zod 4。
 - `mmdc` 渲染与 `doctor` 探针在 CI / 无 sandbox 的 Chrome 环境下自动使用临时 Puppeteer 配置，避免 Chrome 启动失败。
 - `/api/collab/annotations` 拒绝不存在的 `nodeId`，避免批注悬挂到无效节点。
