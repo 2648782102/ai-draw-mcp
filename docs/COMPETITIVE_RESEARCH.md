@@ -81,6 +81,20 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 - 不把「选中状态 / 注意力 / 源码定位」当成授权：它们只是上下文，不能生成可用批准凭据，也不能让 `apply_visual_proposal` 接受 AI 自批准。
 - 不为追求竞品对等引入重型渲染引擎、账号系统、多人 CRDT 同步或托管执行环境；这些应留在可选适配器/集成层。
 
+### 决策链与 agent action history 调研（2026-11-06 05:50 CST）
+
+本轮只读检索官方规范与官方文档，重点核对「可审计轨迹」与「写入授权」的边界；不把厂商内部效果数据当结论。公开资料一致表明：让 agent 的行为可复盘很有价值，但凭据、完整工具载荷和可用批准状态不能因此进入可共享的审计记录。
+
+| 来源 | 已核对的公开主张 | 对 AI Draw MCP 的启示 | 安全边界 |
+|---|---|---|---|
+| [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)（2025-11-25 规范） | 明确同意后生成的短期、一次性状态；禁止令牌透传 | 一次性凭据不能变成可复制的审计记录 | `approvalGrant`、确认号与 `PANEL_TOKEN` 只留在服务端/面板会话；`DECISION_TRAIL_JSON`、诊断、bundle 只保留状态、计数与内容哈希 |
+| [MCP Elicitation](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation)（2025-11-25 规范） | 用户必须可查看、修改、拒绝；敏感凭据不应通过普通表单收集 | 上下文收集不是授权通道 | 复制上下文/共享简报/决策链只复制只读投影，不拼接确认号、token 或 `.env`，不替代逐行 diff 和人工批准 |
+| [GitHub Copilot: Managing agent sessions](https://docs.github.com/copilot/how-tos/use-copilot-agents/manage-agents)（官方产品文档） | 可审计 agent 工作把提交链接回会话日志，展示推理、工具与验证 | 轨迹应把意图、引用证据、提案状态和应用结果串起来，而不只留下最终文件 | 本地决策链可关联 `proposal_id`、批注、图修订和回滚事件，但不写入批准号或可用批准状态 |
+| [OpenAI Agents SDK: Tracing](https://openai.github.io/openai-agents-python/tracing/)（官方文档） | 默认 trace 可能记录工具输入输出；提供关闭敏感数据记录的能力 | 可观测性必须与敏感载荷收集拆开 | 决策链默认只存有界元数据，不存完整工具载荷、凭据或一次性 grant；导出/复制沿用脱敏契约 |
+| [LangChain: Human-in-the-loop](https://docs.langchain.com/oss/python/concepts/human-in-the-loop)（官方框架文档） | 难撤销动作应在工具执行前逐动作暂停，收集批准、编辑或拒绝 | 批准应绑定具体调用，不能给会话长期写权限 | 每个提案对应逐行 diff 和一次人工批准；凭据绑定提案与内容哈希、应用一次即消耗，轨迹只保留「曾批准/已应用」事实 |
+
+厂商工程博客 [Beyond permission prompts](https://www.anthropic.com/engineering/claude-code-sandboxing) 的「内部使用减少 84% 权限提示」为未独立验证的自报数据，本轮只记录为市场信号，不用它证明本项目可以减少人工批准，也不据此放宽逐行 diff 门槛。
+
 ### 对 0.4 / 0.5 的建议与优先级
 
 | 阶段 | 优先级 | 建议 | 完成定义 |

@@ -81,6 +81,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - MCP 工具从 21 增至 22；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、安全、文档地图、ADR 索引、示例、离线一致性检查、工具数量常量、工作流第一步输出与 MCP/HTTP/工作流示例测试同步更新。
+- 竞品调研补充 2025–2026 官方 agent 轨迹/审批资料：MCP 安全与 elicitation 规范、GitHub Copilot agent sessions、OpenAI Agents SDK tracing、LangChain human-in-the-loop；明确可审计轨迹与一次性凭据、完整工具载荷、人工逐行 diff 审批的边界，不采信厂商自报效果数据。
+- 治理文档记录 CI 47/48 在 Node 20/22/24 全绿、Issue #8 决策链反馈更新，以及 05:47 CST 仍无 repo-admin token 的 GitHub metadata 漂移证据。
 - 路线图删除重复的 0.4 待办、把已交付的提案影响摘要/会话 bundle/doctor 移入已交付清单，并明确下一阶段聚焦决策链、语言感知符号范围与多视图会话；发布文案同步补充共享简报与视口注意力。
 - 面板缩放/平移后以 400ms 节流同步 `SessionViewport`；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、安全、文档地图、离线一致性检查与示例同步说明其只读边界。
 - MCP 工具从 20 增至 21；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、示例、离线一致性检查、工具数量常量、工作流第一步输出与 MCP/HTTP 测试同步更新。
