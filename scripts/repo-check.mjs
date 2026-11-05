@@ -43,6 +43,7 @@ const troubleshooting = await read("docs/TROUBLESHOOTING.md");
 const documentationMap = await read("docs/README.md");
 const docAssetGenerator = await read("scripts/generate-doc-assets.mjs");
 const governance = await read("docs/GOVERNANCE.md");
+const collaborationTest = await read("test/collab.integration.test.mjs");
 const adrIndex = await read("docs/ADR/README.md");
 const releasing = await read("RELEASING.md");
 const changeTemplateDomain = await read("src/domain/change-templates.ts");
@@ -55,6 +56,10 @@ const agentWorkflowDomain = await read("src/domain/agent-workflow.ts");
 const getAgentWorkflowTool = await read("src/tools/get-agent-workflow.ts");
 const agentWorkflowExample = await read("examples/agent-workflow.mjs");
 const agentWorkflowTest = await read("test/agent-workflow.test.mjs");
+const nodeContextDomain = await read("src/domain/node-context.ts");
+const getNodeContextTool = await read("src/tools/get-node-context.ts");
+const nodeContextTest = await read("test/node-context.test.mjs");
+const nodeContextAdr = await read("docs/ADR/0010-node-context-is-a-read-only-projection.md");
 const workflowAdr = await read("docs/ADR/0007-agent-workflow-is-a-read-only-contract.md");
 const visualHistoryAdr = await read("docs/ADR/0008-visual-undo-is-not-project-undo.md");
 const sourceEvidenceAdr = await read("docs/ADR/0009-source-evidence-is-read-only-context.md");
@@ -89,7 +94,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
-check(launchKit.includes("19 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 19 MCP tools");
+check(launchKit.includes("20 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 20 MCP tools");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -115,6 +120,7 @@ for (const [id, needle] of [
 }
 for (const endpoint of [
   "/api/collab/source-evidence",
+  "/api/collab/node-context",
   "/api/collab/graph/history",
   "/api/collab/graph/undo",
   "/api/collab/graph/redo",
@@ -170,7 +176,7 @@ for (const [label, file, needle] of [
   ["headless scan parameter", scanTool, "render"],
   ["typed human rescan render switch", previewServer, "render must be a boolean"],
   ["panel keeps full rescan rendering", panel, "confirmedBy: 'human', render: true"],
-  ["bounded CI rescan test", await read("test/collab.integration.test.mjs"), "15_000"],
+  ["bounded CI rescan test", collaborationTest, "15_000"],
   ["human rescan panel", panel, "rescanProject"],
   ["human rescan endpoint", previewServer, "/api/collab/rescan"],
   ["finite coordinate validation", sessionStore, "finiteCoordinate"],
@@ -233,6 +239,32 @@ for (const [label, source, needle] of [
   ["source evidence docs map", documentationMap, "0009-source-evidence-is-read-only-context.md"],
   ["source evidence security", security, "GraphSourceEvidence"],
   ["source evidence troubleshooting", troubleshooting, "sourceEvidence"],
+  ["node context ADR boundary", nodeContextAdr, "grantsWriteAuthority: false"],
+  ["node context shared type", types, "export interface NodeContext"],
+  ["node context builder", nodeContextDomain, "buildNodeContext"],
+  ["node context thread reuse", nodeContextDomain, "summarizeAnnotationThreads"],
+  ["node context tool", getNodeContextTool, '"get_node_context"'],
+  ["node context marker", getNodeContextTool, '"NODE_CONTEXT_JSON:"'],
+  ["node context read-only invariant", nodeContextDomain, "grantsWriteAuthority: false"],
+  ["node context server registration", server, "registerGetNodeContext"],
+  ["node context endpoint", previewServer, "/api/collab/node-context"],
+  ["node context panel", panel, 'id="nodeContextList"'],
+  ["node context workflow output", agentWorkflowDomain, "NODE_CONTEXT_JSON"],
+  ["node context test", nodeContextTest, "read-only node context"],
+  ["node context MCP test", await read("test/mcp.test.mjs"), "NODE_CONTEXT_JSON"],
+  ["node context HTTP test", collaborationTest, "/api/collab/node-context"],
+  ["node context ADR index", adrIndex, "0010-node-context-is-a-read-only-projection.md"],
+  ["node context docs map", documentationMap, "0010-node-context-is-a-read-only-projection.md"],
+  ["node context English docs", englishQuickstart, "NODE_CONTEXT_JSON"],
+  ["node context Chinese docs", readme, "NODE_CONTEXT_JSON"],
+  ["node context AGENTS docs", agents, "NODE_CONTEXT_JSON"],
+  ["node context architecture", architecture, "NODE_CONTEXT_JSON"],
+  ["node context security", security, "NODE_CONTEXT_JSON"],
+  ["node context roadmap", roadmap, "get_node_context"],
+  ["node context launch", launchKit, "NODE_CONTEXT_JSON"],
+  ["node context research", research, "NODE_CONTEXT_JSON"],
+  ["node context troubleshooting", troubleshooting, "NODE_CONTEXT_JSON"],
+  ["node context example", examplesReadme, "get_node_context"],
   ["visual history ADR boundary", visualHistoryAdr, "never writes `AI_DRAW_WORKSPACE_ROOT`"],
   ["visual history shared type", types, "export interface GraphHistoryState"],
   ["visual history parser", graphHistoryDomain, "parseGraphHistory"],
@@ -267,7 +299,7 @@ for (const [label, source, needle] of [
   ["workflow example stops at preflight", agentWorkflowExample, "Stopped before create_visual_proposal"],
   ["workflow example assertion", agentWorkflowExample, "no proposal or project write"],
   ["workflow contract test", agentWorkflowTest, "agent workflow contract"],
-  ["server tool count", server, "const TOOL_COUNT = 19"],
+  ["server tool count", server, "const TOOL_COUNT = 20"],
   ["server workflow registration", server, "registerGetAgentWorkflow"],
   ["CI workflow example", ci, "npm run test:examples:workflow"],
   ["package workflow example", packageJson.scripts?.["test:examples:workflow"] ?? "", "node examples/agent-workflow.mjs"],
@@ -304,9 +336,9 @@ check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not do
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
-check(readme.includes("19 个 MCP 工具"), "README.md does not reflect the 19 MCP tools");
-check(agents.includes("## 19 个 MCP 工具"), "AGENTS.md does not reflect the 19 MCP tools");
-check(roadmap.includes("19 MCP tools"), "ROADMAP.md does not reflect the 19 MCP tools");
+check(readme.includes("20 个 MCP 工具"), "README.md does not reflect the 20 MCP tools");
+check(agents.includes("## 20 个 MCP 工具"), "AGENTS.md does not reflect the 20 MCP tools");
+check(roadmap.includes("20 MCP tools"), "ROADMAP.md does not reflect the 20 MCP tools");
 check(getAgentWorkflowTool.includes("get_agent_workflow"), "get-agent-workflow.ts is missing the tool name");
 check(agentWorkflowDomain.includes('grantsWriteAuthority: false'), "agent-workflow.ts is missing the no-authority invariant");
 check(agentWorkflowExample.includes('step.writes === "project"'), "workflow example does not verify the project-write boundary");

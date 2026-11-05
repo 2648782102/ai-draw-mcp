@@ -6,7 +6,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Now — 0.3.x: trustworthy closed loop
 
-- Keep the 19 MCP tools small, composable, and easy for an LLM to call correctly.
+- Keep the 20 MCP tools small, composable, and easy for an LLM to call correctly.
 - Make CI reliable on Node 20, 22, and 24, including headless Chrome environments.
 - Preserve the human approval gate: no project write without a proposal, a reviewable diff, and a one-time receipt.
 - Improve first-run clarity: a 30-second Quickstart, troubleshooting, and a reproducible end-to-end demo.
@@ -25,6 +25,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Shipped in 0.3.x maintenance
 
+- `get_node_context`: a versioned, read-only single-node projection of source evidence, annotation threads, adjacent edges, related graph diffs, and human focus; see [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md).
 - Bounded read-only `file:line` source evidence for source/Markdown nodes, exposed to AI, diagnostics, the panel, and strictly validated bundles; see [ADR 0009](docs/ADR/0009-source-evidence-is-read-only-context.md).
 - Bounded, human-confirmed visual undo/redo: restores `VisualGraph` snapshots as new revisions with field-level diffs, while never reversing project writes, proposals, or approval grants; see [ADR 0008](docs/ADR/0008-visual-undo-is-not-project-undo.md).
 - `get_agent_workflow`: a versioned, read-only eight-step `WORKFLOW_JSON` with prerequisites, readiness blockers, explicit `none` / `session` / `project` write targets, and a reproducible CI example; see [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md).

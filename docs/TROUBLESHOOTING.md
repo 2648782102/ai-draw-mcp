@@ -25,6 +25,7 @@ This guide covers first-run problems that are easiest to diagnose from the local
 | Accidental node or edge edit | A human changed the visual graph before saving | Click `↶ 撤销`; it restores a bounded visual snapshot as a new graph revision. It does not undo applied files or approval receipts. |
 | AI invents a collaboration sequence | The agent has not read the current workflow contract | Call `get_agent_workflow`, review `WORKFLOW_JSON.blocked`, and follow the ordered `requires` / `produces` fields. The contract itself never grants write authority. |
 | A graph node has no source evidence | The file is binary, over 1 MiB, hidden/ignored, or has no definition/import/heading line | Check `scan_project` stats and the panel evidence list; `sourceEvidence` is a bounded read-only hint, not a full symbol index. |
+| `get_node_context` reports an unknown node | The graph was rescanned, the ID was mistyped, or no human focus exists | Read `get_visual_context.graph.nodes` for a current ID, pass `node_id`, or select a node in the panel. The call never changes focus or grants writes. |
 | AI replies too early on an annotation thread | `annotationThreads.nextActor` is `human` | Wait for the human's next reply; AI can read the thread without creating or applying a proposal. |
 | A resolved thread still appears in history | Resolve is a conversation state, not deletion | Use `重开` to continue, or leave it resolved; it never approves or applies a proposal. |
 | A thread is marked `outdated` | The node label or path changed after the discussion | Review the note, then click `确认重锚` if the discussion still applies to the current node. |
@@ -77,4 +78,4 @@ Yes. The 11 legacy Mermaid/SVG tools work without the collaboration loop. Use `s
 
 ### What should an AI agent read first?
 
-[`AGENTS.md`](../AGENTS.md) for repository conventions, then `get_agent_workflow` for the versioned step contract, then `get_visual_context` for the live visual intent and `sourceEvidence` file:line references. The machine-readable `annotationThreads.nextActor`, `blocked`, and `activityTimeline` are designed for those calls. `npm run test:examples:workflow` demonstrates the read-only prefix of the workflow.
+[`AGENTS.md`](../AGENTS.md) for repository conventions, then `get_agent_workflow` for the versioned step contract, then `get_visual_context` for full visual intent, or `get_node_context`/`NODE_CONTEXT_JSON` for one focused node with `sourceEvidence` file:line references. The machine-readable `annotationThreads.nextActor`, `blocked`, and `activityTimeline` are designed for those calls. `npm run test:examples:workflow` demonstrates the read-only prefix of the workflow.

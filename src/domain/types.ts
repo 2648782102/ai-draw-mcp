@@ -199,6 +199,39 @@ export interface AgentWorkflow {
   safety: string[];
 }
 
+export interface NodeContext {
+  version: 1;
+  sessionId: string;
+  graphRevision: number;
+  nodeId: string;
+  node: GraphNode;
+  focus: { active: boolean; stale: boolean; source: "human" | "none"; focus?: SessionFocus };
+  annotationThreads: Array<{
+    id: string;
+    anchorStatus: "anchored" | "detached" | "outdated";
+    resolved: boolean;
+    nextActor: "ai" | "human" | "none";
+    body: string;
+    replies: Array<{ author: "human" | "ai"; body: string; status?: MessageStatus }>;
+  }>;
+  staleThreadCount: number;
+  edges: Array<{
+    direction: "incoming" | "outgoing";
+    id: string;
+    from: string;
+    to: string;
+    label?: string;
+    kind?: string;
+    otherNodeId: string;
+    otherNodeLabel: string;
+    otherNodePath?: string;
+  }>;
+  graphDiffs?: GraphRevisionDiff[];
+  relatedNodeLabels: Record<string, string>;
+  safety: { readOnly: true; grantsWriteAuthority: false; staleThreadsExcludedFromIntent: true };
+  guidance: string[];
+}
+
 export interface GraphRevisionDiff {
   version: 1;
   fromRevision: number;

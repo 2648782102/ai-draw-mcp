@@ -8,7 +8,7 @@ This walkthrough uses natural-language prompts in an MCP-capable IDE. It does no
 请用 scan_project 扫描当前项目，生成项目结构图，并打开协作面板。
 ```
 
-The AI should call `scan_project`, then the panel shows the structure graph. Use `get_visual_context` in the next AI turn to read the graph, pending messages, and annotations.
+The AI should call `scan_project`, then the panel shows the structure graph. Use `get_visual_context` in the next AI turn to read the graph, pending messages, and annotations; use `get_node_context` when the conversation is about one selected node.
 
 To avoid inventing a different sequence, ask the AI to call `get_agent_workflow` first. Its `WORKFLOW_JSON` lists the eight ordered steps, prerequisites, readiness blockers, and explicit `none` / `session` / `project` write targets. The contract is read-only and never issues an approval receipt. A reproducible example that stops after preflight is [`agent-workflow.mjs`](agent-workflow.mjs); run it with `npm run test:examples:workflow`.
 

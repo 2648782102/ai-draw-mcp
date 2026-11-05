@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 第 20 个 MCP 工具 `get_node_context` 与 `GET /api/collab/node-context`：version 1 `NODE_CONTEXT_JSON` 把指定/焦点节点的字段、只读 `file:line` 证据、节点批注线程、相邻连线、相关 `graphDiffs` 与焦点状态聚合成紧凑投影；面板显示同一只读视图，工作流第一步将其列为可选上下文输出。
+- [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md)：记录单节点上下文是派生视图、不持久化、不修改焦点/线程，也不授予写入权限。
+- 节点上下文纯函数测试与 MCP/工作流契约测试：覆盖证据、失锚线程、入/出连线、相关差异、显式节点、缺图/未知节点和 `grantsWriteAuthority: false`。
 - 只读 version 1 `GraphSourceEvidence`：`scan_project` 为不超过 1 MiB 的源码/Markdown 节点提取最多 5 条 `definition` / `import` / `heading` 的 `file:line` 证据；`get_visual_context.sourceEvidence`、意图摘要、诊断计数、`GET /api/collab/source-evidence`、面板证据列表与工作流第一步可引用它，绝不扩大写入权限。
 - [ADR 0009](docs/ADR/0009-source-evidence-is-read-only-context.md)：记录源码证据的只读边界、体积限制与 bundle 严格校验。
 - 可复现源码证据测试：临时工作区覆盖 README 标题、TS 定义/导入行号、稳定扫描保留、bundle 往返与注入字段拒绝。
@@ -68,6 +71,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- MCP 工具从 19 增至 20；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、离线一致性检查、工具数量常量、工作流契约和 MCP 测试同步更新。
 - `POST /api/collab/rescan` 增加可选布尔 `render` 开关：面板显式 `render: true` 保持完整渲染，无头协作测试用 `render: false` 避免 Node 20 CI 中多次 `mmdc` 渲染叠加超时；非布尔值以 400 拒绝，扫描协议与安全边界不变。
 - `ProjectScanResult.stats` 新增 `evidencedNodes` / `totalEvidence`；扫描响应、会话消息元数据、README、英文快速入门、AGENTS、架构、路线图、竞品调研与发布文案同步说明证据只读。
 - 面板图形编辑区新增撤销/重做按钮、可用性计数和「不写项目文件」提示；架构、AGENTS、路线图、竞品调研、发布文案、故障排除与安全文档同步说明视觉历史边界。

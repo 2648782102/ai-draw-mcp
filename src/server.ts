@@ -40,8 +40,9 @@ import { registerReplyToVisualContext } from "./tools/reply-to-visual-context.js
 import { registerPreflightVisualProposal } from "./tools/preflight-visual-proposal.js";
 import { registerListChangeTemplates } from "./tools/list-change-templates.js";
 import { registerGetAgentWorkflow } from "./tools/get-agent-workflow.js";
+import { registerGetNodeContext } from "./tools/get-node-context.js";
 
-const TOOL_COUNT = 19; // keep in sync when adding tools
+const TOOL_COUNT = 20; // keep in sync when adding tools
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -91,6 +92,7 @@ export async function createServer() {
   registerPreflightVisualProposal(mcp, ctx);
   registerListChangeTemplates(mcp, ctx);
   registerGetAgentWorkflow(mcp, ctx);
+  registerGetNodeContext(mcp, ctx);
 
   logger.info(`${TOOL_COUNT} MCP tools registered`);
 

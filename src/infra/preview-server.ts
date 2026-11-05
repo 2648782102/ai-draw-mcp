@@ -15,6 +15,7 @@
  *   GET  /api/collab/activity    derived compact activity timeline
  *   GET  /api/collab/diagnostics  read-only session health and next-action summary
  *   GET  /api/collab/source-evidence  read-only file:line evidence derived from the visual graph
+ *   GET  /api/collab/node-context  read-only context for a selected graph node
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/graph/history  bounded visual undo/redo availability
  *   POST /api/collab/graph/undo   human-confirmed visual undo
@@ -51,6 +52,7 @@ import type { VisualSyncService } from "./visual-sync-service.js";
 import type { VisualGraph } from "../domain/types.js";
 import { buildActivityTimeline } from "../domain/activity-timeline.js";
 import { buildSessionDiagnostics } from "../domain/session-diagnostics.js";
+import { buildNodeContext } from "../domain/node-context.js";
 import { makeId, nowIso } from "../domain/ids.js";
 import { logger } from "./logger.js";
 import { renderMermaidToSvg, saveSvg } from "./renderer.js";
@@ -154,6 +156,17 @@ export class PreviewServer {
       const rawLimit = Number(req.query.limit ?? 100);
       const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(200, Math.floor(rawLimit))) : 100;
       res.json({ version: 1, items: items.slice(0, limit), total: items.length });
+    });
+
+    this.app.get("/api/collab/node-context", (req, res) => {
+      const nodeId = typeof req.query.nodeId === "string" ? req.query.nodeId : undefined;
+      const rawLimit = Number(req.query.diffLimit ?? 5);
+      const diffLimit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(20, Math.floor(rawLimit))) : 5;
+      try {
+        res.json(buildNodeContext(this.sessions.getSnapshot(), nodeId, diffLimit));
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
     });
 
     this.app.get("/api/collab/graph/diffs", (req, res) => {

@@ -11,6 +11,7 @@ const COLLAB_TOOLS = [
   "preflight_visual_proposal",
   "list_change_templates",
   "get_agent_workflow",
+  "get_node_context",
 ];
 
 async function withClient(port, callback) {
@@ -67,7 +68,7 @@ describe("MCP server", () => {
     await withClient(3421, async (client) => {
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name);
-      expect(names).toHaveLength(19);
+      expect(names).toHaveLength(20);
       expect(names).toContain("render_diagram");
       expect(names).toContain("delete_diagram");
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
@@ -202,6 +203,29 @@ describe("MCP server", () => {
       expect(secondPreservation.newNodes).toBe(0);
       expect(secondPreservation.removedNodes).toBe(0);
       expect(second).not.toContain("grantHash");
+    });
+  }, 30_000);
+
+  it("returns a compact read-only context for an explicitly addressed graph node", async () => {
+    await withClient(3426, async (client) => {
+      const scan = textOf(await client.callTool({
+        name: "scan_project",
+        arguments: { title: "Node context scan", open_panel: false, render: false },
+      }));
+      expect(scan).toContain("PRESERVATION_JSON:");
+      const contextText = textOf(await client.callTool({
+        name: "get_node_context",
+        arguments: { node_id: "node_eee6999cab6b" },
+      }));
+      expect(contextText).toContain("NODE_CONTEXT_JSON:");
+      const context = jsonAfter(contextText, "NODE_CONTEXT_JSON:");
+      expect(context).toMatchObject({ version: 1, nodeId: "node_eee6999cab6b" });
+      expect(context.safety).toMatchObject({ readOnly: true, grantsWriteAuthority: false });
+      expect(Array.isArray(context.node.sourceEvidence)).toBe(true);
+      expect(Array.isArray(context.annotationThreads)).toBe(true);
+      expect(Array.isArray(context.edges)).toBe(true);
+      expect(contextText).not.toContain("approvalId");
+      expect(contextText).not.toContain("grantHash");
     });
   }, 30_000);
 });

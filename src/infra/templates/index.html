@@ -384,6 +384,8 @@
       <p class="activity-summary" id="graphHistorySummary">图形历史 · 尚无撤销记录；撤销只恢复视觉状态，不写项目文件</p>
       <p class="activity-summary" id="sourceEvidenceSummary">源码证据 · 等待扫描；只读 file:line 线索不授权项目写入</p>
       <div class="chat-log source-evidence-list" id="sourceEvidenceList"></div>
+      <p class="activity-summary" id="nodeContextSummary">节点上下文 · 选中节点即可查看证据、批注、连线与相关图形差异；只读</p>
+      <div class="chat-log source-evidence-list" id="nodeContextList"></div>
       <div class="graph-editor" id="graphEditor"></div>
       <div class="graph-row-header"><span></span><span>名称</span><span>类型</span><span>路径</span><span>分组</span><span>X</span><span>Y</span><span></span></div>
       <div class="edge-editor">
@@ -1149,6 +1151,34 @@ function renderSourceEvidence() {
   `).join('') : '<div class="collab-help">暂无源码证据。让 AI 调用 scan_project 扫描包含源码/文档的工作区。</div>';
 }
 
+async function renderNodeContext() {
+  const summary = $('#nodeContextSummary');
+  const target = $('#nodeContextList');
+  const nodeId = selectedNodeId || collabDiagnostics?.focus?.nodeId;
+  if (!summary || !target) return;
+  if (!nodeId) {
+    summary.textContent = '节点上下文 · 未选中节点；选中后显示该节点的只读证据、批注、连线与差异';
+    target.innerHTML = '<div class="collab-help">先在上方节点列表选中一个对象。</div>';
+    return;
+  }
+  try {
+    const context = await collabFetch(`/api/collab/node-context?nodeId=${encodeURIComponent(nodeId)}&diffLimit=5`);
+    summary.textContent = `节点上下文 · ${context.node.label} · ${context.node.sourceEvidence.length} 条证据 / ${context.annotationThreads.length} 条批注（${context.staleThreadCount} 失锚）/ ${context.edges.length} 条连线 · 只读，不授权写入`;
+    const lines = [
+      ...context.node.sourceEvidence.map((item) => `${item.kind} · ${item.path}:${item.line} · ${item.excerpt}`),
+      ...context.annotationThreads.map((thread) => `批注 · ${thread.anchorStatus} · ${thread.nextActor} · ${thread.root.body}`),
+      ...context.edges.map((edge) => `连线 · ${edge.direction} · ${edge.otherNodePath || edge.otherNodeLabel}${edge.label ? ` · ${edge.label}` : ''}`),
+      ...(context.graphDiffs || []).flatMap((diff) => diff.items.map((item) => `图形差异 · rev ${diff.toRevision} · ${item.entity}:${item.change} ${item.label || item.id}`)),
+    ];
+    target.innerHTML = lines.length
+      ? lines.slice(0, 20).map((line) => `<div class="chat-item system">${escapeHtml(line)}</div>`).join('')
+      : '<div class="collab-help">该节点暂无额外证据、批注、连线或图形差异。</div>';
+  } catch (error) {
+    summary.textContent = `节点上下文不可用：${error.message}`;
+    target.innerHTML = '<div class="collab-help">请重新扫描项目或另选节点。</div>';
+  }
+}
+
 async function restoreGraphHistory(direction) {
   try {
     const result = await collabFetch(`/api/collab/graph/${direction}`, {
@@ -1173,6 +1203,7 @@ async function publishFocus(nodeId) {
       body: JSON.stringify({ nodeId, confirmedBy: 'human' }),
     });
     if (result?.focus) renderFocus(result.focus);
+    await renderNodeContext();
   } catch (error) {
     showToast(`同步焦点失败：${error.message}`);
   }
@@ -1186,6 +1217,7 @@ async function restoreFocus() {
       selectedNodeId = null;
       renderGraphEditor();
       renderFocus();
+      await renderNodeContext();
       return;
     }
     if (collabGraph?.nodes.some((node) => node.id === focus.nodeId)) {
@@ -1199,6 +1231,7 @@ async function restoreFocus() {
     }
     renderGraphEditor();
     renderFocus();
+    await renderNodeContext();
   } catch (error) {
     showToast(`读取焦点失败：${error.message}`);
   }
@@ -1536,6 +1569,7 @@ async function loadCollab() {
     const sourceEvidence = await collabFetch('/api/collab/source-evidence');
     collabSourceEvidence = sourceEvidence.items || [];
     renderSourceEvidence();
+    await renderNodeContext();
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
   }

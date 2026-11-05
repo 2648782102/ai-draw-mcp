@@ -529,6 +529,14 @@ describe("collaboration session", () => {
       expect(evidence).toMatchObject({ version: 1, total: expect.any(Number) });
       expect(evidence.items.every((item) => item.version === 1 && Number.isInteger(item.line) && item.line >= 1)).toBe(true);
       expect(evidence.items.every((item) => typeof item.path === "string" && typeof item.excerpt === "string")).toBe(true);
+      const nodeContextResponse = await fetch(`${base}/api/collab/node-context?nodeId=${encodeURIComponent(readmeNode.id)}&diffLimit=5`, { headers });
+      expect(nodeContextResponse.ok).toBe(true);
+      const nodeContext = await nodeContextResponse.json();
+      expect(nodeContext).toMatchObject({ version: 1, nodeId: readmeNode.id, graphRevision: rescanResult.graphRevision });
+      expect(nodeContext.safety).toMatchObject({ readOnly: true, grantsWriteAuthority: false });
+      expect(Array.isArray(nodeContext.annotationThreads)).toBe(true);
+      expect(Array.isArray(nodeContext.edges)).toBe(true);
+      expect(sessions.getFocus()).toMatchObject({ nodeId: readmeNode.id, source: "human" });
 
       const after = await collabFetchGraph(base, headers);
       const preservedReadme = after.nodes.find((node) => node.id === readmeNode.id);
