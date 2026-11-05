@@ -16,8 +16,9 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       message_limit: z.number().int().min(1).max(200).optional().describe("Maximum recent messages (default 50)"),
       proposal_limit: z.number().int().min(1).max(100).optional().describe("Maximum recent proposals (default 20)"),
       activity_limit: z.number().int().min(1).max(200).optional().describe("Maximum derived activity timeline items (default 30)"),
+      graph_diff_limit: z.number().int().min(1).max(20).optional().describe("Maximum recent graph revision diffs (default 5)"),
     },
-    async ({ include_graph, message_limit, proposal_limit, activity_limit }) => {
+    async ({ include_graph, message_limit, proposal_limit, activity_limit, graph_diff_limit }) => {
       const snapshot = ctx.sessions.getSnapshot();
       const graph = include_graph === false ? undefined : snapshot.graph;
       const messages = ctx.sessions.getMessages(message_limit);
@@ -28,6 +29,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       const staleThreads = annotationThreads.threads.filter((thread) => thread.anchorStatus !== "anchored");
       const activityTimeline = buildActivityTimeline(snapshot, activity_limit ?? 30);
       const diagnostics = buildSessionDiagnostics(snapshot);
+      const graphDiffs = ctx.sessions.getGraphDiffs(graph_diff_limit ?? 5);
       const nodeLabels = new Map(graph?.nodes.map((node) => [node.id, node.label]) ?? []);
       const annotationsByNode = new Map<string, string[]>();
       const generalAnnotations: string[] = [];
@@ -70,14 +72,16 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         })) ?? [],
         annotationThreads,
         staleThreads,
+        graphDiffs,
         nextActor: annotationThreads.nextActor,
         nextActions: [
           `Activity timeline: ${activityTimeline.total} derived events; next actor ${activityTimeline.nextActor}.`,
           `Stale annotation threads: ${staleThreads.length}; detached ${annotationThreads.detached}, outdated ${annotationThreads.outdated}.`,
+          `Graph diffs: ${graphDiffs.length} recent human graph revisions; use graphDiffs.items for exact field changes.`,
           "Use annotationThreads.nextActor to see whose turn it is; use intentByNode and pendingMessages as the human's latest intent.",
           "create_visual_proposal should cite those nodes, then wait for human approval.",
         ],
-        guidance: "Use annotationThreads.nextActor to see whose turn it is; use activityTimeline for compact chronology; use intentByNode and pendingMessages as the human's latest intent; create_visual_proposal should cite those nodes, then wait for human approval.",
+        guidance: "Use annotationThreads.nextActor to see whose turn it is; use graphDiffs to see exactly what the human changed in the graph; use activityTimeline for compact chronology; use intentByNode and pendingMessages as the human's latest intent; create_visual_proposal should cite those nodes, then wait for human approval.",
       };
       const payload = {
         session: {
@@ -93,6 +97,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         unresolvedAnnotations: unresolved,
         annotationThreads,
         staleThreads,
+        graphDiffs,
         activityTimeline,
         diagnostics,
         intentSummary,
@@ -101,6 +106,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         nextActions: [
           "Read annotationThreads, pendingMessages and unresolvedAnnotations; annotationThreads.nextActor tells you whether the AI should reply or wait for a human.",
           "Treat detached/outdated threads in staleThreads as historical context only; ask the human to confirm or re-anchor before using them as current intent.",
+          "Read graphDiffs for node/edge field changes such as path, group, kind, or label; do not infer visual edits from prose alone.",
           "Use create_visual_proposal to record change proposals; never write project files directly from this tool.",
           "Ask the human to approve a proposal in the panel before anything is applied.",
           "Use activityTimeline for compact chronology of messages, annotation threads, and proposal lifecycle events.",
@@ -117,6 +123,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
             `Node-linked intents: ${intentByNode.length} · general annotations: ${generalAnnotations.length}`,
             `Annotation threads: ${annotationThreads.open} open / ${annotationThreads.total} · stale: ${staleThreads.length} · next actor: ${annotationThreads.nextActor}`,
             `Activity timeline: ${activityTimeline.returned}/${activityTimeline.total} events · latest ${activityTimeline.latestAt ?? "none"}`,
+            `Graph diffs: ${graphDiffs.length} recent revisions`,
             `Diagnostics: ${diagnostics.signals.length} signals · ${diagnostics.nextActions.length} next actions`,
             ``,
             jsonLine({

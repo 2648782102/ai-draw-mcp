@@ -90,6 +90,7 @@ for (const endpoint of [
   "/api/collab/annotations/:id/anchor",
   "/api/collab/activity",
   "/api/collab/diagnostics",
+  "/api/collab/graph/diffs",
   "/api/collab/bundle/import",
   "/api/collab/proposals/:id/impact",
 ]) {
@@ -113,6 +114,10 @@ for (const [label, file, needle] of [
   ["session diagnostics panel", panel, "diagnosticsSummary"],
   ["session diagnostics signal list", panel, "diagnosticsList"],
   ["session diagnostics domain", await read("src/domain/session-diagnostics.ts"), "buildSessionDiagnostics"],
+  ["graph diff domain", await read("src/domain/graph-diff.ts"), "diffVisualGraph"],
+  ["graph diff context", getVisualContext, "graphDiffs"],
+  ["graph diff panel", panel, "graphDiffSummary"],
+  ["graph diff bundle parser", sessionBundle, "parseGraphDiffs"],
   ["annotation anchor status", types, "anchorStatus"],
   ["annotation anchor activity", activityTimeline, "annotation_anchor"],
   ["human re-anchor confirmation", previewServer, "Human confirmation is required"],

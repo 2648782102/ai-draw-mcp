@@ -68,6 +68,12 @@ describe("collaboration session", () => {
       const expandedSnapshot = sessions.getSnapshot();
       expect(expandedSnapshot.graph.nodes.map((node) => node.id)).toEqual(["root", "new_module"]);
       expect(expandedSnapshot.graph.edges[0]).toMatchObject({ from: "root", to: "new_module", label: "extract" });
+      const graphDiffs = sessions.getGraphDiffs(5);
+      expect(graphDiffs.at(-1)).toMatchObject({ version: 1, source: "human" });
+      expect(graphDiffs.at(-1).items.some((item) => item.entity === "node" && item.change === "added")).toBe(true);
+      const graphDiffResponse = await fetch(`${base}/api/collab/graph/diffs?limit=5`, { headers });
+      expect(graphDiffResponse.ok).toBe(true);
+      expect((await graphDiffResponse.json()).diffs.length).toBeGreaterThan(0);
 
       const invalidGraphResponse = await fetch(`${base}/api/collab/graph`, {
         method: "PUT",

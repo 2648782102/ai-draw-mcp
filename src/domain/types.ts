@@ -124,8 +124,28 @@ export interface SessionSnapshot {
   activeDiagramId?: string;
   graphRevision: number;
   graph?: VisualGraph;
+  graphDiffs?: GraphRevisionDiff[];
   messages: ConversationMessage[];
   proposals: ChangeProposal[];
+}
+
+export interface GraphRevisionDiff {
+  version: 1;
+  fromRevision: number;
+  toRevision: number;
+  createdAt: string;
+  source: "human" | "ai" | "system";
+  diagramId: string;
+  nodes: { added: number; removed: number; updated: number };
+  edges: { added: number; removed: number; updated: number };
+  items: Array<{
+    entity: "node" | "edge";
+    change: "added" | "removed" | "updated";
+    id: string;
+    label?: string;
+    fields?: Array<{ field: string; before?: string | number | boolean; after?: string | number | boolean }>;
+  }>;
+  summary: string[];
 }
 
 export interface ProjectScanNode {

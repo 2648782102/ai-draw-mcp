@@ -393,6 +393,7 @@
       <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
       <p class="activity-summary" id="diagnosticsSummary">会话诊断加载中…</p>
       <div class="diagnostics-list" id="diagnosticsList"></div>
+      <p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p>
       <div class="chat-log activity-list" id="activityList"></div>
       <div class="chat-log" id="chatLog"></div>
       <div class="chat-log" id="annotationList"></div>
@@ -1159,6 +1160,18 @@ function renderDiagnostics(diagnostics) {
     : '<p class="signal">会话诊断不可用。</p>';
 }
 
+function renderGraphDiffs(diffs) {
+  const target = $('#graphDiffSummary');
+  if (!target) return;
+  const items = Array.isArray(diffs) ? diffs : [];
+  const latest = items.at(-1);
+  const changes = latest?.items?.length ?? 0;
+  target.textContent = latest
+    ? `图形修订差异 · rev ${escapeHtml(String(latest.fromRevision || 0))} → ${escapeHtml(String(latest.toRevision || 0))} · ${changes} 项字段/结构变化 · ${items.length} 个最近修订`
+    : '图形修订差异 · 暂无记录';
+  target.title = items.map((diff) => `rev ${diff.fromRevision}→${diff.toRevision}: ${diff.summary.join('; ')}`).join('\n');
+}
+
 function activityKindLabel(kind) {
   return ({
     session_created: '会话',
@@ -1366,6 +1379,8 @@ async function loadCollab() {
     renderActivity(activity.timeline);
     const diagnostics = await collabFetch('/api/collab/diagnostics');
     renderDiagnostics(diagnostics.diagnostics);
+    const graphDiffs = await collabFetch('/api/collab/graph/diffs?limit=5');
+    renderGraphDiffs(graphDiffs.diffs);
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
   }

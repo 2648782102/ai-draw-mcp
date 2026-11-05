@@ -11,7 +11,7 @@ The detailed Chinese README is [`README.md`](README.md). The full documentation 
 ```text
 AI: scan_project → editable VisualGraph
 Human: edit node path/group and edge semantics / reply in annotation threads / send a message
-AI: get_visual_context → intentByNode + annotationThreads.nextActor + staleThreads + activityTimeline + diagnostics
+AI: get_visual_context → intentByNode + annotationThreads.nextActor + staleThreads + graphDiffs + activityTimeline + diagnostics
 AI: preflight_visual_proposal → safe paths + existing/new files + duplicate/no-op content
 AI: create_visual_proposal → line-by-line diff + impact summary
 Human: review diff → approve → copy the one-time receipt
@@ -49,6 +49,7 @@ If Chrome is outside Puppeteer's cache, set `PUPPETEER_EXECUTABLE_PATH`. CI and 
 - Atomic UTF-8 writes roll back on partial failure.
 - Session bundles omit approval grants and require explicit human confirmation to import.
 - `diagnostics` is a read-only health/next-action summary; it never grants write authority or replaces full visual context.
+- `graphDiffs` records exact node/edge field changes between graph revisions; AI should use it instead of guessing visual edits from prose.
 - Stale annotation threads are explicitly `outdated` or `detached`; AI must ask a human to review or re-anchor them before treating old discussion as current intent.
 
 See [`SECURITY.md`](SECURITY.md), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), and [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).

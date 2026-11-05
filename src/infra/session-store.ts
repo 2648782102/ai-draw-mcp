@@ -11,6 +11,7 @@ import {
   type SessionBundle,
 } from "../domain/session-bundle.js";
 import { parseAnnotationReplies, summarizeAnnotationThreads, type ThreadAnchorStatus } from "../domain/annotation-thread.js";
+import { diffVisualGraph } from "../domain/graph-diff.js";
 import type { ApprovalGrant, ApprovalReceipt } from "../domain/approval.js";
 import { assertProposalHash, proposalContentHash } from "../domain/proposal-hash.js";
 import type {
@@ -32,6 +33,7 @@ const SESSION_FILE = "session.json";
 const MAX_MESSAGES = 500;
 const MAX_PROPOSALS = 100;
 const MAX_CHANGE_BYTES = 1024 * 1024;
+const MAX_GRAPH_DIFFS = 20;
 
 interface SessionStoreOptions {
   outputDir: string;
@@ -211,6 +213,7 @@ export class SessionStore {
     const bundle = parseSessionBundle(input);
     const graph = bundle.session.graph;
     if (graph) validateGraph(graph);
+    const graphDiffs = bundle.session.graphDiffs?.slice(-MAX_GRAPH_DIFFS);
     for (const proposal of bundle.session.proposals) {
       for (const change of proposal.changes) validateChange(this.workspaceRoot, change);
     }
@@ -222,6 +225,7 @@ export class SessionStore {
       draft.graphRevision = bundle.session.graphRevision;
       draft.activeDiagramId = bundle.session.activeDiagramId;
       draft.graph = graph;
+      draft.graphDiffs = graphDiffs;
       draft.messages = trimList(bundle.session.messages, MAX_MESSAGES);
       draft.proposals = trimList(bundle.session.proposals, MAX_PROPOSALS);
     });
@@ -260,13 +264,28 @@ export class SessionStore {
 
   async setGraph(graph: VisualGraph, activeDiagramId = graph.diagramId): Promise<SessionSnapshot> {
     validateGraph(graph);
-    const nextRevision = this.snapshot.graphRevision + 1;
+    const fromRevision = this.snapshot.graphRevision;
+    const nextRevision = fromRevision + 1;
+    const graphDiff = diffVisualGraph(this.snapshot.graph, graph, {
+      fromRevision,
+      toRevision: nextRevision,
+      createdAt: nowIso(),
+      source: "human",
+    });
     anchorAnnotations(graph, nextRevision);
     return this.mutate((draft) => {
       draft.graph = graph;
       draft.activeDiagramId = activeDiagramId;
       draft.graphRevision = nextRevision;
+      if (graphDiff.items.length > 0) {
+        draft.graphDiffs = trimList([...(draft.graphDiffs ?? []), graphDiff], MAX_GRAPH_DIFFS);
+      }
     });
+  }
+
+  getGraphDiffs(limit = 5): NonNullable<SessionSnapshot["graphDiffs"]> {
+    const diffs = this.snapshot.graphDiffs ?? [];
+    return clone(diffs.slice(-Math.max(1, Math.min(MAX_GRAPH_DIFFS, limit)))) as NonNullable<SessionSnapshot["graphDiffs"]>;
   }
 
   async addMessage(

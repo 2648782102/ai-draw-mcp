@@ -13,6 +13,7 @@
  *   GET  /api/collab/session     collaboration snapshot
  *   GET  /api/collab/activity    derived compact activity timeline
  *   GET  /api/collab/diagnostics  read-only session health and next-action summary
+ *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/bundle      portable session bundle for bug reports/examples
  *   POST /api/collab/bundle/import  import a reviewed session bundle
  *   GET  /api/collab/graph       current visual graph
@@ -114,6 +115,12 @@ export class PreviewServer {
 
     this.app.get("/api/collab/diagnostics", (_req, res) => {
       res.json({ diagnostics: buildSessionDiagnostics(this.sessions.getSnapshot()) });
+    });
+
+    this.app.get("/api/collab/graph/diffs", (req, res) => {
+      const rawLimit = Number(req.query.limit ?? 5);
+      const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(20, Math.floor(rawLimit))) : 5;
+      res.json({ diffs: this.sessions.getGraphDiffs(limit) });
     });
 
     this.app.get("/api/collab/bundle", (_req, res) => {

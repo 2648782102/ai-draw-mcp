@@ -45,6 +45,8 @@ IDE / human browser
 
 面板把诊断信号与下一步动作展开为可扫读清单；`action` 信号提示人或 AI 的下一棒，`warning` 提示已失败/等待应用的提案，`info` 只描述状态。清单不提供批准按钮，也不改变会话。
 
+`SessionStore.setGraph()` 会把前后 `VisualGraph` 交给 `src/domain/graph-diff.ts`，保留最近 20 条 version 1 `graphDiffs`。每条记录包含修订号、来源、节点/连线计数及字段级变化；bundle 也保留这些审计记录。`get_visual_context.graphDiffs` 和 `GET /api/collab/graph/diffs` 只读暴露它们，AI 应据此理解人类改图，而不是从自然语言猜测路径/分组/连线变化。
+
 ## Safety model
 
 - 预览服务默认只监听 `PREVIEW_HOST`（`127.0.0.1`）。

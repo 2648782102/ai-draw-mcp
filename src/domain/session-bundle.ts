@@ -7,6 +7,7 @@ import type {
   GraphNode,
   SessionSnapshot,
   VisualGraph,
+  GraphRevisionDiff,
 } from "./types.js";
 import { parseAnnotationReplies } from "./annotation-thread.js";
 
@@ -22,6 +23,7 @@ export interface SessionBundle {
     activeDiagramId?: string;
     workspaceRoot: string;
     graph?: VisualGraph;
+    graphDiffs?: GraphRevisionDiff[];
     messages: ConversationMessage[];
     proposals: ChangeProposal[];
   };
@@ -100,6 +102,37 @@ function serializeReplies(replies: AnnotationReply[] | undefined): AnnotationRep
   }));
 }
 
+function parseGraphDiffs(value: unknown): GraphRevisionDiff[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) throw new Error("session.graphDiffs must be an array");
+  return value.map((item, index) => {
+    if (!isRecord(item)) throw new Error(`session.graphDiffs[${index}] must be an object`);
+    if (item.version !== 1) throw new Error(`session.graphDiffs[${index}] has unsupported version`);
+    const nodes = isRecord(item.nodes) ? item.nodes : {};
+    const edges = isRecord(item.edges) ? item.edges : {};
+    return {
+      version: 1,
+      fromRevision: typeof item.fromRevision === "number" ? item.fromRevision : 0,
+      toRevision: typeof item.toRevision === "number" ? item.toRevision : 0,
+      createdAt: typeof item.createdAt === "string" ? item.createdAt : new Date().toISOString(),
+      source: item.source === "ai" || item.source === "system" ? item.source : "human",
+      diagramId: assertString(item.diagramId, `session.graphDiffs[${index}].diagramId`),
+      nodes: {
+        added: typeof nodes.added === "number" ? nodes.added : 0,
+        removed: typeof nodes.removed === "number" ? nodes.removed : 0,
+        updated: typeof nodes.updated === "number" ? nodes.updated : 0,
+      },
+      edges: {
+        added: typeof edges.added === "number" ? edges.added : 0,
+        removed: typeof edges.removed === "number" ? edges.removed : 0,
+        updated: typeof edges.updated === "number" ? edges.updated : 0,
+      },
+      items: Array.isArray(item.items) ? item.items as GraphRevisionDiff["items"] : [],
+      summary: Array.isArray(item.summary) ? item.summary.filter((line): line is string => typeof line === "string") : [],
+    };
+  });
+}
+
 function parseMessages(value: unknown): ConversationMessage[] {
   if (!Array.isArray(value)) throw new Error("session.messages must be an array");
   return value.map((item, index) => {
@@ -173,6 +206,7 @@ export function createSessionBundle(snapshot: SessionSnapshot, exportedAt = new 
           replies: serializeReplies(annotation.replies),
         })),
       } : undefined,
+      graphDiffs: snapshot.graphDiffs?.map((diff) => JSON.parse(JSON.stringify(diff)) as GraphRevisionDiff),
       messages: snapshot.messages,
       proposals,
     },
@@ -207,6 +241,7 @@ export function parseSessionBundle(input: unknown): SessionBundle {
       activeDiagramId: typeof input.session.activeDiagramId === "string" ? input.session.activeDiagramId : undefined,
       workspaceRoot: assertString(input.session.workspaceRoot, "session.workspaceRoot"),
       graph,
+      graphDiffs: parseGraphDiffs(input.session.graphDiffs),
       messages: parseMessages(input.session.messages),
       proposals: parseProposals(input.session.proposals),
     },
