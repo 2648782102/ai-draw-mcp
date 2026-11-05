@@ -192,9 +192,10 @@
       border-radius: 6px; background: var(--bg); padding: 8px;
     }
     .graph-row {
-      display: grid; grid-template-columns: 18px 1fr .8fr 24px; gap: 4px; padding: 5px;
+      display: grid; grid-template-columns: 18px 1fr .8fr 1.1fr .8fr 24px; gap: 4px; padding: 5px;
       border-bottom: 1px solid var(--border); align-items: center;
     }
+    .graph-row-header { display: grid; grid-template-columns: 18px 1fr .8fr 1.1fr .8fr 24px; gap: 4px; padding: 2px 5px; color: var(--text-muted); font-size: 9px; }
     .graph-row.selected { background: rgba(88, 166, 255, .12); }
     .graph-row input, .graph-row select, .edge-row input, .edge-row select {
       min-width: 0; background: var(--surface2); color: var(--text); border: 1px solid var(--border);
@@ -205,7 +206,8 @@
       background: var(--bg); color: var(--text-muted); cursor: pointer; font-size: 11px;
     }
     .graph-row button:hover, .edge-row button:hover { color: var(--red); border-color: var(--red); }
-    .edge-row { display: grid; grid-template-columns: 1fr 1fr .7fr 24px; gap: 4px; padding: 4px 5px; border-bottom: 1px solid var(--border); align-items: center; }
+    .edge-row { display: grid; grid-template-columns: 1fr 1fr .7fr .7fr 24px; gap: 4px; padding: 4px 5px; border-bottom: 1px solid var(--border); align-items: center; }
+    .edge-row-header { display: grid; grid-template-columns: 1fr 1fr .7fr .7fr 24px; gap: 4px; padding: 2px 5px; color: var(--text-muted); font-size: 9px; }
     .edge-editor { margin-top: 8px; border-top: 1px solid var(--border); }
     .edge-editor h4 { font-size: 10px; color: var(--text-muted); margin: 8px 0 4px; }
     .graph-empty { color: var(--text-muted); font-size: 10px; padding: 8px 0; }
@@ -369,10 +371,12 @@
   <div class="collab-body">
     <section class="collab-section">
       <h3>项目图 · 节点编辑</h3>
-      <p class="collab-help">可新增/删除节点与连线；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
+      <p class="collab-help">可编辑节点名称/类型/路径/分组与连线起点/终点/说明/类型；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
       <div class="graph-editor" id="graphEditor"></div>
+      <div class="graph-row-header"><span></span><span>名称</span><span>类型</span><span>路径</span><span>分组</span><span></span></div>
       <div class="edge-editor">
-        <h4>连线 · from → to / label</h4>
+        <h4>连线 · from → to / label / kind</h4>
+        <div class="edge-row-header"><span>起点</span><span>终点</span><span>说明</span><span>类型</span><span></span></div>
         <div id="edgeEditor" class="graph-editor" style="flex: none; min-height: 60px; max-height: 160px;"></div>
       </div>
       <div class="collab-actions">
@@ -1042,6 +1046,8 @@ function renderGraphEditor() {
       <input type="radio" name="selectedNode" ${node.id === selectedNodeId ? 'checked' : ''} aria-label="选中节点" />
       <input class="node-label" value="${escapeHtml(node.label)}" aria-label="节点名称" />
       <input class="node-kind" value="${escapeHtml(node.kind)}" aria-label="节点类型" />
+      <input class="node-path" value="${escapeHtml(node.path || '')}" aria-label="节点路径" placeholder="src/..." />
+      <input class="node-group" value="${escapeHtml(node.group || '')}" aria-label="节点分组" placeholder="root" />
       <button data-remove-node="${index}" title="删除节点">✕</button>
     </div>
   `).join('');
@@ -1051,6 +1057,7 @@ function renderGraphEditor() {
       <select class="edge-from" aria-label="连线起点">${options(edge.from)}</select>
       <select class="edge-to" aria-label="连线终点">${options(edge.to)}</select>
       <input class="edge-label" value="${escapeHtml(edge.label || '')}" aria-label="连线说明" />
+      <input class="edge-kind" value="${escapeHtml(edge.kind || '')}" aria-label="连线类型" placeholder="contains/imports" />
       <button data-remove-edge="${index}" title="删除连线">✕</button>
     </div>
   `).join('') : '<div class="graph-empty">暂无连线。新增节点后可描述模块关系。</div>';
@@ -1077,7 +1084,7 @@ function localId(prefix) {
 function addNode() {
   if (!collabGraph) collabGraph = { version: 1, diagramId: `panel_${Date.now()}`, nodes: [], edges: [], annotations: [] };
   const id = localId('node');
-  collabGraph.nodes.push({ id, label: '新节点', kind: 'module', group: 'human' });
+  collabGraph.nodes.push({ id, label: '新节点', kind: 'module', path: 'src/new-module', group: 'human' });
   selectedNodeId = id;
   renderGraphEditor();
   $('#graphEditor').scrollTop = $('#graphEditor').scrollHeight;
@@ -1097,7 +1104,7 @@ function removeNode(index) {
 function addEdge() {
   if (!collabGraph || collabGraph.nodes.length < 2) return showToast('至少需要两个节点才能建立连线');
   const [from, to] = collabGraph.nodes.slice(-2).map((node) => node.id);
-  collabGraph.edges.push({ id: localId('edge'), from, to, label: 'relates', kind: 'human' });
+  collabGraph.edges.push({ id: localId('edge'), from, to, label: 'relates', kind: 'relates' });
   renderGraphEditor();
   $('#edgeEditor').scrollTop = $('#edgeEditor').scrollHeight;
 }
@@ -1372,6 +1379,12 @@ async function saveGraph() {
     if (!node) return;
     node.label = row.querySelector('.node-label').value.trim() || node.label;
     node.kind = row.querySelector('.node-kind').value.trim() || node.kind;
+    const nodePath = row.querySelector('.node-path').value.trim();
+    const nodeGroup = row.querySelector('.node-group').value.trim();
+    if (nodePath) node.path = nodePath;
+    else delete node.path;
+    if (nodeGroup) node.group = nodeGroup;
+    else delete node.group;
   });
   const edgeRows = [...$('#edgeEditor').querySelectorAll('.edge-row')];
   edgeRows.forEach((row, index) => {
@@ -1380,6 +1393,9 @@ async function saveGraph() {
     edge.from = row.querySelector('.edge-from').value;
     edge.to = row.querySelector('.edge-to').value;
     edge.label = row.querySelector('.edge-label').value.trim() || undefined;
+    const edgeKind = row.querySelector('.edge-kind').value.trim();
+    if (edgeKind) edge.kind = edgeKind;
+    else delete edge.kind;
   });
   try {
     const result = await collabFetch('/api/collab/graph', {

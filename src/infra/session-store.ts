@@ -70,6 +70,10 @@ function validateGraph(graph: VisualGraph): void {
   for (const node of graph.nodes) {
     if (!node.id || typeof node.label !== "string" || typeof node.kind !== "string")
       throw new Error("Graph node requires id, label, and kind");
+    if (node.path !== undefined && (typeof node.path !== "string" || !node.path.trim()))
+      throw new Error(`Graph node has invalid path: ${node.id}`);
+    if (node.group !== undefined && (typeof node.group !== "string" || !node.group.trim()))
+      throw new Error(`Graph node has invalid group: ${node.id}`);
     if (nodeIds.has(node.id)) throw new Error("Graph contains duplicate node ids");
     nodeIds.add(node.id);
   }
@@ -80,6 +84,8 @@ function validateGraph(graph: VisualGraph): void {
     edgeIds.add(edge.id);
     if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to))
       throw new Error(`Graph edge references missing node: ${edge.id}`);
+    if (edge.kind !== undefined && (typeof edge.kind !== "string" || !edge.kind.trim()))
+      throw new Error(`Graph edge has invalid kind: ${edge.id}`);
   }
   for (const annotation of graph.annotations) {
     if (!annotation.id || typeof annotation.body !== "string")

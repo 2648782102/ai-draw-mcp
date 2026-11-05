@@ -79,6 +79,26 @@ describe("collaboration session", () => {
       });
       expect(invalidGraphResponse.status).toBe(400);
 
+      const invalidPathGraphResponse = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({
+          ...expandedGraph,
+          nodes: expandedGraph.nodes.map((node) => node.id === "new_module" ? { ...node, path: "  " } : node),
+        }),
+      });
+      expect(invalidPathGraphResponse.status).toBe(400);
+
+      const invalidEdgeKindResponse = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({
+          ...expandedGraph,
+          edges: expandedGraph.edges.map((edge) => ({ ...edge, kind: "  " })),
+        }),
+      });
+      expect(invalidEdgeKindResponse.status).toBe(400);
+
       const messageResponse = await fetch(`${base}/api/collab/messages`, {
         method: "POST",
         headers,

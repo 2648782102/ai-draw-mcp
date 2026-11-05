@@ -50,6 +50,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           label: node.label,
           kind: node.kind,
           path: node.path,
+          group: node.group,
           annotations: annotationsByNode.get(node.id) ?? [],
         })) ?? [];
       const intentSummary = {
@@ -64,6 +65,8 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           to: nodeLabels.get(edge.to) ?? edge.to,
           label: edge.label,
           kind: edge.kind,
+          fromPath: graph?.nodes.find((node) => node.id === edge.from)?.path,
+          toPath: graph?.nodes.find((node) => node.id === edge.to)?.path,
         })) ?? [],
         annotationThreads,
         staleThreads,

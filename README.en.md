@@ -1,6 +1,6 @@
 # AI Draw MCP (English Quickstart)
 
-AI Draw MCP is a local-first MCP server and browser panel for **human ↔ AI visual collaboration**. An AI scans a project into an editable graph; a human edits nodes, replies in node-linked annotation threads, and discusses intent; the AI creates a reviewed file-change proposal; only after a human approves and passes back a one-time receipt can the AI apply the files.
+AI Draw MCP is a local-first MCP server and browser panel for **human ↔ AI visual collaboration**. An AI scans a project into an editable graph; a human edits node paths/groups and edge semantics, replies in node-linked annotation threads, and discusses intent; the AI creates a reviewed file-change proposal; only after a human approves and passes back a one-time receipt can the AI apply the files.
 
 ![Collaboration loop](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-loop.svg)
 
@@ -10,7 +10,7 @@ The detailed Chinese README is [`README.md`](README.md). The full documentation 
 
 ```text
 AI: scan_project → editable VisualGraph
-Human: edit nodes / reply in annotation threads / send a message
+Human: edit node path/group and edge semantics / reply in annotation threads / send a message
 AI: get_visual_context → intentByNode + annotationThreads.nextActor + staleThreads + activityTimeline + diagnostics
 AI: preflight_visual_proposal → safe paths + existing/new files + duplicate/no-op content
 AI: create_visual_proposal → line-by-line diff + impact summary
