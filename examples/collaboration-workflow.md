@@ -12,6 +12,8 @@ The AI should call `scan_project`, then the panel shows the structure graph. Use
 
 To avoid inventing a different sequence, ask the AI to call `get_agent_workflow` first. Its `WORKFLOW_JSON` lists the eight ordered steps, prerequisites, readiness blockers, and explicit `none` / `session` / `project` write targets. The contract is read-only and never issues an approval receipt. A reproducible example that stops after preflight is [`agent-workflow.mjs`](agent-workflow.mjs); run it with `npm run test:examples:workflow`.
 
+For a new MCP client, first ask for `get_capabilities`: `CAPABILITIES_JSON` lists all 24 tools, JSON markers, derived workflow/readiness status, a suggested next action, and the unique receipt-gated project-write boundary. It complements native MCP `tools/list` discovery and never invokes tools, writes state, or issues grants.
+
 ## 2. Human edits the graph and explains intent
 
 In the panel, open `💬 协作`:

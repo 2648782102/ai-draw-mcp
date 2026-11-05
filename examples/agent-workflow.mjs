@@ -72,6 +72,19 @@ try {
   }));
   if (!scanText.includes("PRESERVATION_JSON:")) throw new Error("scan_project unexpectedly omitted the preservation contract");
 
+  const capabilitiesText = textOf(await client.callTool({ name: "get_capabilities", arguments: {} }));
+  const capabilities = jsonAfter(capabilitiesText, "CAPABILITIES_JSON:");
+  if (capabilities.version !== 1 || capabilities.toolCount !== 24 || capabilities.safety?.grantsWriteAuthority !== false) {
+    throw new Error("Capabilities unexpectedly lost the read-only 24-tool catalogue");
+  }
+  if (capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name).join(",") !== "apply_visual_proposal") {
+    throw new Error("Capabilities unexpectedly named another project-write tool");
+  }
+  if (capabilitiesText.includes("approvalGrant") || capabilitiesText.includes(process.cwd())) {
+    throw new Error("Capabilities unexpectedly exposed an approval credential or absolute workspace path");
+  }
+  console.log(`    Capabilities: ${capabilities.toolCount} tools / ${capabilities.workflow.steps} steps · project write ${capabilities.workflow.projectWriteTool}`);
+
   const workflowText = textOf(await client.callTool({ name: "get_agent_workflow", arguments: {} }));
   const workflow = jsonAfter(workflowText, "WORKFLOW_JSON:");
   console.log(`1/5 Workflow: ${workflow.steps.length} ordered steps at revision ${workflow.graphRevision}`);

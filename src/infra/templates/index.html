@@ -418,6 +418,8 @@
       <div class="diagnostics-list" id="diagnosticsList"></div>
       <p class="activity-summary" id="reviewReadinessSummary">审阅就绪 · 加载中；只聚合 BRIEF_JSON 阻塞与 DECISION_TRAIL_JSON 证据缺口</p>
       <div class="diagnostics-list" id="reviewReadinessList"></div>
+      <p class="activity-summary" id="capabilitiesSummary">能力清单 · 加载中；只读列出 MCP 工具、JSON 契约与唯一项目写入边界</p>
+      <div class="diagnostics-list" id="capabilitiesList"></div>
       <p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p>
       <div class="chat-log graph-diff-list" id="graphDiffList"></div>
       <div class="chat-log activity-list" id="activityList"></div>
@@ -431,6 +433,7 @@
         <button id="btnCopySharedBrief" title="复制紧凑只读 BRIEF_JSON，不写入会话、不签发凭据">复制共享简报</button>
         <button id="btnCopyDecisionTrail" title="复制只读 DECISION_TRAIL_JSON，不写入会话、不签发凭据">复制决策链</button>
         <button id="btnCopySourceNavigation" title="复制只读相对 file:line 跳转清单，不打开文件或签发凭据">复制源码跳转</button>
+        <button id="btnCopyCapabilities" title="复制只读 CAPABILITIES_JSON，不调用工具、不写入会话、不签发凭据">复制能力清单</button>
       </div>
       <input id="annotationInput" placeholder="批注内容；先选中左侧节点即可绑定" />
     </section>
@@ -1086,6 +1089,7 @@ let collabSourceEvidence = [];
 let collabSharedBrief = null;
 let collabDecisionTrail = null;
 let collabSourceNavigation = null;
+let collabCapabilities = null;
 let collabViewport = null;
 
 function escapeHtml(value) {
@@ -1397,6 +1401,24 @@ function renderReviewReadiness(readiness) {
   summary.title = 'REVIEW_READINESS_JSON 派生自共享简报与决策链；它不批准变更，也不替代完整逐行 diff。';
   const pointHtml = points.slice(0, 8).map((point) => `<p class="signal ${point.severity === 'action' ? 'action' : ''}"><strong>${escapeHtml(point.source)}</strong> · ${escapeHtml(point.message)}</p>`).join('');
   list.innerHTML = pointHtml || '<p class="signal">暂无共享简报阻塞或决策链证据缺口；批准提案前仍须打开完整逐行 diff。</p>';
+}
+
+function renderCapabilities(capabilities) {
+  const summary = $('#capabilitiesSummary');
+  const list = $('#capabilitiesList');
+  if (!summary || !list) return;
+  if (!capabilities) {
+    summary.textContent = '能力清单 · 暂不可用';
+    list.innerHTML = '<p class="signal">只读能力清单暂不可用。</p>';
+    return;
+  }
+  const projectWrites = Array.isArray(capabilities.tools) ? capabilities.tools.filter((tool) => tool.writes === 'project') : [];
+  summary.textContent = `能力清单 · ${capabilities.serverVersion} · ${capabilities.toolCount} 个工具 / ${capabilities.workflow.steps} 步工作流 · 审阅 ${capabilities.workflow.reviewReadiness.status} · 只读`;
+  summary.title = 'CAPABILITIES_JSON 只描述工具与边界；唯一 writes=project 的工具是 apply_visual_proposal，仍需人工批准与一次性确认号。';
+  const contracts = Array.isArray(capabilities.contracts) ? capabilities.contracts.slice(0, 6) : [];
+  const contractHtml = contracts.map((contract) => `<p class="signal"><strong>${escapeHtml(contract.marker)}</strong> · ${escapeHtml(contract.purpose)}</p>`).join('');
+  const boundaryHtml = `<p class="next-action">${escapeHtml(capabilities.nextAction)}</p><p class="signal">项目写入工具：${escapeHtml(projectWrites.map((tool) => tool.name).join(', ') || '无')} · ${escapeHtml(capabilities.safety?.projectWritesRequireHumanApproval ? '须人工批准与一次性确认号' : '安全标记缺失')}</p>`;
+  list.innerHTML = `${contractHtml || '<p class="signal">暂无契约条目。</p>'}${boundaryHtml}`;
 }
 
 function renderSharedBrief(brief) {
@@ -1723,6 +1745,9 @@ async function loadCollab() {
     const decisionTrail = await collabFetch('/api/collab/decision-trail?eventLimit=30&lineLimit=6');
     collabDecisionTrail = decisionTrail;
     renderDecisionTrail(decisionTrail);
+    const capabilities = await collabFetch('/api/collab/capabilities');
+    collabCapabilities = capabilities;
+    renderCapabilities(capabilities);
     await renderNodeContext();
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
@@ -1834,6 +1859,29 @@ async function copySourceNavigation() {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
     showToast('剪贴板不可用，已把源码跳转清单放入消息框（尚未发送）');
+  }
+}
+
+async function copyCapabilities() {
+  if (!collabCapabilities) {
+    showToast('能力清单尚未加载；请先刷新协作会话');
+    return;
+  }
+  const prompt = [
+    '请用这份只读 CAPABILITIES_JSON 理解工具、JSON 契约与安全边界，再按 get_agent_workflow 与 get_visual_context 继续：',
+    'CAPABILITIES_JSON:',
+    JSON.stringify(collabCapabilities, null, 2),
+    '',
+    '能力清单只是描述性目录，不调用工具、不签发凭据，也不等于我已批准写入。',
+    '如需改动项目，先 preflight_visual_proposal，再 create_visual_proposal；等我查看完整逐行 diff、批准并提供一次性确认号后才可 apply_visual_proposal。',
+  ].join('\n');
+  try {
+    await navigator.clipboard.writeText(prompt);
+    showToast('已复制只读能力清单；它不包含确认号或本机绝对路径');
+  } catch {
+    $('#messageInput').value = prompt;
+    $('#messageInput').focus();
+    showToast('剪贴板不可用，已把能力清单放入消息框（尚未发送）');
   }
 }
 
@@ -2034,6 +2082,7 @@ $('#btnCopyAiContext').addEventListener('click', copyAiContext);
 $('#btnCopySharedBrief').addEventListener('click', copySharedBrief);
 $('#btnCopyDecisionTrail').addEventListener('click', copyDecisionTrail);
 $('#btnCopySourceNavigation').addEventListener('click', copySourceNavigation);
+$('#btnCopyCapabilities').addEventListener('click', copyCapabilities);
 
 // ── Init ──
 loadList();

@@ -76,6 +76,49 @@ export interface SourceNavigation {
   };
 }
 
+export interface Capabilities {
+  version: 1;
+  readOnly: true;
+  serverVersion: string;
+  sessionId: string;
+  graphRevision: number;
+  toolCount: number;
+  tools: Array<{
+    name: string;
+    group: "diagram" | "collaboration" | "context" | "proposal";
+    purpose: string;
+    output: string;
+    readOnly: boolean;
+    writes: "none" | "output" | "session" | "project";
+  }>;
+  contracts: Array<{
+    marker: string;
+    purpose: string;
+    sideEffect: "none" | "output" | "session" | "project";
+  }>;
+  workflow: {
+    version: 1;
+    steps: number;
+    blocked: string[];
+    reviewReadiness: {
+      status: "ready" | "review" | "blocked";
+      blockers: number;
+      gaps: number;
+    };
+    projectWriteTool: "apply_visual_proposal";
+  };
+  nextAction: string;
+  copyText: string;
+  guidance: string[];
+  safety: {
+    readOnly: true;
+    grantsWriteAuthority: false;
+    excludesApprovalGrants: true;
+    projectWritesRequireHumanApproval: true;
+    excludesWorkspaceAbsolutePaths: true;
+  };
+}
+
 export interface GraphEdge {
   id: string;
   from: string;

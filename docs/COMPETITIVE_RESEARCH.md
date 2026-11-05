@@ -108,12 +108,24 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 
 结论：第一阶段只交付无副作用的 `SOURCE_NAVIGATION_JSON`，已覆盖「人/AI 可快速引用代码位置」的产品价值；语言感知符号范围、点击式 IDE 跳转和 LSP 适配器仍属于 0.4/0.5 的可选集成，不能把编辑器启动或路径执行变成 MCP server 的核心能力。
 
+### Agent 工具发现与能力目录调研（2026-11-06 06:55 CST）
+
+本轮只读检索 MCP 官方文档与 SDK 文档，核对「协议层工具发现」与「应用层能力目录」的区别。 [MCP TypeScript SDK 调用文档](https://ts.sdk.modelcontextprotocol.io/v2/clients/calling) 说明 `listTools` 返回 server 宣告的工具，`callTool` 才按名称执行；[MCP Python SDK 文档](https://py.sdk.modelcontextprotocol.io/client/) 也把 `list_tools()` 描述为读取 name/title/description/input schema 的发现入口。公开 SDK 的类型文档还记录 `ToolListChangedNotification`，用于工具目录变化的通知。MCP 原生发现是工具名与输入 schema 的权威来源，但不描述本项目特定的 `WORKFLOW_JSON`、`BRIEF_JSON`、`DECISION_TRAIL_JSON` 等有界投影，也不说明哪一步才可能写项目文件。
+
+| 来源 | 已核对的公开主张 | 对 AI Draw MCP 的启示 | 安全边界 |
+|---|---|---|---|
+| MCP TypeScript SDK 调用文档 | `listTools()` 列出 server advertised tools；`callTool()` 按名称调用 | 保留原生工具发现，不另造协议级 capability | `CAPABILITIES_JSON` 只是普通只读工具返回值，不声称替代协议协商 |
+| MCP Python SDK 客户端文档 | `list_tools()` 提供工具名、描述和 input schema | 新 agent 对「协议」与「工作流语义」需要两种视角 | 工具清单补充 JSON 标记、下一步动作与唯一写入边界，但不执行工具 |
+| MCP SDK 的 `ToolListChangedNotification` 类型 | 工具集合变化可通过通知保持同步 | 能力清单必须随 `SERVER_TOOL_COUNT`、工具注册和离线检查同步 | 不缓存客户端权限、不签发凭据、不把目录当授权列表 |
+
+结论：交付 `CAPABILITIES_JSON` 作为版本化、可复制、无副作用的应用层发现视图；原生 `tools/list` 仍是 schema 权威，`get_agent_workflow` 仍是顺序契约，人工批准与一次性确认号仍是唯一项目写入路径。
+
 ### 对 0.4 / 0.5 的建议与优先级
 
 | 阶段 | 优先级 | 建议 | 完成定义 |
 |---|---|---|---|
 | 0.4 | P0 | 保存人工布局与视口；重新扫描采用「保留已有布局 + 新增节点增量排布」策略；补图形编辑撤销/重做 | 布局保持、视口状态与视觉撤销栈已经交付：图修订不会无故移动既有节点；有界 `SessionViewport` 只读告诉 AI 人正在看哪片图，且不进入图修订/时间线/bundle；undo/redo 恢复视觉图并生成新 `graphRevision` / `graphDiffs`，纯函数/MCP/HTTP 测试覆盖 ID 稳定、坐标/标签/批注/焦点保留、人类确认、bundle 不含历史及项目文件不变；撤销不回退已批准的项目写入 |
-| 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 基础版已交付：23 个工具中的 `get_agent_workflow` 与 CI 只读示例覆盖 `WORKFLOW_JSON` → `BRIEF_JSON` → `DECISION_TRAIL_JSON` → `SOURCE_NAVIGATION_JSON` → `changes` → preflight → 停止；`get_node_context` 可进一步收窄焦点节点上下文；提案人批准与 apply 由 `examples/collab-demo.mjs` 覆盖，且中间产物不含确认号；诊断信号联动仍待做 |
+| 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 基础版已交付：24 个工具中的 `get_capabilities` 提供入口目录，`get_agent_workflow` 与 CI 只读示例覆盖 `CAPABILITIES_JSON` → `WORKFLOW_JSON` → `BRIEF_JSON` → `DECISION_TRAIL_JSON` → `SOURCE_NAVIGATION_JSON` → `changes` → preflight → 停止；`get_node_context` 可进一步收窄焦点节点上下文；提案人批准与 apply 由 `examples/collab-demo.mjs` 覆盖，且中间产物不含确认号；诊断信号联动仍待做 |
 | 0.4 | P1 | 把「下一步是否适合进入提案」做成小而确定的派生信号，避免 coding agent 自行拼接多个上下文视图 | 基础版已交付：`REVIEW_READINESS_JSON` 从同一快照组合 `BRIEF_JSON` 阻塞与 `DECISION_TRAIL_JSON` 缺口，返回 `ready` / `review` / `blocked`；诊断、面板和 CI 工作流示例共用同一只读投影，`ready` 也不跳过完整逐行 diff 与人工批准，详见 [ADR 0015](ADR/0015-review-readiness-is-a-derived-diagnostic.md) |
 | 0.4 | P1 | 引入机器可读 `focus` / 选中状态，并让批注、诊断、节点上下文和下一棒提示引用同一对象 | 基础版已交付：`focus` 与 `NODE_CONTEXT_JSON` 让 AI 识别「人正在指哪个节点」并读取该节点证据/批注/连线/差异；焦点与单节点上下文不签发凭据、不自动解决线程 |
 | 0.4 | P2 | bundle 增加可读摘要与可复现导出清单；发布前用 `repo:check` / `docs:assets:check` 守住文案和资产一致性 | 基础版已交付：bundle 严格校验有限坐标、`graphDiffs`、`focus` 与 `sourceEvidence`，输出可读 JSON；version 1 `EXPORT_MANIFEST_JSON` 派生资产计数、建议文件名、排除字段与安全标记，下载时作为 `exportManifest` 附档；导入仍要求人类确认且清除批准凭据。稳定 SVG 摘要/导入后只读审阅模式仍待做 |
@@ -156,3 +168,5 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 - [MCP Apps official extension announcement](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/) — interactive UI returned by MCP tools and human decisions observed by models.
 - [Visual Nerve](https://www.visualnerve.com/) — local-first visual workspace positioning around source evidence and relationships.
 - [Microsoft Visio Desktop MCP Server](https://microsoft.github.io/Visio-Desktop-MCP-Server/) — local MCP server integration with AI clients and IDEs.
+- [MCP TypeScript SDK: Call tools, read resources, get prompts](https://ts.sdk.modelcontextprotocol.io/v2/clients/calling) — `listTools` discovery and `callTool` invocation.
+- [MCP Python SDK: The Client](https://py.sdk.modelcontextprotocol.io/client/) — `list_tools()` and tool name/description/schema discovery.

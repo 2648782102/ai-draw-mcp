@@ -6,11 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-06
+
 ### Added
 
+- 第 24 个 MCP 工具 `get_capabilities` 与 `GET /api/collab/capabilities`：version 1 `CAPABILITIES_JSON` 一次列出全部工具、JSON 契约、八步工作流就绪状态、派生审阅状态、下一步安全动作、唯一 `writes: "project"` 工具与固定只读边界；面板显示同一清单并提供「复制能力清单」。它不调用其他工具、不重复读取项目文件、不改会话、不创建提案、不签发凭据、不暴露工作区绝对路径。
+- [ADR 0017](docs/ADR/0017-capability-catalogue-is-read-only-discovery.md)：记录能力清单是应用层、只读、无副作用的发现契约，与 MCP 原生 `tools/list` 协议发现互补；官方 SDK 的 `listTools()` 仍是工具名与输入 schema 的权威来源。
+- 能力清单纯函数、MCP、HTTP、工作流示例、面板与离线一致性测试：覆盖 24 个唯一工具、唯一项目写入工具、安全标记、下一步动作、凭据/绝对路径不外泄，以及 `SERVER_TOOL_COUNT` 与文档同步。
 - `.github/workflows/release.yml` 增加标签验证后的独立 Release 发布作业：使用内置 `GITHUB_TOKEN` 的 `contents: write` 权限，从匹配版本号的 `CHANGELOG.md` 小节生成 Release 正文；先按 tag 查询已有 Release，保证重复运行幂等；并发互斥，npm 发布仍保留人工批准门槛。
 - `RELEASING.md`、`docs/GOVERNANCE.md`、`docs/LAUNCH_KIT.md`、`AGENTS.md` 与 `scripts/repo-check.mjs` 同步记录自动发布边界、CI 证据与离线防漂移检查；维护者本地 `--release` 路径保留为后备工具，不改写 `v0.3.1` 标签。
-
 ## [0.3.1] - 2026-11-06
 
 ### Added

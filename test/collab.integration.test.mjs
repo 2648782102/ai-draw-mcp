@@ -399,6 +399,14 @@ describe("collaboration session", () => {
       expect(navigation.returnedItems).toBeLessThanOrEqual(5);
       expect(JSON.stringify(navigation)).not.toContain("grantHash");
 
+      const capabilitiesResponse = await fetch(`${base}/api/collab/capabilities`, { headers });
+      expect(capabilitiesResponse.ok).toBe(true);
+      const capabilities = await capabilitiesResponse.json();
+      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 24 });
+      expect(capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name)).toEqual(["apply_visual_proposal"]);
+      expect(capabilities.workflow).toMatchObject({ version: 1, steps: 8, projectWriteTool: "apply_visual_proposal" });
+      expect(JSON.stringify(capabilities)).not.toContain("approvalGrant");
+
       const activityResponse = await fetch(`${base}/api/collab/activity?limit=100`, { headers });
       expect(activityResponse.ok).toBe(true);
       const activity = (await activityResponse.json()).timeline;

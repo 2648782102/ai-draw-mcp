@@ -1,6 +1,6 @@
 {
   "name": "ai-draw-mcp",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.",
   "type": "module",
   "bin": {

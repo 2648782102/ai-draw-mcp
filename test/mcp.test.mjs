@@ -15,6 +15,7 @@ const COLLAB_TOOLS = [
   "get_shared_brief",
   "get_decision_trail",
   "get_source_navigation",
+  "get_capabilities",
 ];
 
 async function withClient(port, callback) {
@@ -71,7 +72,7 @@ describe("MCP server", () => {
     await withClient(3421, async (client) => {
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name);
-      expect(names).toHaveLength(23);
+      expect(names).toHaveLength(24);
       expect(names).toContain("render_diagram");
       expect(names).toContain("delete_diagram");
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
@@ -183,6 +184,21 @@ describe("MCP server", () => {
       expect(workflow.steps.find((step) => step.id === "apply").requires.join(" ")).toContain("one-time receipt");
       expect(text).not.toContain("grantHash");
       expect(text).not.toContain("approvalId");
+    });
+  }, 30_000);
+
+  it("returns a bounded, read-only capability catalogue", async () => {
+    await withClient(3431, async (client) => {
+      const text = textOf(await client.callTool({ name: "get_capabilities", arguments: {} }));
+      expect(text).toContain("CAPABILITIES_JSON:");
+      const capabilities = jsonAfter(text, "CAPABILITIES_JSON:");
+      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 24 });
+      expect(capabilities.tools).toHaveLength(24);
+      expect(capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name)).toEqual(["apply_visual_proposal"]);
+      expect(capabilities.workflow).toMatchObject({ version: 1, steps: 8, projectWriteTool: "apply_visual_proposal" });
+      expect(capabilities.safety).toMatchObject({ grantsWriteAuthority: false, excludesApprovalGrants: true, excludesWorkspaceAbsolutePaths: true });
+      expect(text).not.toContain("approvalGrant");
+      expect(text).not.toContain(process.cwd());
     });
   }, 30_000);
 

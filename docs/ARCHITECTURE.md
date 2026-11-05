@@ -59,6 +59,8 @@ IDE / human browser
 
 `src/domain/source-navigation.ts` 从当前 `VisualGraph` 的只读 `GraphSourceEvidence` 派生 version 1 `SOURCE_NAVIGATION_JSON`。`get_source_navigation` 与 `GET /api/collab/source-navigation` 返回同样的有界相对 `file:line`、编辑器 URI 文本、`code --goto` 提示与可复制清单；面板显示并复制同一视图。投影过滤绝对路径、目录穿越、受保护目录与 `.env`-like 名称，固定 `readOnly: true`、`grantsWriteAuthority: false`、`excludesApprovalGrants: true`、`excludesAbsolutePaths: true`、`doesNotOpenFiles: true` 与 `projectWritesRequireHumanApproval: true`，不重复读项目文件、不打开编辑器、不启动进程/执行命令、不写会话或项目文件、不签发凭据，也不扩大提案路径。详见 [ADR 0016](ADR/0016-source-navigation-is-copyable-context.md)。
 
+`src/domain/capabilities.ts` 从类型化工具常量、`SERVER_TOOL_COUNT` 与当前 `SessionSnapshot` 派生 version 1 `CAPABILITIES_JSON`。`get_capabilities` 与 `GET /api/collab/capabilities` 返回 24 个工具的分组/输出标记/`writes` 目标、JSON 契约、八步工作流阻塞与审阅就绪状态、下一步安全动作、唯一 `writes: "project"` 工具和固定安全不变量；面板显示并可复制同一清单。它是应用层只读发现契约，与 MCP 原生 `tools/list` 互补；不调用其他工具、不重复读取项目文件、不改会话/项目文件、不签发凭据、不暴露工作区绝对路径，`ready` 也不替代完整逐行 diff。详见 [ADR 0017](ADR/0017-capability-catalogue-is-read-only-discovery.md)。
+
 `src/domain/viewport.ts` 校验 version 1 `SessionViewport`：有限且有界的 `scale` / `x` / `y`、合法时间戳与 `source: "human"`。只有本机面板能用 `PANEL_TOKEN`、`confirmedBy: "human"` 和 `POST /api/collab/viewport` 发布它；面板在缩放/平移后通过带令牌的 `keepalive fetch` 节流同步，不能使用无法设置自定义头的 `sendBeacon`。`get_visual_context.viewport`、`BRIEF_JSON.viewport` 与诊断只读暴露这份注意力状态。它不改 `graphRevision`、不生成消息、`graphDiffs`、时间线事件或批准凭据，也不进入 bundle；导入会话会清除视口。详见 [ADR 0012](ADR/0012-viewport-is-read-only-attention-context.md)。
 
 面板把诊断信号与下一步动作展开为可扫读清单；`action` 信号提示人或 AI 的下一棒，`warning` 提示已失败/等待应用的提案，`info` 只描述状态。清单不提供批准按钮，也不改变会话。
@@ -70,6 +72,8 @@ IDE / human browser
 「复制决策链」按钮从 `GET /api/collab/decision-trail` 已返回的 `DECISION_TRAIL_JSON` 生成复盘提示；它不调用写端点、不新增消息、不修改会话、不签发凭据，也不把确认号写入剪贴板。
 
 「复制源码跳转」按钮从 `GET /api/collab/source-navigation` 已返回的 `SOURCE_NAVIGATION_JSON` 生成相对 `file:line` 提示；它不调用写端点、不打开文件、不启动 IDE 或执行命令行，也不把确认号或绝对路径写入剪贴板。剪贴板不可用时，文本只进入未发送的输入框。
+
+「复制能力清单」按钮从 `GET /api/collab/capabilities` 已返回的 `CAPABILITIES_JSON` 生成交接提示；它不调用其他工具、不调用写端点、不新增消息、不修改会话、不签发凭据，也不把确认号或本机绝对路径写入剪贴板。剪贴板不可用时，文本只进入未发送的输入框。
 
 `GET /api/collab/bundle/manifest` 从 `SessionStore.exportBundle()` 返回的同一份 `SessionBundle` 派生 version 1 `EXPORT_MANIFEST_JSON`。面板导出会话时把它作为顶层 `exportManifest` 附在下载 JSON 里，便于 Issue、示例和回归报告快速核对资产计数、建议文件名、被排除的凭据/图形历史/视口与固定安全标记。`parseSessionBundle()` 仍只投影严格校验的 `session` 字段，带清单的 bundle 与旧 bundle 均可导入；`buildExportManifest()` 会拒绝非 version 1 输入与 credential-like proposal metadata。清单不持久化、不签发凭据、不批准变更、不写会话或项目文件，详见 [ADR 0014](ADR/0014-export-manifest-is-a-derived-inventory.md)。
 

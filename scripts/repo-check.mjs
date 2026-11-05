@@ -75,6 +75,10 @@ const sourceNavigationDomain = await read("src/domain/source-navigation.ts");
 const getSourceNavigationTool = await read("src/tools/get-source-navigation.ts");
 const sourceNavigationTest = await read("test/source-navigation.test.mjs");
 const sourceNavigationAdr = await read("docs/ADR/0016-source-navigation-is-copyable-context.md");
+const capabilitiesDomain = await read("src/domain/capabilities.ts");
+const getCapabilitiesTool = await read("src/tools/get-capabilities.ts");
+const capabilitiesTest = await read("test/capabilities.test.mjs");
+const capabilitiesAdr = await read("docs/ADR/0017-capability-catalogue-is-read-only-discovery.md");
 const reviewReadinessTest = await read("test/review-readiness.test.mjs");
 const sessionDiagnosticsDomain = await read("src/domain/session-diagnostics.ts");
 const sessionDiagnosticsTest = await read("test/session-diagnostics.test.mjs");
@@ -118,7 +122,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
-check(launchKit.includes("23 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 23 MCP tools");
+check(launchKit.includes("24 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 24 MCP tools");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -136,6 +140,8 @@ for (const [id, needle] of [
   ["focusSummary", 'id="focusSummary"'],
   ["btnCopyAiContext", 'id="btnCopyAiContext"'],
   ["btnCopySourceNavigation", 'id="btnCopySourceNavigation"'],
+  ["btnCopyCapabilities", 'id="btnCopyCapabilities"'],
+  ["capabilitiesList", 'id="capabilitiesList"'],
   ["rescanSummary", 'id="rescanSummary"'],
   ["btnRescan", 'id="btnRescan"'],
   ["node-x editor", 'class="node-x"'],
@@ -149,6 +155,7 @@ for (const endpoint of [
   "/api/collab/bundle/manifest",
   "/api/collab/review-readiness",
   "/api/collab/source-navigation",
+  "/api/collab/capabilities",
   "/api/collab/node-context",
   "/api/collab/graph/history",
   "/api/collab/graph/undo",
@@ -389,7 +396,8 @@ for (const [label, file, needle] of [
   ["viewport AGENTS token transport", agents, "sendBeacon"],
   ["viewport architecture token transport", architecture, "sendBeacon"],
   ["viewport troubleshooting token transport", troubleshooting, "PANEL_TOKEN"],
-  ["server tool count", server, "const TOOL_COUNT = 23"],
+  ["server tool count", server, "const TOOL_COUNT = SERVER_TOOL_COUNT"],
+  ["server capabilities registration", server, "registerGetCapabilities"],
   ["server workflow registration", server, "registerGetAgentWorkflow"],
   ["CI workflow example", ci, "npm run test:examples:workflow"],
   ["package workflow example", packageJson.scripts?.["test:examples:workflow"] ?? "", "node examples/agent-workflow.mjs"],
@@ -552,6 +560,37 @@ for (const [label, file, needle] of [
   ["review readiness launch", launchKit, "REVIEW_READINESS_JSON"],
   ["review readiness troubleshooting", troubleshooting, "REVIEW_READINESS_JSON"],
   ["review readiness examples map", examplesReadme, "REVIEW_READINESS_JSON"],
+  ["capabilities shared type", types, "export interface Capabilities"],
+  ["capabilities domain", capabilitiesDomain, "export function buildCapabilities"],
+  ["capabilities count", capabilitiesDomain, "SERVER_TOOL_COUNT = 24"],
+  ["capabilities name", capabilitiesDomain, 'name: "get_capabilities"'],
+  ["capabilities writer", capabilitiesDomain, 'name: "apply_visual_proposal"'],
+  ["capabilities marker contract", capabilitiesDomain, "marker: \"CAPABILITIES_JSON\""],
+  ["capabilities no authority", capabilitiesDomain, "grantsWriteAuthority: false"],
+  ["capabilities absolute path guard", capabilitiesDomain, "excludesWorkspaceAbsolutePaths: true"],
+  ["capabilities tool", getCapabilitiesTool, '"get_capabilities"'],
+  ["capabilities marker", getCapabilitiesTool, '"CAPABILITIES_JSON:"'],
+  ["capabilities endpoint", previewServer, "/api/collab/capabilities"],
+  ["capabilities panel", panel, 'id="capabilitiesList"'],
+  ["capabilities panel copy button", panel, 'id="btnCopyCapabilities"'],
+  ["capabilities pure contract test", capabilitiesTest, "read-only capabilities catalogue"],
+  ["capabilities MCP test", mcpTest, "get_capabilities"],
+  ["capabilities HTTP test", collaborationTest, "/api/collab/capabilities"],
+  ["capabilities ADR index", adrIndex, "0017-capability-catalogue-is-read-only-discovery.md"],
+  ["capabilities ADR boundary", capabilitiesAdr, "grants project-write authority"],
+  ["capabilities docs map", documentationMap, "0017-capability-catalogue-is-read-only-discovery.md"],
+  ["capabilities Chinese docs", readme, "CAPABILITIES_JSON"],
+  ["capabilities English docs", englishQuickstart, "CAPABILITIES_JSON"],
+  ["capabilities AGENTS docs", agents, "CAPABILITIES_JSON"],
+  ["capabilities architecture", architecture, "CAPABILITIES_JSON"],
+  ["capabilities security", security, "CAPABILITIES_JSON"],
+  ["capabilities roadmap", roadmap, "CAPABILITIES_JSON"],
+  ["capabilities launch", launchKit, "CAPABILITIES_JSON"],
+  ["capabilities research", research, "CAPABILITIES_JSON"],
+  ["capabilities troubleshooting", troubleshooting, "CAPABILITIES_JSON"],
+  ["capabilities examples map", examplesReadme, "CAPABILITIES_JSON"],
+  ["capabilities collaboration workflow", collaborationWorkflow, "CAPABILITIES_JSON"],
+  ["capabilities workflow example", agentWorkflowExample, "CAPABILITIES_JSON"],
 ]) {
   check(file.includes(needle), `${label} is missing or drifted`);
 }
@@ -560,9 +599,9 @@ check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not do
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
-check(readme.includes("23 个 MCP 工具"), "README.md does not reflect the 23 MCP tools");
-check(agents.includes("## 23 个 MCP 工具"), "AGENTS.md does not reflect the 23 MCP tools");
-check(roadmap.includes("23 MCP tools"), "ROADMAP.md does not reflect the 23 MCP tools");
+check(readme.includes("24 个 MCP 工具"), "README.md does not reflect the 24 MCP tools");
+check(agents.includes("## 24 个 MCP 工具"), "AGENTS.md does not reflect the 24 MCP tools");
+check(roadmap.includes("24 MCP tools"), "ROADMAP.md does not reflect the 24 MCP tools");
 const roadmapNextLines = roadmap.split("\n").slice(
   roadmap.split("\n").findIndex((line) => line.startsWith("## Next")),
   roadmap.split("\n").findIndex((line) => line.startsWith("## Shipped")),
@@ -588,14 +627,15 @@ check(agents.includes("/api/collab/activity"), "AGENTS.md does not document the 
 check(readme.includes("解决线程只是对话状态"), "README.md does not separate thread resolution from proposal approval");
 check(readme.includes("不等于批准变更"), "README.md does not document the thread approval boundary");
 check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased section");
-check(changelog.includes("## [0.3.1]"), "CHANGELOG.md has no 0.3.1 release section");
-check(packageJson.version === "0.3.1", "package.json version is not 0.3.1");
+check(changelog.includes("## [0.3.2]"), "CHANGELOG.md has no 0.3.2 release section");
+check(packageJson.version === "0.3.2", "package.json version is not 0.3.2");
 const lockfile = JSON.parse(await read("package-lock.json"));
 check(lockfile.version === packageJson.version, "package-lock.json version does not match package.json");
 check(lockfile.packages?.[""]?.version === packageJson.version, "package-lock.json root package version does not match package.json");
-check(readme.includes("当前版本 `0.3.1` 共 23 个工具"), "README.md does not reflect version 0.3.1 and 23 tools");
+check(readme.includes("当前版本 `0.3.2` 共 24 个工具"), "README.md does not reflect version 0.3.2 and 24 tools");
 check(readme.includes("| `get_source_navigation` |"), "README.md tool table is missing get_source_navigation");
-check(launchKit.includes("Release notes — 0.3.1"), "docs/LAUNCH_KIT.md release notes are not aligned to 0.3.1");
+check(readme.includes("| `get_capabilities` |"), "README.md tool table is missing get_capabilities");
+check(launchKit.includes("Release notes — 0.3.2"), "docs/LAUNCH_KIT.md release notes are not aligned to 0.3.2");
 check(releaseWorkflow.includes("workflow_dispatch:"), "release workflow does not support manual tag verification");
 check(releaseWorkflow.includes("contents: write"), "release workflow cannot create a GitHub Release");
 check(releaseWorkflow.includes("getReleaseByTag"), "release workflow does not check for an existing Release by tag");

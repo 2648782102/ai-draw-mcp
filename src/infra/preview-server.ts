@@ -21,6 +21,7 @@
  *   GET  /api/collab/decision-trail  read-only chronological decision trail
  *   GET  /api/collab/source-navigation  copyable, read-only source navigation hints
  *   GET  /api/collab/review-readiness  derived BRIEF_JSON blockers + DECISION_TRAIL_JSON gaps
+ *   GET  /api/collab/capabilities  bounded, read-only tool/JSON/safety catalogue
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/graph/history  bounded visual undo/redo availability
  *   POST /api/collab/graph/undo   human-confirmed visual undo
@@ -63,6 +64,8 @@ import { buildSharedBrief } from "../domain/shared-brief.js";
 import { buildDecisionTrail } from "../domain/decision-trail.js";
 import { buildReviewReadiness } from "../domain/review-readiness.js";
 import { buildSourceNavigation } from "../domain/source-navigation.js";
+import { buildCapabilities } from "../domain/capabilities.js";
+import { SERVER_VERSION } from "./version.js";
 import { buildExportManifest } from "../domain/session-bundle.js";
 import { makeId, nowIso } from "../domain/ids.js";
 import { logger } from "./logger.js";
@@ -243,6 +246,10 @@ export class PreviewServer {
       } catch (error) {
         res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
       }
+    });
+
+    this.app.get("/api/collab/capabilities", (_req, res) => {
+      res.json(buildCapabilities(this.sessions.getSnapshot(), SERVER_VERSION));
     });
 
     const restoreGraphHistory = async (

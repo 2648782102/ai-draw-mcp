@@ -35,15 +35,16 @@ The versioned tag workflow now creates the GitHub Release automatically after ve
 
 **Maintain GitHub metadata** runs its read-only drift check on every master/main push and on manual dispatch. Set repository secret `GH_TOKEN` to a fine-grained token with `Administration: read and write` and push a metadata-relevant file to apply the versioned copy automatically; a manual `dry_run=false` dispatch also applies it, while `dry_run=true` only reports drift. Without the secret, the check may report drift but does not make CI red. The default `GITHUB_TOKEN` cannot change repository description or topics because those endpoints require repository administration permissions.
 
-## Release notes — 0.3.1
+## Release notes — 0.3.2
 
-Title: `v0.3.1 — Human ↔ AI visual collaboration`
+Title: `v0.3.2 — Human ↔ AI visual collaboration`
 
 ```markdown
 AI Draw MCP is no longer just a diagram renderer. It is a local-first visual workspace where an AI scans a project, a human edits the graph and leaves annotations, and the pair reviews a file-change proposal before anything is written.
 
 Highlights:
-- 23 MCP tools, including scan, visual context, a read-only shared handoff brief, a read-only decision trail, a read-only single-node context projection, a read-only copyable source-navigation projection, a read-only agent workflow contract, AI reply, read-only change templates, proposal preflight, proposal creation, and receipt-gated apply.
+- 24 MCP tools, including scan, a read-only capability catalogue, visual context, a read-only shared handoff brief, a read-only decision trail, a read-only single-node context projection, a read-only copyable source-navigation projection, a read-only agent workflow contract, AI reply, read-only change templates, proposal preflight, proposal creation, and receipt-gated apply.
+- `CAPABILITIES_JSON`: one bounded, read-only discovery view of the tool/JSON surface, workflow readiness, suggested next action, and the unique receipt-gated project-write boundary; native MCP `tools/list` remains authoritative for tool names and schemas; see [ADR 0017](docs/ADR/0017-capability-catalogue-is-read-only-discovery.md).
 - `get_agent_workflow` and `WORKFLOW_JSON`: eight ordered steps with prerequisites, readiness blockers, and explicit `none` / `session` / `project` write boundaries, plus a reproducible read-only CI example.
 - Bounded, human-confirmed visual undo/redo with field-level graph diffs; visual history never reverses project files, approved proposals, or one-time receipts.
 - Bounded `file:line` source evidence on source/Markdown nodes, exposed through MCP context, diagnostics, a read-only endpoint, and the panel; evidence never grants write authority.
@@ -65,6 +66,10 @@ Highlights:
 
 Quickstart: https://github.com/2648782102/ai-draw-mcp#readme
 ```
+
+## Release notes — 0.3.1
+
+The 0.3.1 patch captured the 23-tool collaboration surface, `SOURCE_NAVIGATION_JSON`, `REVIEW_READINESS_JSON`, 16 ADRs, and the reproducible CI workflow. Its tag verification workflow was green, but the original workflow did not create a GitHub Release. The 0.3.2 tag exercises the idempotent Release publisher added in `.github/workflows/release.yml`; the existing `v0.3.1` tag is never moved or rewritten.
 
 ## Show HN / Hacker News
 
