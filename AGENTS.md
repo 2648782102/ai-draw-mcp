@@ -70,6 +70,7 @@ docs/DEPENDENCY_MAINTENANCE.md 依赖升级、CI 验证与重大版本决策记�
 docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
 docs/GOVERNANCE.md             开源治理、维护清单与元数据漂移证据
 docs/ADR/README.md             架构决策记录索引
+docs/ADR/0005-human-focus-is-read-only-context.md 当前焦点只读上下文决策
 docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
 ```
@@ -102,7 +103,11 @@ ROADMAP.md                   产品路线图与非目标
 
 协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信/内联回复并标记已处理；常见意图可用 `list_change_templates` 展开只读草稿，创建提案前用 `preflight_visual_proposal` 只读检查路径、文件存在性、create/update 与重复内容，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
 
-`get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；`activityTimeline` 把消息、`graph_diff` 图形修订、线程与提案生命周期合并为只读派生事件。生成提案时优先引用 `intentByNode` 和活动顺序，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案；活动时间线不授权项目写入。
+`get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；`focus` 记录人当前选中的节点；`activityTimeline` 把消息、`graph_diff` 图形修订、线程与提案生命周期合并为只读派生事件。生成提案时优先引用 `focus`、`intentByNode` 和活动顺序，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案；焦点与活动时间线都不授权项目写入。
+
+`POST /api/collab/focus` 只接受 `confirmedBy: "human"` 的本机面板选择，服务端写入 version 1 `SessionFocus`；节点删除后清除焦点，图修订会刷新仍存在节点的标签/路径/分组。`get_visual_context.focus`、诊断和 bundle 只读暴露它，bundle 导入会严格校验结构并丢弃失锚焦点。焦点不产生消息、不进入时间线、不签发凭据，也不解决线程或创建提案。
+
+面板「复制给 AI 的上下文」按钮只从已加载数据生成一段提示文本，不调用写端点、不发送消息、不修改会话；剪贴板失败时文本只进入未发送的输入框。
 
 节点批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`。节点标签或路径变化后线程标记为 `outdated`，节点删除后标记为 `detached`；`staleThreads` 与活动时间线 `annotation_anchor` 事件会提示 AI 不要把旧讨论当成当前意图。`outdated` 线程必须由人在面板点击「确认重锚」或调用 `/api/collab/annotations/:id/anchor`（`confirmedBy: "human"`）才能恢复；`detached` 线程保留原 `nodeId` 供审计，不得自动重锚。
 

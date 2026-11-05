@@ -20,6 +20,7 @@ export interface SessionDiagnostics {
   updatedAt: string;
   activeDiagramId?: string;
   graph: { nodes: number; edges: number; annotations: number; staleAnnotations: number };
+  focus: { nodeId: string; nodeLabel: string; nodePath?: string; graphRevision: number } | null;
   conversations: { pendingMessages: number; annotationThreads: number; openThreads: number; awaitingAi: number; awaitingHuman: number };
   proposals: Record<ChangeProposal["status"], number>;
   activity: { total: number; latestAt?: string; nextActor: "ai" | "human" | "none" };
@@ -146,6 +147,12 @@ export function buildSessionDiagnostics(snapshot: SessionSnapshot): SessionDiagn
       annotations: snapshot.graph?.annotations.length ?? 0,
       staleAnnotations: stale.length,
     },
+    focus: snapshot.focus ? {
+      nodeId: snapshot.focus.nodeId,
+      nodeLabel: snapshot.focus.nodeLabel,
+      nodePath: snapshot.focus.nodePath,
+      graphRevision: snapshot.focus.graphRevision,
+    } : null,
     conversations: {
       pendingMessages: pendingMessages.length,
       annotationThreads: threads.total,

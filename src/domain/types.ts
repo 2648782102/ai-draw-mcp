@@ -74,6 +74,17 @@ export interface VisualGraph {
   annotations: AnnotationPin[];
 }
 
+export interface SessionFocus {
+  version: 1;
+  nodeId: string;
+  nodeLabel: string;
+  nodePath?: string;
+  group?: string;
+  graphRevision: number;
+  updatedAt: string;
+  source: "human";
+}
+
 export interface ConversationMessage {
   id: string;
   sessionId: string;
@@ -124,6 +135,7 @@ export interface SessionSnapshot {
   activeDiagramId?: string;
   graphRevision: number;
   graph?: VisualGraph;
+  focus?: SessionFocus;
   graphDiffs?: GraphRevisionDiff[];
   messages: ConversationMessage[];
   proposals: ChangeProposal[];

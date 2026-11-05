@@ -7,6 +7,7 @@ import type {
   GraphNode,
   GraphRevisionDiff,
   SessionSnapshot,
+  SessionFocus,
   VisualGraph,
 } from "./types.js";
 import { parseAnnotationReplies } from "./annotation-thread.js";
@@ -23,6 +24,7 @@ export interface SessionBundle {
     activeDiagramId?: string;
     workspaceRoot: string;
     graph?: VisualGraph;
+    focus?: SessionFocus;
     graphDiffs?: GraphRevisionDiff[];
     messages: ConversationMessage[];
     proposals: ChangeProposal[];
@@ -46,6 +48,35 @@ function assertIsoTimestamp(value: unknown, label: string): string {
   const text = assertString(value, label);
   if (!Number.isFinite(Date.parse(text))) throw new Error(`${label} must be a valid timestamp`);
   return text;
+}
+
+function parseFocus(value: unknown): SessionFocus | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (!isRecord(value)) throw new Error("session.focus must be an object");
+  if (value.version !== 1) throw new Error("session.focus has unsupported version");
+  if (value.source !== "human") throw new Error("session.focus.source must be human");
+  for (const key of Object.keys(value)) {
+    if (!["version", "nodeId", "nodeLabel", "nodePath", "group", "graphRevision", "updatedAt", "source"].includes(key)) {
+      throw new Error(`session.focus has unknown property ${key}`);
+    }
+  }
+  const focus: SessionFocus = {
+    version: 1,
+    nodeId: assertString(value.nodeId, "session.focus.nodeId"),
+    nodeLabel: assertString(value.nodeLabel, "session.focus.nodeLabel"),
+    graphRevision: assertFiniteNumber(value.graphRevision, "session.focus.graphRevision"),
+    updatedAt: assertIsoTimestamp(value.updatedAt, "session.focus.updatedAt"),
+    source: "human",
+  };
+  if (value.nodePath !== undefined) {
+    if (typeof value.nodePath !== "string") throw new Error("session.focus.nodePath must be a string");
+    focus.nodePath = value.nodePath;
+  }
+  if (value.group !== undefined) {
+    if (typeof value.group !== "string") throw new Error("session.focus.group must be a string");
+    focus.group = value.group;
+  }
+  return focus;
 }
 
 function assertGraphDiffCounts(value: unknown, label: string): { added: number; removed: number; updated: number } {
@@ -279,6 +310,7 @@ export function createSessionBundle(snapshot: SessionSnapshot, exportedAt = new 
           replies: serializeReplies(annotation.replies),
         })),
       } : undefined,
+      focus: snapshot.focus ? JSON.parse(JSON.stringify(snapshot.focus)) as SessionFocus : undefined,
       graphDiffs: snapshot.graphDiffs?.map((diff) => JSON.parse(JSON.stringify(diff)) as GraphRevisionDiff),
       messages: snapshot.messages,
       proposals,
@@ -314,6 +346,7 @@ export function parseSessionBundle(input: unknown): SessionBundle {
       activeDiagramId: typeof input.session.activeDiagramId === "string" ? input.session.activeDiagramId : undefined,
       workspaceRoot: assertString(input.session.workspaceRoot, "session.workspaceRoot"),
       graph,
+      focus: parseFocus(input.session.focus),
       graphDiffs: parseGraphDiffs(input.session.graphDiffs),
       messages: parseMessages(input.session.messages),
       proposals: parseProposals(input.session.proposals),

@@ -35,6 +35,15 @@ const baseSession = {
       }],
     }],
   },
+  focus: {
+    version: 1,
+    nodeId: "readme",
+    nodeLabel: "README.md",
+    nodePath: "README.md",
+    graphRevision: 2,
+    updatedAt: "2026-11-06T00:02:00.000Z",
+    source: "human",
+  },
   graphDiffs: [{
     version: 1,
     fromRevision: 1,
@@ -106,7 +115,11 @@ describe("session bundle contract", () => {
     });
     expect(parsed.session.graph.annotations[0].replies).toHaveLength(1);
     expect(parsed.session.graphDiffs).toHaveLength(1);
+    expect(parsed.session.focus).toMatchObject({ nodeId: "readme", source: "human" });
     expect(parsed.session.graphDiffs[0].items[0].fields[0]).toMatchObject({ field: "path", after: "README.zh.md" });
+    const injectedFocus = JSON.parse(JSON.stringify(bundle));
+    injectedFocus.session.focus.source = "ai";
+    expect(() => parseSessionBundle(injectedFocus)).toThrow(/focus.source must be human/);
     const malformed = JSON.parse(JSON.stringify(bundle));
     malformed.session.graph.annotations[0].replies = "broken";
     expect(() => parseSessionBundle(malformed)).toThrow(/replies must be an array/);

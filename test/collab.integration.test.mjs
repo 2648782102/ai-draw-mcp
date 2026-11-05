@@ -75,6 +75,26 @@ describe("collaboration session", () => {
       expect(graphDiffResponse.ok).toBe(true);
       expect((await graphDiffResponse.json()).diffs.length).toBeGreaterThan(0);
 
+      const focusResponse = await fetch(`${base}/api/collab/focus`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ nodeId: "new_module", confirmedBy: "human" }),
+      });
+      expect(focusResponse.ok).toBe(true);
+      expect((await focusResponse.json()).focus).toMatchObject({
+        version: 1,
+        nodeId: "new_module",
+        nodeLabel: "shared",
+        source: "human",
+      });
+      expect(sessions.getFocus()).toMatchObject({ nodeId: "new_module" });
+      const unauthorizedFocus = await fetch(`${base}/api/collab/focus`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ nodeId: "new_module", confirmedBy: "ai" }),
+      });
+      expect(unauthorizedFocus.status).toBe(403);
+
       const invalidGraphResponse = await fetch(`${base}/api/collab/graph`, {
         method: "PUT",
         headers,
@@ -210,6 +230,7 @@ describe("collaboration session", () => {
       const finalGraph = await collabFetchGraph(base, headers);
       const detachedAnnotation = finalGraph.annotations.find((annotation) => annotation.nodeLabel === "shared-renamed");
       expect(detachedAnnotation).toMatchObject({ anchorStatus: "detached", nodeId: "new_module" });
+      expect(sessions.getFocus()).toBeUndefined();
       expect(sessions.getAnnotationThreadSummary().detached).toBe(1);
 
       const invalidThreadStatus = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/status`, {
@@ -278,6 +299,7 @@ describe("collaboration session", () => {
       expect(activity.items.map((item) => item.kind)).toContain("graph_diff");
       expect(activity.items.map((item) => item.kind)).toContain("proposal_created");
       expect(activity.items.some((item) => item.proposalId === proposal.id)).toBe(true);
+      expect((await collabFetchSession(base, headers)).focus).toBeUndefined();
 
       const unsafeResponse = await fetch(`${base}/api/collab/proposals`, {
         method: "POST",
@@ -400,6 +422,12 @@ describe("collaboration session", () => {
 
 async function collabFetchGraph(base, headers) {
   const response = await fetch(`${base}/api/collab/graph`, { headers });
+  expect(response.ok).toBe(true);
+  return response.json();
+}
+
+async function collabFetchSession(base, headers) {
+  const response = await fetch(`${base}/api/collab/session`, { headers });
   expect(response.ok).toBe(true);
   return response.json();
 }

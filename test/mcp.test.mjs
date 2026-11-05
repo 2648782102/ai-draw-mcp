@@ -107,6 +107,8 @@ describe("MCP server", () => {
       expect(payload.activityTimeline).toMatchObject({ version: 1 });
       expect(payload.diagnostics).toMatchObject({ version: 1 });
       expect(payload.diagnostics.safety.projectWritesRequireHumanApproval).toBe(true);
+      expect(payload).toHaveProperty("focus");
+      expect(payload.intentSummary).toHaveProperty("focus");
       expect(Array.isArray(payload.graphDiffs)).toBe(true);
       expect(payload.intentSummary.guidance).toContain("activityTimeline");
       expect(payload.nextActions.join(" ")).toContain("create_visual_proposal");

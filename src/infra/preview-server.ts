@@ -11,6 +11,7 @@
  *   GET  /api/diagram/:id/png   serve PNG file
  *   DEL  /api/diagram/:id       delete diagram
  *   GET  /api/collab/session     collaboration snapshot
+ *   POST /api/collab/focus       set the human's selected graph node
  *   GET  /api/collab/activity    derived compact activity timeline
  *   GET  /api/collab/diagnostics  read-only session health and next-action summary
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
@@ -105,6 +106,25 @@ export class PreviewServer {
         ...this.sessions.getSnapshot(),
         workspaceRoot: this.sessions.getWorkspaceRoot(),
       });
+    });
+
+    this.app.post("/api/collab/focus", async (req, res) => {
+      const body = req.body as { nodeId?: string | null; confirmedBy?: string };
+      if (body.confirmedBy !== "human")
+        return res.status(403).json({ error: "Human panel selection is required" });
+      if (body.nodeId === null) {
+        await this.sessions.clearFocus();
+        this.broadcast({ type: "focus_updated", focus: null });
+        return res.json({ ok: true, focus: null });
+      }
+      if (!body.nodeId?.trim()) return res.status(400).json({ error: "nodeId is required" });
+      try {
+        const focus = await this.sessions.setFocus(body.nodeId.trim(), "human");
+        this.broadcast({ type: "focus_updated", focus });
+        res.json({ ok: true, focus });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
     });
 
     this.app.get("/api/collab/activity", (req, res) => {

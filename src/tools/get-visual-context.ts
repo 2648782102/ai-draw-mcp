@@ -30,6 +30,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       const activityTimeline = buildActivityTimeline(snapshot, activity_limit ?? 30);
       const diagnostics = buildSessionDiagnostics(snapshot);
       const graphDiffs = ctx.sessions.getGraphDiffs(graph_diff_limit ?? 5);
+      const focus = snapshot.focus;
       const nodeLabels = new Map(graph?.nodes.map((node) => [node.id, node.label]) ?? []);
       const annotationsByNode = new Map<string, string[]>();
       const generalAnnotations: string[] = [];
@@ -73,15 +74,17 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         annotationThreads,
         staleThreads,
         graphDiffs,
+        focus: focus ?? null,
         nextActor: annotationThreads.nextActor,
         nextActions: [
           `Activity timeline: ${activityTimeline.total} derived events, including ${activityTimeline.kinds.graph_diff} graph revisions; next actor ${activityTimeline.nextActor}.`,
           `Stale annotation threads: ${staleThreads.length}; detached ${annotationThreads.detached}, outdated ${annotationThreads.outdated}.`,
           `Graph diffs: ${graphDiffs.length} recent human graph revisions; use graphDiffs.items for exact field changes.`,
+          focus ? `Human focus: ${focus.nodeLabel} (${focus.nodeId}); use it to disambiguate prose, but never treat focus as approval.` : "Human focus: none.",
           "Use annotationThreads.nextActor to see whose turn it is; use intentByNode and pendingMessages as the human's latest intent.",
           "create_visual_proposal should cite those nodes, then wait for human approval.",
         ],
-        guidance: "Use annotationThreads.nextActor to see whose turn it is; use graphDiffs to see exactly what the human changed in the graph; use activityTimeline for compact chronology; use intentByNode and pendingMessages as the human's latest intent; create_visual_proposal should cite those nodes, then wait for human approval.",
+        guidance: "Use annotationThreads.nextActor to see whose turn it is; use focus to identify the node the human is pointing at; use graphDiffs to see exactly what the human changed in the graph; use activityTimeline for compact chronology; use intentByNode and pendingMessages as the human's latest intent; create_visual_proposal should cite those nodes, then wait for human approval.",
       };
       const payload = {
         session: {
@@ -98,6 +101,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         annotationThreads,
         staleThreads,
         graphDiffs,
+        focus: focus ?? null,
         activityTimeline,
         diagnostics,
         intentSummary,
@@ -107,6 +111,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           "Read annotationThreads, pendingMessages and unresolvedAnnotations; annotationThreads.nextActor tells you whether the AI should reply or wait for a human.",
           "Treat detached/outdated threads in staleThreads as historical context only; ask the human to confirm or re-anchor before using them as current intent.",
           "Read graphDiffs for node/edge field changes such as path, group, kind, or label; do not infer visual edits from prose alone.",
+          "Read focus to see which node the human currently selected; focus is context only and never grants write authority.",
           "Use create_visual_proposal to record change proposals; never write project files directly from this tool.",
           "Ask the human to approve a proposal in the panel before anything is applied.",
           "Use activityTimeline for compact chronology of messages, graph revisions, annotation threads, and proposal lifecycle events.",

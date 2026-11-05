@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- version 1 `SessionFocus`、`POST /api/collab/focus` 与面板「当前焦点」：把人当前选中的节点作为只读上下文交给 `get_visual_context`、诊断和会话 bundle；焦点变化不产生消息、不进入时间线、不签发凭据。
+- 面板「复制给 AI 的上下文」按钮：生成含会话、修订、焦点、诊断、下一步与安全边界的只读提示；不写会话、不发送消息、不签发凭据。
+- `docs/ADR/0005-human-focus-is-read-only-context.md`：记录选中状态只是注意力上下文，不能替代人工批准或写入凭据。
 - `src/domain/change-templates.ts` 与 `list_change_templates`：提供更新文档、添加测试、创建模块三个常见意图的只读模板目录与草稿展开；草稿引用当前 `graphRevision` / 节点，不创建提案、不写文件、不签发确认号。
 - `src/domain/graph-diff.ts`、会话 `graphDiffs`、`GET /api/collab/graph/diffs` 与 `get_visual_context.graphDiffs`：记录最近 20 次图形修订的节点/连线字段级差异，面板显示最新修订摘要，bundle 保留审计记录。
 - 图形编辑器支持节点路径/分组与连线类型编辑；`get_visual_context.intentByNode` 暴露 `group`，`edgeLabels` 暴露连线两端路径，帮助 AI 从图上理解更精确的项目结构。
@@ -48,6 +51,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- `SessionStore.setGraph()` 与 bundle 导入会刷新仍存在节点的焦点字段、清除已删除节点的失锚焦点；bundle 严格校验 `focus` 的结构、来源、时间戳与未知属性。
 - 会话 bundle 的 `graphDiffs` 改为严格校验：拒绝损坏的 items/fields、非法计数、无效时间戳、未知属性与非法字段值；领域契约测试覆盖注入结构。
 - `activityTimeline` 新增只读 `graph_diff` 派生事件；`get_visual_context` 的下一棒提示指出图形修订数量，面板新增可展开的字段级差异列表。
 - `docs/COMPETITIVE_RESEARCH.md` 与 `docs/LAUNCH_KIT.md` 补充 2026-11-06 增量竞品调研、差异化宣发要点和产品边界。

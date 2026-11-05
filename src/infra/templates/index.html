@@ -378,6 +378,7 @@
     <section class="collab-section">
       <h3>项目图 · 节点编辑</h3>
       <p class="collab-help">可编辑节点名称/类型/路径/分组与连线起点/终点/说明/类型；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
+      <p class="activity-summary" id="focusSummary">当前焦点 · 未选中节点</p>
       <div class="graph-editor" id="graphEditor"></div>
       <div class="graph-row-header"><span></span><span>名称</span><span>类型</span><span>路径</span><span>分组</span><span></span></div>
       <div class="edge-editor">
@@ -408,6 +409,7 @@
       <div class="collab-actions">
         <button id="btnSendMessage">发送消息</button>
         <button id="btnAddAnnotation">添加图形批注</button>
+        <button id="btnCopyAiContext" title="复制只读提示，不写入会话、不签发凭据">复制给 AI 的上下文</button>
       </div>
       <input id="annotationInput" placeholder="批注内容；先选中左侧节点即可绑定" />
     </section>
@@ -1020,6 +1022,10 @@ function connectWs() {
 let collabGraph = null;
 let collabRevision = 0;
 let selectedNodeId = null;
+let collabSessionId = null;
+let collabWorkspaceRoot = null;
+let collabDiagnostics = null;
+let collabGraphDiffs = [];
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -1049,6 +1055,7 @@ function renderGraphEditor() {
     return;
   }
   if (!collabGraph.nodes.some((node) => node.id === selectedNodeId)) selectedNodeId = null;
+  renderFocus();
   target.innerHTML = collabGraph.nodes.map((node, index) => `
     <div class="graph-row ${node.id === selectedNodeId ? 'selected' : ''}" data-index="${index}" data-node-id="${escapeHtml(node.id)}">
       <input type="radio" name="selectedNode" ${node.id === selectedNodeId ? 'checked' : ''} aria-label="选中节点" />
@@ -1073,8 +1080,10 @@ function renderGraphEditor() {
   for (const row of target.querySelectorAll('.graph-row')) {
     row.addEventListener('click', (event) => {
       if (event.target.closest('button')) return;
+      if (selectedNodeId === row.dataset.nodeId) return;
       selectedNodeId = row.dataset.nodeId;
       renderGraphEditor();
+      publishFocus(row.dataset.nodeId);
     });
   }
   for (const button of target.querySelectorAll('[data-remove-node]')) {
@@ -1087,6 +1096,56 @@ function renderGraphEditor() {
 
 function localId(prefix) {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function renderFocus(focus = null) {
+  const target = $('#focusSummary');
+  if (!target) return;
+  const focusNodeId = focus?.nodeId ?? selectedNodeId;
+  const node = collabGraph?.nodes.find((item) => item.id === focusNodeId);
+  target.textContent = node
+    ? `当前焦点 · ${node.label}${node.path ? ` · ${node.path}` : ''} · 仅作为 AI 上下文，不授权写入`
+    : '当前焦点 · 未选中节点；选中后 AI 会知道你正在指哪个对象';
+  target.title = '选中状态只是只读上下文，不签发批准凭据，也不自动创建或应用提案。';
+}
+
+async function publishFocus(nodeId) {
+  if (!nodeId) return;
+  try {
+    const result = await collabFetch('/api/collab/focus', {
+      method: 'POST',
+      body: JSON.stringify({ nodeId, confirmedBy: 'human' }),
+    });
+    if (result?.focus) renderFocus(result.focus);
+  } catch (error) {
+    showToast(`同步焦点失败：${error.message}`);
+  }
+}
+
+async function restoreFocus() {
+  try {
+    const session = await collabFetch('/api/collab/session');
+    const focus = session?.focus;
+    if (!focus) {
+      selectedNodeId = null;
+      renderGraphEditor();
+      renderFocus();
+      return;
+    }
+    if (collabGraph?.nodes.some((node) => node.id === focus.nodeId)) {
+      selectedNodeId = focus.nodeId;
+    } else {
+      selectedNodeId = null;
+      await collabFetch('/api/collab/focus', {
+        method: 'POST',
+        body: JSON.stringify({ nodeId: null, confirmedBy: 'human' }),
+      }).catch(() => null);
+    }
+    renderGraphEditor();
+    renderFocus();
+  } catch (error) {
+    showToast(`读取焦点失败：${error.message}`);
+  }
 }
 
 function addNode() {
@@ -1155,7 +1214,7 @@ function renderDiagnostics(diagnostics) {
   const actions = Array.isArray(diagnostics?.nextActions) ? diagnostics.nextActions : [];
   const counts = diagnostics?.graph;
   summary.textContent = diagnostics
-    ? `会话诊断 · rev ${escapeHtml(String(diagnostics.graphRevision || 0))} · ${escapeHtml(String(counts?.nodes || 0))} 节点 / ${escapeHtml(String(counts?.staleAnnotations || 0))} 失锚 · ${signals.length} 信号 · ${actions.length} 下一步`
+    ? `会话诊断 · rev ${escapeHtml(String(diagnostics.graphRevision || 0))} · ${escapeHtml(String(counts?.nodes || 0))} 节点 / ${escapeHtml(String(counts?.staleAnnotations || 0))} 失锚 · 焦点 ${escapeHtml(diagnostics.focus?.nodeLabel || '无')} · ${signals.length} 信号 · ${actions.length} 下一步`
     : '会话诊断不可用';
   summary.title = '只读诊断不签发批准凭据，也不授权项目写入。';
   const signalHtml = signals.map((signal) => `
@@ -1398,8 +1457,11 @@ async function loadCollab() {
     const session = await collabFetch('/api/collab/session');
     collabRevision = session.graphRevision;
     collabGraph = session.graph || null;
+    collabSessionId = session.id;
+    collabWorkspaceRoot = session.workspaceRoot;
     $('#collabMeta').textContent = `session ${session.id} · revision ${session.graphRevision} · ${session.workspaceRoot}`;
     renderGraphEditor();
+    restoreFocus();
     renderChat(session.messages || []);
     renderAnnotations(session.graph?.annotations || []);
     const proposals = await collabFetch('/api/collab/proposals');
@@ -1407,11 +1469,48 @@ async function loadCollab() {
     const activity = await collabFetch('/api/collab/activity?limit=30');
     renderActivity(activity.timeline);
     const diagnostics = await collabFetch('/api/collab/diagnostics');
+    collabDiagnostics = diagnostics.diagnostics;
     renderDiagnostics(diagnostics.diagnostics);
     const graphDiffs = await collabFetch('/api/collab/graph/diffs?limit=5');
+    collabGraphDiffs = graphDiffs.diffs || [];
     renderGraphDiffs(graphDiffs.diffs);
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
+  }
+}
+
+function buildAiContextPrompt() {
+  const focus = collabDiagnostics?.focus;
+  const signals = Array.isArray(collabDiagnostics?.signals) ? collabDiagnostics.signals : [];
+  const nextActions = Array.isArray(collabDiagnostics?.nextActions) ? collabDiagnostics.nextActions : [];
+  const latestDiff = collabGraphDiffs.at(-1);
+  const lines = [
+    '请先用 get_visual_context 读取当前协作会话，再结合下面的只读提示理解我的意图：',
+    `- session: ${collabSessionId || '未加载'}`,
+    `- workspace: ${collabWorkspaceRoot || '未加载'}`,
+    `- graphRevision: ${collabRevision}`,
+    `- focus: ${focus ? `${focus.nodeLabel} (${focus.nodeId})${focus.nodePath ? ` · ${focus.nodePath}` : ''}` : '未选中节点'}`,
+    `- graphDiffs: ${collabGraphDiffs.length} 个最近修订${latestDiff ? `，最新 rev ${latestDiff.fromRevision} → ${latestDiff.toRevision}` : ''}`,
+    `- nextActor: ${collabDiagnostics?.activity?.nextActor || 'unknown'}`,
+    `- signals: ${signals.length ? signals.map((signal) => signal.code).join(', ') : 'none'}`,
+    `- nextActions: ${nextActions.length ? nextActions.join(' / ') : 'none'}`,
+    '',
+    '请先阅读 annotationThreads.nextActor、staleThreads、focus、graphDiffs、activityTimeline 与 diagnostics；失锚讨论不要当成当前意图。',
+    '如需改动项目，先 preflight_visual_proposal，再 create_visual_proposal；等我查看逐行 diff、批准并提供一次性确认号后才可 apply_visual_proposal。',
+    '本提示只是上下文，不签发批准凭据，也不授权项目写入。',
+  ];
+  return lines.join('\n');
+}
+
+async function copyAiContext() {
+  const prompt = buildAiContextPrompt();
+  try {
+    await navigator.clipboard.writeText(prompt);
+    showToast('已复制只读上下文提示；它不包含确认号');
+  } catch {
+    $('#messageInput').value = prompt;
+    $('#messageInput').focus();
+    showToast('剪贴板不可用，已把提示放入消息框（尚未发送）');
   }
 }
 
@@ -1570,6 +1669,7 @@ $('#messageInput').addEventListener('keydown', (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') sendMessage();
 });
 $('#btnAddAnnotation').addEventListener('click', addAnnotation);
+$('#btnCopyAiContext').addEventListener('click', copyAiContext);
 
 // ── Init ──
 loadList();

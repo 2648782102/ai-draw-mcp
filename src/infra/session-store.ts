@@ -22,6 +22,7 @@ import type {
   ProjectChange,
   ProposalStatus,
   SessionSnapshot,
+  SessionFocus,
   VisualGraph,
 } from "../domain/types.js";
 import { logger } from "./logger.js";
@@ -60,6 +61,43 @@ function createSession(workspaceRoot: string): SessionSnapshot {
     graphRevision: 0,
     messages: [],
     proposals: [],
+  };
+}
+
+function buildFocus(
+  graph: VisualGraph | undefined,
+  nodeId: string | undefined,
+  graphRevision: number,
+): SessionFocus | undefined {
+  if (!graph || !nodeId) return undefined;
+  const node = graph.nodes.find((item) => item.id === nodeId);
+  if (!node) return undefined;
+  return {
+    version: 1,
+    nodeId: node.id,
+    nodeLabel: node.label,
+    nodePath: node.path,
+    group: node.group,
+    graphRevision,
+    updatedAt: nowIso(),
+    source: "human",
+  };
+}
+
+function refreshFocus(
+  focus: SessionFocus | undefined,
+  graph: VisualGraph | undefined,
+  graphRevision: number,
+): SessionFocus | undefined {
+  if (!focus || !graph) return undefined;
+  const node = graph.nodes.find((item) => item.id === focus.nodeId);
+  if (!node) return undefined;
+  return {
+    ...focus,
+    nodeLabel: node.label,
+    nodePath: node.path,
+    group: node.group,
+    graphRevision,
   };
 }
 
@@ -214,6 +252,7 @@ export class SessionStore {
     const graph = bundle.session.graph;
     if (graph) validateGraph(graph);
     const graphDiffs = bundle.session.graphDiffs?.slice(-MAX_GRAPH_DIFFS);
+    const focus = refreshFocus(bundle.session.focus, graph, bundle.session.graphRevision);
     for (const proposal of bundle.session.proposals) {
       for (const change of proposal.changes) validateChange(this.workspaceRoot, change);
     }
@@ -225,6 +264,7 @@ export class SessionStore {
       draft.graphRevision = bundle.session.graphRevision;
       draft.activeDiagramId = bundle.session.activeDiagramId;
       draft.graph = graph;
+      draft.focus = focus;
       draft.graphDiffs = graphDiffs;
       draft.messages = trimList(bundle.session.messages, MAX_MESSAGES);
       draft.proposals = trimList(bundle.session.proposals, MAX_PROPOSALS);
@@ -277,9 +317,33 @@ export class SessionStore {
       draft.graph = graph;
       draft.activeDiagramId = activeDiagramId;
       draft.graphRevision = nextRevision;
+      draft.focus = refreshFocus(draft.focus, graph, nextRevision);
       if (graphDiff.items.length > 0) {
         draft.graphDiffs = trimList([...(draft.graphDiffs ?? []), graphDiff], MAX_GRAPH_DIFFS);
       }
+    });
+  }
+
+  async setFocus(nodeId: string, source: "human" = "human"): Promise<SessionFocus | undefined> {
+    if (source !== "human") throw new Error("Only a human panel selection can set session focus");
+    const graph = this.snapshot.graph;
+    if (!graph) throw new Error("No graph yet");
+    const focus = buildFocus(graph, nodeId, this.snapshot.graphRevision);
+    if (!focus) throw new Error(`Unknown focus node: ${nodeId}`);
+    await this.mutate((draft) => {
+      draft.focus = focus;
+    });
+    return clone(focus);
+  }
+
+  getFocus(): SessionFocus | undefined {
+    return this.snapshot.focus ? clone(this.snapshot.focus) : undefined;
+  }
+
+  async clearFocus(): Promise<void> {
+    if (!this.snapshot.focus) return;
+    await this.mutate((draft) => {
+      delete draft.focus;
     });
   }
 

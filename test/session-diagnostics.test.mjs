@@ -24,6 +24,15 @@ const snapshot = {
       anchorStatus: "detached",
     }],
   },
+  focus: {
+    version: 1,
+    nodeId: "readme",
+    nodeLabel: "README.md",
+    nodePath: "README.md",
+    graphRevision: 4,
+    updatedAt: "2026-11-06T00:04:30.000Z",
+    source: "human",
+  },
   graphDiffs: [{
     version: 1,
     fromRevision: 3,
@@ -79,6 +88,7 @@ describe("session diagnostics", () => {
       graphRevision: 4,
     });
     expect(diagnostics.graph).toMatchObject({ nodes: 1, annotations: 1, staleAnnotations: 1 });
+    expect(diagnostics.focus).toMatchObject({ nodeId: "readme", nodeLabel: "README.md" });
     expect(diagnostics.conversations.pendingMessages).toBe(1);
     expect(diagnostics.proposals).toMatchObject({ pending: 1, failed: 1 });
     expect(diagnostics.safety).toMatchObject({

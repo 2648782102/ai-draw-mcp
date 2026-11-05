@@ -82,6 +82,8 @@ for (const [id, needle] of [
   ["btnExportSession", 'id="btnExportSession"'],
   ["btnImportSession", 'id="btnImportSession"'],
   ["messageInput", 'id="messageInput"'],
+  ["focusSummary", 'id="focusSummary"'],
+  ["btnCopyAiContext", 'id="btnCopyAiContext"'],
 ]) {
   check(panel.includes(needle), `Collaboration panel is missing ${id}`);
 }
@@ -89,6 +91,7 @@ for (const endpoint of [
   "/api/collab/annotations/:id/reply",
   "/api/collab/annotations/:id/status",
   "/api/collab/annotations/:id/anchor",
+  "/api/collab/focus",
   "/api/collab/activity",
   "/api/collab/diagnostics",
   "/api/collab/graph/diffs",
@@ -121,6 +124,11 @@ for (const [label, file, needle] of [
   ["graph diff panel details", panel, "graphDiffList"],
   ["graph diff bundle parser", sessionBundle, "parseGraphDiffs"],
   ["graph diff timeline event", activityTimeline, "graph_diff"],
+  ["human focus endpoint", previewServer, "/api/collab/focus"],
+  ["human focus panel", panel, "publishFocus"],
+  ["human focus context", getVisualContext, "focus"],
+  ["human focus bundle parser", sessionBundle, "parseFocus"],
+  ["copyable AI context prompt", panel, "buildAiContextPrompt"],
   ["annotation anchor status", types, "anchorStatus"],
   ["annotation anchor activity", activityTimeline, "annotation_anchor"],
   ["human re-anchor confirmation", previewServer, "Human confirmation is required"],
@@ -155,6 +163,11 @@ for (const [label, source, needle] of [
   ["distribution checklist", launchKit, "concept diagrams reviewed together"],
   ["governance metadata evidence", governance, "description: null"],
   ["ADR safety decisions", adrIndex, "0002-conversation-state-is-not-authority.md"],
+  ["ADR focus decision", adrIndex, "0005-human-focus-is-read-only-context.md"],
+  ["README focus context", readme, "SessionFocus"],
+  ["AGENTS focus context", agents, "SessionFocus"],
+  ["architecture focus endpoint", architecture, "/api/collab/focus"],
+  ["roadmap focus delivery", await read("ROADMAP.md"), "Versioned human focus"],
   ["release governance checklist", releasing, "docs/GOVERNANCE.md"],
 ]) {
   check(source.includes(needle), `${label} is missing or drifted`);

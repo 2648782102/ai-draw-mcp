@@ -43,6 +43,7 @@ AI Draw MCP is no longer just a diagram renderer. It is a local-first visual wor
 Highlights:
 - 18 MCP tools, including scan, visual context, AI reply, read-only change templates, proposal preflight, proposal creation, and receipt-gated apply.
 - A read-only change-template catalogue for common intents: drafts cite the current graph revision and must still pass preflight and human review.
+- A shared human focus: select a node and the AI sees exactly which object the conversation is about, without that selection granting write authority.
 - A collaboration panel with node edits, annotations, chat, line-by-line diffs, and one-time approval receipts.
 - Field-level graph revision diffs in the panel and derived `graph_diff` timeline events, with strict validation for portable session bundles.
 - Path safety, content hashes, atomic writes, and rollback for approved proposals.
@@ -85,7 +86,7 @@ AI Draw MCP 0.3 已开源，本地运行、MIT、无需账号。欢迎来拍砖�
 - 开头：展示「AI 画架构图」之后的真实痛点——图不能把人的意图安全带回代码。
 - 演示：用 `examples/collab-demo.mjs` 录一个 60 秒闭环，重点拍节点改名、批注、diff、批准确认号、文件变化。
 - 设计：本地优先、MCP 工具面向 LLM、结构化 `VisualGraph` 与 `ChangeProposal`、人工批准不可绕过。
-- 差异化：与「AI 生成一张图」和「云端白板账号」相比，这里强调无需账号、本地会话可导出、字段级图修订可展开、只读变更模板/预检、逐行 diff 与一次性批准凭据；不与 Miro/Excalidraw 比拼自由画布形状库。详见 [COMPETITIVE_RESEARCH.md 的「2026-11-06 增量调研」](COMPETITIVE_RESEARCH.md#2026-11-06-增量调研)。
+- 差异化：与「AI 生成一张图」和「云端白板账号」相比，这里强调无需账号、本地会话可导出、选中节点可作为 AI 上下文、字段级图修订可展开、只读变更模板/预检、逐行 diff 与一次性批准凭据；不与 Miro/Excalidraw 比拼自由画布形状库。详见 [COMPETITIVE_RESEARCH.md 的「2026-11-06 增量调研」](COMPETITIVE_RESEARCH.md#2026-11-06-增量调研)。
 - 边界：不是 Miro/Excalidraw 替代品，不做托管服务，不做自动写库，不做删除/二进制写入。
 - 邀请：最需要反馈的是扫描器、图形编辑体验、提案模板和 MCP 客户端适配。
 

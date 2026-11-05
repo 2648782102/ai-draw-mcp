@@ -15,7 +15,7 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Next — 0.4: a better visual conversation
 
-- Keep expanding structured graph editing: grouping, positional editing, and richer edge kinds beyond the current add/remove/reconnect controls.
+- Keep expanding structured graph editing: preserve human layout across rescans and add a bounded visual undo/redo stack beyond the current add/remove/reconnect controls.
 - Read-only proposal templates for common intents such as rename module, extract file, add test, and update docs.
 - Per-proposal impact summary: touched paths, line counts, detected existing files, and safety notices.
 - Export and import a collaboration session as a portable JSON artifact for bug reports and examples.
@@ -27,6 +27,8 @@ Product principle: **the visual workspace is the shared language between humans 
 
 - `list_change_templates`: a read-only catalogue and draft expander for update-documentation, add-test, and create-module intents; drafts must still pass preflight and human review.
 - Field-level graph revision diffs with a strict portable-bundle contract, expandable panel details, and derived `graph_diff` timeline events.
+- Versioned human focus: the selected node is readable by AI, refreshed on graph edits, strictly validated in bundles, and kept separate from write authority.
+- A copyable, read-only AI context prompt in the panel that references focus, diagnostics, graph revisions, and the required approval workflow without issuing credentials.
 
 - Read-only `preflight_visual_proposal` for path, filesystem-state, duplicate, and no-op change checks before a proposal is created.
 - Add, remove, rename, and retype nodes from the panel.

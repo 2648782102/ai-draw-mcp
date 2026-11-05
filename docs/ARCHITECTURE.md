@@ -29,13 +29,15 @@ IDE / human browser
 1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点）并生成 `VisualGraph`。
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
 3. 人类在面板「💬 协作」工作台改名称/类型/路径/分组、增删节点、编辑连线起点/终点/说明/类型、把批注绑定到选中节点、在批注线程里回复/解决/重开、发消息；每次写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、路径/分组/连线类型、回复结构与引用完整性。
-4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`：节点改名或路径变化后标为 `outdated`，节点删除后标为 `detached`；`staleThreads` 不进入 `intentByNode`，AI 应等待人类确认或重锚，不能把旧讨论当作当前写入意图。
+4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、人类当前选中节点的 `focus`、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`：节点改名或路径变化后标为 `outdated`，节点删除后标为 `detached`；`staleThreads` 不进入 `intentByNode`，AI 应等待人类确认或重锚，不能把旧讨论当作当前写入意图。
 5. AI 可选调用 `list_change_templates`：只读列出更新文档/添加测试/创建模块模板，或把模板展开为引用当前 `graphRevision` 与节点的 `changes` 草稿。它不写会话、不创建提案、不签发凭据。随后 AI 可先调用 `preflight_visual_proposal` 只读检查候选变更的路径、文件存在性、create/update 方向、重复路径、重复内容、编码与体积；这一步同样不写会话、不创建提案、不签发凭据。最后 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`，也只写会话，不碰项目文件。
 6. 面板通过 `/api/collab/proposals/:id/impact` 展示文件/行数/字节数摘要，并通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。
 7. 人类把确认号发给 AI；AI 调用 `apply_visual_proposal`，服务端校验凭据与内容哈希后写入项目，失败自动回滚。
 8. AI 可再次 `scan_project` 生成反映新结构的图，形成闭环。
 
 协作会话可导出为 `kind: "ai-draw-session-bundle"` 的 version 1 JSON。导出只包含图、消息和去敏后的提案；一次性批准凭据留在内存中且不写入 bundle。导入必须带 `confirmedBy: "human"`，服务端会重新校验图与提案路径、清空批准凭据、拒绝非法文件；导入绝不写项目文件。
+
+面板选中节点时，`POST /api/collab/focus` 记录 version 1 `SessionFocus`。端点要求 `confirmedBy: "human"` 和本机面板令牌；`SessionStore` 只接受 `source: "human"`，并从当前图派生节点标签/路径/分组。`get_visual_context.focus`、诊断与 bundle 只读暴露该上下文。图修订会刷新仍存在节点的焦点字段；节点删除或 bundle 导入后找不到节点时清除焦点。选中状态不进入活动时间线，不签发凭据、不改变线程状态、不授权项目写入，详见 [ADR 0005](ADR/0005-human-focus-is-read-only-context.md)。
 
 失锚/过期状态是会话图上的版本化审计字段，bundle 会保留它们；`outdated` 线程只能经人类确认的 `/api/collab/annotations/:id/anchor` 重锚，`detached` 线程保留原 `nodeId` 且不自动重锚。重锚是讨论状态的确认，不签发批准凭据，也不授权项目写入。
 
@@ -44,6 +46,8 @@ IDE / human browser
 `GET /api/collab/diagnostics` 与 `get_visual_context.diagnostics` 从同一快照派生 version 1 健康摘要：图/线程/提案计数、活动总量、信号、下一步动作，以及 `approvalGrantsExported: false`、`staleThreadsExcludedFromIntent: true`、`projectWritesRequireHumanApproval: true` 三个安全不变量。诊断只读、无持久化、无凭据，也不替代完整上下文。
 
 面板把诊断信号与下一步动作展开为可扫读清单；`action` 信号提示人或 AI 的下一棒，`warning` 提示已失败/等待应用的提案，`info` 只描述状态。清单不提供批准按钮，也不改变会话。
+
+「复制给 AI 的上下文」按钮完全在浏览器端从已加载的会话、诊断与差异摘要拼出一段只读文本；它不调用写端点、不新增消息、不修改会话、不签发凭据。剪贴板不可用时，文本只进入尚未发送的消息输入框，是否发送仍由人决定。
 
 `SessionStore.setGraph()` 会把前后 `VisualGraph` 交给 `src/domain/graph-diff.ts`，保留最近 20 条 version 1 `graphDiffs`。每条记录包含修订号、来源、节点/连线计数及字段级变化；bundle 也保留这些审计记录，导入时严格校验结构、计数、字段值与时间戳并拒绝未知属性。`get_visual_context.graphDiffs` 和 `GET /api/collab/graph/diffs` 只读暴露它们；面板展开最近修订的字段前后值，时间线合并 `graph_diff` 事件。AI 应据此理解人类改图，而不是从自然语言猜测路径/分组/连线变化。
 
