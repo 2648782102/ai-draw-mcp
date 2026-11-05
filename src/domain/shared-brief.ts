@@ -1,5 +1,6 @@
 import { buildActivityTimeline } from "./activity-timeline.js";
 import { summarizeAnnotationThreads } from "./annotation-thread.js";
+import { buildSelectionScope } from "./selection.js";
 import type { SharedBrief, SessionSnapshot } from "./types.js";
 
 function boundedLimit(limit: number, fallback: number, max: number): number {
@@ -38,6 +39,7 @@ export function buildSharedBrief(
   const focusNode = snapshot.focus
     ? snapshot.graph?.nodes.find((node) => node.id === snapshot.focus?.nodeId)
     : undefined;
+  const selectionScope = buildSelectionScope(snapshot, { evidenceLimit: 3, edgeLimit: 6 });
   const blockers: string[] = [];
   if (!snapshot.graph) blockers.push("No VisualGraph is available; ask the AI to run scan_project first.");
   if (stale.length > 0) blockers.push(`${stale.length} stale annotation thread(s) require human review or re-anchoring before they become current intent.`);
@@ -58,6 +60,16 @@ export function buildSharedBrief(
       group: focusNode?.group ?? snapshot.focus.group,
       source: "human",
     } : null,
+    selection: {
+      selectedCount: selectionScope.selectedCount,
+      source: selectionScope.source,
+      readOnly: true,
+      nodes: selectionScope.nodes.slice(0, messageLimit).map((node) => ({
+        nodeId: node.nodeId,
+        label: node.label,
+        path: node.path,
+      })),
+    },
     viewport: snapshot.viewport ?? null,
     status: {
       graph: snapshot.graph ? {

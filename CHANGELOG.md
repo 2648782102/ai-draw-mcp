@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-11-06
+
+### Added
+
+- 第 25 个 MCP 工具 `get_selection_scope` 与 `GET /api/collab/selection-scope`：version 1 `SELECTION_SCOPE_JSON` 把人在面板中最多 24 个节点的有界多选投影为选中节点、两端都在范围内的连线、过滤后的工作区相对 `file:line` 证据、焦点包含状态、视口与固定只读安全标记；面板显示同一清单并提供「复制选择范围」。它不重读项目文件、不打开编辑器、不改选择、不改会话对话状态、不创建提案、不签发凭据、不暴露工作区绝对路径。
+- `SessionSelection` 与人类确认的 `POST /api/collab/selection`：本机面板令牌、`confirmedBy: "human"`、最多 24 个唯一节点 ID、有限图修订与严格属性校验；图修订清除失锚选择，导入会话清空选择，bundle 与 `EXPORT_MANIFEST_JSON` 明确排除 ephemeral 选择状态。
+- `CONTEXT_JSON.selectionScope`、`BRIEF_JSON.selection`、`WORKFLOW_JSON.selection`、诊断、能力清单与面板复制提示同步暴露紧凑只读选择范围；多选不会改 `graphRevision`、不产生消息/活动时间线/字段级图修订/批准凭据，也不授权项目写入。
+- [ADR 0018](docs/ADR/0018-human-selection-is-read-only-scope.md)：记录多选范围是应用层、只读、无副作用的意图上下文，与单节点 `SessionFocus` 及人工批准边界互补。
+- 选择范围纯函数、MCP、HTTP、共享简报、工作流、诊断、导出清单、面板与离线一致性测试：覆盖 25 个唯一工具、24 节点上限、去重、失锚清理、安全路径过滤、凭据/绝对路径不外泄，以及 `SERVER_TOOL_COUNT` 与文档同步。
+
 ### Maintenance
 
 - 记录 `v0.3.2` 发布后的公开验证证据：CI #65、Release #2 与 GitHub Release 页面均已上线；仓库 About/topics 仍因缺少管理权限令牌而保持版本化漂移记录。

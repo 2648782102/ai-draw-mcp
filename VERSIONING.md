@@ -20,4 +20,4 @@ The MCP server reports its version from `package.json`; keep package version, `C
 
 ## Supported versions
 
-Only the latest `0.3.x` release receives fixes. Older `0.2.x`, `0.3.0`, and `0.3.1` installations should upgrade to `0.3.2` for the capability-discovery tool, read-only projections, and security improvements.
+Only the latest `0.3.x` release receives fixes. Older `0.2.x`, `0.3.0`, `0.3.1`, and `0.3.2` installations should upgrade to `0.3.3` for the capability-discovery tool, bounded selection scope, read-only projections, and security improvements.

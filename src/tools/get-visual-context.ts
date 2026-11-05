@@ -4,6 +4,7 @@ import { jsonLine, type ToolContext } from "./_shared.js";
 import { summarizeAnnotationThreads } from "../domain/annotation-thread.js";
 import { buildActivityTimeline } from "../domain/activity-timeline.js";
 import { buildSessionDiagnostics } from "../domain/session-diagnostics.js";
+import { buildSelectionScope } from "../domain/selection.js";
 
 export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
   server.tool(
@@ -31,6 +32,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       const diagnostics = buildSessionDiagnostics(snapshot);
       const graphDiffs = ctx.sessions.getGraphDiffs(graph_diff_limit ?? 5);
       const focus = snapshot.focus;
+      const selectionScope = buildSelectionScope(snapshot, { evidenceLimit: 8, edgeLimit: 12 });
       const viewport = snapshot.viewport ?? null;
       const nodeLabels = new Map(graph?.nodes.map((node) => [node.id, node.label]) ?? []);
       const annotationsByNode = new Map<string, string[]>();
@@ -91,6 +93,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           `Graph diffs: ${graphDiffs.length} recent human graph revisions; use graphDiffs.items for exact field changes.`,
           `Source evidence: ${sourceEvidence.length} read-only file:line references from the scanner; they are context, not write authority.`,
           focus ? `Human focus: ${focus.nodeLabel} (${focus.nodeId}); use it to disambiguate prose, but never treat focus as approval.` : "Human focus: none.",
+          selectionScope.selectedCount > 0 ? `Human selection: ${selectionScope.selectedCount} nodes; use SELECTION_SCOPE_JSON to disambiguate 'these modules', but never treat selection as approval.` : "Human selection: none.",
           "Use annotationThreads.nextActor to see whose turn it is; use intentByNode and pendingMessages as the human's latest intent.",
           "create_visual_proposal should cite those nodes, then wait for human approval.",
         ],
@@ -113,6 +116,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         graphDiffs,
         sourceEvidence,
         focus: focus ?? null,
+        selectionScope,
         viewport,
         activityTimeline,
         diagnostics,
@@ -124,6 +128,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           "Treat detached/outdated threads in staleThreads as historical context only; ask the human to confirm or re-anchor before using them as current intent.",
           "Read graphDiffs for node/edge field changes such as path, group, kind, or label; do not infer visual edits from prose alone.",
           "Read focus to see which node the human currently selected; focus is context only and never grants write authority.",
+          "Read selectionScope for a bounded multi-node range; selection is context only and never grants write authority. Use get_selection_scope for the full bounded projection.",
           "Use create_visual_proposal to record change proposals; never write project files directly from this tool.",
           "Ask the human to approve a proposal in the panel before anything is applied.",
           "Use activityTimeline for compact chronology of messages, graph revisions, annotation threads, and proposal lifecycle events.",

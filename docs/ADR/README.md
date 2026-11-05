@@ -21,5 +21,6 @@ ADRs capture product and protocol decisions that contributors and AI coding agen
 | [0015-review-readiness-is-a-derived-diagnostic.md](0015-review-readiness-is-a-derived-diagnostic.md) | Accepted | A composed review-readiness status remains a diagnostic, never a new workflow state or write grant. |
 | [0016-source-navigation-is-copyable-context.md](0016-source-navigation-is-copyable-context.md) | Accepted | Source navigation is bounded, relative copyable text; the server never opens a file or launches an editor. |
 | [0017-capability-catalogue-is-read-only-discovery.md](0017-capability-catalogue-is-read-only-discovery.md) | Accepted | A versioned capability catalogue describes tools, JSON contracts, and write boundaries without invoking tools or granting writes. |
+| [0018-human-selection-is-read-only-scope.md](0018-human-selection-is-read-only-scope.md) | Accepted | Bounded human multi-node selection describes an intent scope without granting writes or entering portable bundles. |
 
 Add a new ADR when a change affects the human/AI protocol, persisted state, tool surface, approval boundary, or public product direction. Keep the decision, alternatives, and safety consequence in one file.

@@ -119,6 +119,56 @@ export interface Capabilities {
   };
 }
 
+export interface SessionSelection {
+  version: 1;
+  nodeIds: string[];
+  graphRevision: number;
+  updatedAt: string;
+  source: "human";
+}
+
+export interface SelectionScope {
+  version: 1;
+  readOnly: true;
+  sessionId: string;
+  graphRevision: number;
+  selectionRevision: number | null;
+  source: "human" | "none";
+  limit: number;
+  selectedCount: number;
+  nodes: Array<{
+    nodeId: string;
+    label: string;
+    kind: string;
+    path?: string;
+    group?: string;
+    sourceEvidenceCount: number;
+  }>;
+  totalEdges: number;
+  edges: Array<{ id: string; from: string; to: string; label?: string; kind?: string }>;
+  totalEvidence: number;
+  evidence: Array<{
+    nodeId: string;
+    nodeLabel: string;
+    kind: "definition" | "import" | "heading";
+    path: string;
+    line: number;
+    excerpt: string;
+    fileLine: string;
+  }>;
+  focus: { nodeId: string; nodeLabel: string; included: boolean } | null;
+  viewport: SessionViewport | null;
+  copyText: string;
+  guidance: string[];
+  safety: {
+    readOnly: true;
+    grantsWriteAuthority: false;
+    excludesApprovalGrants: true;
+    excludesAbsolutePaths: true;
+    projectWritesRequireHumanApproval: true;
+  };
+}
+
 export interface GraphEdge {
   id: string;
   from: string;
@@ -231,6 +281,7 @@ export interface SessionSnapshot {
   graphRevision: number;
   graph?: VisualGraph;
   focus?: SessionFocus;
+  selection?: SessionSelection;
   viewport?: SessionViewport;
   graphDiffs?: GraphRevisionDiff[];
   graphHistory?: GraphHistoryState;
@@ -278,6 +329,7 @@ export interface AgentWorkflow {
   graphRevision: number;
   activeDiagramId?: string;
   focus?: { nodeId: string; nodeLabel: string; nodePath?: string };
+  selection?: { nodeCount: number; readOnly: true; source: "human" };
   graph?: { nodes: number; edges: number; annotations: number; staleAnnotations: number };
   conversation?: { pendingMessages: number; nextActor: string };
   proposals?: { pending: number; approved: number };
@@ -341,6 +393,12 @@ export interface SharedBrief {
     group?: string;
     source: "human";
   } | null;
+  selection: {
+    selectedCount: number;
+    source: "human" | "none";
+    readOnly: true;
+    nodes: Array<{ nodeId: string; label: string; path?: string }>;
+  };
   viewport: SessionViewport | null;
   status: {
     graph: { nodes: number; edges: number; annotations: number; staleAnnotations: number } | null;
@@ -461,6 +519,7 @@ export interface ExportManifest {
   contents: {
     graph: { included: boolean; nodes: number; edges: number; annotations: number; replies: number; sourceEvidence: number };
     focus: { included: boolean; nodeId?: string };
+    selection: { included: boolean; count: number };
     graphDiffs: { included: boolean; count: number };
     messages: { included: boolean; count: number };
     proposals: { included: boolean; count: number; approvedStateDowngraded: number };
@@ -472,6 +531,7 @@ export interface ExportManifest {
     excludesApprovalGrants: true;
     excludesGraphHistory: true;
     excludesViewport: true;
+    excludesSelection: true;
     projectWritesRequireHumanApproval: true;
   };
   guidance: string[];

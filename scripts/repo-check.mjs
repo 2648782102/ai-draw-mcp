@@ -79,6 +79,10 @@ const capabilitiesDomain = await read("src/domain/capabilities.ts");
 const getCapabilitiesTool = await read("src/tools/get-capabilities.ts");
 const capabilitiesTest = await read("test/capabilities.test.mjs");
 const capabilitiesAdr = await read("docs/ADR/0017-capability-catalogue-is-read-only-discovery.md");
+const selectionAdr = await read("docs/ADR/0018-human-selection-is-read-only-scope.md");
+const selectionDomain = await read("src/domain/selection.ts");
+const getSelectionScopeTool = await read("src/tools/get-selection-scope.ts");
+const selectionTest = await read("test/selection.test.mjs");
 const reviewReadinessTest = await read("test/review-readiness.test.mjs");
 const sessionDiagnosticsDomain = await read("src/domain/session-diagnostics.ts");
 const sessionDiagnosticsTest = await read("test/session-diagnostics.test.mjs");
@@ -122,7 +126,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
-check(launchKit.includes("24 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 24 MCP tools");
+check(launchKit.includes("25 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 25 MCP tools");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -141,6 +145,10 @@ for (const [id, needle] of [
   ["btnCopyAiContext", 'id="btnCopyAiContext"'],
   ["btnCopySourceNavigation", 'id="btnCopySourceNavigation"'],
   ["btnCopyCapabilities", 'id="btnCopyCapabilities"'],
+  ["btnClearSelection", 'id="btnClearSelection"'],
+  ["btnCopySelectionScope", 'id="btnCopySelectionScope"'],
+  ["selectionSummary", 'id="selectionSummary"'],
+  ["selectionScopeList", 'id="selectionScopeList"'],
   ["capabilitiesList", 'id="capabilitiesList"'],
   ["rescanSummary", 'id="rescanSummary"'],
   ["btnRescan", 'id="btnRescan"'],
@@ -156,6 +164,8 @@ for (const endpoint of [
   "/api/collab/review-readiness",
   "/api/collab/source-navigation",
   "/api/collab/capabilities",
+  "/api/collab/selection",
+  "/api/collab/selection-scope",
   "/api/collab/node-context",
   "/api/collab/graph/history",
   "/api/collab/graph/undo",
@@ -562,7 +572,7 @@ for (const [label, file, needle] of [
   ["review readiness examples map", examplesReadme, "REVIEW_READINESS_JSON"],
   ["capabilities shared type", types, "export interface Capabilities"],
   ["capabilities domain", capabilitiesDomain, "export function buildCapabilities"],
-  ["capabilities count", capabilitiesDomain, "SERVER_TOOL_COUNT = 24"],
+  ["capabilities count", capabilitiesDomain, "SERVER_TOOL_COUNT = 25"],
   ["capabilities name", capabilitiesDomain, 'name: "get_capabilities"'],
   ["capabilities writer", capabilitiesDomain, 'name: "apply_visual_proposal"'],
   ["capabilities marker contract", capabilitiesDomain, "marker: \"CAPABILITIES_JSON\""],
@@ -591,6 +601,34 @@ for (const [label, file, needle] of [
   ["capabilities examples map", examplesReadme, "CAPABILITIES_JSON"],
   ["capabilities collaboration workflow", collaborationWorkflow, "CAPABILITIES_JSON"],
   ["capabilities workflow example", agentWorkflowExample, "CAPABILITIES_JSON"],
+  ["selection shared type", types, "export interface SessionSelection"],
+  ["selection scope shared type", types, "export interface SelectionScope"],
+  ["selection domain", selectionDomain, "export function buildSelectionScope"],
+  ["selection limit", selectionDomain, "SELECTION_LIMIT = 24"],
+  ["selection no authority", selectionDomain, "grantsWriteAuthority: false"],
+  ["selection marker contract", capabilitiesDomain, 'marker: "SELECTION_SCOPE_JSON"'],
+  ["selection tool", getSelectionScopeTool, '"get_selection_scope"'],
+  ["selection marker", getSelectionScopeTool, '"SELECTION_SCOPE_JSON:"'],
+  ["selection endpoint", previewServer, "/api/collab/selection-scope"],
+  ["selection panel", panel, 'id="selectionScopeList"'],
+  ["selection panel copy button", panel, 'id="btnCopySelectionScope"'],
+  ["selection panel publisher", panel, "/api/collab/selection"],
+  ["selection pure contract test", selectionTest, "bounded human selection"],
+  ["selection MCP test", mcpTest, "get_selection_scope"],
+  ["selection HTTP test", collaborationTest, "/api/collab/selection-scope"],
+  ["selection ADR index", adrIndex, "0018-human-selection-is-read-only-scope.md"],
+  ["selection ADR boundary", selectionAdr, "grants project-write authority"],
+  ["selection Chinese docs", readme, "SELECTION_SCOPE_JSON"],
+  ["selection English docs", englishQuickstart, "SELECTION_SCOPE_JSON"],
+  ["selection AGENTS docs", agents, "SELECTION_SCOPE_JSON"],
+  ["selection architecture", architecture, "SELECTION_SCOPE_JSON"],
+  ["selection security", security, "SELECTION_SCOPE_JSON"],
+  ["selection roadmap", roadmap, "SELECTION_SCOPE_JSON"],
+  ["selection launch", launchKit, "SELECTION_SCOPE_JSON"],
+  ["selection troubleshooting", troubleshooting, "SELECTION_SCOPE_JSON"],
+  ["selection examples map", examplesReadme, "SELECTION_SCOPE_JSON"],
+  ["selection collaboration workflow", collaborationWorkflow, "SELECTION_SCOPE_JSON"],
+  ["selection workflow example", agentWorkflowExample, "25-tool catalogue"],
 ]) {
   check(file.includes(needle), `${label} is missing or drifted`);
 }
@@ -599,9 +637,9 @@ check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not do
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
-check(readme.includes("24 个 MCP 工具"), "README.md does not reflect the 24 MCP tools");
-check(agents.includes("## 24 个 MCP 工具"), "AGENTS.md does not reflect the 24 MCP tools");
-check(roadmap.includes("24 MCP tools"), "ROADMAP.md does not reflect the 24 MCP tools");
+check(readme.includes("25 个 MCP 工具"), "README.md does not reflect the 25 MCP tools");
+check(agents.includes("## 25 个 MCP 工具"), "AGENTS.md does not reflect the 25 MCP tools");
+check(roadmap.includes("25 MCP tools"), "ROADMAP.md does not reflect the 25 MCP tools");
 const roadmapNextLines = roadmap.split("\n").slice(
   roadmap.split("\n").findIndex((line) => line.startsWith("## Next")),
   roadmap.split("\n").findIndex((line) => line.startsWith("## Shipped")),
@@ -627,15 +665,15 @@ check(agents.includes("/api/collab/activity"), "AGENTS.md does not document the 
 check(readme.includes("解决线程只是对话状态"), "README.md does not separate thread resolution from proposal approval");
 check(readme.includes("不等于批准变更"), "README.md does not document the thread approval boundary");
 check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased section");
-check(changelog.includes("## [0.3.2]"), "CHANGELOG.md has no 0.3.2 release section");
-check(packageJson.version === "0.3.2", "package.json version is not 0.3.2");
+check(changelog.includes("## [0.3.3]"), "CHANGELOG.md has no 0.3.3 release section");
+check(packageJson.version === "0.3.3", "package.json version is not 0.3.3");
 const lockfile = JSON.parse(await read("package-lock.json"));
 check(lockfile.version === packageJson.version, "package-lock.json version does not match package.json");
 check(lockfile.packages?.[""]?.version === packageJson.version, "package-lock.json root package version does not match package.json");
-check(readme.includes("当前版本 `0.3.2` 共 24 个工具"), "README.md does not reflect version 0.3.2 and 24 tools");
+check(readme.includes("当前版本 `0.3.3` 共 25 个工具"), "README.md does not reflect version 0.3.3 and 25 tools");
 check(readme.includes("| `get_source_navigation` |"), "README.md tool table is missing get_source_navigation");
 check(readme.includes("| `get_capabilities` |"), "README.md tool table is missing get_capabilities");
-check(launchKit.includes("Release notes — 0.3.2"), "docs/LAUNCH_KIT.md release notes are not aligned to 0.3.2");
+check(launchKit.includes("Release notes — 0.3.3"), "docs/LAUNCH_KIT.md release notes are not aligned to 0.3.3");
 check(releaseWorkflow.includes("workflow_dispatch:"), "release workflow does not support manual tag verification");
 check(releaseWorkflow.includes("contents: write"), "release workflow cannot create a GitHub Release");
 check(releaseWorkflow.includes("getReleaseByTag"), "release workflow does not check for an existing Release by tag");

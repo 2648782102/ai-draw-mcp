@@ -16,6 +16,7 @@ const COLLAB_TOOLS = [
   "get_decision_trail",
   "get_source_navigation",
   "get_capabilities",
+  "get_selection_scope",
 ];
 
 async function withClient(port, callback) {
@@ -72,7 +73,7 @@ describe("MCP server", () => {
     await withClient(3421, async (client) => {
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name);
-      expect(names).toHaveLength(24);
+      expect(names).toHaveLength(25);
       expect(names).toContain("render_diagram");
       expect(names).toContain("delete_diagram");
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
@@ -117,12 +118,14 @@ describe("MCP server", () => {
       expect(payload).toHaveProperty("focus");
       expect(payload.intentSummary).toHaveProperty("focus");
       expect(payload).toHaveProperty("viewport");
+      expect(payload).toHaveProperty("selectionScope");
       expect(Array.isArray(payload.graphDiffs)).toBe(true);
       expect(Array.isArray(payload.sourceEvidence)).toBe(true);
       expect(Array.isArray(payload.intentSummary.sourceEvidence)).toBe(true);
       expect(payload.intentSummary.guidance).toContain("activityTimeline");
       expect(payload.nextActions.join(" ")).toContain("create_visual_proposal");
       expect(payload.nextActions.join(" ")).toContain("viewport");
+      expect(payload.nextActions.join(" ")).toContain("selectionScope");
     });
   }, 30_000);
 
@@ -192,11 +195,23 @@ describe("MCP server", () => {
       const text = textOf(await client.callTool({ name: "get_capabilities", arguments: {} }));
       expect(text).toContain("CAPABILITIES_JSON:");
       const capabilities = jsonAfter(text, "CAPABILITIES_JSON:");
-      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 24 });
-      expect(capabilities.tools).toHaveLength(24);
+      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 25 });
+      expect(capabilities.tools).toHaveLength(25);
       expect(capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name)).toEqual(["apply_visual_proposal"]);
       expect(capabilities.workflow).toMatchObject({ version: 1, steps: 8, projectWriteTool: "apply_visual_proposal" });
       expect(capabilities.safety).toMatchObject({ grantsWriteAuthority: false, excludesApprovalGrants: true, excludesWorkspaceAbsolutePaths: true });
+      expect(text).not.toContain("approvalGrant");
+      expect(text).not.toContain(process.cwd());
+    });
+  }, 30_000);
+
+  it("returns a bounded, read-only selection scope", async () => {
+    await withClient(3432, async (client) => {
+      const text = textOf(await client.callTool({ name: "get_selection_scope", arguments: { evidence_limit: 3, edge_limit: 4 } }));
+      expect(text).toContain("SELECTION_SCOPE_JSON:");
+      const scope = jsonAfter(text, "SELECTION_SCOPE_JSON:");
+      expect(scope).toMatchObject({ version: 1, readOnly: true, selectedCount: 0, source: "none", limit: 24 });
+      expect(scope.safety).toMatchObject({ grantsWriteAuthority: false, projectWritesRequireHumanApproval: true });
       expect(text).not.toContain("approvalGrant");
       expect(text).not.toContain(process.cwd());
     });

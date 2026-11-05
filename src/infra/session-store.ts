@@ -29,9 +29,11 @@ import type {
   ProposalStatus,
   SessionSnapshot,
   SessionFocus,
+  SessionSelection,
   SessionViewport,
   VisualGraph,
 } from "../domain/types.js";
+import { parseSelection, buildSelection } from "../domain/selection.js";
 import { logger } from "./logger.js";
 import { resolveWorkspaceRoot } from "./workspace.js";
 import { diffTruncated, unifiedDiff, type ProposalFileDiff } from "../domain/diff.js";
@@ -143,6 +145,18 @@ function refreshFocus(
     group: node.group,
     graphRevision,
   };
+}
+
+function refreshSelection(
+  selection: SessionSelection | undefined,
+  graph: VisualGraph | undefined,
+  graphRevision: number,
+): SessionSelection | undefined {
+  if (!selection || !graph) return undefined;
+  const available = new Set(graph.nodes.map((node) => node.id));
+  const nodeIds = selection.nodeIds.filter((id) => available.has(id));
+  if (!nodeIds.length) return undefined;
+  return { ...selection, nodeIds, graphRevision };
 }
 
 function validateGraph(graph: VisualGraph): void {
@@ -275,6 +289,7 @@ export class SessionStore {
           workspaceRoot,
           graphHistory: parseGraphHistory(parsed.graphHistory, MAX_GRAPH_HISTORY) ?? emptyGraphHistory(),
           viewport: parsed.viewport ? parseViewport(parsed.viewport) : undefined,
+          selection: parseSelection(parsed.selection),
         };
       }
     } catch {
@@ -333,6 +348,7 @@ export class SessionStore {
       draft.activeDiagramId = bundle.session.activeDiagramId;
       draft.graph = graph;
       draft.focus = focus;
+      delete draft.selection;
       delete draft.viewport;
       draft.graphDiffs = graphDiffs;
       draft.graphHistory = pushGraphHistory(emptyGraphHistory(), graphHistoryEntry(draft.graph, draft.graphRevision, "human"));
@@ -408,6 +424,7 @@ export class SessionStore {
     draft.activeDiagramId = activeDiagramId;
     draft.graphRevision = nextRevision;
     draft.focus = refreshFocus(draft.focus, graph, nextRevision);
+    draft.selection = refreshSelection(draft.selection, graph, nextRevision);
     if (graphDiff.items.length > 0) {
       draft.graphDiffs = trimList([...(draft.graphDiffs ?? []), graphDiff], MAX_GRAPH_DIFFS);
     }
@@ -488,6 +505,22 @@ export class SessionStore {
       draft.viewport = viewport;
     });
     return viewport;
+  }
+
+  async setSelection(input: unknown, confirmedBy: unknown): Promise<SessionSelection | undefined> {
+    if (confirmedBy !== "human") throw new Error("Human panel confirmation is required");
+    const selection = input === null || input === undefined
+      ? undefined
+      : buildSelection(input, this.snapshot.graph, this.snapshot.graphRevision);
+    await this.mutate((draft) => {
+      if (selection) draft.selection = selection;
+      else delete draft.selection;
+    });
+    return selection ? clone(selection) : undefined;
+  }
+
+  getSelection(): SessionSelection | undefined {
+    return this.snapshot.selection ? clone(this.snapshot.selection) : undefined;
   }
 
   getViewport(): SessionViewport | undefined {

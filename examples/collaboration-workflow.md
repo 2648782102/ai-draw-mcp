@@ -12,7 +12,9 @@ The AI should call `scan_project`, then the panel shows the structure graph. Use
 
 To avoid inventing a different sequence, ask the AI to call `get_agent_workflow` first. Its `WORKFLOW_JSON` lists the eight ordered steps, prerequisites, readiness blockers, and explicit `none` / `session` / `project` write targets. The contract is read-only and never issues an approval receipt. A reproducible example that stops after preflight is [`agent-workflow.mjs`](agent-workflow.mjs); run it with `npm run test:examples:workflow`.
 
-For a new MCP client, first ask for `get_capabilities`: `CAPABILITIES_JSON` lists all 24 tools, JSON markers, derived workflow/readiness status, a suggested next action, and the unique receipt-gated project-write boundary. It complements native MCP `tools/list` discovery and never invokes tools, writes state, or issues grants.
+For a new MCP client, first ask for `get_capabilities`: `CAPABILITIES_JSON` lists all 25 tools, JSON markers, derived workflow/readiness status, a suggested next action, and the unique receipt-gated project-write boundary. It complements native MCP `tools/list` discovery and never invokes tools, writes state, or issues grants.
+
+When the human says "these modules" or "the selected scope", call `get_selection_scope`: `SELECTION_SCOPE_JSON` is a bounded, read-only projection of the panel's multi-node selection, internal edges, and safe relative `file:line` evidence. It remains attention context only; approval still requires a full line diff, a human panel action, and a one-time receipt. See [ADR 0018](../docs/ADR/0018-human-selection-is-read-only-scope.md).
 
 ## 2. Human edits the graph and explains intent
 

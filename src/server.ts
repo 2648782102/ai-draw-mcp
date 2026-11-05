@@ -45,6 +45,7 @@ import { registerGetSharedBrief } from "./tools/get-shared-brief.js";
 import { registerGetDecisionTrail } from "./tools/get-decision-trail.js";
 import { registerGetSourceNavigation } from "./tools/get-source-navigation.js";
 import { registerGetCapabilities } from "./tools/get-capabilities.js";
+import { registerGetSelectionScope } from "./tools/get-selection-scope.js";
 import { SERVER_TOOL_COUNT } from "./domain/capabilities.js";
 
 const TOOL_COUNT = SERVER_TOOL_COUNT; // keep in sync when adding tools
@@ -102,6 +103,7 @@ export async function createServer() {
   registerGetDecisionTrail(mcp, ctx);
   registerGetSourceNavigation(mcp, ctx);
   registerGetCapabilities(mcp, ctx);
+  registerGetSelectionScope(mcp, ctx);
 
   logger.info(`${TOOL_COUNT} MCP tools registered`);
 

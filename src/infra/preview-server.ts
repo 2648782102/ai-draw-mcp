@@ -12,6 +12,7 @@
  *   DEL  /api/diagram/:id       delete diagram
  *   GET  /api/collab/session     collaboration snapshot
  *   POST /api/collab/focus       set the human's selected graph node
+ *   POST /api/collab/selection   set the human's bounded multi-node selection
  *   POST /api/collab/viewport    set the human panel's coarse zoom/pan attention state
  *   GET  /api/collab/activity    derived compact activity timeline
  *   GET  /api/collab/diagnostics  read-only session health and next-action summary
@@ -22,6 +23,7 @@
  *   GET  /api/collab/source-navigation  copyable, read-only source navigation hints
  *   GET  /api/collab/review-readiness  derived BRIEF_JSON blockers + DECISION_TRAIL_JSON gaps
  *   GET  /api/collab/capabilities  bounded, read-only tool/JSON/safety catalogue
+ *   GET  /api/collab/selection-scope  bounded, read-only projection of the human selection
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/graph/history  bounded visual undo/redo availability
  *   POST /api/collab/graph/undo   human-confirmed visual undo
@@ -65,6 +67,7 @@ import { buildDecisionTrail } from "../domain/decision-trail.js";
 import { buildReviewReadiness } from "../domain/review-readiness.js";
 import { buildSourceNavigation } from "../domain/source-navigation.js";
 import { buildCapabilities } from "../domain/capabilities.js";
+import { buildSelectionScope } from "../domain/selection.js";
 import { SERVER_VERSION } from "./version.js";
 import { buildExportManifest } from "../domain/session-bundle.js";
 import { makeId, nowIso } from "../domain/ids.js";
@@ -145,6 +148,19 @@ export class PreviewServer {
         const focus = await this.sessions.setFocus(body.nodeId.trim(), "human");
         this.broadcast({ type: "focus_updated", focus });
         res.json({ ok: true, focus });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+
+    this.app.post("/api/collab/selection", async (req, res) => {
+      const body = req.body as { confirmedBy?: string; nodeIds?: unknown };
+      if (body.confirmedBy !== "human")
+        return res.status(403).json({ error: "Human panel selection is required" });
+      try {
+        const selection = await this.sessions.setSelection(body.nodeIds, body.confirmedBy);
+        this.broadcast({ type: "selection_updated", selection: selection ?? null });
+        res.json({ ok: true, selection: selection ?? null });
       } catch (error) {
         res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
       }
@@ -250,6 +266,17 @@ export class PreviewServer {
 
     this.app.get("/api/collab/capabilities", (_req, res) => {
       res.json(buildCapabilities(this.sessions.getSnapshot(), SERVER_VERSION));
+    });
+
+    this.app.get("/api/collab/selection-scope", (req, res) => {
+      const bounded = (raw: unknown, fallback: number, max: number) => {
+        const value = Number(raw ?? fallback);
+        return Number.isFinite(value) ? Math.max(1, Math.min(max, Math.floor(value))) : fallback;
+      };
+      res.json(buildSelectionScope(this.sessions.getSnapshot(), {
+        evidenceLimit: bounded(req.query.evidenceLimit, 20, 60),
+        edgeLimit: bounded(req.query.edgeLimit, 40, 120),
+      }));
     });
 
     const restoreGraphHistory = async (

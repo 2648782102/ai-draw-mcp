@@ -74,8 +74,8 @@ try {
 
   const capabilitiesText = textOf(await client.callTool({ name: "get_capabilities", arguments: {} }));
   const capabilities = jsonAfter(capabilitiesText, "CAPABILITIES_JSON:");
-  if (capabilities.version !== 1 || capabilities.toolCount !== 24 || capabilities.safety?.grantsWriteAuthority !== false) {
-    throw new Error("Capabilities unexpectedly lost the read-only 24-tool catalogue");
+  if (capabilities.version !== 1 || capabilities.toolCount !== 25 || capabilities.safety?.grantsWriteAuthority !== false) {
+    throw new Error("Capabilities unexpectedly lost the read-only 25-tool catalogue");
   }
   if (capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name).join(",") !== "apply_visual_proposal") {
     throw new Error("Capabilities unexpectedly named another project-write tool");
@@ -84,6 +84,19 @@ try {
     throw new Error("Capabilities unexpectedly exposed an approval credential or absolute workspace path");
   }
   console.log(`    Capabilities: ${capabilities.toolCount} tools / ${capabilities.workflow.steps} steps · project write ${capabilities.workflow.projectWriteTool}`);
+
+  const selectionText = textOf(await client.callTool({ name: "get_selection_scope", arguments: { evidence_limit: 3, edge_limit: 4 } }));
+  const selectionScope = jsonAfter(selectionText, "SELECTION_SCOPE_JSON:");
+  if (selectionScope.version !== 1 || selectionScope.readOnly !== true || selectionScope.safety?.grantsWriteAuthority !== false) {
+    throw new Error("Selection scope unexpectedly lost its read-only safety contract");
+  }
+  if (selectionScope.selectedCount > selectionScope.limit || selectionScope.nodes.length !== selectionScope.selectedCount) {
+    throw new Error("Selection scope unexpectedly exceeded its bounded node list");
+  }
+  if (selectionText.includes("approvalGrant") || selectionText.includes(process.cwd())) {
+    throw new Error("Selection scope unexpectedly exposed a credential or absolute workspace path");
+  }
+  console.log(`    Selection scope: ${selectionScope.selectedCount}/${selectionScope.limit} selected nodes · read-only`);
 
   const workflowText = textOf(await client.callTool({ name: "get_agent_workflow", arguments: {} }));
   const workflow = jsonAfter(workflowText, "WORKFLOW_JSON:");

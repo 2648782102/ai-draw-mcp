@@ -90,6 +90,7 @@ export function buildExportManifest(bundle: SessionBundle): ExportManifest {
         included: focus !== undefined,
         nodeId: typeof focus?.nodeId === "string" ? focus.nodeId : undefined,
       },
+      selection: { included: false, count: 0 },
       graphDiffs: {
         included: Array.isArray(session.graphDiffs),
         count: Array.isArray(session.graphDiffs) ? session.graphDiffs.length : 0,
@@ -103,6 +104,7 @@ export function buildExportManifest(bundle: SessionBundle): ExportManifest {
       { field: "approvalExpiresAt", reason: "Receipt expiry belongs to the live approval grant, not a portable artifact." },
       { field: "graphHistory", reason: "Visual undo/redo snapshots are local UI state and are not part of the bundle." },
       { field: "viewport", reason: "Human zoom/pan attention is ephemeral and is cleared on bundle import." },
+      { field: "selection", reason: "Human multi-node attention is ephemeral and is cleared on bundle import." },
     ],
     safety: {
       readOnly: true,
@@ -110,12 +112,14 @@ export function buildExportManifest(bundle: SessionBundle): ExportManifest {
       excludesApprovalGrants: true,
       excludesGraphHistory: true,
       excludesViewport: true,
+      excludesSelection: true,
       projectWritesRequireHumanApproval: true,
     },
     guidance: [
       "EXPORT_MANIFEST_JSON is a derived inventory of an exported session bundle, not a second source of truth.",
       "Approved proposal state is downgraded to pending on export; no one-time receipt or approval grant is included.",
       "Import still requires confirmedBy: human, clears live grants, validates the bundle, and never writes project files.",
+      "Selection is ephemeral UI attention and is intentionally cleared from exported and imported bundles.",
       "Use the full session bundle for reproduction; use the panel's line diff and human approval for any project change.",
     ],
   };

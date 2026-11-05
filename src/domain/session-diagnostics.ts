@@ -1,6 +1,7 @@
 import { buildActivityTimeline } from "./activity-timeline.js";
 import { summarizeAnnotationThreads } from "./annotation-thread.js";
 import { buildReviewReadiness } from "./review-readiness.js";
+import { buildSelectionScope } from "./selection.js";
 import type { ChangeProposal, SessionSnapshot } from "./types.js";
 
 export type DiagnosticLevel = "info" | "warning" | "action";
@@ -24,6 +25,7 @@ export interface SessionDiagnostics {
   sourceEvidence: { nodes: number; items: number };
   graphHistory: { undo: number; redo: number };
   focus: { nodeId: string; nodeLabel: string; nodePath?: string; graphRevision: number } | null;
+  selection: { nodeCount: number; graphRevision: number | null; source: "human" | "none"; readOnly: true } | null;
   viewport: { scale: number; x: number; y: number; source: "human" } | null;
   conversations: { pendingMessages: number; annotationThreads: number; openThreads: number; awaitingAi: number; awaitingHuman: number };
   proposals: Record<ChangeProposal["status"], number>;
@@ -53,6 +55,7 @@ export function buildSessionDiagnostics(snapshot: SessionSnapshot): SessionDiagn
   const threads = summarizeAnnotationThreads(snapshot.graph);
   const timeline = buildActivityTimeline(snapshot, 1);
   const reviewReadiness = buildReviewReadiness(snapshot);
+  const selectionScope = buildSelectionScope(snapshot, { evidenceLimit: 1, edgeLimit: 1 });
   const proposalCounts = emptyProposalCounts();
   for (const proposal of snapshot.proposals) proposalCounts[proposal.status] += 1;
   const pendingMessages = snapshot.messages.filter((message) => message.author === "human" && message.status === "pending");
@@ -186,6 +189,12 @@ export function buildSessionDiagnostics(snapshot: SessionSnapshot): SessionDiagn
       nodeLabel: snapshot.focus.nodeLabel,
       nodePath: snapshot.focus.nodePath,
       graphRevision: snapshot.focus.graphRevision,
+    } : null,
+    selection: selectionScope.selectedCount > 0 ? {
+      nodeCount: selectionScope.selectedCount,
+      graphRevision: selectionScope.selectionRevision,
+      source: selectionScope.source,
+      readOnly: true,
     } : null,
     viewport: snapshot.viewport ? {
       scale: snapshot.viewport.scale,

@@ -193,10 +193,12 @@
       border-radius: 6px; background: var(--bg); padding: 8px;
     }
     .graph-row {
-      display: grid; grid-template-columns: 18px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 5px;
+      display: grid; grid-template-columns: 34px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 5px;
       border-bottom: 1px solid var(--border); align-items: center;
     }
-    .graph-row-header { display: grid; grid-template-columns: 18px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 2px 5px; color: var(--text-muted); font-size: 9px; }
+    .graph-row-header { display: grid; grid-template-columns: 34px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 2px 5px; color: var(--text-muted); font-size: 9px; }
+    .graph-select-cell { display: flex; align-items: center; gap: 2px; }
+    .graph-select-cell input { width: 11px; margin: 0; accent-color: var(--accent, #58a6ff); }
     .graph-row.selected { background: rgba(88, 166, 255, .12); }
     .graph-row input, .graph-row select, .edge-row input, .edge-row select {
       min-width: 0; background: var(--surface2); color: var(--text); border: 1px solid var(--border);
@@ -381,6 +383,7 @@
       <p class="collab-help">可编辑节点名称/类型/路径/分组与连线起点/终点/说明/类型；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
       <p class="activity-summary" id="rescanSummary">重新同步 · 按路径保留人工坐标、标签、批注与焦点；只读扫描项目文件</p>
       <p class="activity-summary" id="focusSummary">当前焦点 · 未选中节点</p>
+      <p class="activity-summary" id="selectionSummary">选择范围 · 未多选节点；复选框可把「这几个模块」作为只读范围告诉 AI</p>
       <p class="activity-summary" id="viewportSummary">当前视口 · 尚未同步；缩放/平移只作为只读注意力上下文，不改图或授权写入</p>
       <p class="activity-summary" id="graphHistorySummary">图形历史 · 尚无撤销记录；撤销只恢复视觉状态，不写项目文件</p>
       <p class="activity-summary" id="sourceEvidenceSummary">源码证据 · 等待扫描；只读 file:line 线索不授权项目写入</p>
@@ -405,6 +408,8 @@
         <button id="btnExportSession">导出会话</button>
         <button id="btnImportSession">导入会话</button>
         <button id="btnRescan" title="只读扫描工作区并保留人工视觉状态">重新扫描项目</button>
+        <button id="btnClearSelection" title="清空多选范围；不写项目文件">清空选择范围</button>
+        <button id="btnCopySelectionScope" title="复制只读 SELECTION_SCOPE_JSON；不签发凭据">复制选择范围</button>
       </div>
     </section>
     <section class="collab-section">
@@ -420,6 +425,8 @@
       <div class="diagnostics-list" id="reviewReadinessList"></div>
       <p class="activity-summary" id="capabilitiesSummary">能力清单 · 加载中；只读列出 MCP 工具、JSON 契约与唯一项目写入边界</p>
       <div class="diagnostics-list" id="capabilitiesList"></div>
+      <p class="activity-summary" id="selectionScopeSummary">选择范围上下文 · 加载中；只投影多选节点、内部连线与安全 file:line 证据</p>
+      <div class="diagnostics-list" id="selectionScopeList"></div>
       <p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p>
       <div class="chat-log graph-diff-list" id="graphDiffList"></div>
       <div class="chat-log activity-list" id="activityList"></div>
@@ -1080,6 +1087,7 @@ function connectWs() {
 let collabGraph = null;
 let collabRevision = 0;
 let selectedNodeId = null;
+let selectedNodeIds = [];
 let collabSessionId = null;
 let collabWorkspaceRoot = null;
 let collabDiagnostics = null;
@@ -1090,6 +1098,7 @@ let collabSharedBrief = null;
 let collabDecisionTrail = null;
 let collabSourceNavigation = null;
 let collabCapabilities = null;
+let collabSelectionScope = null;
 let collabViewport = null;
 
 function escapeHtml(value) {
@@ -1117,13 +1126,21 @@ function renderGraphEditor() {
   if (!collabGraph) {
     target.innerHTML = '<div class="collab-help">暂无项目结构图。让 AI 调用 scan_project，或刷新协作会话。</div>';
     edgeTarget.innerHTML = '<div class="graph-empty">暂无连线。</div>';
+    selectedNodeIds = [];
+    renderSelectionSummary();
     return;
   }
   if (!collabGraph.nodes.some((node) => node.id === selectedNodeId)) selectedNodeId = null;
+  const availableNodeIds = new Set(collabGraph.nodes.map((node) => node.id));
+  selectedNodeIds = selectedNodeIds.filter((id) => availableNodeIds.has(id)).slice(0, 24);
   renderFocus();
+  renderSelectionSummary();
   target.innerHTML = collabGraph.nodes.map((node, index) => `
     <div class="graph-row ${node.id === selectedNodeId ? 'selected' : ''}" data-index="${index}" data-node-id="${escapeHtml(node.id)}">
-      <input type="radio" name="selectedNode" ${node.id === selectedNodeId ? 'checked' : ''} aria-label="选中节点" />
+      <span class="graph-select-cell">
+        <input type="radio" name="selectedNode" ${node.id === selectedNodeId ? 'checked' : ''} aria-label="焦点节点" title="设为焦点" />
+        <input class="node-select" type="checkbox" ${selectedNodeIds.includes(node.id) ? 'checked' : ''} aria-label="加入选择范围" title="加入选择范围（最多 24 个）" />
+      </span>
       <input class="node-label" value="${escapeHtml(node.label)}" aria-label="节点名称" />
       <input class="node-kind" value="${escapeHtml(node.kind)}" aria-label="节点类型" />
       <input class="node-path" value="${escapeHtml(node.path || '')}" aria-label="节点路径" placeholder="src/..." />
@@ -1145,8 +1162,25 @@ function renderGraphEditor() {
   `).join('') : '<div class="graph-empty">暂无连线。新增节点后可描述模块关系。</div>';
 
   for (const row of target.querySelectorAll('.graph-row')) {
+    const checkbox = row.querySelector('.node-select');
+    if (checkbox) checkbox.addEventListener('change', () => {
+      const id = row.dataset.nodeId;
+      if (checkbox.checked) {
+        if (!selectedNodeIds.includes(id) && selectedNodeIds.length >= 24) {
+          checkbox.checked = false;
+          showToast('选择范围最多 24 个节点；请先移除一个再继续');
+          return;
+        }
+        if (!selectedNodeIds.includes(id)) selectedNodeIds.push(id);
+      } else {
+        selectedNodeIds = selectedNodeIds.filter((item) => item !== id);
+      }
+      renderSelectionSummary();
+      publishSelection(selectedNodeIds);
+    });
     row.addEventListener('click', (event) => {
       if (event.target.closest('button')) return;
+      if (event.target.closest('.graph-select-cell')) return;
       if (selectedNodeId === row.dataset.nodeId) return;
       selectedNodeId = row.dataset.nodeId;
       renderGraphEditor();
@@ -1159,6 +1193,18 @@ function renderGraphEditor() {
   for (const button of edgeTarget.querySelectorAll('[data-remove-edge]')) {
     button.addEventListener('click', () => removeEdge(Number(button.dataset.removeEdge)));
   }
+}
+
+function renderSelectionSummary() {
+  const target = $('#selectionSummary');
+  if (!target) return;
+  const labels = selectedNodeIds
+    .map((id) => collabGraph?.nodes.find((node) => node.id === id)?.label || id)
+    .slice(0, 4);
+  target.textContent = selectedNodeIds.length
+    ? `选择范围 · ${selectedNodeIds.length}/24 个节点${labels.length ? `：${labels.join('、')}${selectedNodeIds.length > labels.length ? ` 等 ${selectedNodeIds.length} 个` : ''}` : ''} · 只读上下文，不授权写入`
+    : '选择范围 · 未多选节点；复选框可把「这几个模块」作为只读范围告诉 AI';
+  target.title = '多选范围最多 24 个节点；保存图形、导入会话或节点删除后会自动清除失锚 ID。它不签发批准凭据，也不写项目文件。';
 }
 
 function localId(prefix) {
@@ -1285,10 +1331,81 @@ async function publishFocus(nodeId) {
   }
 }
 
+async function publishSelection(nodeIds) {
+  try {
+    const result = await collabFetch('/api/collab/selection', {
+      method: 'POST',
+      body: JSON.stringify({ nodeIds, confirmedBy: 'human' }),
+    });
+    const sessionIds = Array.isArray(result?.selection?.nodeIds) ? result.selection.nodeIds : [];
+    selectedNodeIds = sessionIds;
+    renderGraphEditor();
+    await loadSelectionScope();
+    return result?.selection ?? null;
+  } catch (error) {
+    showToast(`同步选择范围失败：${error.message}`);
+    return null;
+  }
+}
+
+async function clearSelection() {
+  selectedNodeIds = [];
+  renderGraphEditor();
+  await publishSelection([]);
+}
+
+async function loadSelectionScope() {
+  const scope = await collabFetch('/api/collab/selection-scope');
+  collabSelectionScope = scope;
+  renderSelectionScope(scope);
+  return scope;
+}
+
+function renderSelectionScope(scope) {
+  const summary = $('#selectionScopeSummary');
+  const list = $('#selectionScopeList');
+  if (!summary || !list) return;
+  if (!scope) {
+    summary.textContent = '选择范围上下文 · 不可用；刷新协作会话后重试';
+    list.innerHTML = '<div class="collab-help">选择范围投影尚未加载。</div>';
+    return;
+  }
+  summary.textContent = `选择范围上下文 · rev ${scope.graphRevision} · ${scope.selectedCount}/${scope.limit} 个节点 · ${scope.edges.length}/${scope.totalEdges} 条内部连线 · ${scope.evidence.length}/${scope.totalEvidence} 条安全证据 · 只读`;
+  const nodeHtml = scope.nodes.length
+    ? scope.nodes.slice(0, 8).map((node) => `<p class="signal"><strong>${escapeHtml(node.label)}</strong> · ${escapeHtml(node.nodeId)}${node.path ? ` · ${escapeHtml(node.path)}` : ''}</p>`).join('')
+    : '<p class="signal">尚未多选节点。勾选左侧复选框即可让 AI 读取「这几个模块」。</p>';
+  const edgeHtml = scope.edges.length
+    ? `<p class="signal">内部连线 · ${scope.edges.slice(0, 4).map((edge) => `${escapeHtml(edge.label || edge.kind || edge.id)}`).join('、')}</p>`
+    : '';
+  list.innerHTML = `${nodeHtml}${edgeHtml}<p class="next-action">${escapeHtml(scope.safety?.projectWritesRequireHumanApproval ? '项目写入仍需逐行 diff、人工批准与一次性确认号；本范围不授权写入。' : '安全标记缺失，请勿继续。')}</p>`;
+}
+
+async function copySelectionScope() {
+  try {
+    const scope = collabSelectionScope || await loadSelectionScope();
+    const prompt = [
+      '请调用 get_selection_scope 读取同一份 version 1 SELECTION_SCOPE_JSON；下面是面板已加载的只读选择范围：',
+      scope.copyText,
+      '',
+      `SELECTION_SCOPE_JSON: ${JSON.stringify(scope)}`,
+      '选择范围只是人类注意力上下文；请再用 get_visual_context 读取完整会话，创建提案前先 preflight_visual_proposal。',
+    ].join('\n');
+    await navigator.clipboard.writeText(prompt);
+    showToast('已复制只读选择范围；它不包含确认号或本机绝对路径');
+  } catch {
+    const scope = collabSelectionScope;
+    $('#messageInput').value = scope ? `请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。\n${scope.copyText}` : '请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。';
+    $('#messageInput').focus();
+    showToast('剪贴板不可用，已把选择范围提示放入消息框（尚未发送）');
+  }
+}
+
 async function restoreFocus() {
   try {
     const session = await collabFetch('/api/collab/session');
     const focus = session?.focus;
+    selectedNodeIds = Array.isArray(session?.selection?.nodeIds) ? session.selection.nodeIds.slice(0, 24) : [];
+    renderSelectionSummary();
     if (!focus) {
       selectedNodeId = null;
       renderGraphEditor();
@@ -1307,6 +1424,7 @@ async function restoreFocus() {
     }
     renderGraphEditor();
     renderFocus();
+    renderSelectionSummary();
     await renderNodeContext();
   } catch (error) {
     showToast(`读取焦点失败：${error.message}`);
@@ -1318,6 +1436,7 @@ function addNode() {
   const id = localId('node');
   collabGraph.nodes.push({ id, label: '新节点', kind: 'module', path: 'src/new-module', group: 'human' });
   selectedNodeId = id;
+  selectedNodeIds = [];
   renderGraphEditor();
   $('#graphEditor').scrollTop = $('#graphEditor').scrollHeight;
 }
@@ -1330,6 +1449,7 @@ function removeNode(index) {
   collabGraph.annotations = collabGraph.annotations.map((annotation) =>
     annotation.nodeId === node.id ? { ...annotation, anchorStatus: 'detached' } : annotation);
   if (selectedNodeId === node.id) selectedNodeId = null;
+  selectedNodeIds = selectedNodeIds.filter((item) => item !== node.id);
   renderGraphEditor();
 }
 
@@ -1710,6 +1830,7 @@ async function loadCollab() {
     collabWorkspaceRoot = session.workspaceRoot;
     $('#collabMeta').textContent = `session ${session.id} · revision ${session.graphRevision} · ${session.workspaceRoot}`;
     collabViewport = session.viewport || null;
+    selectedNodeIds = Array.isArray(session.selection?.nodeIds) ? session.selection.nodeIds.slice(0, 24) : [];
     renderViewport(collabViewport);
     renderGraphEditor();
     restoreFocus();
@@ -1748,6 +1869,7 @@ async function loadCollab() {
     const capabilities = await collabFetch('/api/collab/capabilities');
     collabCapabilities = capabilities;
     renderCapabilities(capabilities);
+    await loadSelectionScope();
     await renderNodeContext();
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
@@ -1769,13 +1891,14 @@ function buildAiContextPrompt() {
     `- workspace: ${collabWorkspaceRoot || '未加载'}`,
     `- graphRevision: ${collabRevision}`,
     `- focus: ${focus ? `${focus.nodeLabel} (${focus.nodeId})${focus.nodePath ? ` · ${focus.nodePath}` : ''}` : '未选中节点'}`,
+    `- selection: ${collabSelectionScope ? `${collabSelectionScope.selectedCount}/${collabSelectionScope.limit} 个节点 · ${collabSelectionScope.source} · 只读` : '未加载'}`,
     `- graphDiffs: ${collabGraphDiffs.length} 个最近修订${latestDiff ? `，最新 rev ${latestDiff.fromRevision} → ${latestDiff.toRevision}` : ''}`,
     `- latestGraphDiff: ${latestDiff ? `${latestDiff.items.length} 项变化${latestDiffFields.length ? `：${latestDiffFields.slice(0, 8).join('；')}${latestDiffFields.length > 8 ? `；另有 ${latestDiffFields.length - 8} 项见 graphDiffs` : ''}` : '无字段级变化'}` : '无'}`,
     `- nextActor: ${collabDiagnostics?.activity?.nextActor || 'unknown'}`,
     `- signals: ${signals.length ? signals.map((signal) => signal.code).join(', ') : 'none'}`,
     `- nextActions: ${nextActions.length ? nextActions.join(' / ') : 'none'}`,
     '',
-    '请先阅读 annotationThreads.nextActor、staleThreads、focus、graphDiffs、activityTimeline 与 diagnostics；失锚讨论不要当成当前意图。',
+    '请先阅读 annotationThreads.nextActor、staleThreads、focus、selectionScope、graphDiffs、activityTimeline 与 diagnostics；失锚讨论不要当成当前意图。',
     '上面的 latestGraphDiff 只摘要最近一次图修订；请以 get_visual_context.graphDiffs.items 的完整字段值为准，不要把它当成项目写入许可。',
     '如需改动项目，先 preflight_visual_proposal，再 create_visual_proposal；等我查看逐行 diff、批准并提供一次性确认号后才可 apply_visual_proposal。',
     '本提示只是上下文，不签发批准凭据，也不授权项目写入。',
@@ -1926,6 +2049,8 @@ async function saveGraph() {
       body: JSON.stringify(collabGraph),
     });
     collabRevision = result.graphRevision;
+    const selection = await publishSelection(selectedNodeIds);
+    selectedNodeIds = Array.isArray(selection?.nodeIds) ? selection.nodeIds : [];
     showToast(`图形已保存 · revision ${collabRevision}`);
     await loadCollab();
   } catch (error) {
@@ -2053,6 +2178,7 @@ async function importSession(event) {
       body: JSON.stringify({ bundle, confirmedBy: 'human' }),
     });
     showToast(`会话已导入 · revision ${result.graphRevision}`);
+    selectedNodeIds = [];
     await loadCollab();
   } catch (error) {
     showToast(`导入失败：${error.message}`);
@@ -2068,6 +2194,8 @@ $('#btnSaveGraph').addEventListener('click', saveGraph);
 $('#btnUndoGraph').addEventListener('click', () => restoreGraphHistory('undo'));
 $('#btnRedoGraph').addEventListener('click', () => restoreGraphHistory('redo'));
 $('#btnRescan').addEventListener('click', rescanProject);
+$('#btnClearSelection').addEventListener('click', clearSelection);
+$('#btnCopySelectionScope').addEventListener('click', copySelectionScope);
 $('#btnAddNode').addEventListener('click', addNode);
 $('#btnAddEdge').addEventListener('click', addEdge);
 $('#btnExportSession').addEventListener('click', exportSession);

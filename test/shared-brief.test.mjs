@@ -56,6 +56,13 @@ const snapshot = {
     updatedAt: "2026-11-06T00:09:00.000Z",
     source: "human",
   },
+  selection: {
+    version: 1,
+    nodeIds: ["readme", "service"],
+    graphRevision: 4,
+    updatedAt: "2026-11-06T00:09:10.000Z",
+    source: "human",
+  },
   graphDiffs: [{
     version: 1,
     fromRevision: 3,
@@ -95,6 +102,7 @@ describe("read-only shared brief", () => {
     const brief = buildSharedBrief(snapshot);
     expect(brief).toMatchObject({ version: 1, sessionId: "session_brief", graphRevision: 4 });
     expect(brief.focus).toMatchObject({ nodeId: "readme", source: "human" });
+    expect(brief.selection).toMatchObject({ selectedCount: 2, source: "human", readOnly: true });
     expect(brief.status.graph).toMatchObject({ nodes: 2, edges: 1, staleAnnotations: 1 });
     expect(brief.status.sourceEvidence).toEqual({ nodes: 1, items: 1 });
     expect(brief.status.graphHistory).toEqual({ undo: 1, redo: 0 });

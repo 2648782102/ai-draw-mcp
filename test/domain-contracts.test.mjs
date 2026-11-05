@@ -159,12 +159,14 @@ describe("session bundle contract", () => {
         excludesApprovalGrants: true,
         excludesGraphHistory: true,
         excludesViewport: true,
+        excludesSelection: true,
         projectWritesRequireHumanApproval: true,
       },
     });
     expect(manifest.contents.graph).toMatchObject({ included: true, nodes: 1, edges: 0, annotations: 1, replies: 1, sourceEvidence: 0 });
     expect(manifest.contents.proposals).toMatchObject({ included: true, count: 1, approvedStateDowngraded: 1 });
-    expect(manifest.excluded.map((item) => item.field)).toEqual(expect.arrayContaining(["approvalId", "approvalGrant", "approvalExpiresAt", "graphHistory", "viewport"]));
+    expect(manifest.excluded.map((item) => item.field)).toEqual(expect.arrayContaining(["approvalId", "approvalGrant", "approvalExpiresAt", "graphHistory", "viewport", "selection"]));
+    expect(manifest.contents.selection).toEqual({ included: false, count: 0 });
     expect(JSON.stringify(manifest)).not.toContain("grantHash");
     expect(Object.keys(manifest.excluded.find((item) => item.field === "approvalGrant") ?? {})).toEqual(["field", "reason"]);
     expect(buildExportManifest(bundle)).toEqual(manifest);

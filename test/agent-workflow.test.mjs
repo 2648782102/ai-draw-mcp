@@ -19,6 +19,13 @@ const snapshot = {
     updatedAt: "2026-11-06T00:02:00.000Z",
     source: "human",
   },
+  selection: {
+    version: 1,
+    nodeIds: ["readme"],
+    graphRevision: 4,
+    updatedAt: "2026-11-06T00:02:00.000Z",
+    source: "human",
+  },
   graph: {
     version: 1,
     diagramId: "diagram_workflow",
@@ -62,6 +69,8 @@ describe("agent workflow contract", () => {
       proposals: { pending: 1, approved: 0 },
     });
     expect(workflow.focus).toMatchObject({ nodeId: "readme", nodePath: "README.md" });
+    expect(workflow.selection).toMatchObject({ nodeCount: 1, readOnly: true, source: "human" });
+    expect(workflow.steps.find((step) => step.id === "visual_context").input).toContain("selectionScope");
     expect(workflow.reviewReadiness).toMatchObject({ version: 1, readOnly: true, grantsWriteAuthority: false });
     expect(["ready", "review", "blocked"]).toContain(workflow.reviewReadiness.status);
     expect(workflow.blocked.join(" ")).toContain("stale annotation thread");

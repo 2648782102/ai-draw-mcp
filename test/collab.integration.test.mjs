@@ -118,6 +118,45 @@ describe("collaboration session", () => {
       });
       expect(unauthorizedFocus.status).toBe(403);
 
+      const selectionResponse = await fetch(`${base}/api/collab/selection`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ nodeIds: ["root", "new_module", "root"], confirmedBy: "human" }),
+      });
+      expect(selectionResponse.ok).toBe(true);
+      expect((await selectionResponse.json()).selection).toMatchObject({
+        version: 1,
+        nodeIds: ["root", "new_module"],
+        graphRevision: expandedSnapshot.graphRevision,
+        source: "human",
+      });
+      const selectionScope = await fetch(`${base}/api/collab/selection-scope?evidenceLimit=3&edgeLimit=4`, { headers })
+        .then((response) => response.json());
+      expect(selectionScope).toMatchObject({ version: 1, readOnly: true, selectedCount: 2, source: "human", limit: 24 });
+      expect(selectionScope.safety).toMatchObject({ grantsWriteAuthority: false, projectWritesRequireHumanApproval: true });
+      const unauthorizedSelection = await fetch(`${base}/api/collab/selection`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ nodeIds: ["root"], confirmedBy: "ai" }),
+      });
+      expect(unauthorizedSelection.status).toBe(403);
+      const invalidSelection = await fetch(`${base}/api/collab/selection`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ nodeIds: ["missing"], confirmedBy: "human" }),
+      });
+      expect(invalidSelection.status).toBe(400);
+      const unauthenticatedSelection = await fetch(`${base}/api/collab/selection`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nodeIds: [], confirmedBy: "human" }),
+      });
+      expect(unauthenticatedSelection.status).toBe(401);
+      const selectionState = sessions.getSnapshot();
+      expect(selectionState.graphRevision).toBe(expandedSnapshot.graphRevision);
+      expect(selectionState.messages).toEqual(expandedSnapshot.messages);
+      expect(selectionState.graphDiffs).toEqual(expandedSnapshot.graphDiffs);
+
       const viewportBefore = sessions.getSnapshot();
       const viewportResponse = await fetch(`${base}/api/collab/viewport`, {
         method: "POST",
@@ -144,6 +183,7 @@ describe("collaboration session", () => {
       expect(viewportAfter.viewport).toMatchObject({ scale: 1.5, x: -12.5, y: 33.25 });
       const briefWithViewport = await fetch(`${base}/api/collab/brief`, { headers }).then((response) => response.json());
       expect(briefWithViewport.viewport).toMatchObject({ scale: 1.5, source: "human" });
+      expect(briefWithViewport.selection).toMatchObject({ selectedCount: 2, source: "human", readOnly: true });
       const unauthorizedViewport = await fetch(`${base}/api/collab/viewport`, {
         method: "POST",
         headers,
@@ -402,7 +442,7 @@ describe("collaboration session", () => {
       const capabilitiesResponse = await fetch(`${base}/api/collab/capabilities`, { headers });
       expect(capabilitiesResponse.ok).toBe(true);
       const capabilities = await capabilitiesResponse.json();
-      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 24 });
+      expect(capabilities).toMatchObject({ version: 1, readOnly: true, toolCount: 25 });
       expect(capabilities.tools.filter((tool) => tool.writes === "project").map((tool) => tool.name)).toEqual(["apply_visual_proposal"]);
       expect(capabilities.workflow).toMatchObject({ version: 1, steps: 8, projectWriteTool: "apply_visual_proposal" });
       expect(JSON.stringify(capabilities)).not.toContain("approvalGrant");

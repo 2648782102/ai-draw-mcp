@@ -120,12 +120,24 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 
 结论：交付 `CAPABILITIES_JSON` 作为版本化、可复制、无副作用的应用层发现视图；原生 `tools/list` 仍是 schema 权威，`get_agent_workflow` 仍是顺序契约，人工批准与一次性确认号仍是唯一项目写入路径。
 
+### 多选范围与可视化意图调研（2026-11-06 07:10 CST）
+
+本轮核对交互式画布、代码地图与 MCP UI 的公开主张，重点区分「选择作为上下文」与「选择作为授权」。VS Code / Cursor 等 IDE 习惯把选区交给语言工具作为范围提示；[MCP Apps 官方扩展公告](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/) 强调交互式 UI 可把人的实时选择带入模型上下文；[Figma 多选与评论文档](https://help.figma.com/hc/en-us/articles/360041068574-Add-comments-to-files) 与 [tldraw collaboration 文档](https://tldraw.dev/docs/collaboration) 展示了多人画布中对象选择与讨论 anchored 到对象的产品价值；[MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) 则明确要求用户同意与短期、一次性状态，并禁止令牌透传。产品结论是：多选适合表达「这几个模块」，但绝不应当成为批量写入授权，也不能把批准凭据、绝对路径或无限对象集合带入上下文。
+
+| 来源 | 已核对的公开主张 | 对 AI Draw MCP 的启示 | 安全边界 |
+|---|---|---|---|
+| MCP Apps 官方扩展公告 | 交互式 UI 可把用户选择实时带入模型上下文 | 面板复选框比自然语言「这几个」更精确，适合生成机器可读范围 | 选择只作上下文，不调用工具、不写文件、不签发凭据 |
+| Figma / tldraw 公开文档 | 对象选择与对象锚定讨论是可视化协作常见交互 | 多选节点、内部连线与批注/焦点应在同一视图里收束 | 只投影当前图仍存在的节点；失锚 ID 必须被清除 |
+| MCP Security Best Practices | 敏感操作需明确同意、短期一次性状态，禁止令牌透传 | 批量范围必须严格有界，批准仍绑定具体逐行 diff 与一次性确认号 | 最多 24 个唯一节点；过滤绝对路径/目录穿越/受保护路径；不扩大提案允许路径 |
+
+结论：`SELECTION_SCOPE_JSON` 只做 version 1、应用层、只读选择范围投影；`tools/list` 仍是工具 schema 权威，`apply_visual_proposal` 仍是唯一项目写入路径，`SessionSelection` 像 `SessionViewport` 一样属于本机 ephemeral attention，不进入可移植会话 bundle。
+
 ### 对 0.4 / 0.5 的建议与优先级
 
 | 阶段 | 优先级 | 建议 | 完成定义 |
 |---|---|---|---|
 | 0.4 | P0 | 保存人工布局与视口；重新扫描采用「保留已有布局 + 新增节点增量排布」策略；补图形编辑撤销/重做 | 布局保持、视口状态与视觉撤销栈已经交付：图修订不会无故移动既有节点；有界 `SessionViewport` 只读告诉 AI 人正在看哪片图，且不进入图修订/时间线/bundle；undo/redo 恢复视觉图并生成新 `graphRevision` / `graphDiffs`，纯函数/MCP/HTTP 测试覆盖 ID 稳定、坐标/标签/批注/焦点保留、人类确认、bundle 不含历史及项目文件不变；撤销不回退已批准的项目写入 |
-| 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 基础版已交付：24 个工具中的 `get_capabilities` 提供入口目录，`get_agent_workflow` 与 CI 只读示例覆盖 `CAPABILITIES_JSON` → `WORKFLOW_JSON` → `BRIEF_JSON` → `DECISION_TRAIL_JSON` → `SOURCE_NAVIGATION_JSON` → `changes` → preflight → 停止；`get_node_context` 可进一步收窄焦点节点上下文；提案人批准与 apply 由 `examples/collab-demo.mjs` 覆盖，且中间产物不含确认号；诊断信号联动仍待做 |
+| 0.4 | P0 | 把只读变更模板、预检、提案创建做成可复现的 agent 工作流示例，并在诊断里提示缺失步骤 | 基础版已交付：25 个工具中的 `get_capabilities` 提供入口目录，`get_agent_workflow` 与 CI 只读示例覆盖 `CAPABILITIES_JSON` → `WORKFLOW_JSON` → `BRIEF_JSON` → `DECISION_TRAIL_JSON` → `SOURCE_NAVIGATION_JSON` → `changes` → preflight → 停止；`get_node_context` 可进一步收窄焦点节点上下文；提案人批准与 apply 由 `examples/collab-demo.mjs` 覆盖，且中间产物不含确认号；诊断信号联动仍待做 |
 | 0.4 | P1 | 把「下一步是否适合进入提案」做成小而确定的派生信号，避免 coding agent 自行拼接多个上下文视图 | 基础版已交付：`REVIEW_READINESS_JSON` 从同一快照组合 `BRIEF_JSON` 阻塞与 `DECISION_TRAIL_JSON` 缺口，返回 `ready` / `review` / `blocked`；诊断、面板和 CI 工作流示例共用同一只读投影，`ready` 也不跳过完整逐行 diff 与人工批准，详见 [ADR 0015](ADR/0015-review-readiness-is-a-derived-diagnostic.md) |
 | 0.4 | P1 | 引入机器可读 `focus` / 选中状态，并让批注、诊断、节点上下文和下一棒提示引用同一对象 | 基础版已交付：`focus` 与 `NODE_CONTEXT_JSON` 让 AI 识别「人正在指哪个节点」并读取该节点证据/批注/连线/差异；焦点与单节点上下文不签发凭据、不自动解决线程 |
 | 0.4 | P2 | bundle 增加可读摘要与可复现导出清单；发布前用 `repo:check` / `docs:assets:check` 守住文案和资产一致性 | 基础版已交付：bundle 严格校验有限坐标、`graphDiffs`、`focus` 与 `sourceEvidence`，输出可读 JSON；version 1 `EXPORT_MANIFEST_JSON` 派生资产计数、建议文件名、排除字段与安全标记，下载时作为 `exportManifest` 附档；导入仍要求人类确认且清除批准凭据。稳定 SVG 摘要/导入后只读审阅模式仍待做 |

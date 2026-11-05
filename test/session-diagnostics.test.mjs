@@ -62,6 +62,13 @@ const snapshot = {
     }],
     future: [],
   },
+  selection: {
+    version: 1,
+    nodeIds: ["readme"],
+    graphRevision: 4,
+    updatedAt: "2026-11-06T00:04:45.000Z",
+    source: "human",
+  },
   messages: [{
     id: "msg_pending",
     sessionId: "session_diagnostics",
@@ -107,6 +114,7 @@ describe("session diagnostics", () => {
     expect(diagnostics.graph).toMatchObject({ nodes: 1, annotations: 1, staleAnnotations: 1 });
     expect(diagnostics.graphHistory).toEqual({ undo: 1, redo: 0 });
     expect(diagnostics.focus).toMatchObject({ nodeId: "readme", nodeLabel: "README.md" });
+    expect(diagnostics.selection).toMatchObject({ nodeCount: 1, graphRevision: 4, source: "human", readOnly: true });
     expect(diagnostics.conversations.pendingMessages).toBe(1);
     expect(diagnostics.proposals).toMatchObject({ pending: 1, failed: 1 });
     expect(diagnostics.safety).toMatchObject({

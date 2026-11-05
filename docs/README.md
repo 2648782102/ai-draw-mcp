@@ -25,6 +25,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0015-review-readiness-is-a-derived-diagnostic.md](ADR/0015-review-readiness-is-a-derived-diagnostic.md) | AI agents, reviewers | Why review readiness combines brief blockers and trail gaps without becoming approval or a second state machine |
 | [ADR/0016-source-navigation-is-copyable-context.md](ADR/0016-source-navigation-is-copyable-context.md) | AI agents, reviewers | Why source navigation stays relative, copyable, read-only, and free of editor side effects |
 | [ADR/0017-capability-catalogue-is-read-only-discovery.md](ADR/0017-capability-catalogue-is-read-only-discovery.md) | AI agents, reviewers | Why capability discovery is a derived, read-only application contract complementary to MCP `tools/list` |
+| [ADR/0018-human-selection-is-read-only-scope.md](ADR/0018-human-selection-is-read-only-scope.md) | AI agents, reviewers | Why bounded multi-node selection is ephemeral, read-only attention context and never a write grant |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
@@ -57,6 +58,8 @@ Review readiness is documented in [ADR 0015](ADR/0015-review-readiness-is-a-deri
 Source navigation is documented in [ADR 0016](ADR/0016-source-navigation-is-copyable-context.md): bounded workspace-relative `file:line` hints are derived from scanner evidence for copying into an editor, while the server never opens files, launches an IDE, executes commands, or grants writes.
 
 Capability discovery is documented in [ADR 0017](ADR/0017-capability-catalogue-is-read-only-discovery.md): `CAPABILITIES_JSON` gives new agents a versioned, bounded map of tools, JSON markers, workflow readiness, and the unique receipt-gated project-write boundary, without invoking tools or granting writes.
+
+Human multi-node selection is documented in [ADR 0018](ADR/0018-human-selection-is-read-only-scope.md): `SELECTION_SCOPE_JSON` gives agents a bounded map of "these modules" while keeping selection out of portable bundles and outside the approval path.
 
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 

@@ -1,6 +1,7 @@
 import { summarizeAnnotationThreads } from "./annotation-thread.js";
 import { buildReviewReadiness } from "./review-readiness.js";
 import type { AgentWorkflow, SessionSnapshot, WorkflowStep } from "./types.js";
+import { buildSelectionScope } from "./selection.js";
 
 export function buildAgentWorkflow(snapshot: SessionSnapshot): AgentWorkflow {
   const annotations = snapshot.graph?.annotations ?? [];
@@ -14,6 +15,7 @@ export function buildAgentWorkflow(snapshot: SessionSnapshot): AgentWorkflow {
   const replyActor = nextActor === "human" ? "human" : "ai";
   const replyUsesTool = replyActor === "ai";
   const reviewReadiness = buildReviewReadiness(snapshot);
+  const selectionScope = buildSelectionScope(snapshot, { evidenceLimit: 1, edgeLimit: 1 });
   const blocked: string[] = [];
   if (!snapshot.graph) blocked.push("No VisualGraph is available; ask the AI to call scan_project first.");
   if (staleAnnotations > 0) blocked.push(`${staleAnnotations} stale annotation thread(s) require human review or re-anchoring before they become current intent.`);
@@ -26,7 +28,7 @@ export function buildAgentWorkflow(snapshot: SessionSnapshot): AgentWorkflow {
       id: "visual_context",
       actor: "ai",
       tool: "get_visual_context",
-      input: ["get_agent_workflow WORKFLOW_JSON", "current SessionSnapshot", "graphDiffs", "sourceEvidence", "annotationThreads", "focus", "activityTimeline", "REVIEW_READINESS_JSON"],
+      input: ["get_agent_workflow WORKFLOW_JSON", "current SessionSnapshot", "graphDiffs", "sourceEvidence", "annotationThreads", "focus", "selectionScope", "activityTimeline", "REVIEW_READINESS_JSON"],
       output: ["CONTEXT_JSON", "BRIEF_JSON", "NODE_CONTEXT_JSON", "DECISION_TRAIL_JSON", "REVIEW_READINESS_JSON", "intentSummary", "nextActor", "sourceEvidence", "diagnostics"],
       requires: ["A collaboration session exists in OUTPUT_DIR/.ai-draw/session.json", "The AI has read this workflow contract"],
       produces: ["readable human intent"],
@@ -153,6 +155,11 @@ export function buildAgentWorkflow(snapshot: SessionSnapshot): AgentWorkflow {
       nodeId: snapshot.focus.nodeId,
       nodeLabel: snapshot.focus.nodeLabel,
       nodePath: snapshot.focus.nodePath,
+    } : undefined,
+    selection: selectionScope.selectedCount > 0 ? {
+      nodeCount: selectionScope.selectedCount,
+      readOnly: true,
+      source: "human",
     } : undefined,
     graph: snapshot.graph ? {
       nodes: snapshot.graph.nodes.length,
