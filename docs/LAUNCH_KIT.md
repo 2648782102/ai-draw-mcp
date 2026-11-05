@@ -33,6 +33,8 @@ npm run github:sync
 
 The versioned tag workflow now creates the GitHub Release automatically after verification. It uses the built-in `GITHUB_TOKEN` in a dedicated `contents: write` job, derives the body from the matching `CHANGELOG.md` section, checks for an existing Release by tag first, and never publishes to npm. The local `--release` path remains a maintainer fallback; do not use it after a tag workflow has already created the Release.
 
+Verified outcome for `v0.3.2`: Release [v0.3.2 — Human ↔ AI visual collaboration](https://github.com/2648782102/ai-draw-mcp/releases/tag/v0.3.2) is published, Release workflow run [42124996768](https://github.com/2648782102/ai-draw-mcp/actions/runs/42124996768) is green, and CI run [42124987808](https://github.com/2648782102/ai-draw-mcp/actions/runs/42124987808) is green. GitHub About/topics still require the administration-capable secret described above; the read-only metadata drift check is recorded in [`GOVERNANCE.md`](GOVERNANCE.md).
+
 **Maintain GitHub metadata** runs its read-only drift check on every master/main push and on manual dispatch. Set repository secret `GH_TOKEN` to a fine-grained token with `Administration: read and write` and push a metadata-relevant file to apply the versioned copy automatically; a manual `dry_run=false` dispatch also applies it, while `dry_run=true` only reports drift. Without the secret, the check may report drift but does not make CI red. The default `GITHUB_TOKEN` cannot change repository description or topics because those endpoints require repository administration permissions.
 
 ## Release notes — 0.3.2

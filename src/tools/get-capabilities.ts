@@ -1,8 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { buildCapabilities } from "../domain/capabilities.js";
-import { errorResult, jsonLine, type ToolContext } from "./_shared.js";
-import { SERVER_VERSION } from "../infra/version.js";
+import { errorResult, jsonLine, SERVER_VERSION, type ToolContext } from "./_shared.js";
 
 export function registerGetCapabilities(server: McpServer, ctx: ToolContext) {
   server.tool(

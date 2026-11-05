@@ -17,6 +17,7 @@
 import { renderMermaidToSvg, renderMermaidToPng, saveSvg, wrapSvg, svgToPng } from "../infra/renderer.js";
 import { openPanelInIDE } from "../infra/ide-opener.js";
 import { logger } from "../infra/logger.js";
+import { SERVER_VERSION } from "../infra/version.js";
 import type { DiagramStore } from "../infra/store.js";
 import type { PreviewServer } from "../infra/preview-server.js";
 import type { SessionStore } from "../infra/session-store.js";
@@ -26,6 +27,7 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 // ─── Re-export infra types tools may need ─────────────────────────────────────
 export type { DiagramType, MermaidTheme, OutputFormat };
+export { SERVER_VERSION };
 
 // ─── ToolContext ──────────────────────────────────────────────────────────────
 

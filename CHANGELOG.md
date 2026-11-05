@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Maintenance
+
+- 记录 `v0.3.2` 发布后的公开验证证据：CI #65、Release #2 与 GitHub Release 页面均已上线；仓库 About/topics 仍因缺少管理权限令牌而保持版本化漂移记录。
+- 将 `SERVER_VERSION` 从 `tools/_shared.ts` 统一导出，保持工具文件只经共享层访问基础设施的约定。
+
 ## [0.3.2] - 2026-11-06
 
 ### Added
