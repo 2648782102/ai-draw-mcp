@@ -51,6 +51,7 @@
 | [docs/README.md](docs/README.md) | 文档地图：按读者与用途查找全部资料 |
 | [ROADMAP.md](ROADMAP.md) | 产品方向、阶段目标与明确的非目标 |
 | [docs/COMPETITIVE_RESEARCH.md](docs/COMPETITIVE_RESEARCH.md) | Mermaid/白板/MCP 同类产品调研与定位 |
+| [docs/DEPENDENCY_MAINTENANCE.md](docs/DEPENDENCY_MAINTENANCE.md) | 依赖升级与 CI 维护策略 |
 | [docs/LAUNCH_KIT.md](docs/LAUNCH_KIT.md) | GitHub About、Release notes、Show HN 与社区宣发模板 |
 | [AGENTS.md](AGENTS.md) | AI coding agent 操作手册 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 开发、验证与 PR 约定 |

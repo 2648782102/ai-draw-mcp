@@ -58,6 +58,7 @@ scripts/repo-check.mjs        离线一致性检查：发布文案、文档链�
 docs/ARCHITECTURE.md          架构、协议、安全模型
 docs/README.md                文档地图
 docs/COMPETITIVE_RESEARCH.md  同类产品调研与定位
+docs/DEPENDENCY_MAINTENANCE.md 依赖升级、CI 验证与重大版本决策记录
 docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
 ROADMAP.md                   产品路线图与非目标
 ```

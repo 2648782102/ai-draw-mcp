@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - 面板「导出会话 / 导入会话」按钮，方便把可复现会话附到 Issue、示例或回归报告。
 - `GET /api/collab/bundle` 与 `POST /api/collab/bundle/import`：导出只读快照；导入需要人类确认，清除一次性批准凭据，不写项目文件。
 - `.github/workflows/maintain-github-metadata.yml`：手动触发的 GitHub description/homepage/topics 漂移检查与同步流程。
+- `docs/DEPENDENCY_MAINTENANCE.md`：Dependabot 验证顺序、重大版本升级决策记录与 Chrome sandbox 环境说明。
 - `npm run github:check` / `npm run github:sync`，把开源元数据维护纳入本地验证与发布流程。
 - 协作面板支持新增/删除节点、编辑与删除连线、选中节点后绑定批注，让人可以直接改「项目结构」而不只改文字。
 - `VisualGraph` 服务端校验补齐节点/连线/批注 ID、字段完整性与引用完整性，拒绝损坏的图形状态。
