@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `.github/workflows/release.yml` 增加标签验证后的独立 Release 发布作业：使用内置 `GITHUB_TOKEN` 的 `contents: write` 权限，从匹配版本号的 `CHANGELOG.md` 小节生成 Release 正文；先按 tag 查询已有 Release，保证重复运行幂等；并发互斥，npm 发布仍保留人工批准门槛。
+- `RELEASING.md`、`docs/GOVERNANCE.md`、`docs/LAUNCH_KIT.md`、`AGENTS.md` 与 `scripts/repo-check.mjs` 同步记录自动发布边界、CI 证据与离线防漂移检查；维护者本地 `--release` 路径保留为后备工具，不改写 `v0.3.1` 标签。
+
 ## [0.3.1] - 2026-11-06
 
 ### Added

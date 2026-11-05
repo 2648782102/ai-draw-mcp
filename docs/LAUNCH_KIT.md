@@ -31,6 +31,8 @@ npm run github:sync
 
 `scripts/github-maintenance.mjs` also supports `--check` (read-only drift report) and can create a GitHub Release with `--release v0.3.1` if `CHANGELOG.md` has a matching section.
 
+The versioned tag workflow now creates the GitHub Release automatically after verification. It uses the built-in `GITHUB_TOKEN` in a dedicated `contents: write` job, derives the body from the matching `CHANGELOG.md` section, checks for an existing Release by tag first, and never publishes to npm. The local `--release` path remains a maintainer fallback; do not use it after a tag workflow has already created the Release.
+
 **Maintain GitHub metadata** runs its read-only drift check on every master/main push and on manual dispatch. Set repository secret `GH_TOKEN` to a fine-grained token with `Administration: read and write` and push a metadata-relevant file to apply the versioned copy automatically; a manual `dry_run=false` dispatch also applies it, while `dry_run=true` only reports drift. Without the secret, the check may report drift but does not make CI red. The default `GITHUB_TOKEN` cannot change repository description or topics because those endpoints require repository administration permissions.
 
 ## Release notes — 0.3.1
@@ -111,6 +113,7 @@ AI Draw MCP 0.3 已开源，本地运行、MIT、无需账号。欢迎来拍砖�
 - [ ] `npm run doctor` passes with the same Chrome setup users will have.
 - [ ] GitHub description, homepage, and topics match `scripts/github-maintenance.mjs`.
 - [ ] Release notes created from the CHANGELOG section.
+- [ ] Verified tag workflow published exactly one GitHub Release; npm publishing still awaits human approval.
 - [ ] ADR index, governance checklist, and feedback Issue #8 reviewed for the same release.
 - [ ] Discussion/Issue pinned for feedback; response window stated publicly.
 - [ ] Links use the repository URL, not a personal cache or temporary screenshot host.

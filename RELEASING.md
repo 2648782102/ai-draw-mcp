@@ -15,10 +15,11 @@ Releases are made from `master` only. Do not publish from a local machine.
 
 ## Release steps
 
-1. Create a GitHub Release with tag `vX.Y.Z` targeting `master`.
+1. Push the versioned `vX.Y.Z` tag from `master`.
 2. The tag workflow in `.github/workflows/release.yml` runs `npm ci`, checks, tests, builds, and `npm pack --dry-run`.
-3. After human approval, publish to npm using the repository's configured release environment and npm provenance.
-4. Verify `npx ai-draw-mcp` starts, `npm run doctor` passes, and the CHANGELOG version matches the published package.
+3. After verification succeeds, a separate workflow job uses the built-in `GITHUB_TOKEN` to create a GitHub Release from the matching `CHANGELOG.md` section. It checks `getReleaseByTag` first, so re-running a tag workflow never creates a duplicate Release.
+4. After human approval, publish to npm using the repository's configured release environment and npm provenance. npm publishing is not automated by the tag workflow.
+5. Verify `npx ai-draw-mcp` starts, `npm run doctor` passes, and the CHANGELOG version matches the published package.
 
 ## Rollback
 

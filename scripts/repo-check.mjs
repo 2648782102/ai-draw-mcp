@@ -96,6 +96,7 @@ const research = await read("docs/COMPETITIVE_RESEARCH.md");
 const englishReadme = englishQuickstart;
 const ci = await read(".github/workflows/ci.yml");
 const metadataWorkflow = await read(".github/workflows/maintain-github-metadata.yml");
+const releaseWorkflow = await read(".github/workflows/release.yml");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -595,6 +596,17 @@ check(lockfile.packages?.[""]?.version === packageJson.version, "package-lock.js
 check(readme.includes("当前版本 `0.3.1` 共 23 个工具"), "README.md does not reflect version 0.3.1 and 23 tools");
 check(readme.includes("| `get_source_navigation` |"), "README.md tool table is missing get_source_navigation");
 check(launchKit.includes("Release notes — 0.3.1"), "docs/LAUNCH_KIT.md release notes are not aligned to 0.3.1");
+check(releaseWorkflow.includes("workflow_dispatch:"), "release workflow does not support manual tag verification");
+check(releaseWorkflow.includes("contents: write"), "release workflow cannot create a GitHub Release");
+check(releaseWorkflow.includes("getReleaseByTag"), "release workflow does not check for an existing Release by tag");
+check(releaseWorkflow.includes("createRelease"), "release workflow does not create a GitHub Release");
+check(releaseWorkflow.includes("concurrency:"), "release workflow is missing concurrency protection");
+check(releaseWorkflow.includes("CHANGELOG.md"), "release workflow does not derive notes from CHANGELOG.md");
+check(releasing.includes("getReleaseByTag"), "RELEASING.md does not document the idempotent Release check");
+check(governance.includes("42121600753"), "GOVERNANCE.md is missing the 0.3.1 release-boundary CI evidence");
+check(governance.includes("42121608391"), "GOVERNANCE.md is missing the 0.3.1 tag-verification evidence");
+check(launchKit.includes("tag workflow now creates"), "LAUNCH_KIT.md does not document automatic Release creation");
+check(agents.includes("release.yml"), "AGENTS.md does not document the versioned tag Release workflow");
 check(packageJson.scripts?.["github:check"] === "node scripts/github-maintenance.mjs --check", "github:check script is missing");
 check(packageJson.scripts?.["github:sync"] === "node scripts/github-maintenance.mjs", "github:sync script is missing");
 check(metadataWorkflow.includes("branches: [master, main]"), "metadata workflow does not converge on master/main pushes");

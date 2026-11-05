@@ -3,13 +3,19 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,3 +32,55 @@ jobs:
       - run: npm run test:examples
       - run: npm run doctor
       - run: npm pack --dry-run
+
+  publish:
+    needs: verify
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish an idempotent GitHub Release from CHANGELOG
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs');
+            const tag = context.ref.replace('refs/tags/', '');
+            const version = tag.replace(/^v/, '');
+            if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
+              core.setFailed(`Unsupported release tag: ${tag}`);
+              return;
+            }
+            const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+            const heading = `## [${version}]`;
+            const start = changelog.indexOf(heading);
+            if (start < 0) {
+              core.setFailed(`CHANGELOG.md has no ${heading} section`);
+              return;
+            }
+            const next = changelog.indexOf('\n## [', start + heading.length);
+            const body = changelog.slice(start, next < 0 ? undefined : next).trim();
+            const release = {
+              tag_name: tag,
+              name: `${tag} — Human ↔ AI visual collaboration`,
+              body: `${body}\n\nFull documentation: https://github.com/${context.repo.owner}/${context.repo.repo}#readme`,
+              draft: false,
+              prerelease: version.includes('-'),
+            };
+            try {
+              const existing = await github.rest.repos.getReleaseByTag({
+                ...context.repo,
+                tag,
+              });
+              core.info(`Release ${tag} already exists: ${existing.data.html_url}`);
+              return;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            const created = await github.rest.repos.createRelease({
+              ...context.repo,
+              ...release,
+            });
+            core.info(`Created release ${created.data.html_url}`);
