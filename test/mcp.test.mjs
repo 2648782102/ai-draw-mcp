@@ -63,4 +63,18 @@ describe("MCP server", () => {
       expect(textOf(deleted)).toContain("已删除");
     });
   }, 30_000);
+
+  it("returns node-linked visual intent for AI agents", async () => {
+    await withClient(3423, async (client) => {
+      const snapshot = await client.callTool({ name: "get_visual_context", arguments: {} });
+      const text = textOf(snapshot);
+      expect(text).toContain("CONTEXT_JSON:");
+      const jsonStart = text.indexOf("CONTEXT_JSON:") + "CONTEXT_JSON:".length;
+      const payload = JSON.parse(text.slice(jsonStart));
+      expect(payload.intentSummary).toBeTruthy();
+      expect(payload.intentSummary).toHaveProperty("intentByNode");
+      expect(payload.intentSummary).toHaveProperty("edgeLabels");
+      expect(payload.nextActions.join(" ")).toContain("create_visual_proposal");
+    });
+  }, 30_000);
 });

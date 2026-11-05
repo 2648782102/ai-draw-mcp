@@ -48,6 +48,7 @@
 | 文档 | 内容 |
 |------|------|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构、状态模型、REST/WebSocket 协议、安全边界 |
+| [docs/README.md](docs/README.md) | 文档地图：按读者与用途查找全部资料 |
 | [ROADMAP.md](ROADMAP.md) | 产品方向、阶段目标与明确的非目标 |
 | [docs/COMPETITIVE_RESEARCH.md](docs/COMPETITIVE_RESEARCH.md) | Mermaid/白板/MCP 同类产品调研与定位 |
 | [docs/LAUNCH_KIT.md](docs/LAUNCH_KIT.md) | GitHub About、Release notes、Show HN 与社区宣发模板 |

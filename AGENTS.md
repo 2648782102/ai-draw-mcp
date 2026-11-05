@@ -55,6 +55,7 @@ scripts/github-maintenance.mjs GitHub About/topics 漂移检查、同步与 Rele
 scripts/repo-check.mjs        离线一致性检查：发布文案、文档链接、脚本与 CHANGELOG
 .github/                      Issue/PR 模板与 CI
 docs/ARCHITECTURE.md          架构、协议、安全模型
+docs/README.md                文档地图
 docs/COMPETITIVE_RESEARCH.md  同类产品调研与定位
 docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
 ROADMAP.md                   产品路线图与非目标
@@ -85,6 +86,8 @@ ROADMAP.md                   产品路线图与非目标
 | 双向协作 | `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal` |
 
 协作工作流：先 `scan_project`，人改图后 AI 用 `get_visual_context` 读取 `pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信并标记已处理，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
+
+`get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注、待处理消息与连线标签；生成提案时优先引用 `intentByNode`，不要只复述扁平消息列表。
 
 ---
 

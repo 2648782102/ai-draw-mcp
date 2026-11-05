@@ -13,16 +13,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `docs/LAUNCH_KIT.md`：GitHub About、Release notes、Show HN 与中文社区宣发模板。
 - `scripts/github-maintenance.mjs`：检查/同步仓库 description、homepage、topics，并可从 CHANGELOG 创建 Release。
 - `scripts/repo-check.mjs`：离线检查发布文案、README 链接、维护脚本与 CHANGELOG 是否一致。
+- `docs/README.md`：面向贡献者与新用户的文档地图。
 - `npm run github:check` / `npm run github:sync`，把开源元数据维护纳入本地验证与发布流程。
 - 协作面板支持新增/删除节点、编辑与删除连线、选中节点后绑定批注，让人可以直接改「项目结构」而不只改文字。
 - `VisualGraph` 服务端校验补齐节点/连线/批注 ID、字段完整性与引用完整性，拒绝损坏的图形状态。
 - 图形批注消息会显示目标节点名，AI 上下文里的意图更明确。
+- `get_visual_context` 返回 `intentSummary`：把待处理消息、节点绑定批注、连线语义按节点聚合，减少 AI 拼装上下文的成本。
 
 ### Changed
 
 - npm 描述与关键词改为人机双向可视化协作定位，并同步 README 文档入口。
 - `npm run check` 增加离线仓库一致性检查；`npm run github:check` 作为显式、只读的 GitHub 元数据漂移检查，不需要凭据。
 - README 增加最短体验路径和公开文档入口；ROADMAP 中「结构化图形编辑」从下一阶段前移到当前已交付能力。
+- MCP 集成测试覆盖 `get_visual_context` 的机器可读意图摘要与下一步动作提示。
 
 ### Fixed
 

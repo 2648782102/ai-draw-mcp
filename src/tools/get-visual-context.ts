@@ -20,6 +20,42 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       const proposals = ctx.sessions.getProposals(proposal_limit);
       const pending = messages.filter((message) => message.author === "human" && message.status === "pending");
       const unresolved = graph?.annotations.filter((annotation) => !annotation.resolved) ?? [];
+      const nodeLabels = new Map(graph?.nodes.map((node) => [node.id, node.label]) ?? []);
+      const annotationsByNode = new Map<string, string[]>();
+      const generalAnnotations: string[] = [];
+      for (const annotation of unresolved) {
+        if (annotation.nodeId) {
+          const bucket = annotationsByNode.get(annotation.nodeId) ?? [];
+          bucket.push(annotation.body);
+          annotationsByNode.set(annotation.nodeId, bucket);
+        } else {
+          generalAnnotations.push(annotation.body);
+        }
+      }
+      const intentByNode = graph?.nodes
+        .filter((node) => annotationsByNode.has(node.id))
+        .map((node) => ({
+          nodeId: node.id,
+          label: node.label,
+          kind: node.kind,
+          path: node.path,
+          annotations: annotationsByNode.get(node.id) ?? [],
+        })) ?? [];
+      const intentSummary = {
+        graphRevision: snapshot.graphRevision,
+        nodes: graph?.nodes.length ?? 0,
+        edges: graph?.edges.length ?? 0,
+        pendingMessages: pending.map((message) => message.body),
+        generalAnnotations,
+        intentByNode,
+        edgeLabels: graph?.edges.map((edge) => ({
+          from: nodeLabels.get(edge.from) ?? edge.from,
+          to: nodeLabels.get(edge.to) ?? edge.to,
+          label: edge.label,
+          kind: edge.kind,
+        })) ?? [],
+        guidance: "Use intentByNode and pendingMessages as the human's latest intent; create_visual_proposal should cite those nodes, then wait for human approval.",
+      };
       const payload = {
         session: {
           id: snapshot.id,
@@ -32,6 +68,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         graph,
         pendingMessages: pending,
         unresolvedAnnotations: unresolved,
+        intentSummary,
         messages,
         proposals,
         nextActions: [
@@ -47,6 +84,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
             `📡 协作会话 ${snapshot.id} · graphRevision ${snapshot.graphRevision}`,
             `Workspace: ${snapshot.workspaceRoot}`,
             `Pending human messages: ${pending.length} · unresolved annotations: ${unresolved.length}`,
+            `Node-linked intents: ${intentByNode.length} · general annotations: ${generalAnnotations.length}`,
             ``,
             jsonLine({
               id: snapshot.id,
