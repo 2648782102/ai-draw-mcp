@@ -406,6 +406,8 @@
     </section>
     <section class="collab-section">
       <h3>对话与批注</h3>
+      <p class="activity-summary" id="sharedBriefSummary">共享简报 · 加载中；只读交接视图不含批准凭据</p>
+      <div class="diagnostics-list" id="sharedBriefList"></div>
       <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
       <p class="activity-summary" id="diagnosticsSummary">会话诊断加载中…</p>
       <div class="diagnostics-list" id="diagnosticsList"></div>
@@ -419,6 +421,7 @@
         <button id="btnSendMessage">发送消息</button>
         <button id="btnAddAnnotation">添加图形批注</button>
         <button id="btnCopyAiContext" title="复制只读提示，不写入会话、不签发凭据">复制给 AI 的上下文</button>
+        <button id="btnCopySharedBrief" title="复制紧凑只读 BRIEF_JSON，不写入会话、不签发凭据">复制共享简报</button>
       </div>
       <input id="annotationInput" placeholder="批注内容；先选中左侧节点即可绑定" />
     </section>
@@ -1037,6 +1040,7 @@ let collabDiagnostics = null;
 let collabGraphDiffs = [];
 let collabGraphHistory = { version: 1, undo: 0, redo: 0, limit: 12 };
 let collabSourceEvidence = [];
+let collabSharedBrief = null;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -1315,6 +1319,36 @@ function renderDiagnostics(diagnostics) {
     : '<p class="signal">会话诊断不可用。</p>';
 }
 
+function renderSharedBrief(brief) {
+  const summary = $('#sharedBriefSummary');
+  const list = $('#sharedBriefList');
+  if (!summary || !list) return;
+  if (!brief) {
+    summary.textContent = '共享简报 · 暂不可用';
+    list.innerHTML = '<p class="signal">只读共享简报暂不可用。</p>';
+    return;
+  }
+  const blockers = Array.isArray(brief.intent?.blockers) ? brief.intent.blockers : [];
+  const nextActions = Array.isArray(brief.intent?.nextActions) ? brief.intent.nextActions : [];
+  summary.textContent = `共享简报 · rev ${brief.graphRevision} · ${blockers.length} 个就绪阻塞 · ${brief.status?.conversation?.pendingMessages ?? 0} 条待处理消息 · 焦点 ${brief.focus?.nodeLabel || '无'} · 只读，不含批准凭据`;
+  summary.title = 'BRIEF_JSON 是从当前会话派生的紧凑交接视图；它不写会话、不签发凭据，也不能替代批准。';
+  const focusHtml = brief.focus
+    ? `<p class="signal"><strong>焦点</strong> · ${escapeHtml(brief.focus.nodeLabel)}${brief.focus.nodePath ? ` · ${escapeHtml(brief.focus.nodePath)}` : ''}</p>`
+    : '';
+  const blockerHtml = blockers.map((blocker) => `<p class="signal action"><strong>阻塞</strong> · ${escapeHtml(blocker)}</p>`).join('');
+  const intentHtml = [
+    ...(brief.intent?.pendingMessages || []).map((item) => `消息 · ${item.body}`),
+    ...(brief.intent?.activeThreads || []).map((item) => `批注 · ${item.nodeLabel || item.nodeId || '未绑定'} · ${item.nextActor} · ${item.body}`),
+    ...(brief.intent?.staleThreads || []).map((item) => `失锚 · ${item.anchorStatus} · ${item.body}`),
+  ].slice(0, 6).map((item) => `<p class="signal">${escapeHtml(item)}</p>`).join('');
+  const diff = brief.intent?.latestGraphDiff;
+  const diffHtml = diff
+    ? `<p class="signal"><strong>最近图形修订</strong> · rev ${escapeHtml(String(diff.fromRevision))} → ${escapeHtml(String(diff.toRevision))} · ${escapeHtml((diff.summary || []).join('；'))}</p>`
+    : '';
+  const actionHtml = nextActions.map((action) => `<p class="next-action">${escapeHtml(action)}</p>`).join('');
+  list.innerHTML = `${focusHtml}${blockerHtml || '<p class="signal">暂无就绪阻塞。</p>'}${intentHtml || '<p class="signal">暂无待处理意图。</p>'}${diffHtml}${actionHtml}`;
+}
+
 function renderGraphDiffs(diffs) {
   const target = $('#graphDiffSummary');
   if (!target) return;
@@ -1569,6 +1603,9 @@ async function loadCollab() {
     const sourceEvidence = await collabFetch('/api/collab/source-evidence');
     collabSourceEvidence = sourceEvidence.items || [];
     renderSourceEvidence();
+    const sharedBrief = await collabFetch('/api/collab/brief');
+    collabSharedBrief = sharedBrief;
+    renderSharedBrief(sharedBrief);
     await renderNodeContext();
   } catch (error) {
     $('#collabMeta').textContent = `同步失败：${error.message}`;
@@ -1613,6 +1650,28 @@ async function copyAiContext() {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
     showToast('剪贴板不可用，已把提示放入消息框（尚未发送）');
+  }
+}
+
+async function copySharedBrief() {
+  if (!collabSharedBrief) {
+    showToast('共享简报尚未加载；请先刷新协作会话');
+    return;
+  }
+  const prompt = [
+    '请结合这份只读 BRIEF_JSON 理解协作会话，再用 get_visual_context 读取完整原文：',
+    'BRIEF_JSON:',
+    JSON.stringify(collabSharedBrief, null, 2),
+    '',
+    'BRIEF_JSON 不含批准凭据；失锚线程不是当前意图。只有我查看逐行 diff、批准并提供一次性确认号后，才可 apply_visual_proposal。',
+  ].join('\n');
+  try {
+    await navigator.clipboard.writeText(prompt);
+    showToast('已复制只读共享简报；它不包含确认号');
+  } catch {
+    $('#messageInput').value = prompt;
+    $('#messageInput').focus();
+    showToast('剪贴板不可用，已把简报放入消息框（尚未发送）');
   }
 }
 
@@ -1805,6 +1864,7 @@ $('#messageInput').addEventListener('keydown', (event) => {
 });
 $('#btnAddAnnotation').addEventListener('click', addAnnotation);
 $('#btnCopyAiContext').addEventListener('click', copyAiContext);
+$('#btnCopySharedBrief').addEventListener('click', copySharedBrief);
 
 // ── Init ──
 loadList();

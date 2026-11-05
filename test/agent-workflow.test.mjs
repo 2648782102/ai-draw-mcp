@@ -54,6 +54,7 @@ describe("agent workflow contract", () => {
     expect(workflow.steps.find((step) => step.id === "rescan").output).toContain("PRESERVATION_JSON");
     expect(workflow.steps.find((step) => step.id === "visual_context").input).toContain("sourceEvidence");
     expect(workflow.steps.find((step) => step.id === "visual_context").output).toContain("NODE_CONTEXT_JSON");
+    expect(workflow.steps.find((step) => step.id === "visual_context").output).toContain("BRIEF_JSON");
     expect(workflow).toMatchObject({
       graph: { nodes: 1, annotations: 1, staleAnnotations: 1 },
       conversation: { pendingMessages: 1, nextActor: "human" },

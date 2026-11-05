@@ -59,6 +59,10 @@ const agentWorkflowTest = await read("test/agent-workflow.test.mjs");
 const nodeContextDomain = await read("src/domain/node-context.ts");
 const getNodeContextTool = await read("src/tools/get-node-context.ts");
 const nodeContextTest = await read("test/node-context.test.mjs");
+const sharedBriefDomain = await read("src/domain/shared-brief.ts");
+const sharedBriefTool = await read("src/tools/get-shared-brief.ts");
+const sharedBriefTest = await read("test/shared-brief.test.mjs");
+const sharedBriefAdr = await read("docs/ADR/0011-shared-brief-is-a-read-only-projection.md");
 const nodeContextAdr = await read("docs/ADR/0010-node-context-is-a-read-only-projection.md");
 const workflowAdr = await read("docs/ADR/0007-agent-workflow-is-a-read-only-contract.md");
 const visualHistoryAdr = await read("docs/ADR/0008-visual-undo-is-not-project-undo.md");
@@ -94,7 +98,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
-check(launchKit.includes("20 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 20 MCP tools");
+check(launchKit.includes("21 MCP tools"), "docs/LAUNCH_KIT.md release notes do not reflect the 21 MCP tools");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -299,7 +303,34 @@ for (const [label, source, needle] of [
   ["workflow example stops at preflight", agentWorkflowExample, "Stopped before create_visual_proposal"],
   ["workflow example assertion", agentWorkflowExample, "no proposal or project write"],
   ["workflow contract test", agentWorkflowTest, "agent workflow contract"],
-  ["server tool count", server, "const TOOL_COUNT = 20"],
+  ["shared brief type", types, "export interface SharedBrief"],
+  ["shared brief domain", sharedBriefDomain, "export function buildSharedBrief"],
+  ["shared brief safety", sharedBriefDomain, "excludesApprovalGrants: true"],
+  ["shared brief tool", sharedBriefTool, '"get_shared_brief"'],
+  ["shared brief marker", sharedBriefTool, '"BRIEF_JSON:"'],
+  ["shared brief server registration", server, "registerGetSharedBrief"],
+  ["shared brief endpoint", previewServer, "/api/collab/brief"],
+  ["shared brief panel", panel, 'id="sharedBriefList"'],
+  ["shared brief copy button", panel, 'id="btnCopySharedBrief"'],
+  ["shared brief workflow output", agentWorkflowDomain, "BRIEF_JSON"],
+  ["shared brief pure contract test", sharedBriefTest, "read-only shared brief"],
+  ["shared brief MCP test", await read("test/mcp.test.mjs"), "BRIEF_JSON"],
+  ["shared brief HTTP test", collaborationTest, "/api/collab/brief"],
+  ["shared brief example", agentWorkflowExample, "get_shared_brief"],
+  ["shared brief ADR index", adrIndex, "0011-shared-brief-is-a-read-only-projection.md"],
+  ["shared brief ADR boundary", sharedBriefAdr, "excludesApprovalGrants: true"],
+  ["shared brief docs map", documentationMap, "0011-shared-brief-is-a-read-only-projection.md"],
+  ["shared brief English docs", englishQuickstart, "BRIEF_JSON"],
+  ["shared brief Chinese docs", readme, "BRIEF_JSON"],
+  ["shared brief AGENTS docs", agents, "BRIEF_JSON"],
+  ["shared brief architecture", architecture, "BRIEF_JSON"],
+  ["shared brief security", security, "BRIEF_JSON"],
+  ["shared brief roadmap", roadmap, "get_shared_brief"],
+  ["shared brief launch", launchKit, "BRIEF_JSON"],
+  ["shared brief research", research, "BRIEF_JSON"],
+  ["shared brief troubleshooting", troubleshooting, "BRIEF_JSON"],
+  ["shared brief examples map", examplesReadme, "get_shared_brief"],
+  ["server tool count", server, "const TOOL_COUNT = 21"],
   ["server workflow registration", server, "registerGetAgentWorkflow"],
   ["CI workflow example", ci, "npm run test:examples:workflow"],
   ["package workflow example", packageJson.scripts?.["test:examples:workflow"] ?? "", "node examples/agent-workflow.mjs"],
@@ -336,9 +367,9 @@ check(agents.includes("scripts/generate-doc-assets.mjs"), "AGENTS.md does not do
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
 check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
 check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
-check(readme.includes("20 个 MCP 工具"), "README.md does not reflect the 20 MCP tools");
-check(agents.includes("## 20 个 MCP 工具"), "AGENTS.md does not reflect the 20 MCP tools");
-check(roadmap.includes("20 MCP tools"), "ROADMAP.md does not reflect the 20 MCP tools");
+check(readme.includes("21 个 MCP 工具"), "README.md does not reflect the 21 MCP tools");
+check(agents.includes("## 21 个 MCP 工具"), "AGENTS.md does not reflect the 21 MCP tools");
+check(roadmap.includes("21 MCP tools"), "ROADMAP.md does not reflect the 21 MCP tools");
 check(getAgentWorkflowTool.includes("get_agent_workflow"), "get-agent-workflow.ts is missing the tool name");
 check(agentWorkflowDomain.includes('grantsWriteAuthority: false'), "agent-workflow.ts is missing the no-authority invariant");
 check(agentWorkflowExample.includes('step.writes === "project"'), "workflow example does not verify the project-write boundary");

@@ -38,6 +38,7 @@ src/
 │   ├── visual-graph-merge.ts  稳定路径重扫合并器：坐标/标签/批注/焦点保留
 │   ├── change-templates.ts    常见意图的只读变更模板目录与草稿展开
 │   ├── agent-workflow.ts      当前会话的八步 agent 工作流契约与就绪阻塞
+│   ├── shared-brief.ts        SharedBrief / BRIEF_JSON 派生只读交接投影
 │   ├── impact.ts             提案影响摘要：文件数、行数、字节数与安全说明
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
 ├── infra/
@@ -59,6 +60,7 @@ src/
     ├── scan-project.ts       稳定路径只读扫描、保留人工视觉状态并生成/刷新协作图
     ├── get-visual-context.ts 读取人类意图
     ├── get-agent-workflow.ts 读取八步 WORKFLOW_JSON 与写入边界
+    ├── get-shared-brief.ts  读取紧凑 BRIEF_JSON 交接视图与就绪阻塞
     ├── list-change-templates.ts 列出/展开只读变更模板草稿
     ├── create-visual-proposal.ts 创建待确认提案
     └── apply-visual-proposal.ts 凭一次性凭据应用已批准提案
@@ -80,6 +82,7 @@ docs/ADR/0005-human-focus-is-read-only-context.md 当前焦点只读上下文决
 docs/ADR/0006-stable-scan-preserves-human-visual-state.md 稳定扫描保留人工视觉状态决策
 docs/ADR/0007-agent-workflow-is-a-read-only-contract.md 只读工作流契约决策
 docs/ADR/0008-visual-undo-is-not-project-undo.md 视觉撤销不等于项目写入撤销决策
+docs/ADR/0011-shared-brief-is-a-read-only-projection.md 只读共享交接简报决策
 docs/ADR/0009-source-evidence-is-read-only-context.md 只读源码证据决策
 docs/TROUBLESHOOTING.md        首用自检、常见故障与 FAQ
 ROADMAP.md                   产品路线图与非目标
@@ -101,7 +104,7 @@ ROADMAP.md                   产品路线图与非目标
 
 ---
 
-## 20 个 MCP 工具
+## 21 个 MCP 工具
 
 | 分组 | 工具 |
 |------|------|
@@ -110,17 +113,21 @@ ROADMAP.md                   产品路线图与非目标
 | 双向协作 | `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal` |
 | 提案预检 | `preflight_visual_proposal` |
 | 只读变更模板 | `list_change_templates` |
-| 只读工作流契约 / 节点上下文 | `get_agent_workflow`、`get_node_context` |
+| 只读工作流契约 / 交接简报 / 节点上下文 | `get_agent_workflow`、`get_shared_brief`、`get_node_context` |
 
-协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 可先调用 `get_agent_workflow` 读取八步 `WORKFLOW_JSON` 和 `blocked`，再调用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`；针对焦点节点可调用 `get_node_context` 获取紧凑 `NODE_CONTEXT_JSON`。`nextActor` 为 AI 时用 `reply_to_visual_context` 回信/内联回复并标记已处理，`nextActor` 为 human 时等待。常见意图可用 `list_change_templates` 展开只读草稿，创建提案前用 `preflight_visual_proposal` 只读检查路径、文件存在性、create/update 与重复内容，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
+协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 可先调用 `get_agent_workflow` 读取八步 `WORKFLOW_JSON` 和 `blocked`，用 `get_shared_brief` 读取紧凑 `BRIEF_JSON` 交接，再调用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`；针对焦点节点可调用 `get_node_context` 获取紧凑 `NODE_CONTEXT_JSON`。`nextActor` 为 AI 时用 `reply_to_visual_context` 回信/内联回复并标记已处理，`nextActor` 为 human 时等待。常见意图可用 `list_change_templates` 展开只读草稿，创建提案前用 `preflight_visual_proposal` 只读检查路径、文件存在性、create/update 与重复内容，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
 
 `get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；`focus` 记录人当前选中的节点；`activityTimeline` 把消息、`graph_diff` 图形修订、线程与提案生命周期合并为只读派生事件。生成提案时优先引用 `focus`、`intentByNode` 和活动顺序，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案；焦点与活动时间线都不授权项目写入。
 
 `get_node_context` 与 `GET /api/collab/node-context` 是 `src/domain/node-context.ts` 的 version 1 只读投影：默认取 `focus.nodeId`，也可用显式 `node_id`，聚合节点字段、`file:line` 证据、命中该节点的批注线程及失锚状态、入/出连线与相邻节点、相关 `graphDiffs`、焦点状态和固定 `safety`。它不持久化节点上下文、不改焦点、不解决/重锚线程、不创建提案、不写项目文件、不签发凭据；面板用同一端点展示选中节点，详见 [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md)。
 
+`get_shared_brief` 与 `GET /api/collab/brief` 是 `src/domain/shared-brief.ts` 的 version 1 只读交接投影：聚合会话/图形版本、人类焦点、就绪阻塞、待处理消息、有效与失锚批注、最近图形修订、有界 `file:line` 证据、提案/活动计数和下一步。`BRIEF_JSON` 不持久化、不进入 bundle、不含批准凭据、不改焦点/线程/提案、不写会话或项目文件；面板显示并可复制同一份视图，详见 [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md)。
+
 `POST /api/collab/focus` 只接受 `confirmedBy: "human"` 的本机面板选择，服务端写入 version 1 `SessionFocus`；节点删除后清除焦点，图修订会刷新仍存在节点的标签/路径/分组。`get_visual_context.focus`、诊断和 bundle 只读暴露它，bundle 导入会严格校验结构并丢弃失锚焦点。焦点不产生消息、不进入时间线、不签发凭据，也不解决线程或创建提案。
 
 面板「复制给 AI 的上下文」按钮只从已加载数据生成一段提示文本，不调用写端点、不发送消息、不修改会话；剪贴板失败时文本只进入未发送的输入框。
+
+面板「复制共享简报」按钮只复制 `GET /api/collab/brief` 返回的 `BRIEF_JSON`，不调用写端点、不发送消息、不修改会话、不签发凭据；剪贴板失败时文本只进入未发送的输入框。
 
 节点批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`。节点标签或路径变化后线程标记为 `outdated`，节点删除后标记为 `detached`；`staleThreads` 与活动时间线 `annotation_anchor` 事件会提示 AI 不要把旧讨论当成当前意图。`outdated` 线程必须由人在面板点击「确认重锚」或调用 `/api/collab/annotations/:id/anchor`（`confirmedBy: "human"`）才能恢复；`detached` 线程保留原 `nodeId` 供审计，不得自动重锚。
 
@@ -148,7 +155,7 @@ ROADMAP.md                   产品路线图与非目标
 
 1. 在 `src/tools/` 新建 `render-xxx.ts`，复制现有工具风格；参数用 `zod`，错误处理用 `errorResult`。
 2. 在 `src/server.ts` 顶部加 import，在 `createServer()` 内加 `registerXxx(mcp, ctx)`。
-3. 同步更新 `TOOL_COUNT`、README 工具表、本文件工具表、CHANGELOG 和 `test/mcp.test.mjs`。
+3. 同步更新 `TOOL_COUNT`、README 工具表、本文件工具表、CHANGELOG、`test/mcp.test.mjs` 和 `scripts/repo-check.mjs`。
 4. 如果涉及协议/持久化/项目写入，必须更新 `src/domain/types.ts`、ARCHITECTURE、协作集成测试与安全边界说明。
 
 工具模板要点：
@@ -184,6 +191,7 @@ server.tool(
 | `GET /api/collab/graph/history` | 只读有界视觉撤销/重做计数 |
 | `GET /api/collab/source-evidence` | 只读 `file:line` 证据；`limit` 默认 100、最大 200 |
 | `GET /api/collab/node-context` | 只读单节点上下文；`nodeId` 默认当前焦点，`diffLimit` 默认 5、最大 20 |
+| `GET /api/collab/brief` | 只读共享交接简报；`messageLimit` 默认 5 最大 20，`graphDiffLimit` 默认 3 最大 10，`activityLimit` 默认 5 最大 20 |
 | `POST /api/collab/graph/undo` | 人类确认的视觉撤销；生成新图修订，不写项目文件 |
 | `POST /api/collab/graph/redo` | 人类确认的视觉重做；生成新图修订，不写项目文件 |
 | `POST /api/collab/rescan` | 人类确认的只读重新扫描；可选 `render: false` 跳过重复渲染，保留人工视觉状态，不写项目文件 |

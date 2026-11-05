@@ -85,7 +85,20 @@ try {
     throw new Error("Only apply_visual_proposal should be marked as a project write");
   }
   if (workflow.blocked.length) throw new Error(`Workflow unexpectedly blocked: ${workflow.blocked.join("; ")}`);
+  if (workflow.steps.find((step) => step.id === "visual_context").output.join(",").indexOf("BRIEF_JSON") < 0) {
+    throw new Error("The workflow no longer names BRIEF_JSON as a handoff output");
+  }
+
+  const briefText = textOf(await client.callTool({ name: "get_shared_brief", arguments: {} }));
+  const brief = jsonAfter(briefText, "BRIEF_JSON:");
+  if (brief.version !== 1 || brief.safety?.grantsWriteAuthority !== false || brief.safety?.excludesApprovalGrants !== true) {
+    throw new Error("The shared brief unexpectedly lost its read-only safety contract");
+  }
+  if (briefText.includes("approvalId") || briefText.includes("grantHash")) {
+    throw new Error("The shared brief unexpectedly exposed an approval credential");
+  }
   console.log(`    Readiness blockers: ${workflow.blocked.length}${workflow.blocked.length ? ` — ${workflow.blocked.join("; ")}` : ""}`);
+  console.log(`    Shared brief: ${brief.intent.blockers.length} blockers, ${brief.status.sourceEvidence.items} evidence items`);
 
   const draftText = textOf(await client.callTool({
     name: "list_change_templates",

@@ -41,11 +41,12 @@ Title: `v0.3.0 — Human ↔ AI visual collaboration`
 AI Draw MCP is no longer just a diagram renderer. It is a local-first visual workspace where an AI scans a project, a human edits the graph and leaves annotations, and the pair reviews a file-change proposal before anything is written.
 
 Highlights:
-- 20 MCP tools, including scan, visual context, a read-only single-node context projection, a read-only agent workflow contract, AI reply, read-only change templates, proposal preflight, proposal creation, and receipt-gated apply.
+- 21 MCP tools, including scan, visual context, a read-only shared handoff brief, a read-only single-node context projection, a read-only agent workflow contract, AI reply, read-only change templates, proposal preflight, proposal creation, and receipt-gated apply.
 - `get_agent_workflow` and `WORKFLOW_JSON`: eight ordered steps with prerequisites, readiness blockers, and explicit `none` / `session` / `project` write boundaries, plus a reproducible read-only CI example.
 - Bounded, human-confirmed visual undo/redo with field-level graph diffs; visual history never reverses project files, approved proposals, or one-time receipts.
 - Bounded `file:line` source evidence on source/Markdown nodes, exposed through MCP context, diagnostics, a read-only endpoint, and the panel; evidence never grants write authority.
 - `get_node_context` returns a read-only version 1 `NODE_CONTEXT_JSON` for one focused node: source evidence, linked annotation threads, adjacent edges, related graph diffs, and focus state; it never changes focus or grants write authority.
+- `get_shared_brief` returns a read-only version 1 `BRIEF_JSON` for compact handoffs: readiness blockers, current intent, stale threads, the latest graph diff, bounded source evidence, and next actions. The panel displays and can copy the same view; approval grants are absent by construction.
 - A read-only change-template catalogue for common intents: drafts cite the current graph revision and must still pass preflight and human review.
 - A shared human focus: select a node and the AI sees exactly which object the conversation is about, without that selection granting write authority.
 - Layout-preserving rescans: deterministic path IDs keep human coordinates, custom labels, annotation threads, and focus while new files are incrementally placed; scans remain read-only.

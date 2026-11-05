@@ -232,6 +232,88 @@ export interface NodeContext {
   guidance: string[];
 }
 
+export interface SharedBrief {
+  version: 1;
+  sessionId: string;
+  graphRevision: number;
+  updatedAt: string;
+  workspaceRoot: string;
+  activeDiagramId?: string;
+  focus: {
+    nodeId: string;
+    nodeLabel: string;
+    nodePath?: string;
+    group?: string;
+    source: "human";
+  } | null;
+  status: {
+    graph: { nodes: number; edges: number; annotations: number; staleAnnotations: number } | null;
+    sourceEvidence: { nodes: number; items: number };
+    graphHistory: { undo: number; redo: number };
+    conversation: {
+      pendingMessages: number;
+      annotationThreads: number;
+      openThreads: number;
+      awaitingAi: number;
+      awaitingHuman: number;
+      nextActor: "ai" | "human" | "none";
+      staleThreads: number;
+    };
+    proposals: { pending: number; approved: number; applied: number; failed: number };
+    activity: { total: number; latestAt?: string };
+  };
+  intent: {
+    pendingMessages: Array<{ id: string; body: string; createdAt: string }>;
+    activeThreads: Array<{
+      id: string;
+      nodeId?: string;
+      nodeLabel?: string;
+      nodePath?: string;
+      anchorStatus: "anchored" | "detached" | "outdated";
+      nextActor: "ai" | "human" | "none";
+      body: string;
+      replyCount: number;
+    }>;
+    staleThreads: Array<{
+      id: string;
+      nodeId?: string;
+      nodeLabel?: string;
+      anchorStatus: "anchored" | "detached" | "outdated";
+      body: string;
+    }>;
+    latestGraphDiff: {
+      fromRevision: number;
+      toRevision: number;
+      source: "human" | "ai" | "system";
+      summary: string[];
+      items: Array<{
+        entity: "node" | "edge";
+        change: "added" | "removed" | "updated";
+        id: string;
+        label?: string;
+        fields?: Array<{ field: string; before?: string | number | boolean; after?: string | number | boolean }>;
+      }>;
+    } | null;
+    sourceEvidence: Array<{
+      nodeId: string;
+      nodeLabel: string;
+      kind: "definition" | "import" | "heading";
+      path: string;
+      line: number;
+      excerpt: string;
+    }>;
+    blockers: string[];
+    nextActions: string[];
+  };
+  safety: {
+    readOnly: true;
+    grantsWriteAuthority: false;
+    excludesApprovalGrants: true;
+    staleThreadsExcludedFromIntent: true;
+  };
+  guidance: string[];
+}
+
 export interface GraphRevisionDiff {
   version: 1;
   fromRevision: number;

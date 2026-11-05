@@ -41,8 +41,9 @@ import { registerPreflightVisualProposal } from "./tools/preflight-visual-propos
 import { registerListChangeTemplates } from "./tools/list-change-templates.js";
 import { registerGetAgentWorkflow } from "./tools/get-agent-workflow.js";
 import { registerGetNodeContext } from "./tools/get-node-context.js";
+import { registerGetSharedBrief } from "./tools/get-shared-brief.js";
 
-const TOOL_COUNT = 20; // keep in sync when adding tools
+const TOOL_COUNT = 21; // keep in sync when adding tools
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -93,6 +94,7 @@ export async function createServer() {
   registerListChangeTemplates(mcp, ctx);
   registerGetAgentWorkflow(mcp, ctx);
   registerGetNodeContext(mcp, ctx);
+  registerGetSharedBrief(mcp, ctx);
 
   logger.info(`${TOOL_COUNT} MCP tools registered`);
 

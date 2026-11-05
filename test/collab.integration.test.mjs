@@ -538,6 +538,16 @@ describe("collaboration session", () => {
       expect(Array.isArray(nodeContext.edges)).toBe(true);
       expect(sessions.getFocus()).toMatchObject({ nodeId: readmeNode.id, source: "human" });
 
+      const briefResponse = await fetch(`${base}/api/collab/brief?messageLimit=5&graphDiffLimit=3&activityLimit=5`, { headers });
+      expect(briefResponse.ok).toBe(true);
+      const brief = await briefResponse.json();
+      expect(brief).toMatchObject({ version: 1, graphRevision: rescanResult.graphRevision });
+      expect(brief.safety).toMatchObject({ readOnly: true, grantsWriteAuthority: false, excludesApprovalGrants: true });
+      expect(brief.focus).toMatchObject({ nodeId: readmeNode.id, source: "human" });
+      expect(Array.isArray(brief.intent.blockers)).toBe(true);
+      expect(JSON.stringify(brief)).not.toContain("approvalId");
+      expect(JSON.stringify(brief)).not.toContain("grantHash");
+
       const after = await collabFetchGraph(base, headers);
       const preservedReadme = after.nodes.find((node) => node.id === readmeNode.id);
       expect(preservedReadme).toMatchObject({ label: "项目说明.md", x: 987, y: 654 });

@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 第 21 个 MCP 工具 `get_shared_brief` 与 `GET /api/collab/brief`：version 1 `BRIEF_JSON` 把会话/图形版本、人类焦点、就绪阻塞、待处理消息、有效与失锚批注、最近图形修订、有界 `file:line` 证据、提案/活动计数和下一步聚合成紧凑交接视图；面板显示同一只读视图并提供「复制共享简报」。
+- [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md)：记录共享简报是派生投影、不持久化、不含批准凭据，也不授予写入权限。
+- 共享简报纯函数、MCP、HTTP、工作流示例与离线一致性测试：覆盖有界意图、失锚线程分离、焦点、缺图阻塞、凭据不外泄和 `grantsWriteAuthority: false`。
 - 第 20 个 MCP 工具 `get_node_context` 与 `GET /api/collab/node-context`：version 1 `NODE_CONTEXT_JSON` 把指定/焦点节点的字段、只读 `file:line` 证据、节点批注线程、相邻连线、相关 `graphDiffs` 与焦点状态聚合成紧凑投影；面板显示同一只读视图，工作流第一步将其列为可选上下文输出。
 - [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md)：记录单节点上下文是派生视图、不持久化、不修改焦点/线程，也不授予写入权限。
 - 节点上下文纯函数测试与 MCP/工作流契约测试：覆盖证据、失锚线程、入/出连线、相关差异、显式节点、缺图/未知节点和 `grantsWriteAuthority: false`。
@@ -71,6 +74,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- MCP 工具从 20 增至 21；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、示例、离线一致性检查、工具数量常量、工作流第一步输出与 MCP/HTTP 测试同步更新。
 - MCP 工具从 19 增至 20；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、离线一致性检查、工具数量常量、工作流契约和 MCP 测试同步更新。
 - `POST /api/collab/rescan` 增加可选布尔 `render` 开关：面板显式 `render: true` 保持完整渲染，无头协作测试用 `render: false` 避免 Node 20 CI 中多次 `mmdc` 渲染叠加超时；非布尔值以 400 拒绝，扫描协议与安全边界不变。
 - `ProjectScanResult.stats` 新增 `evidencedNodes` / `totalEvidence`；扫描响应、会话消息元数据、README、英文快速入门、AGENTS、架构、路线图、竞品调研与发布文案同步说明证据只读。

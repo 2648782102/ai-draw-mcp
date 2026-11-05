@@ -16,6 +16,7 @@
  *   GET  /api/collab/diagnostics  read-only session health and next-action summary
  *   GET  /api/collab/source-evidence  read-only file:line evidence derived from the visual graph
  *   GET  /api/collab/node-context  read-only context for a selected graph node
+ *   GET  /api/collab/brief       compact read-only shared handoff brief
  *   GET  /api/collab/graph/diffs  recent graph revision diffs
  *   GET  /api/collab/graph/history  bounded visual undo/redo availability
  *   POST /api/collab/graph/undo   human-confirmed visual undo
@@ -53,6 +54,7 @@ import type { VisualGraph } from "../domain/types.js";
 import { buildActivityTimeline } from "../domain/activity-timeline.js";
 import { buildSessionDiagnostics } from "../domain/session-diagnostics.js";
 import { buildNodeContext } from "../domain/node-context.js";
+import { buildSharedBrief } from "../domain/shared-brief.js";
 import { makeId, nowIso } from "../domain/ids.js";
 import { logger } from "./logger.js";
 import { renderMermaidToSvg, saveSvg } from "./renderer.js";
@@ -173,6 +175,19 @@ export class PreviewServer {
       const rawLimit = Number(req.query.limit ?? 5);
       const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(20, Math.floor(rawLimit))) : 5;
       res.json({ diffs: this.sessions.getGraphDiffs(limit) });
+    });
+
+    this.app.get("/api/collab/brief", (req, res) => {
+      const rawMessageLimit = Number(req.query.messageLimit ?? 5);
+      const rawGraphDiffLimit = Number(req.query.graphDiffLimit ?? 3);
+      const rawActivityLimit = Number(req.query.activityLimit ?? 5);
+      const bounded = (raw: number, fallback: number, max: number) =>
+        Number.isFinite(raw) ? Math.max(1, Math.min(max, Math.floor(raw))) : fallback;
+      res.json(buildSharedBrief(this.sessions.getSnapshot(), {
+        messageLimit: bounded(rawMessageLimit, 5, 20),
+        graphDiffLimit: bounded(rawGraphDiffLimit, 3, 10),
+        activityLimit: bounded(rawActivityLimit, 5, 20),
+      }));
     });
 
     this.app.get("/api/collab/graph/history", (_req, res) => {

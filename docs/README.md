@@ -18,6 +18,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0008-visual-undo-is-not-project-undo.md](ADR/0008-visual-undo-is-not-project-undo.md) | Contributors, reviewers | Why bounded graph history never reverses approved project writes |
 | [ADR/0009-source-evidence-is-read-only-context.md](ADR/0009-source-evidence-is-read-only-context.md) | AI agents, reviewers | Why `file:line` scanner evidence is context, not write authority |
 | [ADR/0010-node-context-is-a-read-only-projection.md](ADR/0010-node-context-is-a-read-only-projection.md) | AI agents, reviewers | Why a single-node context projection never changes focus or grants writes |
+| [ADR/0011-shared-brief-is-a-read-only-projection.md](ADR/0011-shared-brief-is-a-read-only-projection.md) | AI agents, reviewers | Why the compact shared handoff brief excludes approval grants and never grants writes |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
@@ -36,6 +37,8 @@ Visual history is documented in [ADR 0008](ADR/0008-visual-undo-is-not-project-u
 Source evidence is documented in [ADR 0009](ADR/0009-source-evidence-is-read-only-context.md): bounded `file:line` references survive scans and portable bundles with strict validation, but never expand proposal paths or grant write authority.
 
 Node context is documented in [ADR 0010](ADR/0010-node-context-is-a-read-only-projection.md): `get_node_context` derives one node's evidence, threads, adjacent edges, and relevant diffs from the current session, but does not persist the projection, alter human focus, or grant project-write authority.
+
+Shared briefs are documented in [ADR 0011](ADR/0011-shared-brief-is-a-read-only-projection.md): `get_shared_brief` derives a bounded handoff view from the session, separates stale threads from current intent, excludes approval grants, and never grants project-write authority.
 
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 
