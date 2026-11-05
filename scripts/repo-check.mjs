@@ -345,6 +345,9 @@ for (const [label, source, needle] of [
   ["viewport diagnostics", await read("src/domain/session-diagnostics.ts"), "viewport: snapshot.viewport"],
   ["viewport pure contract test", viewportTest, "read-only viewport attention context"],
   ["viewport HTTP test", collaborationTest, "/api/collab/viewport"],
+  ["viewport HTTP auth test", collaborationTest, "unauthenticatedViewport"],
+  ["viewport publisher test", await read("test/viewport-publisher.test.mjs"), "authenticated viewport publisher"],
+  ["viewport ADR token transport", viewportAdr, "sendBeacon"],
   ["viewport ADR index", adrIndex, "0012-viewport-is-read-only-attention-context.md"],
   ["viewport ADR boundary", viewportAdr, "project-write capability"],
   ["viewport docs map", documentationMap, "0012-viewport-is-read-only-attention-context.md"],
@@ -358,6 +361,12 @@ for (const [label, source, needle] of [
   ["viewport research", research, "SessionViewport"],
   ["viewport troubleshooting", troubleshooting, "BRIEF_JSON.viewport"],
   ["viewport examples map", examplesReadme, "BRIEF_JSON.viewport"],
+  ["viewport authenticated publisher", panel, "'X-AI-Draw-Token': PANEL_TOKEN"],
+  ["viewport keepalive publisher", panel, "keepalive: true"],
+  ["viewport token middleware", previewServer, 'req.header("X-AI-Draw-Token") !== panelToken'],
+  ["viewport AGENTS token transport", agents, "sendBeacon"],
+  ["viewport architecture token transport", architecture, "sendBeacon"],
+  ["viewport troubleshooting token transport", troubleshooting, "PANEL_TOKEN"],
   ["server tool count", server, "const TOOL_COUNT = 21"],
   ["server workflow registration", server, "registerGetAgentWorkflow"],
   ["CI workflow example", ci, "npm run test:examples:workflow"],
@@ -398,6 +407,12 @@ check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document
 check(readme.includes("21 个 MCP 工具"), "README.md does not reflect the 21 MCP tools");
 check(agents.includes("## 21 个 MCP 工具"), "AGENTS.md does not reflect the 21 MCP tools");
 check(roadmap.includes("21 MCP tools"), "ROADMAP.md does not reflect the 21 MCP tools");
+const roadmapNextLines = roadmap.split("\n").slice(
+  roadmap.split("\n").findIndex((line) => line.startsWith("## Next")),
+  roadmap.split("\n").findIndex((line) => line.startsWith("## Shipped")),
+).filter((line) => line.startsWith("- "));
+check(new Set(roadmapNextLines).size === roadmapNextLines.length, "ROADMAP.md has duplicate next-stage items");
+check(!panel.includes("navigator.sendBeacon"), "Collaboration panel must not use sendBeacon for authenticated viewport writes");
 check(getAgentWorkflowTool.includes("get_agent_workflow"), "get-agent-workflow.ts is missing the tool name");
 check(agentWorkflowDomain.includes('grantsWriteAuthority: false'), "agent-workflow.ts is missing the no-authority invariant");
 check(agentWorkflowExample.includes('step.writes === "project"'), "workflow example does not verify the project-write boundary");

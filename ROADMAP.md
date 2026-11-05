@@ -15,19 +15,17 @@ Product principle: **the visual workspace is the shared language between humans 
 
 ## Next — 0.4: a better visual conversation
 
-- Filtered stale-thread counts, decisive replies, and timelines linked to proposal diffs.
-- Filtered stale-thread counts, decisive replies, and timelines linked to proposal diffs.
-- Per-proposal impact summary: touched paths, line counts, detected existing files, and safety notices.
-- Export and import a collaboration session as a portable JSON artifact for bug reports and examples.
-- A richer `doctor` command that reports IDE config locations, browser detection, and remediation commands.
-- Filtered stale-thread counts, decisive replies, and timelines linked to proposal diffs.
+- Link annotation threads, decisive replies, `graphDiffs`, and proposal diffs in one reviewable decision trail.
+- Diagnose readiness from `BRIEF_JSON` blockers and show the next safe action in the panel without replacing human approval.
+- Add language-aware symbol ranges and IDE source-range navigation on top of bounded `file:line` evidence.
+- Explore multi-diagram sessions over one workspace while keeping thread anchors and write authority explicit.
 - Keep thread resolution separate from proposal approval and one-time write receipts; conversation controls must stay distinct from server-side write authorization.
 
 ## Shipped in 0.3.x maintenance
 
 - `get_node_context`: a versioned, read-only single-node projection of source evidence, annotation threads, adjacent edges, related graph diffs, and human focus; see [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md).
 - `get_shared_brief`: a versioned, read-only `BRIEF_JSON` handoff projection for humans and AI, with readiness blockers, bounded intent, latest graph diff, evidence, and next actions; see [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md).
-- Human viewport attention: bounded, human-panel zoom/pan state is exposed to AI through `CONTEXT_JSON` / `BRIEF_JSON` / diagnostics without graph revisions, timeline noise, bundles, or write authority; see [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md).
+- Human viewport attention: bounded, human-panel zoom/pan state is authenticated with the injected panel token and exposed to AI through `CONTEXT_JSON` / `BRIEF_JSON` / diagnostics without graph revisions, timeline noise, bundles, or write authority; see [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md).
 - Bounded read-only `file:line` source evidence for source/Markdown nodes, exposed to AI, diagnostics, the panel, and strictly validated bundles; see [ADR 0009](docs/ADR/0009-source-evidence-is-read-only-context.md).
 - Bounded, human-confirmed visual undo/redo: restores `VisualGraph` snapshots as new revisions with field-level diffs, while never reversing project writes, proposals, or approval grants; see [ADR 0008](docs/ADR/0008-visual-undo-is-not-project-undo.md).
 - `get_agent_workflow`: a versioned, read-only eight-step `WORKFLOW_JSON` with prerequisites, readiness blockers, explicit `none` / `session` / `project` write targets, and a reproducible CI example; see [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md).
@@ -36,8 +34,10 @@ Product principle: **the visual workspace is the shared language between humans 
 - Field-level graph revision diffs with a strict portable-bundle contract, expandable panel details, and derived `graph_diff` timeline events.
 - Versioned human focus: the selected node is readable by AI, refreshed on graph edits, strictly validated in bundles, and kept separate from write authority.
 - A copyable, read-only AI context prompt in the panel that references focus, diagnostics, graph revisions, and the required approval workflow without issuing credentials.
-
+- A copyable, read-only `BRIEF_JSON` shared handoff in the panel and MCP for compact status updates.
+- Bounded human viewport attention in `CONTEXT_JSON` / `BRIEF_JSON` / diagnostics, without graph revisions, timeline noise, bundles, or write authority.
 - Read-only `preflight_visual_proposal` for path, filesystem-state, duplicate, and no-op change checks before a proposal is created.
+- Per-proposal impact summary, portable session bundle import/export, and a `doctor` command with IDE/browser remediation hints.
 - Add, remove, rename, and retype nodes from the panel.
 - Add, remove, and reconnect edges without editing Mermaid source.
 - Select a node and pin an annotation to it; AI messages include the target node label.

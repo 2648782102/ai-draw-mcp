@@ -513,15 +513,12 @@ function publishViewport() {
   const signature = `${payload.viewport.scale}|${payload.viewport.x}|${payload.viewport.y}`;
   if (signature === lastViewportPublished) return;
   lastViewportPublished = signature;
-  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-  if (!navigator.sendBeacon(`${API}/api/collab/viewport`, blob)) {
-    fetch(`${API}/api/collab/viewport`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-AI-Draw-Token': PANEL_TOKEN },
-      body: JSON.stringify(payload),
-      keepalive: true,
-    }).catch(() => {});
-  }
+  fetch(`${API}/api/collab/viewport`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-AI-Draw-Token': PANEL_TOKEN },
+    body: JSON.stringify(payload),
+    keepalive: true,
+  }).catch(() => {});
 }
 
 function scheduleViewportSync() {

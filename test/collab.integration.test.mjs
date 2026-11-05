@@ -162,6 +162,15 @@ describe("collaboration session", () => {
         }),
       });
       expect(invalidViewport.status).toBe(400);
+      const unauthenticatedViewport = await fetch(`${base}/api/collab/viewport`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          confirmedBy: "human",
+          viewport: { version: 1, scale: 1, x: 0, y: 0, updatedAt: new Date().toISOString(), source: "human" },
+        }),
+      });
+      expect(unauthenticatedViewport.status).toBe(401);
 
       const invalidGraphResponse = await fetch(`${base}/api/collab/graph`, {
         method: "PUT",

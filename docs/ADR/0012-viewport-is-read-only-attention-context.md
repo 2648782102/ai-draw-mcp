@@ -11,7 +11,7 @@ The collaboration session may hold one version 1 `SessionViewport` with finite, 
 
 ## Rationale
 
-The current focus tells AI which node a human selected, but not whether they are inspecting the whole architecture, zooming into one cluster, or panning to another region. A bounded viewport state makes that shared visual attention explicit without sending screen contents, secrets, or continuous mouse telemetry. Throttled browser beacons let the human panel publish coarse zoom/pan state without turning mouse movement into session noise.
+The current focus tells AI which node a human selected, but not whether they are inspecting the whole architecture, zooming into one cluster, or panning to another region. A bounded viewport state makes that shared visual attention explicit without sending screen contents, secrets, or continuous mouse telemetry. Throttled `keepalive` browser requests with the injected panel token publish coarse zoom/pan state without turning mouse movement into session noise; `sendBeacon` is unsuitable because it cannot attach the token header required by non-GET collaboration routes.
 
 ## Alternatives
 
@@ -27,6 +27,7 @@ The current focus tells AI which node a human selected, but not whether they are
 - Text-only MCP clients see `null` until a human panel publishes a viewport; absence is not an error.
 - Session snapshots include the latest coarse viewport, while imported bundles reset it to `undefined`.
 - Bundled validation rejects non-finite values, out-of-range scale/offsets, unknown properties, invalid timestamps, and non-human sources.
+- The panel's publish path must retain `X-AI-Draw-Token`; offline checks reject a return to `sendBeacon`, and browser-contract tests execute the served viewport publisher to verify the authenticated request.
 
 ## Safety invariant
 

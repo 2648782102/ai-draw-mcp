@@ -77,6 +77,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- 路线图删除重复的 0.4 待办、把已交付的提案影响摘要/会话 bundle/doctor 移入已交付清单，并明确下一阶段聚焦决策链、语言感知符号范围与多视图会话；发布文案同步补充共享简报与视口注意力。
 - 面板缩放/平移后以 400ms 节流同步 `SessionViewport`；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、安全、文档地图、离线一致性检查与示例同步说明其只读边界。
 - MCP 工具从 20 增至 21；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、故障排除、示例、离线一致性检查、工具数量常量、工作流第一步输出与 MCP/HTTP 测试同步更新。
 - MCP 工具从 19 增至 20；README（中/英）、AGENTS、架构、路线图、竞品调研、发布文案、离线一致性检查、工具数量常量、工作流契约和 MCP 测试同步更新。
@@ -113,6 +114,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- 面板发布 `SessionViewport` 改为始终携带 `X-AI-Draw-Token` 的 `keepalive fetch`，不再优先使用无法设置自定义头的 `sendBeacon`，避免真实浏览器缩放/平移时被协作写路由 401 拒绝；ADR 0012、架构、安全、AGENTS、故障排除、发布文案与离线一致性检查同步说明该鉴权边界。
 - `.github/dependabot.yml` 移除仓库尚不存在的 `dependencies` / `ci` 标签引用，避免 Dependabot 每个 PR 重复报标签配置错误。
 - `create_visual_proposal` 的 `metadata` schema 使用 `z.record(z.string(), z.unknown())`，兼容 Zod 3 与 Zod 4。
 - `mmdc` 渲染与 `doctor` 探针在 CI / 无 sandbox 的 Chrome 环境下自动使用临时 Puppeteer 配置，避免 Chrome 启动失败。
