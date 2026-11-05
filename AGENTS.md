@@ -51,8 +51,13 @@ src/
 
 test/                         Vitest：MCP 集成测试、协作集成测试
 scripts/doctor.mjs            环境自检（含真实 Mermaid 渲染探针）
+scripts/github-maintenance.mjs GitHub About/topics 漂移检查、同步与 Release 创建
+scripts/repo-check.mjs        离线一致性检查：发布文案、文档链接、脚本与 CHANGELOG
 .github/                      Issue/PR 模板与 CI
 docs/ARCHITECTURE.md          架构、协议、安全模型
+docs/COMPETITIVE_RESEARCH.md  同类产品调研与定位
+docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
+ROADMAP.md                   产品路线图与非目标
 ```
 
 ---
@@ -140,6 +145,8 @@ server.tool(
 | `DEFAULT_FORMAT` | `svg` | 默认输出格式 |
 | `LOG_LEVEL` | `info` | 日志级别 |
 | `PUPPETEER_EXECUTABLE_PATH` | 自动检测 | 本机 Chrome/Chromium，供 `mmdc` 使用 |
+| `MERMAID_CHROME_NO_SANDBOX` | 未设置 | 设为 `1` 时给 `mmdc` 的 Puppeteer 配置加 `--no-sandbox`；CI 中自动启用 |
+| `GH_TOKEN` / `GITHUB_TOKEN` | 未设置 | 仅供 `npm run github:sync` 与 `--release` 使用，绝不提交到仓库 |
 | `AI_DRAW_URI_AUTHORITY` | `2648782102.ai-draw-panel` | 保留给可选 IDE URI 扩展 |
 
 ---
@@ -150,7 +157,10 @@ server.tool(
 npm run lint       # TypeScript --noEmit
 npm run build
 npm test           # Vitest：MCP 工具、渲染链路、协作闭环
+npm run github:check # 只读检查 GitHub description/homepage/topics 是否漂移
+npm run repo:check   # 离线检查仓库内公开文案、链接与维护脚本是否一致
 npm run doctor     # 含真实 Mermaid 渲染探针
+npm run check      # 全量检查（含 GitHub 元数据漂移检查）
 ```
 
 若 `mmdc` 找不到 Chrome，先设置 `PUPPETEER_EXECUTABLE_PATH`。测试使用独立端口 `3411–3422`，不要复用正在运行的 3399。
@@ -163,4 +173,5 @@ npm run doctor     # 含真实 Mermaid 渲染探针
 - 不要实现 `delete` 变更、放宽路径校验，或把会话文件写进项目源码树。
 - 不要在 `stdout` 输出日志、调试文本或 Mermaid 内容。
 - 不要提交 `dist/`、`output/*.svg|png`、`output/.ai-draw/session.json`、`.env` 或本机配置。
-- 不要推送远端、打 tag 或发布 npm；本任务只改本地工作区。
+- 不要把 token、`.env`、本机凭据或 GitHub API 响应中的敏感字段写入仓库。
+- 不要绕过 `scripts/github-maintenance.mjs` 手工维护 About/topics，避免文档与仓库元数据漂移。

@@ -41,9 +41,17 @@ try {
   const probeDir = fs.mkdtempSync(path.join(os.tmpdir(), "ai-draw-doctor-"));
   const input = path.join(probeDir, "input.mmd");
   const output = path.join(probeDir, "output.svg");
+  const puppeteerConfig = path.join(probeDir, "puppeteer.json");
   fs.writeFileSync(input, "graph TD\n  A[Doctor] --> B[OK]\n", "utf8");
   try {
-    await execAsyncShell(`${q} -i ${JSON.stringify(input)} -o ${JSON.stringify(output)} -t default --quiet`, {
+    const noSandbox = process.env.MERMAID_CHROME_NO_SANDBOX === "1"
+      || process.env.CI === "true"
+      || process.env.GITHUB_ACTIONS === "true";
+    const configArg = noSandbox ? ` -p ${JSON.stringify(puppeteerConfig)}` : "";
+    if (noSandbox) {
+      fs.writeFileSync(puppeteerConfig, JSON.stringify({ args: ["--no-sandbox", "--disable-setuid-sandbox"] }), "utf8");
+    }
+    await execAsyncShell(`${q} -i ${JSON.stringify(input)} -o ${JSON.stringify(output)} -t default --quiet${configArg}`, {
       cwd: root,
       timeout: 60000,
     });

@@ -63,9 +63,28 @@ async function runMmdc(inputFile: string, outputFile: string, theme: MermaidThem
   const bin = process.platform === "win32"
     ? path.join(PROJECT_ROOT, "node_modules", ".bin", "mmdc.cmd")
     : path.join(PROJECT_ROOT, "node_modules", ".bin", "mmdc");
-  const cmd = `"${bin}" -i "${inputFile}" -o "${outputFile}" -t ${theme} --quiet`;
+  const puppeteerConfig = await createPuppeteerConfig();
+  const configArg = puppeteerConfig ? ` -p "${puppeteerConfig}"` : "";
+  const cmd = `"${bin}" -i "${inputFile}" -o "${outputFile}" -t ${theme} --quiet${configArg}`;
   logger.debug(`Running mmdc: ${cmd}`);
-  await execAsync(cmd, { timeout: 30_000 });
+  try {
+    await execAsync(cmd, { timeout: 30_000 });
+  } finally {
+    if (puppeteerConfig) {
+      await fs.rm(path.dirname(puppeteerConfig), { recursive: true, force: true }).catch(() => {});
+    }
+  }
+}
+
+async function createPuppeteerConfig(): Promise<string | undefined> {
+  const noSandbox = process.env.MERMAID_CHROME_NO_SANDBOX === "1"
+    || process.env.CI === "true"
+    || process.env.GITHUB_ACTIONS === "true";
+  if (!noSandbox) return undefined;
+  const configDir = await fs.mkdtemp(path.join(os.tmpdir(), "ai-draw-puppeteer-"));
+  const configFile = path.join(configDir, "puppeteer.json");
+  await fs.writeFile(configFile, JSON.stringify({ args: ["--no-sandbox", "--disable-setuid-sandbox"] }), "utf-8");
+  return configFile;
 }
 
 // ─── SVG helpers ─────────────────────────────────────────────────────────────

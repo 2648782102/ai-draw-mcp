@@ -4,6 +4,27 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `ROADMAP.md`：公开产品路线图、阶段目标与明确的非目标。
+- `docs/COMPETITIVE_RESEARCH.md`：Mermaid、白板、代码地图与 MCP 同类产品调研。
+- `docs/LAUNCH_KIT.md`：GitHub About、Release notes、Show HN 与中文社区宣发模板。
+- `scripts/github-maintenance.mjs`：检查/同步仓库 description、homepage、topics，并可从 CHANGELOG 创建 Release。
+- `scripts/repo-check.mjs`：离线检查发布文案、README 链接、维护脚本与 CHANGELOG 是否一致。
+- `npm run github:check` / `npm run github:sync`，把开源元数据维护纳入本地验证与发布流程。
+
+### Changed
+
+- npm 描述与关键词改为人机双向可视化协作定位，并同步 README 文档入口。
+- `npm run check` 增加离线仓库一致性检查；`npm run github:check` 作为显式、只读的 GitHub 元数据漂移检查，不需要凭据。
+
+### Fixed
+
+- `create_visual_proposal` 的 `metadata` schema 使用 `z.record(z.string(), z.unknown())`，兼容 Zod 3 与 Zod 4。
+- `mmdc` 渲染与 `doctor` 探针在 CI / 无 sandbox 的 Chrome 环境下自动使用临时 Puppeteer 配置，避免 Chrome 启动失败。
+
 ## [0.3.0] - 2026-11-06
 
 ### Added

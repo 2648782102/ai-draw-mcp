@@ -1,0 +1,50 @@
+# AI Draw MCP Roadmap
+
+This roadmap is a product-direction document, not a support contract. It exists so contributors, AI coding agents, and early users can understand what belongs in the core and what should remain an integration.
+
+Product principle: **the visual workspace is the shared language between humans and AI**. Rendering a diagram is useful; closing the loop from a visual edit to a reviewed, reversible project change is the product.
+
+## Now — 0.3.x: trustworthy closed loop
+
+- Keep the 16 MCP tools small, composable, and easy for an LLM to call correctly.
+- Make CI reliable on Node 20, 22, and 24, including headless Chrome environments.
+- Preserve the human approval gate: no project write without a proposal, a reviewable diff, and a one-time receipt.
+- Improve first-run clarity: a 30-second Quickstart, troubleshooting, and a reproducible end-to-end demo.
+- Publish consistent GitHub About, topics, release notes, and launch copy from versioned repository files.
+- Keep the panel local-first and offline-capable; never require an account to use the core loop.
+
+## Next — 0.4: a better visual conversation
+
+- Structured graph editing: add, remove, reconnect, group, and label nodes from the panel without editing Mermaid source.
+- Annotation threads attached to nodes, with resolve/reopen and a compact activity timeline.
+- Proposal templates for common intents such as rename module, extract file, add test, and update docs.
+- Per-proposal impact summary: touched paths, line counts, detected existing files, and safety notices.
+- Export and import a collaboration session as a portable JSON artifact for bug reports and examples.
+- A richer `doctor` command that reports IDE config locations, browser detection, and remediation commands.
+
+## Later — 0.5: deeper project intelligence
+
+- Language-aware scanners that surface imports, symbols, tests, and framework boundaries beyond the current file-tree scanner.
+- A bidirectional mapping between graph nodes and source ranges so humans can click from a node to code.
+- Review checkpoints: dry-run, test-command suggestions, and optional Git worktree isolation for applied proposals.
+- Multi-diagram sessions: architecture, flow, and sequence views over the same workspace.
+- Plugin adapters for additional MCP clients and diagram editors, without making them core dependencies.
+
+## Horizon — 1.0: an open protocol for visual intent
+
+- Stabilize a versioned `VisualGraph` and `ChangeProposal` protocol with compatibility tests and migration notes.
+- Define an extension API for scanners, renderers, proposal generators, and policy checks.
+- Optional shareable read-only visual reviews that do not grant project-write capability.
+- Governance: published decision records, contributor ladder, release cadence, and measurable adoption goals.
+
+## Non-goals
+
+- A hosted multi-user SaaS or an account wall for local use.
+- A general-purpose whiteboard competing with Miro, FigJam, Excalidraw, or tldraw on freehand canvas features.
+- A cloud diagram library that owns the source of truth instead of the developer's repository.
+- Autonomous project writes that bypass human review, diffs, and one-time approval.
+- Binary file edits, deletion operations, or broad filesystem permissions.
+
+## How to propose a roadmap change
+
+Open an issue with the user problem, the smallest end-to-end demo, and the safety implications. Changes to the proposal or approval protocol must include migration tests and an update to `docs/ARCHITECTURE.md`, `AGENTS.md`, and `SECURITY.md`.

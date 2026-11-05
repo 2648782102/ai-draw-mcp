@@ -22,7 +22,7 @@ export function registerCreateVisualProposal(server: McpServer, ctx: ToolContext
       summary: z.string().describe("What will change and why"),
       diagram_id: z.string().optional(),
       changes: z.array(changeSchema).min(1).describe("Safe workspace file changes"),
-      metadata: z.record(z.unknown()).optional(),
+      metadata: z.record(z.string(), z.unknown()).optional(),
     },
     async ({ title, summary, diagram_id, changes, metadata }) => {
       try {

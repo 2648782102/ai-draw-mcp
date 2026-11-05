@@ -48,12 +48,17 @@
 | 文档 | 内容 |
 |------|------|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构、状态模型、REST/WebSocket 协议、安全边界 |
+| [ROADMAP.md](ROADMAP.md) | 产品方向、阶段目标与明确的非目标 |
+| [docs/COMPETITIVE_RESEARCH.md](docs/COMPETITIVE_RESEARCH.md) | Mermaid/白板/MCP 同类产品调研与定位 |
+| [docs/LAUNCH_KIT.md](docs/LAUNCH_KIT.md) | GitHub About、Release notes、Show HN 与社区宣发模板 |
 | [AGENTS.md](AGENTS.md) | AI coding agent 操作手册 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 开发、验证与 PR 约定 |
 | [SECURITY.md](SECURITY.md) | 威胁模型、支持版本与漏洞报告 |
 | [CHANGELOG.md](CHANGELOG.md) | 变更记录 |
 | [VERSIONING.md](VERSIONING.md) / [RELEASING.md](RELEASING.md) | 版本与发布策略 |
 | [examples/](examples/README.md) | MCP 配置、Mermaid/SVG、端到端协作演示 |
+
+> 本项目不是托管白板，也不是「AI 自动改代码」按钮；它是本地优先、需要人类审阅与一次性批准的可视化协作协议。非目标与未来方向见 [ROADMAP.md](ROADMAP.md)。
 
 ---
 
@@ -84,6 +89,8 @@ node examples/collab-demo.mjs
 ---
 
 ## 快速开始
+
+最短体验路径：安装 → 在 IDE 配置 MCP → 让 AI 调用 `scan_project` → 在面板点「💬 协作」改图/批注 → 查看提案 diff → 批准并把一次性确认号发给 AI。完整闭环可运行 `node examples/collab-demo.mjs`。
 
 ### 方式一：通过 npm 安装（推荐）
 

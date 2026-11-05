@@ -1,7 +1,7 @@
 {
   "name": "ai-draw-mcp",
   "version": "0.3.0",
-  "description": "MCP Server that gives AI drawing capabilities in IDEs (Cursor, VS Code, Windsurf, Trae, Zed, etc.)",
+  "description": "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.",
   "type": "module",
   "bin": {
     "ai-draw-mcp": "dist/index.js"
@@ -31,8 +31,11 @@
     "test": "vitest run",
     "test:mcp": "vitest run test/mcp.test.mjs",
     "test:examples": "node --check examples/node-client.mjs && node --check examples/collab-demo.mjs",
-    "check": "npm run lint && npm run build && npm test && npm run test:examples && npm run doctor && npm pack --dry-run",
-    "doctor": "node scripts/doctor.mjs"
+    "check": "npm run lint && npm run build && npm test && npm run test:examples && npm run repo:check && npm run doctor && npm pack --dry-run",
+    "doctor": "node scripts/doctor.mjs",
+    "github:check": "node scripts/github-maintenance.mjs --check",
+    "github:sync": "node scripts/github-maintenance.mjs",
+    "repo:check": "node scripts/repo-check.mjs"
   },
   "keywords": [
     "mcp",
@@ -47,7 +50,10 @@
     "windsurf",
     "trae",
     "claude",
-    "llm"
+    "llm",
+    "human-in-the-loop",
+    "visualization",
+    "local-first"
   ],
   "license": "MIT",
   "publishConfig": {
