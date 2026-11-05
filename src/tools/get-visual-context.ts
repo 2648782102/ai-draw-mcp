@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { jsonLine, type ToolContext } from "./_shared.js";
+import { summarizeAnnotationThreads } from "../domain/annotation-thread.js";
 
 export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
   server.tool(
@@ -20,16 +21,19 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
       const proposals = ctx.sessions.getProposals(proposal_limit);
       const pending = messages.filter((message) => message.author === "human" && message.status === "pending");
       const unresolved = graph?.annotations.filter((annotation) => !annotation.resolved) ?? [];
+      const annotationThreads = summarizeAnnotationThreads(graph);
       const nodeLabels = new Map(graph?.nodes.map((node) => [node.id, node.label]) ?? []);
       const annotationsByNode = new Map<string, string[]>();
       const generalAnnotations: string[] = [];
       for (const annotation of unresolved) {
+        const thread = annotationThreads.threads.find((item) => item.id === annotation.id);
+        const fullBody = [annotation.body, ...(thread?.replies ?? []).map((reply) => `${reply.author}: ${reply.body}`)].join(" / ");
         if (annotation.nodeId) {
           const bucket = annotationsByNode.get(annotation.nodeId) ?? [];
-          bucket.push(annotation.body);
+          bucket.push(fullBody);
           annotationsByNode.set(annotation.nodeId, bucket);
         } else {
-          generalAnnotations.push(annotation.body);
+          generalAnnotations.push(fullBody);
         }
       }
       const intentByNode = graph?.nodes
@@ -54,7 +58,9 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
           label: edge.label,
           kind: edge.kind,
         })) ?? [],
-        guidance: "Use intentByNode and pendingMessages as the human's latest intent; create_visual_proposal should cite those nodes, then wait for human approval.",
+        annotationThreads,
+        nextActor: annotationThreads.nextActor,
+        guidance: "Use annotationThreads.nextActor to see whose turn it is; use intentByNode and pendingMessages as the human's latest intent; create_visual_proposal should cite those nodes, then wait for human approval.",
       };
       const payload = {
         session: {
@@ -68,11 +74,12 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
         graph,
         pendingMessages: pending,
         unresolvedAnnotations: unresolved,
+        annotationThreads,
         intentSummary,
         messages,
         proposals,
         nextActions: [
-          "Read pendingMessages and unresolvedAnnotations to understand the human's intent.",
+          "Read annotationThreads, pendingMessages and unresolvedAnnotations; annotationThreads.nextActor tells you whether the AI should reply or wait for a human.",
           "Use create_visual_proposal to record change proposals; never write project files directly from this tool.",
           "Ask the human to approve a proposal in the panel before anything is applied.",
         ],
@@ -85,6 +92,7 @@ export function registerGetVisualContext(server: McpServer, ctx: ToolContext) {
             `Workspace: ${snapshot.workspaceRoot}`,
             `Pending human messages: ${pending.length} · unresolved annotations: ${unresolved.length}`,
             `Node-linked intents: ${intentByNode.length} · general annotations: ${generalAnnotations.length}`,
+            `Annotation threads: ${annotationThreads.open} open / ${annotationThreads.total} · next actor: ${annotationThreads.nextActor}`,
             ``,
             jsonLine({
               id: snapshot.id,

@@ -74,6 +74,9 @@ describe("MCP server", () => {
       expect(payload.intentSummary).toBeTruthy();
       expect(payload.intentSummary).toHaveProperty("intentByNode");
       expect(payload.intentSummary).toHaveProperty("edgeLabels");
+      expect(payload.annotationThreads).toBeTruthy();
+      expect(payload.intentSummary.annotationThreads).toBeTruthy();
+      expect(payload.intentSummary).toHaveProperty("nextActor");
       expect(payload.nextActions.join(" ")).toContain("create_visual_proposal");
     });
   }, 30_000);

@@ -98,6 +98,43 @@ describe("collaboration session", () => {
       expect(graphAfterAnnotation.annotations[1].nodeId).toBe("new_module");
       expect(sessions.getMessages().some((message) => message.body.includes("@ shared"))).toBe(true);
 
+      const threadReply = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/reply`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ body: "请补充中文说明", author: "human" }),
+      });
+      expect(threadReply.ok).toBe(true);
+      const threadAfterReply = await collabFetchGraph(base, headers);
+      expect(threadAfterReply.annotations[1].replies).toHaveLength(1);
+      expect(threadAfterReply.annotations[1].replies[0]).toMatchObject({
+        author: "human",
+        body: "请补充中文说明",
+        status: "pending",
+      });
+
+      const threadResolve = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/status`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ status: "resolved" }),
+      });
+      expect(threadResolve.ok).toBe(true);
+      expect((await collabFetchGraph(base, headers)).annotations[1].resolved).toBe(true);
+
+      const threadReopen = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/status`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ status: "open" }),
+      });
+      expect(threadReopen.ok).toBe(true);
+      expect((await collabFetchGraph(base, headers)).annotations[1].resolved).toBe(false);
+
+      const invalidThreadStatus = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/status`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ status: "unresolved" }),
+      });
+      expect(invalidThreadStatus.status).toBe(400);
+
       const unknownNodeAnnotationResponse = await fetch(`${base}/api/collab/annotations`, {
         method: "POST",
         headers,
@@ -111,10 +148,18 @@ describe("collaboration session", () => {
       });
       await sessions.markMessage(humanMessage.id, "answered");
       await sessions.resolveAnnotations([graphAfterAnnotation.annotations[1].id]);
+      await sessions.updateAnnotation(graphAfterAnnotation.annotations[0].id, "reply", {
+        author: "ai",
+        body: "已收到，这条批注会在提案里处理。",
+      });
       const replySnapshot = sessions.getSnapshot();
       expect(replySnapshot.messages.find((message) => message.id === humanMessage.id).status).toBe("answered");
       expect(replySnapshot.graph.annotations[1].resolved).toBe(true);
       expect(replySnapshot.messages.some((message) => message.author === "ai" && message.body.includes("中文"))).toBe(true);
+      expect(replySnapshot.graph.annotations[0].replies[0]).toMatchObject({
+        author: "ai",
+        body: "已收到，这条批注会在提案里处理。",
+      });
 
       const proposalResponse = await fetch(`${base}/api/collab/proposals`, {
         method: "POST",
@@ -197,6 +242,26 @@ describe("collaboration session", () => {
       expect(bundle.kind).toBe("ai-draw-session-bundle");
       expect(bundle.version).toBe(1);
       expect(JSON.stringify(bundle)).not.toContain(approval.receipt.grantHash);
+      expect(bundle.session.graph.annotations[0].replies[0].body).toContain("已收到");
+
+      const malformedThreadBundle = await fetch(`${base}/api/collab/bundle/import`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          bundle: {
+            ...bundle,
+            session: {
+              ...bundle.session,
+              graph: {
+                ...bundle.session.graph,
+                annotations: [{ ...bundle.session.graph.annotations[0], replies: "not-an-array" }],
+              },
+            },
+          },
+          confirmedBy: "human",
+        }),
+      });
+      expect(malformedThreadBundle.status).toBe(400);
 
       const rejectedBundleImport = await fetch(`${base}/api/collab/bundle/import`, {
         method: "POST",

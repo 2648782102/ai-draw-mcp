@@ -51,6 +51,15 @@ export interface AnnotationPin {
   author: Participant;
   createdAt: string;
   resolved?: boolean;
+  replies?: AnnotationReply[];
+}
+
+export interface AnnotationReply {
+  id: string;
+  author: "human" | "ai";
+  body: string;
+  createdAt: string;
+  status?: MessageStatus;
 }
 
 export interface VisualGraph {

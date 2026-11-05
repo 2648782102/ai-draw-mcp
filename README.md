@@ -32,7 +32,7 @@
 ## 功能
 
 - **16 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal`
-- **人机双向协作工作台** — 项目结构扫描、节点编辑、批注、对话、提案批准；WebSocket 实时同步给 AI 和面板
+- **人机双向协作工作台** — 项目结构扫描、节点编辑、批注线程（回复/解决/重开）、对话、提案批准；WebSocket 实时同步给 AI 和面板
 - **人工确认的安全变更** — 面板批准只生成一次性凭据；AI 凭凭据应用提案，拒绝危险路径，写入失败自动回滚
 - **实时双向面板** — AI 绘图后通过 WebSocket 推送到面板；面板里也可手动编辑源码、实时预览、保存回磁盘
 - **双模式编辑器** — Mermaid DSL 模式 / SVG 全文本模式（`render_svg` 生成的图自动切换到 SVG 模式）
@@ -70,14 +70,16 @@
 AI: scan_project → 生成项目结构图
 人: 在「💬 协作」里改名 / 批注 / 发消息
 AI: get_visual_context → 理解意图
-AI: reply_to_visual_context → 在面板里回信并标记已处理
+AI: reply_to_visual_context → 在面板里回信、回复节点批注线程并标记已处理
 AI: create_visual_proposal → 生成变更提案
 人: 查看逐行差异并点击「批准」→ 复制一次性确认号
 AI: apply_visual_proposal(确认号) → 安全写入工作区 → 失败自动回滚
 AI: 再次 scan_project → 图与代码保持一致
 ```
 
-> 示例：AI 根据项目结构画出现有模块；人在图上把 `utils` 改名为 `shared` 并批注「抽成公共层」；AI 读取修订后提出目录迁移与 import 更新提案；人批准后项目真正变化。
+> 示例：AI 根据项目结构画出现有模块；人在图上把 `utils` 改名为 `shared` 并批注「抽成公共层」，随后可在同一线程继续追问或重开讨论；AI 读取修订与 `annotationThreads.nextActor` 后提出目录迁移与 import 更新提案；人批准后项目真正变化。
+
+> **节点批注线程**：每个批注形成独立线程，保存根批注、人与 AI 的有序回复、解决/重开状态及关联节点标签。面板显示下一棒参与者，`get_visual_context` 把未解决线程和下一棒交给 AI。解决线程只是对话状态，**不等于批准变更**；项目文件仍须由人查看逐行 diff、批准并提供一次性确认号。当前版本保留线程历史但不提供失锚/过期标记，后续候选方向见 [docs/COMPETITIVE_RESEARCH.md](docs/COMPETITIVE_RESEARCH.md)。
 
 详细架构与安全模型见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)，贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
@@ -92,7 +94,7 @@ node examples/collab-demo.mjs
 
 ## 快速开始
 
-最短体验路径：安装 → 在 IDE 配置 MCP → 让 AI 调用 `scan_project` → 在面板点「💬 协作」改图/批注 → 查看提案 diff → 批准并把一次性确认号发给 AI。完整闭环可运行 `node examples/collab-demo.mjs`。
+最短体验路径：安装 → 在 IDE 配置 MCP → 让 AI 调用 `scan_project` → 在面板点「💬 协作」改图、添加节点批注并回复线程 → 查看提案 diff → 批准并把一次性确认号发给 AI。完整闭环可运行 `node examples/collab-demo.mjs`。
 
 ### 方式一：通过 npm 安装（推荐）
 
@@ -281,7 +283,7 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 | `open_preview` | 在 IDE 中打开预览面板，可 deep-link 到指定图 |
 | `scan_project` | 只读扫描工作区，生成项目结构图并设为协作会话当前图 |
 | `get_visual_context` | 读取图形修订、批注、对话与待处理意图，供 AI 修改代码前理解上下文 |
-| `reply_to_visual_context` | AI 在面板里回复人类，并可把消息/批注标记为已回答、已解决 |
+| `reply_to_visual_context` | AI 在面板里回复人类、回复节点批注线程，并可把消息/批注标记为已回答、已解决 |
 | `create_visual_proposal` | 创建待确认的项目变更提案，不直接写项目文件 |
 | `apply_visual_proposal` | 应用经人类批准的提案；拒绝危险路径，失败自动回滚 |
 

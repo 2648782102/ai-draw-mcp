@@ -1,5 +1,6 @@
 import type {
   AnnotationPin,
+  AnnotationReply,
   ChangeProposal,
   ConversationMessage,
   GraphEdge,
@@ -7,6 +8,7 @@ import type {
   SessionSnapshot,
   VisualGraph,
 } from "./types.js";
+import { parseAnnotationReplies } from "./annotation-thread.js";
 
 export interface SessionBundle {
   kind: "ai-draw-session-bundle";
@@ -78,8 +80,19 @@ function parseAnnotations(value: unknown): AnnotationPin[] {
       author: item.author === "ai" || item.author === "system" ? item.author : "human",
       createdAt: typeof item.createdAt === "string" ? item.createdAt : new Date().toISOString(),
       resolved: item.resolved === true,
+      replies: parseAnnotationReplies(item.replies, `session.graph.annotations[${index}].replies`),
     };
   });
+}
+
+function serializeReplies(replies: AnnotationReply[] | undefined): AnnotationReply[] | undefined {
+  return replies?.map((reply) => ({
+    id: reply.id,
+    author: reply.author,
+    body: reply.body,
+    createdAt: reply.createdAt,
+    status: reply.status,
+  }));
 }
 
 function parseMessages(value: unknown): ConversationMessage[] {
@@ -148,7 +161,13 @@ export function createSessionBundle(snapshot: SessionSnapshot, exportedAt = new 
       graphRevision: snapshot.graphRevision,
       activeDiagramId: snapshot.activeDiagramId,
       workspaceRoot: snapshot.workspaceRoot,
-      graph: snapshot.graph,
+      graph: snapshot.graph ? {
+        ...snapshot.graph,
+        annotations: snapshot.graph.annotations.map((annotation) => ({
+          ...annotation,
+          replies: serializeReplies(annotation.replies),
+        })),
+      } : undefined,
       messages: snapshot.messages,
       proposals,
     },

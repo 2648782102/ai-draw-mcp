@@ -29,6 +29,7 @@ src/
 │   ├── ids.ts                统一 ID 与时间戳
 │   ├── approval.ts           一次性批准凭据
 │   ├── session-bundle.ts     可移植会话快照的创建与解析
+│   ├── annotation-thread.ts  节点批注线程聚合、回复校验与 nextActor 队列
 │   ├── impact.ts             提案影响摘要：文件数、行数、字节数与安全说明
 │   └── path-safety.ts        工作区路径校验，提案应用的安全边界
 ├── infra/
@@ -51,7 +52,7 @@ src/
     ├── create-visual-proposal.ts 创建待确认提案
     └── apply-visual-proposal.ts 凭一次性凭据应用已批准提案
 
-test/                         Vitest：MCP 集成测试、协作集成测试
+test/                         Vitest：批注线程、MCP 集成测试、协作集成测试
 scripts/doctor.mjs            环境自检（含真实 Mermaid 渲染探针）
 scripts/github-maintenance.mjs GitHub About/topics 漂移检查、同步与 Release 创建
 scripts/repo-check.mjs        离线一致性检查：发布文案、文档链接、脚本与 CHANGELOG
@@ -88,9 +89,9 @@ ROADMAP.md                   产品路线图与非目标
 | 图管理 | `update_diagram`、`delete_diagram`、`list_diagrams`、`open_preview` |
 | 双向协作 | `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal` |
 
-协作工作流：先 `scan_project`，人改图后 AI 用 `get_visual_context` 读取 `pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信并标记已处理，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
+协作工作流：先 `scan_project`，人改图、在节点批注线程里回复或重开讨论后，AI 用 `get_visual_context` 读取 `annotationThreads.nextActor`、`pendingMessages` 与 `unresolvedAnnotations`，用 `reply_to_visual_context` 回信/内联回复并标记已处理，再 `create_visual_proposal`；人在面板查看逐行差异、批准并复制一次性确认号，AI 最后调用 `apply_visual_proposal(proposal_id, approval_id, approval_grant, approval_expires_at, approved_by="human")`。
 
-`get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注、待处理消息与连线标签；生成提案时优先引用 `intentByNode`，不要只复述扁平消息列表。
+`get_visual_context` 的 `intentSummary` 会按节点聚合未解决批注（包含线程回复）、待处理消息与连线标签，并返回 `annotationThreads` / `nextActor`；生成提案时优先引用 `intentByNode`，不要只复述扁平消息列表。`nextActor` 为 `human` 时应等待人继续回复，不要抢先创建提案。
 
 ---
 
@@ -133,6 +134,8 @@ server.tool(
 | `GET/PUT /api/collab/graph` | 读取/保存 VisualGraph |
 | `POST /api/collab/messages` | 人类或 AI 发消息 |
 | `POST /api/collab/annotations` | 给当前图加批注；`nodeId` 必须引用现有节点 |
+| `POST /api/collab/annotations/:id/reply` | 在节点批注线程里回复，作者可为 `human` 或 `ai` |
+| `POST /api/collab/annotations/:id/status` | 解决或重开批注线程，状态为 `resolved` 或 `open` |
 | `GET/POST /api/collab/proposals` | 列出/创建变更提案 |
 | `GET /api/collab/proposals/:id/diff` | 查看逐行变更差异 |
 | `GET /api/collab/proposals/:id/impact` | 查看批准前的文件/行数/字节数影响摘要 |
@@ -183,5 +186,6 @@ npm run check      # 全量检查（含 GitHub 元数据漂移检查）
 - 不要在 `stdout` 输出日志、调试文本或 Mermaid 内容。
 - 不要提交 `dist/`、`output/*.svg|png`、`output/.ai-draw/session.json`、`.env` 或本机配置。
 - 会话 bundle 不得包含一次性批准凭据或已批准提案的可用状态；导入必须要求 `confirmedBy: "human"`。
+- 节点批注线程的回复必须经过 `parseAnnotationReplies()` 校验；不要信任来自面板或 bundle 的裸数组。
 - 不要把 token、`.env`、本机凭据或 GitHub API 响应中的敏感字段写入仓库。
 - 不要绕过 `scripts/github-maintenance.mjs` 手工维护 About/topics，避免文档与仓库元数据漂移。

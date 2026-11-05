@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `src/domain/annotation-thread.ts`：节点批注线程聚合、回复校验与 AI 可读的 `nextActor` 队列。
+- 面板节点批注支持内联回复、解决/重开与状态/下一棒提示；`reply_to_visual_context` 支持 `annotation_replies`。
+- `POST /api/collab/annotations/:id/reply` 与 `/status`；会话 bundle 可保留批注回复，并拒绝损坏的回复结构。
 - `ROADMAP.md`：公开产品路线图、阶段目标与明确的非目标。
 - `docs/COMPETITIVE_RESEARCH.md`：Mermaid、白板、代码地图与 MCP 同类产品调研。
 - `docs/LAUNCH_KIT.md`：GitHub About、Release notes、Show HN 与中文社区宣发模板。
@@ -35,6 +38,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - 协作集成测试覆盖会话 bundle 的版本、批准凭据不外泄、已批准提案降级、人类确认与非法文件拒绝。
 - 协作面板在批注列表显示绑定节点名；提案卡片显示图形修订、内容哈希前缀和受影响路径摘要。
 - 提案卡片异步加载影响摘要，帮助人类在查看逐行 diff 前快速判断变更规模。
+- `get_visual_context` 返回 `annotationThreads` 与 `nextActor`，把对象上的对话历史作为一等上下文交给 AI。
+- `docs/COMPETITIVE_RESEARCH.md` 补充公开评论线程协议调研，明确当前交付范围、后续状态/时间线候选与安全边界。
 
 ### Fixed
 
@@ -42,6 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `mmdc` 渲染与 `doctor` 探针在 CI / 无 sandbox 的 Chrome 环境下自动使用临时 Puppeteer 配置，避免 Chrome 启动失败。
 - `/api/collab/annotations` 拒绝不存在的 `nodeId`，避免批注悬挂到无效节点。
 - 会话导出会把未消费的 `approved` 提案降级为 `pending` 并清除批准时间，避免导入后重放旧确认号。
+- 节点批注回复在保存、导出与导入时经过结构校验，避免把损坏线程写回会话或 bundle。
 
 ## [0.3.0] - 2026-11-06
 

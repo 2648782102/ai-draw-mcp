@@ -17,6 +17,8 @@
  *   PUT  /api/collab/graph       save human graph edits
  *   POST /api/collab/messages    send a human/AI message
  *   POST /api/collab/annotations add a graph annotation
+ *   POST /api/collab/annotations/:id/reply   reply to an annotation thread
+ *   POST /api/collab/annotations/:id/status  resolve or reopen a thread
  *   GET  /api/collab/proposals   list change proposals
  *   GET  /api/collab/proposals/:id/diff  file diffs for a proposal
  *   POST /api/collab/proposals   create a proposal
@@ -188,6 +190,64 @@ export class PreviewServer {
       });
       this.broadcast({ type: "graph_updated", graph: current, revision: snapshot.graphRevision, message });
       res.json({ ok: true, annotation, graphRevision: snapshot.graphRevision });
+    });
+
+    this.app.post("/api/collab/annotations/:id/reply", async (req, res) => {
+      const payload = req.body as { body?: string; author?: "human" | "ai" };
+      if (!payload.body?.trim()) return res.status(400).json({ error: "Reply body is required" });
+      const author = payload.author === "ai" ? "ai" : "human";
+      try {
+        const annotation = await this.sessions.updateAnnotation(req.params.id, "reply", {
+          author,
+          body: payload.body,
+        });
+        const snapshot = this.sessions.getSnapshot();
+        const message = await this.sessions.addMessage(author, `${author === "human" ? "回复节点批注" : "AI 回复节点批注"}：${payload.body.trim()}`, {
+          diagramId: annotation.nodeId ? snapshot.activeDiagramId : undefined,
+          status: author === "human" ? "pending" : "answered",
+          metadata: { event: "annotation_replied", annotationId: annotation.id, nodeId: annotation.nodeId },
+        });
+        this.broadcast({
+          type: "graph_updated",
+          graph: this.sessions.getGraph(),
+          revision: snapshot.graphRevision,
+          message,
+        });
+        res.json({ ok: true, annotation, graphRevision: snapshot.graphRevision });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+
+    this.app.post("/api/collab/annotations/:id/status", async (req, res) => {
+      const payload = req.body as { status?: "resolved" | "open" };
+      if (payload.status !== "resolved" && payload.status !== "open")
+        return res.status(400).json({ error: "status must be resolved or open" });
+      try {
+        const annotation = await this.sessions.updateAnnotation(
+          req.params.id,
+          payload.status === "resolved" ? "resolve" : "reopen",
+          { author: "human" },
+        );
+        const snapshot = this.sessions.getSnapshot();
+        const message = await this.sessions.addMessage(
+          "system",
+          `${payload.status === "resolved" ? "已解决" : "已重开"}节点批注线程「${annotation.body.slice(0, 60)}」`,
+          {
+            diagramId: snapshot.activeDiagramId,
+            metadata: { event: "annotation_status", annotationId: annotation.id, status: payload.status },
+          },
+        );
+        this.broadcast({
+          type: "graph_updated",
+          graph: this.sessions.getGraph(),
+          revision: snapshot.graphRevision,
+          message,
+        });
+        res.json({ ok: true, annotation, graphRevision: snapshot.graphRevision });
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      }
     });
 
     this.app.get("/api/collab/proposals", (_req, res) => {

@@ -10,9 +10,11 @@ import {
   parseSessionBundle,
   type SessionBundle,
 } from "../domain/session-bundle.js";
+import { parseAnnotationReplies } from "../domain/annotation-thread.js";
 import type { ApprovalGrant, ApprovalReceipt } from "../domain/approval.js";
 import { assertProposalHash, proposalContentHash } from "../domain/proposal-hash.js";
 import type {
+  AnnotationPin,
   ChangeProposal,
   ConversationMessage,
   Participant,
@@ -84,6 +86,10 @@ function validateGraph(graph: VisualGraph): void {
       throw new Error("Graph annotation requires id and body");
     if (annotation.nodeId && !nodeIds.has(annotation.nodeId))
       throw new Error(`Graph annotation references missing node: ${annotation.id}`);
+    annotation.replies = parseAnnotationReplies(
+      annotation.replies,
+      `Graph annotation ${annotation.id} replies`,
+    );
   }
 }
 
@@ -271,6 +277,34 @@ export class SessionStore {
       }
       draft.graphRevision += 1;
     });
+  }
+
+  async updateAnnotation(
+    id: string,
+    action: "reply" | "resolve" | "reopen",
+    options: { author: "human" | "ai"; body?: string },
+  ): Promise<AnnotationPin> {
+    let updated: AnnotationPin | undefined;
+    await this.mutate((draft) => {
+      const annotation = draft.graph?.annotations.find((item) => item.id === id);
+      if (!annotation) throw new Error(`Annotation not found: ${id}`);
+      if (action === "reply") {
+        if (!options.body?.trim()) throw new Error("Reply body is required");
+        annotation.replies = parseAnnotationReplies(annotation.replies, `Annotation ${id} replies`);
+        annotation.replies.push({
+          id: makeId("reply"),
+          author: options.author,
+          body: options.body.trim(),
+          createdAt: nowIso(),
+          status: options.author === "human" ? "pending" : "answered",
+        });
+        if (annotation.resolved && options.author === "human") annotation.resolved = false;
+      } else {
+        annotation.resolved = action === "resolve";
+      }
+      updated = clone(annotation);
+    });
+    return updated!;
   }
 
   async createProposal(input: {

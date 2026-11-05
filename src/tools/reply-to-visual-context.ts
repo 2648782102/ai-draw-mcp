@@ -14,14 +14,26 @@ export function registerReplyToVisualContext(server: McpServer, ctx: ToolContext
         .describe("Human message IDs to mark as answered"),
       resolves_annotation_ids: z.array(z.string()).optional()
         .describe("Annotation IDs to mark as resolved"),
+      annotation_replies: z.array(z.object({
+        annotation_id: z.string().describe("An open or resolved annotation thread ID"),
+        body: z.string().min(1).describe("Reply shown in that annotation thread"),
+      })).optional().describe("Reply inline to one or more node-linked annotation threads"),
       status: z.enum(["answered", "pending"]).optional()
         .describe("Most replies use answered; use pending to ask the human for clarification"),
     },
-    async ({ body, diagram_id, resolves_message_ids, resolves_annotation_ids, status }) => {
+    async ({ body, diagram_id, resolves_message_ids, resolves_annotation_ids, annotation_replies, status }) => {
       try {
         for (const id of resolves_message_ids ?? []) await ctx.sessions.markMessage(id, "answered");
         if ((resolves_annotation_ids ?? []).length > 0)
           await ctx.sessions.resolveAnnotations(resolves_annotation_ids!);
+        const repliedThreadIds: string[] = [];
+        for (const reply of annotation_replies ?? []) {
+          await ctx.sessions.updateAnnotation(reply.annotation_id, "reply", {
+            author: "ai",
+            body: reply.body,
+          });
+          repliedThreadIds.push(reply.annotation_id);
+        }
 
         const message = await ctx.sessions.addMessage("ai", body.trim(), {
           diagramId: diagram_id,
@@ -30,9 +42,14 @@ export function registerReplyToVisualContext(server: McpServer, ctx: ToolContext
             event: "ai_reply",
             resolvedMessageIds: resolves_message_ids ?? [],
             resolvedAnnotationIds: resolves_annotation_ids ?? [],
+            annotationReplyIds: repliedThreadIds,
           },
         });
-        ctx.preview.broadcast({ type: "chat_message", message });
+        ctx.preview.broadcast({
+          type: "chat_message",
+          message,
+          graphRevision: ctx.sessions.getSnapshot().graphRevision,
+        });
         const snapshot = ctx.sessions.getSnapshot();
         return {
           content: [{
@@ -46,7 +63,7 @@ export function registerReplyToVisualContext(server: McpServer, ctx: ToolContext
               ``,
               jsonLine({ id: message.id, status: message.status ?? "answered" }),
               ``,
-              "提示：人类的旧消息不会自动消失；用 resolves_message_ids 标记已回答，用 resolves_annotation_ids 标记批注已解决。",
+              "提示：用 annotation_replies 在节点批注线程里回信，用 resolves_message_ids 标记聊天消息已回答，用 resolves_annotation_ids 标记线程已解决。",
             ].join("\n"),
           }],
         };

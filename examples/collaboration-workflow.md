@@ -16,15 +16,16 @@ In the panel, open `💬 协作`:
 
 - Rename a node label or change its kind in the node editor, then click `保存图形`.
 - Add an annotation such as `把 README 改成中文，补充协作流程`.
+- Reply inside the annotation thread, or resolve/reopen it. The panel shows whose turn is next (`等待 AI 回复` / `等待人回复`).
 - Send a chat message such as `请根据我的批注提出修改方案，但不要直接改文件`.
 
 ## 3. AI reads context and replies in the panel
 
 ```text
-调用 get_visual_context 读取我刚才的批注和消息；用 reply_to_visual_context 告诉我你理解了什么，并标记这些消息和批注已处理。
+调用 get_visual_context 读取我刚才的批注线程、annotationThreads.nextActor 和消息；用 reply_to_visual_context 在面板里回信、内联回复相关批注，并标记这些消息和批注已处理。
 ```
 
-The reply appears in the collaboration chat. The message and annotation are marked as answered/resolved, so the next turn has a clean inbox.
+The reply appears in the collaboration chat and in the node-linked annotation thread. The message and annotation are marked as answered/resolved, so the next turn has a clean inbox.
 
 ## 4. AI creates a proposal, not a direct edit
 

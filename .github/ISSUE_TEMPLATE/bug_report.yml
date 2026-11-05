@@ -7,6 +7,7 @@ body:
     attributes:
       value: |
         请先运行 `npm run doctor`，并把输出中不含敏感信息的部分贴出来。
+        如果问题发生在双向协作面板中，可在面板导出 `ai-draw-session-*.json`；它包含图形、批注线程与提案状态，但不包含一次性批准凭据。
   - type: input
     id: version
     attributes:
@@ -47,3 +48,9 @@ body:
       label: Logs
       description: stderr logs, browser console, and doctor output
       render: shell
+  - type: textarea
+    id: session_bundle
+    attributes:
+      label: Collaboration session bundle (optional)
+      description: Paste a redacted exported bundle, or describe which annotation thread / proposal / graph revision is affected.
+      render: json

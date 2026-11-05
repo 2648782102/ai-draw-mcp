@@ -21,6 +21,15 @@ const githubMaintenance = await read("scripts/github-maintenance.mjs");
 const readme = await read("README.md");
 const agents = await read("AGENTS.md");
 const changelog = await read("CHANGELOG.md");
+const architecture = await read("docs/ARCHITECTURE.md");
+const panel = await read("src/infra/templates/index.html");
+const previewServer = await read("src/infra/preview-server.ts");
+const types = await read("src/domain/types.ts");
+const sessionBundle = await read("src/domain/session-bundle.ts");
+const sessionStore = await read("src/infra/session-store.ts");
+const getVisualContext = await read("src/tools/get-visual-context.ts");
+const replyTool = await read("src/tools/reply-to-visual-context.ts");
+const annotationThread = await read("src/domain/annotation-thread.ts");
 
 const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -49,11 +58,44 @@ for (const topic of expectedTopics) {
   check(githubMaintenance.includes(`"${topic}"`), `scripts/github-maintenance.mjs is missing topic: ${topic}`);
 }
 
+for (const [id, needle] of [
+  ["btnSaveGraph", 'id="btnSaveGraph"'],
+  ["btnAddAnnotation", 'id="btnAddAnnotation"'],
+  ["annotationList", 'id="annotationList"'],
+  ["btnExportSession", 'id="btnExportSession"'],
+  ["btnImportSession", 'id="btnImportSession"'],
+  ["messageInput", 'id="messageInput"'],
+]) {
+  check(panel.includes(needle), `Collaboration panel is missing ${id}`);
+}
+for (const endpoint of [
+  "/api/collab/annotations/:id/reply",
+  "/api/collab/annotations/:id/status",
+  "/api/collab/bundle/import",
+  "/api/collab/proposals/:id/impact",
+]) {
+  check(previewServer.includes(endpoint), `preview-server.ts is missing route ${endpoint}`);
+}
+for (const [label, file, needle] of [
+  ["AnnotationReply", types, "export interface AnnotationReply"],
+  ["parseAnnotationReplies", annotationThread, "export function parseAnnotationReplies"],
+  ["annotation thread serialization", sessionBundle, "serializeReplies"],
+  ["annotation thread validation", sessionStore, "parseAnnotationReplies"],
+  ["annotationThreads context", getVisualContext, "summarizeAnnotationThreads"],
+  ["annotation_replies tool argument", replyTool, "annotation_replies"],
+]) {
+  check(file.includes(needle), `${label} is missing or drifted`);
+}
+
 for (const document of ["ROADMAP.md", "docs/ARCHITECTURE.md", "docs/COMPETITIVE_RESEARCH.md", "docs/LAUNCH_KIT.md"]) {
   check(readme.includes(document) || readme.includes(document.replace(/\.md$/, ".md")), `README.md does not link ${document}`);
 }
 check(agents.includes("scripts/github-maintenance.mjs"), "AGENTS.md does not document GitHub maintenance script");
 check(agents.includes("ROADMAP.md"), "AGENTS.md does not list ROADMAP.md");
+check(agents.includes("annotationThreads"), "AGENTS.md does not document annotation thread context");
+check(architecture.includes("annotationThreads.nextActor"), "ARCHITECTURE.md does not document annotation thread handoff");
+check(readme.includes("解决线程只是对话状态"), "README.md does not separate thread resolution from proposal approval");
+check(readme.includes("不等于批准变更"), "README.md does not document the thread approval boundary");
 check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased section");
 check(packageJson.scripts?.["github:check"] === "node scripts/github-maintenance.mjs --check", "github:check script is missing");
 check(packageJson.scripts?.["github:sync"] === "node scripts/github-maintenance.mjs", "github:sync script is missing");
