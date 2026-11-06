@@ -820,6 +820,7 @@ check(goalMode.includes("2026-11-06 09:00"), "GOAL_MODE.md is missing the overni
 check(goalMode.includes("No force push"), "GOAL_MODE.md is missing the push/history red line");
 check(goalMode.includes("Final audit"), "GOAL_MODE.md is missing the final-audit rule");
 check(goalMode.includes("Reusable Chinese goal template"), "GOAL_MODE.md is missing the reusable goal template");
+check(agents.includes("docs/GOAL_MODE.md"), "AGENTS.md does not point AI agents to the goal-mode contract");
 check(readme.includes("docs/GOAL_MODE.md"), "README.md does not link the goal-mode contract");
 check(englishQuickstart.includes("docs/GOAL_MODE.md"), "README.en.md does not link the goal-mode contract");
 check(documentationMap.includes("GOAL_MODE.md"), "docs/README.md does not link the goal-mode contract");

@@ -1,6 +1,6 @@
 # AGENTS.md — AI Agent 操作手册
 
-本文件是给 AI coding agent 看的操作手册。人类阅读 `README.md`，架构阅读 `docs/ARCHITECTURE.md`，贡献流程阅读 `CONTRIBUTING.md`。
+本文件是给 AI coding agent 看的操作手册。人类阅读 `README.md`，架构阅读 `docs/ARCHITECTURE.md`，贡献流程阅读 `CONTRIBUTING.md`；长时间自治任务的目标、红线、验收证据与最终审计规则阅读 `docs/GOAL_MODE.md`。
 
 ---
 
