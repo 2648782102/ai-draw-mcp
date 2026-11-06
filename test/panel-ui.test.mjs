@@ -494,6 +494,16 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#canvasObjectLabel", (element) => element.textContent)).toBe(firstFocus);
       expect(await page.$eval("#focusSummary", (element) => element.textContent)).toContain(firstFocus);
       expect(await page.$eval("#canvasObjectCard", (element) => getComputedStyle(element).display)).toBe("block");
+      const focusRing = await page.$eval("#canvasFocusRing", (element) => ({
+        display: getComputedStyle(element).display,
+        focusNodeId: element.dataset.focusNodeId,
+        width: element.getBoundingClientRect().width,
+        height: element.getBoundingClientRect().height,
+      }));
+      expect(focusRing.display).toBe("none");
+      expect(focusRing.focusNodeId).toBe("");
+      expect(focusRing.width).toBe(0);
+      expect(focusRing.height).toBe(0);
 
       await page.setViewport({ width: 820, height: 820 });
       await page.keyboard.press("c");

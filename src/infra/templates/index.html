@@ -399,6 +399,18 @@
     .canvas-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
     .workspace[data-view="canvas"] .canvas-chip { display: flex; }
     .workspace.welcome #minimap, .workspace.welcome .canvas-chip { display: none; }
+    .canvas-focus-ring {
+      position: absolute; z-index: 18; display: none; pointer-events: none;
+      border: 1.5px solid var(--accent2); border-radius: 12px;
+      box-shadow: 0 0 0 4px rgba(187,154,247,.12), 0 0 24px rgba(122,162,247,.24);
+    }
+    .canvas-focus-ring::before {
+      content: ''; position: absolute; inset: -7px; border: 1px dashed rgba(187,154,247,.62); border-radius: 16px;
+      animation: focus-ring-pulse 2.4s ease-out infinite;
+    }
+    .workspace.welcome .canvas-focus-ring { display: none !important; }
+    .workspace:not([data-view="canvas"]) .canvas-focus-ring { display: none !important; }
+    @keyframes focus-ring-pulse { 0% { opacity: .7; transform: scale(.98); } 100% { opacity: 0; transform: scale(1.06); } }
     .canvas-object-card {
       position: absolute; right: 14px; top: 64px; z-index: 22; width: 260px; display: none;
       padding: 10px 11px; border: 1px solid rgba(122,162,247,.42); border-radius: 12px;
@@ -1109,6 +1121,7 @@
         <div class="preview-wrap" id="previewWrap">
           <div id="diagramRender"></div>
           <div id="panOverlay"></div>
+          <div class="canvas-focus-ring" id="canvasFocusRing" data-focus-node-id="" aria-hidden="true"></div>
           <div class="welcome-card" id="welcomeCard">
             <div class="welcome-main">
               <span class="welcome-kicker">LOCAL-FIRST · HUMAN ↔ AI</span>
@@ -1516,6 +1529,7 @@ function setWorkspaceView(view, persist = true) {
     prefs.viewMode = next;
     savePrefs();
   }
+  positionFocusRing();
 }
 
 loadPrefs();
@@ -1566,9 +1580,53 @@ function applyTransform() {
   const zoomLabel = `${Math.round(zScale * 100)}%`;
   $('#zoomLabel').textContent = zoomLabel;
   $('#canvasZoomLabel').textContent = zoomLabel;
+  positionFocusRing();
   updateCanvasDock();
   scheduleMinimapUpdate();
   scheduleViewportSync();
+}
+
+function svgNodeForFocus() {
+  if ($('#workspace').dataset.view !== 'canvas') return null;
+  if (!currentId || currentId !== collabGraph?.diagramId) return null;
+  const node = (collabGraph?.nodes || []).find((item) => item.id === selectedNodeId);
+  if (!node) return null;
+  const groups = [...$('#diagramRender').querySelectorAll('svg g.nodes > g.node')];
+  const byId = groups.find((group) => group.id.includes(node.id) || group.getAttribute('data-id') === node.id);
+  if (byId) return byId;
+  const label = node.label?.trim();
+  if (!label) return null;
+  return groups.find((group) => {
+    const text = group.textContent?.replace(/\s+/g, ' ').trim() || '';
+    return text === label || text === `📁 ${label}`;
+  }) || null;
+}
+
+function positionFocusRing() {
+  const ring = $('#canvasFocusRing');
+  const group = svgNodeForFocus();
+  const shape = group?.querySelector('rect.basic.label-container, rect, polygon, path, ellipse, circle');
+  if (!ring || !shape) {
+    if (ring) {
+      ring.style.display = 'none';
+      ring.dataset.focusNodeId = '';
+    }
+    return;
+  }
+  const wrapRect = $('#previewWrap').getBoundingClientRect();
+  const shapeRect = shape.getBoundingClientRect();
+  if (!shapeRect.width || !shapeRect.height) {
+    ring.style.display = 'none';
+    ring.dataset.focusNodeId = '';
+    return;
+  }
+  ring.style.display = 'block';
+  ring.style.left = `${shapeRect.left - wrapRect.left - 5}px`;
+  ring.style.top = `${shapeRect.top - wrapRect.top - 5}px`;
+  ring.style.width = `${shapeRect.width + 10}px`;
+  ring.style.height = `${shapeRect.height + 10}px`;
+  ring.dataset.focusNodeId = selectedNodeId || '';
+  ring.dataset.focusNodeLabel = group.textContent?.replace(/\s+/g, ' ').trim() || '';
 }
 
 function updateCanvasDock() {
@@ -1888,6 +1946,7 @@ async function renderDiagram(code, keepView = false) {
     $('#statusErr').textContent = '';
     $('#statusMsg').textContent = `Mermaid · ${new Date().toLocaleTimeString()}`;
     if (!keepView) fitView();
+    positionFocusRing();
     refreshMinimapImage();
   } catch (e) {
     $('#statusErr').textContent = `Error: ${e.message?.slice(0, 120) ?? e}`;
@@ -1913,6 +1972,7 @@ function renderSvgPreview(raw, keepView = false) {
     $('#statusErr').textContent = '';
     $('#statusMsg').textContent = `SVG · ${new Date().toLocaleTimeString()}`;
     if (!keepView) fitView();
+    positionFocusRing();
     refreshMinimapImage();
   } catch (e) {
     $('#statusErr').textContent = `SVG parse: ${e.message?.slice(0, 120) ?? e}`;
@@ -2797,6 +2857,7 @@ function renderCanvasObject() {
   $('#canvasObjectCard').title = node
     ? `${node.label} · ${node.path || '无路径'} · 只读焦点`
     : '项目结构图加载后可切换节点';
+  positionFocusRing();
 }
 
 function renderViewport(viewport = null) {

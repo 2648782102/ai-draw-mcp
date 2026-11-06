@@ -131,6 +131,17 @@ try {
   const focusBefore = await page.$eval("#canvasObjectIndex", (element) => element.textContent);
   await page.click("#btnCanvasNextNode");
   await page.waitForFunction((previous) => document.querySelector("#canvasObjectIndex").textContent !== previous, { timeout: 5000 }, focusBefore);
+  await page.waitForFunction(() => {
+    const ring = document.querySelector("#canvasFocusRing");
+    const label = document.querySelector("#canvasObjectLabel").textContent.trim();
+    const ringId = ring.dataset.focusNodeId;
+    const focusNode = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")]
+      .find((group) => ringId && group.id.includes(ringId));
+    const ringText = focusNode?.textContent?.replace(/\s+/g, " ").trim() || "";
+    return getComputedStyle(ring).display === "block"
+      && ringId
+      && (ringText === label || ringText === `📁 ${label}`);
+  }, { timeout: 5000 });
   await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
   await page.click("#btnCanvasHelp");
   await page.waitForFunction(() => !document.querySelector("#shortcutBackdrop").hidden);
