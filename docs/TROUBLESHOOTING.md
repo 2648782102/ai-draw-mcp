@@ -63,9 +63,9 @@ No. `DECISION_TRAIL_JSON` is a read-only chronology derived from the current ses
 
 ### 多选后重新扫描，工作单显示 stale 怎么办？（What does a stale selection workorder mean?）
 
-`freshness.status: "stale"` 只说明图修订已经比人做选择时更新：请人重新查看并勾选目标节点，再让 AI 读取新的 `SELECTION_WORKORDER_JSON`。它不会自动刷新或清空选择、不会改写原 `selectionRevision`、不签发凭据、不生成提案，也绝不授权项目写入；候选人路径仍须经过 preflight、完整逐行 diff、人工批准与一次性确认号。`132f90e` 的协作集成测试覆盖「人类多选 → 面板确认重新扫描 → stale 工作单」这一生命周期，CI `42135660499` / #82 在 Node 20/22/24 验证通过。
+`freshness.status: "stale"` 只说明图修订已经比人做选择时更新：在面板「项目图 · 节点编辑」里点「清空选择范围」，重新勾选目标节点，再让 AI 读取新的 `SELECTION_WORKORDER_JSON`；不要沿用旧候选路径起草 changes。它不会自动刷新或清空选择、不会改写原 `selectionRevision`、不签发凭据、不生成提案，也绝不授权项目写入；候选人路径仍须经过 preflight、完整逐行 diff、人工批准与一次性确认号。`132f90e` 的协作集成测试覆盖「人类多选 → 面板确认重新扫描 → stale 工作单」这一生命周期，CI `42135660499` / #82 在 Node 20/22/24 验证通过。
 
-English: `freshness.status: "stale"` means the graph revision is newer than the revision at which the human made the selection. Ask the human to review and reselect the intended nodes, then let the AI read a fresh workorder. This hint never auto-refreshes or clears the selection, rewrites `selectionRevision`, issues a receipt, creates a proposal, or grants project-write authority. Candidate paths still require preflight, a full line diff, human approval, and a one-time receipt.
+English: `freshness.status: "stale"` means the graph revision is newer than the revision at which the human made the selection. Use "Clear selection" in the panel's "Project graph · node editor" section, reselect the intended nodes, then let the AI read a fresh workorder; do not draft changes from the old candidate paths. This hint never auto-refreshes or clears the selection, rewrites `selectionRevision`, issues a receipt, creates a proposal, or grants project-write authority. Candidate paths still require preflight, a full line diff, human approval, and a one-time receipt.
 
 ### Is an export manifest required to import a session bundle?
 

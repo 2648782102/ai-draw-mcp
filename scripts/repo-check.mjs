@@ -268,7 +268,11 @@ for (const [label, file, needle] of [
   ["English quickstart troubleshooting link", englishQuickstart, "docs/TROUBLESHOOTING.md"],
   ["one-time receipt FAQ", troubleshooting, "one-time receipt"],
   ["bilingual stale workorder FAQ", troubleshooting, "What does a stale selection workorder mean?"],
-  ["stale workorder FAQ Chinese action", troubleshooting, "重新查看并勾选目标节点"],
+  ["stale workorder FAQ Chinese action", troubleshooting, "重新勾选目标节点"],
+  ["stale workorder FAQ Chinese clear button", troubleshooting, "清空选择范围"],
+  ["stale workorder FAQ Chinese stale-path warning", troubleshooting, "不要沿用旧候选路径起草 changes"],
+  ["stale workorder FAQ English action", troubleshooting, "Clear selection"],
+  ["stale workorder FAQ English stale-path warning", troubleshooting, "do not draft changes from the old candidate paths"],
   ["stale workorder FAQ safety", troubleshooting, "never auto-refreshes or clears"],
   ["stale workorder FAQ CI evidence", troubleshooting, "42135660499"],
   ["English stale workorder FAQ", englishQuickstart, 'freshness.status: "stale"'],
@@ -730,7 +734,9 @@ check(agents.includes("/api/collab/activity"), "AGENTS.md does not document the 
 check(readme.includes("解决线程只是对话状态"), "README.md does not separate thread resolution from proposal approval");
 check(readme.includes("不等于批准变更"), "README.md does not document the thread approval boundary");
 check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased section");
-check(changelog.includes("## [Unreleased]"), "CHANGELOG.md has no Unreleased section");
+check(troubleshooting.includes("清空选择范围"), "TROUBLESHOOTING.md does not give a concrete stale-selection recovery action");
+check(troubleshooting.includes("Clear selection"), "TROUBLESHOOTING.md does not give an English stale-selection recovery action");
+check(troubleshooting.includes("do not draft changes from the old candidate paths"), "TROUBLESHOOTING.md does not warn against drafting from stale candidate paths");
 check(governance.includes("42136060410"), "GOVERNANCE.md is missing the #83 CI evidence");
 check(governance.includes("42136310033"), "GOVERNANCE.md is missing the #84 CI evidence");
 check(governance.includes("42136720779"), "GOVERNANCE.md is missing the #85 CI evidence");
