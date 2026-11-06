@@ -117,6 +117,25 @@
       background: #ffffff;
     }
     .preview-wrap.dark-bg { background: radial-gradient(circle at 50% 30%, #15243d, #0b1220); }
+    .welcome-card {
+      position: absolute; inset: 50% auto auto 50%; z-index: 12;
+      width: min(520px, calc(100% - 48px)); transform: translate(-50%, -50%);
+      padding: 26px; border: 1px solid var(--border); border-radius: 16px;
+      background: linear-gradient(145deg, rgba(24,36,58,.96), rgba(9,14,25,.96));
+      box-shadow: var(--shadow); text-align: center; pointer-events: auto;
+    }
+    .welcome-card .welcome-icon { font-size: 30px; margin-bottom: 8px; }
+    .welcome-card h2 { font-size: 18px; margin-bottom: 8px; }
+    .welcome-card p { color: var(--text-muted); font-size: 11px; line-height: 1.7; margin-bottom: 14px; }
+    .welcome-features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 16px; }
+    .welcome-feature { padding: 9px 6px; border: 1px solid var(--border); border-radius: 9px; background: rgba(9,14,25,.45); font-size: 10px; }
+    .welcome-feature strong { display: block; color: var(--text); margin-bottom: 3px; }
+    .welcome-feature span { color: var(--text-muted); font-size: 9px; }
+    .welcome-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .welcome-actions button { height: 32px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 11px; cursor: pointer; }
+    .welcome-actions button.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #08111f; border-color: transparent; font-weight: 750; }
+    .welcome-shortcuts { margin-top: 13px; color: var(--text-muted); font-size: 9px; }
+    .workspace[data-view="source"] .welcome-card { display: none; }
     #diagramRender {
       position: absolute; top: 0; left: 0;
       transform-origin: 0 0;
@@ -221,6 +240,7 @@
     }
     .canvas-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
     .workspace[data-view="canvas"] .canvas-chip { display: flex; }
+    .workspace.welcome #minimap, .workspace.welcome .canvas-chip { display: none; }
     button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible {
       outline: 2px solid rgba(122,162,247,.85); outline-offset: 2px;
     }
@@ -548,6 +568,21 @@
         <div class="preview-wrap" id="previewWrap">
           <div id="diagramRender"></div>
           <div id="panOverlay"></div>
+          <div class="welcome-card" id="welcomeCard">
+            <div class="welcome-icon" aria-hidden="true">◇</div>
+            <h2>把项目结构变成人和 AI 的共同工作区</h2>
+            <p>AI 负责生成图形与理解上下文；你负责修改、批注和批准。项目文件只在人工确认后变化。</p>
+            <div class="welcome-features">
+              <div class="welcome-feature"><strong>1 / 2 / 3</strong><span>分屏 · 源码 · 画布</span></div>
+              <div class="welcome-feature"><strong>C / Esc</strong><span>打开 / 关闭协作</span></div>
+              <div class="welcome-feature"><strong>F / 0</strong><span>适应 / 重置视图</span></div>
+            </div>
+            <div class="welcome-actions">
+              <button type="button" class="primary" id="btnLoadExample">载入示例图形</button>
+              <button type="button" id="btnOpenCollabWelcome">打开协作工作台</button>
+            </div>
+            <div class="welcome-shortcuts">示例只写入本机编辑器并渲染预览，不创建图、不写项目文件</div>
+          </div>
           <div id="minimap">
             <div id="minimapContent"></div>
             <div id="minimapViewport"></div>
@@ -1020,10 +1055,15 @@ function setEditorKind(kind) {
 // ── Mermaid render ──
 async function renderDiagram(code, keepView = false) {
   const container = $('#diagramRender');
-  if (!code || !code.trim()) { container.innerHTML = '<p style="color:#999">Enter Mermaid code to preview</p>'; return; }
+  if (!code || !code.trim()) {
+    container.innerHTML = '';
+    showWelcome(true);
+    return;
+  }
   try {
     const { svg } = await mermaid.render('mmd-' + Date.now(), code);
     container.innerHTML = svg;
+    showWelcome(false);
     // Ensure SVG stays vector-sharp at any zoom level:
     // preserve natural size in viewBox, then let CSS transform handle scaling.
     const svgEl = container.querySelector('svg');
@@ -1051,13 +1091,18 @@ async function renderDiagram(code, keepView = false) {
 function renderSvgPreview(raw, keepView = false) {
   const container = $('#diagramRender');
   const t = (raw || '').trim();
-  if (!t) { container.innerHTML = '<p style="color:#999">Enter SVG markup</p>'; return; }
+  if (!t) {
+    container.innerHTML = '';
+    showWelcome(true);
+    return;
+  }
   try {
     if (t.includes('<svg')) {
       container.innerHTML = t;
     } else {
       container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">${t}</svg>`;
     }
+    showWelcome(false);
     $('#statusErr').textContent = '';
     $('#statusMsg').textContent = `SVG · ${new Date().toLocaleTimeString()}`;
     if (!keepView) fitView();
@@ -1066,6 +1111,32 @@ function renderSvgPreview(raw, keepView = false) {
     $('#statusErr').textContent = `SVG parse: ${e.message?.slice(0, 120) ?? e}`;
     $('#statusErr').className = 'err';
   }
+}
+
+const EXAMPLE_MERMAID = `flowchart LR
+  AI[AI 扫描项目] --> Graph[可编辑结构图]
+  Graph --> Human[人修改 / 批注 / 选择]
+  Human --> Context[只读上下文给 AI]
+  Context --> Proposal[变更提案 + 逐行 diff]
+  Proposal --> Approval{人工批准}
+  Approval -->|一次性确认号| Apply[AI 应用变更]
+  Apply --> Graph`;
+
+function showWelcome(visible) {
+  const card = $('#welcomeCard');
+  if (!card) return;
+  card.hidden = !visible;
+  $('#workspace').classList.toggle('welcome', visible);
+}
+
+function loadExampleDiagram() {
+  setEditorKind('mermaid');
+  $('#codeEditor').value = EXAMPLE_MERMAID;
+  $('#charCount').textContent = `${EXAMPLE_MERMAID.length} chars`;
+  $('#diagramTitle').textContent = '示例 · 人机协作闭环';
+  $('#statusMsg').textContent = '示例图形已载入本地编辑器';
+  renderPreview();
+  showToast('示例已载入；未创建图、未写项目文件');
 }
 
 function renderPreview() {
@@ -2568,6 +2639,8 @@ for (const tab of document.querySelectorAll('.collab-tab')) {
 $('#btnCommandHint').addEventListener('click', () => {
   showToast('快捷键：1 分屏 · 2 源码 · 3 画布 · C 协作 · Esc 关闭 · F 适应窗口 · 0 重置缩放 · ⌘/Ctrl+Enter 渲染或发送', 4800);
 });
+$('#btnLoadExample').addEventListener('click', loadExampleDiagram);
+$('#btnOpenCollabWelcome').addEventListener('click', openCollab);
 for (const button of document.querySelectorAll('.view-switch button')) {
   button.addEventListener('click', () => setWorkspaceView(button.dataset.viewTarget));
 }
@@ -2623,6 +2696,7 @@ $('#btnAddAnnotation').addEventListener('click', addAnnotation);
 // ── Init ──
 loadList();
 connectWs();
+showWelcome(true);
 
 // Restore last viewed diagram (URL path takes priority)
 const pathMatch = location.pathname.match(/\/diagram\/(.+)/);
@@ -2631,6 +2705,8 @@ if (pathMatch) {
 } else if (prefs.lastDiagramId) {
   loadDiagram(prefs.lastDiagramId);
 }
+
+$('#welcomeCard').addEventListener('click', (event) => event.stopPropagation());
 </script>
 </body>
 </html>

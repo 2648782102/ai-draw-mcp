@@ -70,6 +70,17 @@ describe("collaboration panel UI", () => {
       expect(await page.$(".brand-mark")).toBeTruthy();
       expect(await page.$("#btnRender.primary")).toBeTruthy();
       expect(await page.$('.view-switch button[data-view-target="split"].active')).toBeTruthy();
+      expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(false);
+      expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("none");
+
+      const diagramsBefore = await fetch(`${base}/api/diagrams`).then((response) => response.json());
+      await page.click("#btnLoadExample");
+      await page.waitForFunction(() => Boolean(document.querySelector("#diagramRender svg")));
+      expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(true);
+      expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("block");
+      expect(await page.$eval("#diagramTitle", (element) => element.textContent)).toContain("示例");
+      const diagramsAfter = await fetch(`${base}/api/diagrams`).then((response) => response.json());
+      expect(diagramsAfter.length).toBe(diagramsBefore.length);
 
       await page.keyboard.press("3");
       expect(await page.$eval("#workspace", (element) => element.dataset.view)).toBe("canvas");
@@ -81,6 +92,7 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("c");
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
       await page.waitForSelector("#overviewRevision");
+      await page.waitForSelector(".empty-state");
       const desktop = await page.evaluate(() => ({
         stats: document.querySelectorAll(".overview-stat").length,
         drawers: document.querySelectorAll(".signal-drawer").length,
