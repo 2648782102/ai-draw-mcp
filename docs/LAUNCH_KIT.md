@@ -133,6 +133,7 @@ AI Draw MCP 0.3 已开源，本地运行、MIT、无需账号。欢迎来拍砖�
 - 边界：这是 post-release maintenance，不 retag `v0.3.4`、不改写已发布 Release notes、不自动发布 npm 包、不合并高风险依赖升级；`GH_TOKEN`、npm 凭据与人工发布决定仍属于维护者。
 - 追加证据（08:29 CST）：CI #83 `42136060410`、#84 `42136310033`、#85 `42136720779` 均在 Node 20/22/24 全绿；metadata workflow #12 `42136060175` 完成只读漂移检查，但 apply 因缺少管理型 `GH_TOKEN` 被跳过，About/topics 仍未修复。中英文 README 与故障排除新增 30 秒 stale 工作单 FAQ，面板用高对比警示行强调「旧选择不是当前授权」；已发布的 `v0.3.2` / `v0.3.3` / `v0.3.4` Release 均未改写。
 - 维护闭环（08:35 CST）：`0aba259` 的 CI #86 `42137519829` 在 Node 20/22/24 全绿、metadata #13 `42137519789` 只读检查完成；`259790d` 把 FAQ 补成「清空选择范围 → 重新勾选 → 读取新工作单 → 不沿用旧候选路径」的可执行步骤。两个提交均通过 23 个测试文件 / 79 个测试与 275 文件 dry-run，不改 26 个工具、version 1 协议、写入闸门、已发布标签或 Release。
+- 最终验证（08:49 CST）：`259790d` / `b4ffbf2` / `5d6114c` / `734ad6f` 的 CI #87 `42137916943`、#88 `42138152753`、#89 `42138459195`、#90 `42138738900` 均在 Node 20/22/24 全绿；#90 的 job ID 为 `127633381248` / `127633381672` / `127633381836`。metadata #14 `42138152985` 只做只读漂移检查，apply 被跳过；workflow 的 path filter 只监听 `docs/LAUNCH_KIT.md`、`scripts/github-maintenance.mjs` 与 workflow 文件，因此 `5d6114c` / `734ad6f` 没有 #15 run。About/topics 仍为 `description: null` / `homepage: null` / `topics: []`，等待维护者提供管理型 `GH_TOKEN`；不 retag、不改 published Release、不自动发 npm 包。最终公开 HEAD 仍是 23 个测试文件 / 79 个测试与 275 文件 dry-run 全过。
 - CTA：想参与的话，优先反馈 stale 选择应该「阻止 AI 继续」还是「允许讨论但显眼提示风险」，以及 `GOAL_MODE.md` 的目标模板是否覆盖你自己的自治任务。
 
 - 开头：展示「AI 画架构图」之后的真实痛点——图不能把人的意图安全带回代码。
