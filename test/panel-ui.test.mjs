@@ -103,6 +103,8 @@ describe("collaboration panel UI", () => {
 
       expect(await page.$(".brand-mark")).toBeTruthy();
       expect(await page.$("#btnRender.primary")).toBeTruthy();
+      expect(await page.$eval("#headerContextTitle", (element) => element.textContent)).toContain("等待图形");
+      expect(await page.$eval("#btnToolbarMore", (element) => element.getAttribute("aria-expanded"))).toBe("false");
       expect(await page.$('.view-switch button[data-view-target="split"].active')).toBeTruthy();
       expect(await page.$eval("#diagramSearch", (element) => element.placeholder)).toContain("搜索图表");
       expect(await page.$eval(".sidebar-empty", (element) => element.textContent)).toContain("还没有图表");
@@ -177,6 +179,14 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("block");
       expect(await page.$eval("#diagramCount", (element) => element.textContent)).toBe("0");
       expect(await page.$eval("#diagramTitle", (element) => element.textContent)).toContain("示例");
+      expect(await page.$eval("#headerContextTitle", (element) => element.textContent)).toContain("示例");
+      expect(await page.$eval("#headerContextMeta", (element) => element.textContent)).toContain("批准前只读");
+      await page.click("#btnToolbarMore");
+      expect(await page.$eval("#toolbarOverflowMenu", (element) => element.hidden)).toBe(false);
+      expect(await page.$eval("#btnToolbarMore", (element) => element.getAttribute("aria-expanded"))).toBe("true");
+      expect(await page.$$eval("#toolbarOverflowMenu button", (elements) => elements.length)).toBe(5);
+      await page.keyboard.press("Escape");
+      expect(await page.$eval("#toolbarOverflowMenu", (element) => element.hidden)).toBe(true);
       expect(await page.$eval(".canvas-dock", (element) => getComputedStyle(element).display)).toBe("flex");
       expect(await page.$eval("#canvasDiagramLabel", (element) => element.textContent)).toContain("示例");
       expect(await page.$eval("#canvasZoomLabel", (element) => element.textContent)).toBe("100%");
@@ -215,7 +225,7 @@ describe("collaboration panel UI", () => {
         activeAmbient: document.querySelector('[data-ambient].active')?.dataset.ambient,
         activeZen: document.querySelector('[data-zen].active')?.dataset.zen,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 7, shortcuts: 11, visualSystems: 4, activeVisual: "aurora", activeTheme: "dark", activeAmbient: "calm", activeZen: "off" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 7, shortcuts: 11, visualSystems: 6, activeVisual: "aurora", activeTheme: "dark", activeAmbient: "calm", activeZen: "off" });
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("V");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
@@ -229,6 +239,14 @@ describe("collaboration panel UI", () => {
       await page.click('.visual-switch [data-visual="aurora"]');
       expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
       expect(await page.$eval("#ribbonMode", (element) => element.textContent)).toContain("Aurora");
+      await page.click('.visual-switch [data-visual="atlas"]');
+      expect(await page.$eval("body", (element) => element.classList.contains("visual-atlas"))).toBe(true);
+      expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(false);
+      expect(await page.$eval("#ribbonMode", (element) => element.textContent)).toContain("Atlas");
+      expect(await page.$eval("#headerContextTitle", (element) => getComputedStyle(element.closest(".context-banner")).borderRadius)).toBe("3px");
+      await page.keyboard.press("v");
+      expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
+      expect(await page.$eval("body", (element) => element.classList.contains("visual-atlas"))).toBe(false);
       await page.keyboard.press("i");
       expect(await page.$eval("#liveInspector", (element) => element.classList.contains("open"))).toBe(true);
       expect(await page.$eval("#liveInspector", (element) => element.getAttribute("aria-hidden"))).toBe("false");

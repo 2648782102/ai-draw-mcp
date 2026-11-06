@@ -121,6 +121,65 @@
                   radial-gradient(circle at 92% 110%, rgba(13,145,140,.08), transparent 33%),
                   var(--bg);
     }
+    body.visual-atlas {
+      --bg: #080d12; --surface: #111a1d; --surface2: #182527; --border: #2a4140;
+      --text: #eef8ef; --text-muted: #8ba79d; --accent: #8ee6a8; --accent2: #e6d477;
+      --accent3: #65d7cf; --green: #8ee6a8; --red: #ff8d86; --orange: #e8b866;
+      --panel: #0c1518; --glass: rgba(12,21,24,.94); --surface-glow: rgba(142,230,168,.08);
+      --shadow: 0 22px 70px rgba(0,0,0,.58); --radius: 6px;
+    }
+    body.visual-atlas.theme-light {
+      --bg: #edf3ec; --surface: #fbfff9; --surface2: #e8f1e8; --border: #b9d0bf;
+      --text: #14261c; --text-muted: #587462; --panel: #f7fbf5;
+      --glass: rgba(251,255,249,.95); --shadow: 0 16px 44px rgba(28,61,39,.17);
+    }
+    body.visual-atlas, body.visual-atlas.ambient-calm {
+      background:
+        linear-gradient(rgba(142,230,168,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(142,230,168,.035) 1px, transparent 1px),
+        radial-gradient(circle at 12% -10%, rgba(101,215,207,.13), transparent 34%),
+        radial-gradient(circle at 92% 112%, rgba(230,212,119,.09), transparent 32%),
+        var(--bg);
+      background-size: 28px 28px, 28px 28px, auto, auto, auto;
+    }
+    body.visual-atlas::before, body.visual-atlas .workspace::before { display: none; }
+    body.visual-atlas .header { background: rgba(8,14,17,.96); box-shadow: 0 10px 28px rgba(0,0,0,.32); }
+    body.visual-atlas .header::after { background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent2)); opacity: .9; }
+    body.visual-atlas .brand-mark { border-radius: 4px; background: linear-gradient(135deg, var(--accent), var(--accent3)); color: #07120d; box-shadow: none; animation: none; }
+    body.visual-atlas .brand-mark::after { display: none; }
+    body.visual-atlas .header .brand { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; }
+    body.visual-atlas .brand-sub { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
+    body.visual-atlas .toolbar { border-color: rgba(142,230,168,.26); border-radius: 4px; background: rgba(4,10,12,.72); }
+    body.visual-atlas .toolbar button, body.visual-atlas .toolbar select { border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; letter-spacing: .04em; text-transform: uppercase; }
+    body.visual-atlas .toolbar button.primary { background: var(--accent); color: #07120d; box-shadow: none; }
+    body.visual-atlas .visual-switch, body.visual-atlas .view-switch { border-radius: 4px; }
+    body.visual-atlas .visual-switch button.active, body.visual-atlas .view-switch button.active { border-color: var(--accent); background: rgba(142,230,168,.16); color: var(--accent); box-shadow: none; }
+    body.visual-atlas .sidebar, body.visual-atlas .workspace, body.visual-atlas .pane,
+    body.visual-atlas .collab-shell, body.visual-atlas .collab-section { border-radius: var(--radius); box-shadow: none; }
+    body.visual-atlas .sidebar-item.active { border-color: var(--accent); background: rgba(142,230,168,.10); box-shadow: inset 3px 0 0 var(--accent); }
+    body.visual-atlas .diagram-icon { border-radius: 3px; color: var(--accent); }
+    body.visual-atlas .pane-header, body.visual-atlas .statusbar { background: #101c1f; }
+    body.visual-atlas #codeEditor { background: #081113; color: #d9f4de; caret-color: var(--accent); }
+    body.visual-atlas .preview-wrap { background-color: #0d1719; background-image: linear-gradient(rgba(142,230,168,.065) 1px, transparent 1px), linear-gradient(90deg, rgba(142,230,168,.065) 1px, transparent 1px); background-size: 28px 28px; }
+    body.visual-atlas .preview-wrap.dark-bg { background-color: #060b0d; }
+    body.visual-atlas .welcome-card, body.visual-atlas .canvas-object-card,
+    body.visual-atlas .canvas-dock, body.visual-atlas .collab-pulse,
+    body.visual-atlas .collab-handoff, body.visual-atlas .workspace-ribbon,
+    body.visual-atlas .live-inspector { border-radius: 5px; background: rgba(10,19,21,.97); box-shadow: 0 16px 40px rgba(0,0,0,.44); }
+    body.visual-atlas .welcome-card { border-color: rgba(142,230,168,.48); }
+    body.visual-atlas .welcome-visual { background: linear-gradient(rgba(142,230,168,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(142,230,168,.045) 1px, transparent 1px), #0b1517; background-size: 24px 24px; }
+    body.visual-atlas .welcome-node, body.visual-atlas .welcome-flow-center { border-radius: 4px; }
+    body.visual-atlas .canvas-dock button.primary { background: rgba(142,230,168,.14); color: var(--accent); }
+    body.visual-atlas .collab-shell::before { background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent2)); }
+    body.visual-atlas .collab-header { background: linear-gradient(90deg, rgba(142,230,168,.10), transparent 64%); }
+    body.visual-atlas .journey-step.active { border-color: var(--accent); box-shadow: inset 2px 0 0 var(--accent); }
+    body.visual-atlas .proposal-card, body.visual-atlas .chat-item,
+    body.visual-atlas .intent-composer, body.visual-atlas .overview-stat { border-radius: 5px; }
+    body.visual-atlas .shortcut-dialog, body.visual-atlas .command-dialog,
+    body.visual-atlas .receipt-dialog, body.visual-atlas .appearance-popover { border-radius: 6px; }
+    body.visual-atlas.theme-light .header { background: rgba(251,255,249,.96); }
+    body.visual-atlas.theme-light #codeEditor { background: #f4faf3; color: #172a1d; }
+    body.visual-atlas.theme-light .pane-header, body.visual-atlas.theme-light .statusbar { background: #edf6ee; }
     body.visual-studio .header, body.visual-studio .sidebar, body.visual-studio .workspace,
     body.visual-studio .pane, body.visual-studio .collab-shell, body.visual-studio .collab-section {
       background: var(--glass); box-shadow: 0 6px 22px rgba(38,54,84,.10);
@@ -194,6 +253,7 @@
     }
     body.visual-aurora[data-pointer="active"] .preview-wrap::after { opacity: 1; }
     body.visual-studio .preview-wrap::after, body.zen-workspace .preview-wrap::after { display: none; }
+    body.visual-atlas .preview-wrap::after { display: none; }
     .live-inspector {
       position: fixed; right: 18px; top: 68px; bottom: 50px; z-index: 480; width: 280px;
       display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 14px;
@@ -222,6 +282,9 @@
     .inspector-foot { padding: 9px 10px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 8px; line-height: 1.5; }
     body.visual-studio .inspector-row { background: rgba(55,104,216,.035); }
     body.zen-workspace .live-inspector { top: 14px; bottom: 14px; }
+    .visual-switch button[data-visual="atlas"] { padding: 0 7px; }
+    body.visual-atlas .visual-switch { border-color: rgba(142,230,168,.30); background: rgba(142,230,168,.06); }
+    body.visual-atlas .visual-switch button.active { border-color: var(--accent); background: rgba(142,230,168,.16); color: var(--accent); }
     @media (max-width: 900px) { .visual-switch { display: none; } .live-inspector { width: min(280px, calc(100vw - 36px)); } }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -260,6 +323,7 @@
       opacity: 0; transition: opacity .3s ease;
     }
     body.visual-aurora .header::after { opacity: 1; }
+    body.visual-atlas .header::after { opacity: 1; }
     body.visual-aurora .brand-mark { animation: mark-glow 4s ease-in-out infinite; }
     body.visual-aurora .header .brand { letter-spacing: .025em; }
     body.visual-aurora .view-switch button.active { box-shadow: inset 0 2px 0 var(--accent3), 0 0 14px rgba(122,162,247,.18); }
@@ -268,6 +332,17 @@
     body.ambient-calm .header { border-bottom-color: transparent; box-shadow: 0 12px 36px rgba(0,0,0,.16); }
     body.zen-workspace .header { height: 0; overflow: hidden; opacity: 0; border-color: transparent; pointer-events: none; }
     .brand-wrap { display: flex; align-items: center; gap: 10px; min-width: 200px; }
+    .context-banner {
+      display: flex; align-items: center; gap: 10px; max-width: min(520px, 32vw); overflow: hidden;
+      padding: 5px 11px; border: 1px solid var(--border); border-radius: 999px;
+      background: rgba(9,14,25,.38); color: var(--text-muted); font-size: 10px;
+    }
+    .context-banner::before { content: '◇'; color: var(--accent3); font-size: 12px; }
+    .context-banner strong { overflow: hidden; color: var(--text); font-size: 10px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .context-banner span { color: var(--text-muted); font-size: 9px; white-space: nowrap; }
+    body.visual-studio .context-banner { background: #fff; }
+    body.visual-atlas .context-banner { border-radius: 3px; background: rgba(4,10,12,.6); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    @media (max-width: 1180px) { .context-banner { display: none; } }
     .brand-mark {
       position: relative; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px;
       background: linear-gradient(135deg, var(--accent), var(--accent2) 58%, var(--accent3)); color: #08111f;
@@ -300,6 +375,26 @@
     }
     .toolbar button.primary:hover::after { animation: button-sheen .65s ease-out; }
     @keyframes button-sheen { to { transform: translateX(120%); } }
+    .toolbar .toolbar-overflow { position: relative; }
+    .toolbar .toolbar-overflow > button { width: 30px; }
+    .overflow-menu {
+      position: absolute; right: 0; top: 36px; z-index: 1300; width: 210px; padding: 7px;
+      border: 1px solid var(--border); border-radius: 11px; background: var(--glass);
+      box-shadow: var(--shadow); backdrop-filter: blur(18px);
+    }
+    .overflow-menu[hidden] { display: none; }
+    .overflow-menu-title { padding: 4px 7px 7px; color: var(--text-muted); font-size: 8px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .overflow-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 31px; margin: 2px 0; padding: 0 9px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text); font-size: 10px; text-align: left; cursor: pointer; }
+    .overflow-menu button:hover { border-color: rgba(122,162,247,.4); background: rgba(122,162,247,.10); }
+    .overflow-menu button span { color: var(--text-muted); font-size: 9px; }
+    .overflow-menu .danger:hover { border-color: rgba(255,122,147,.48); color: var(--red); }
+    body.visual-studio .overflow-menu { background: #fff; }
+    body.visual-atlas .overflow-menu { border-radius: 4px; background: rgba(8,15,17,.98); }
+    body.visual-atlas .overflow-menu button { border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .overflow-menu-row { display: grid; grid-template-columns: 1fr 92px; align-items: center; gap: 7px; padding: 3px 7px 7px; color: var(--text-muted); font-size: 9px; }
+    .overflow-menu-row select { width: 100%; height: 27px; padding: 0 6px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface2); color: var(--text); font: inherit; font-size: 10px; }
+    .overflow-menu-row select:disabled { opacity: .45; }
+    .overflow-menu .move-action { display: flex; }
 
     /* ── Main Layout ── */
     .main { display: flex; height: calc(100vh - var(--header-height)); padding: var(--main-padding); gap: var(--main-gap); transition: height .22s ease, padding .22s ease; }
@@ -1469,7 +1564,7 @@
       .brand-wrap { min-width: 0; }
       .brand-sub, .collab-kicker, .shortcut-hint { display: none; }
       .toolbar { gap: 2px; }
-      .toolbar #selTheme, .toolbar #btnToggleSidebar { display: none; }
+      .toolbar #btnToggleSidebar { display: none; }
       .appearance-popover { right: 10px; top: 48px; width: min(268px, calc(100vw - 20px)); }
       .collab-header { padding: 0 12px; }
       .collab-header strong { font-size: 12px; }
@@ -1480,7 +1575,8 @@
       .history-tabs { overflow-x: auto; }
       .history-tab { flex: 0 0 auto; min-width: 62px; }
       .proposal-metrics { grid-template-columns: 1fr; }
-      .toolbar #btnExportSvg, .toolbar #btnExportPng, .toolbar #btnCopyId, .toolbar #btnDeleteDiagram { display: none; }
+      .toolbar-overflow .overflow-menu { right: -34px; top: 34px; width: min(220px, calc(100vw - 20px)); }
+      .toolbar-overflow .overflow-menu .overflow-menu-row, #selTheme { display: none !important; }
       .welcome-card { width: min(660px, calc(100% - 36px)); }
       .welcome-main { padding: 21px; }
       .welcome-features { gap: 5px; }
@@ -1534,28 +1630,40 @@
     <span class="brand-mark" aria-hidden="true">AI</span>
     <span><span class="brand">AI Draw MCP</span><span class="brand-sub">Human ↔ AI visual workspace</span></span>
   </div>
+  <div class="context-banner" aria-label="当前图形上下文">
+    <strong id="headerContextTitle">等待图形</strong>
+    <span id="headerContextMeta">LOCAL · READ-ONLY UNTIL APPROVAL</span>
+  </div>
   <div class="toolbar">
     <button class="btn-icon" id="btnToggleSidebar" title="Toggle sidebar">☰</button>
     <div class="visual-switch" role="group" aria-label="视觉系统">
       <button type="button" class="active" data-visual="aurora" title="Aurora：沉浸式渐变光效">✦ Aurora</button>
       <button type="button" data-visual="studio" title="Studio：清爽高可读浅色视觉">▤ Studio</button>
+      <button type="button" data-visual="atlas" title="Atlas：工程蓝图式高对比网格视觉">⌗ Atlas</button>
     </div>
     <div class="view-switch" role="group" aria-label="工作区视图">
       <button type="button" class="active" data-view-target="split" title="分屏视图（1）">◫ 分屏</button>
       <button type="button" data-view-target="source" title="源码视图（2）">⌘ 源码</button>
       <button type="button" data-view-target="canvas" title="画布视图（3）">◇ 画布</button>
     </div>
-    <select id="selTheme">
-      <option value="default">Default</option>
-      <option value="dark">Dark</option>
-      <option value="forest">Forest</option>
-      <option value="neutral">Neutral</option>
-    </select>
     <button id="btnRender" class="primary">▶ Render</button>
-    <button id="btnExportSvg" class="subtle">↓ SVG</button>
-    <button id="btnExportPng" class="subtle">↓ PNG</button>
-    <button id="btnCopyId" type="button" title="复制当前图 ID">📋 ID</button>
-    <button id="btnDeleteDiagram" type="button" title="从本机删除当前图">🗑 删当前</button>
+    <div class="toolbar-overflow">
+      <button class="btn-icon" id="btnToolbarMore" type="button" title="更多图形操作" aria-label="更多图形操作" aria-expanded="false" aria-controls="toolbarOverflowMenu">⋯</button>
+      <div class="overflow-menu" id="toolbarOverflowMenu" hidden role="menu" aria-label="图形操作">
+        <div class="overflow-menu-title">图形操作 · 本机</div>
+        <label class="overflow-menu-row" for="selTheme"><span>Mermaid 主题</span><select id="selTheme">
+          <option value="default">Default</option>
+          <option value="dark">Dark</option>
+          <option value="forest">Forest</option>
+          <option value="neutral">Neutral</option>
+        </select></label>
+        <button type="button" id="btnExportSvg" class="move-action">下载 SVG <span>↓</span></button>
+        <button type="button" id="btnExportPng" class="move-action">下载 PNG <span>↓</span></button>
+        <button type="button" id="btnCopyId" class="move-action">复制图 ID <span>⧉</span></button>
+        <button type="button" id="btnOpenCommandsHeader" class="move-action">命令面板 <span>?</span></button>
+        <button type="button" id="btnDeleteDiagram" class="move-action danger">删除当前图 <span>⌫</span></button>
+      </div>
+    </div>
     <div class="appearance-wrap">
       <button class="btn-icon" id="btnAppearance" type="button" title="外观、布局与快捷键" aria-label="外观、布局与快捷键" aria-expanded="false" aria-controls="appearancePopover">⚙</button>
       <div class="appearance-popover" id="appearancePopover" hidden role="dialog" aria-label="外观设置">
@@ -1565,6 +1673,7 @@
           <div class="appearance-options" role="group" aria-label="视觉系统">
             <button type="button" data-visual="aurora">✦ Aurora</button>
             <button type="button" data-visual="studio">▤ Studio</button>
+            <button type="button" data-visual="atlas">⌗ Atlas</button>
           </div>
         </div>
         <div class="appearance-group">
@@ -1611,7 +1720,7 @@
         </div>
         <div class="appearance-shortcuts">
           <span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd>
-          <span>切换 Aurora / Studio</span><kbd>V</kbd>
+          <span>循环切换 Aurora / Studio / Atlas</span><kbd>V</kbd>
           <span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd>
           <span>命令面板</span><kbd>? · Esc</kbd>
           <span>专注模式</span><kbd>7</kbd>
@@ -1845,7 +1954,7 @@
         <div class="shortcut-row"><span>上一个 / 下一个节点</span><kbd>[ / ]</kbd></div>
       </div>
       <div class="shortcut-group"><h4>效率</h4>
-        <div class="shortcut-row"><span>切换 Aurora / Studio 视觉</span><kbd>V</kbd></div>
+        <div class="shortcut-row"><span>循环切换 Aurora / Studio / Atlas</span><kbd>V</kbd></div>
         <div class="shortcut-row"><span>展开 / 收起上下文速览</span><kbd>I</kbd></div>
         <div class="shortcut-row"><span>搜索命令面板</span><kbd>?</kbd></div>
         <div class="shortcut-row"><span>快捷键帮助</span><kbd>H</kbd></div>
@@ -2158,22 +2267,39 @@ function setFocusMode(enabled) {
 }
 
 function applyVisualSystem(system, persist = true) {
-  const next = system === 'studio' ? 'studio' : 'aurora';
+  const next = ['aurora', 'studio', 'atlas'].includes(system) ? system : 'aurora';
   prefs.visualSystem = next;
-  document.body.classList.toggle('visual-aurora', next === 'aurora');
-  document.body.classList.toggle('visual-studio', next === 'studio');
+  for (const name of ['aurora', 'studio', 'atlas']) {
+    document.body.classList.toggle(`visual-${name}`, next === name);
+  }
   for (const button of document.querySelectorAll('[data-visual]')) {
     button.classList.toggle('active', button.dataset.visual === next);
   }
   const ribbon = $('#ribbonMode');
-  if (ribbon) ribbon.textContent = `${next === 'studio' ? 'Studio' : 'Aurora'} · 只读上下文`;
+  if (ribbon) ribbon.textContent = `${next[0].toUpperCase()}${next.slice(1)} · 只读上下文`;
   if (persist) {
     savePrefs();
     syncAppearanceControls();
     if (!$('#appearancePopover')?.hidden) {
-      showToast(next === 'studio' ? '已切换 Studio · 清爽高可读视觉' : '已切换 Aurora · 沉浸式渐变光效');
+      const labels = { aurora: '已切换 Aurora · 沉浸式渐变光效', studio: '已切换 Studio · 清爽高可读视觉', atlas: '已切换 Atlas · 工程蓝图式高对比网格' };
+      showToast(labels[next]);
     }
   }
+}
+
+function cycleVisualSystem() {
+  const order = ['aurora', 'studio', 'atlas'];
+  const next = order[(order.indexOf(prefs.visualSystem) + 1) % order.length];
+  applyVisualSystem(next);
+}
+
+function setHeaderContext() {
+  const title = $('#diagramTitle')?.textContent.trim() || '等待图形';
+  const headerTitle = $('#headerContextTitle');
+  const headerMeta = $('#headerContextMeta');
+  const hasDiagram = Boolean($('#diagramRender svg') || currentId);
+  if (headerTitle) headerTitle.textContent = hasDiagram ? title : '等待图形';
+  if (headerMeta) headerMeta.textContent = hasDiagram ? `LOCAL · ${currentId ? 'SAVED' : 'DRAFT'} · 批准前只读` : 'LOCAL · READ-ONLY UNTIL APPROVAL';
 }
 
 function setInspectorOpen(open, persist = true) {
@@ -2468,6 +2594,7 @@ function updateCanvasDock() {
   const meaningfulTitle = title && title !== '—' ? title : '本机预览';
   $('#canvasDiagramLabel').textContent = meaningfulTitle;
   $('#canvasDiagramLabel').title = meaningfulTitle;
+  setHeaderContext();
 }
 
 function resetView() { zScale = 1; zX = 0; zY = 0; applyTransform(); }
@@ -2666,7 +2793,7 @@ window.addEventListener('keydown', (e) => {
   }
   if (!typing && (e.key === 'v' || e.key === 'V') && !e.metaKey && !e.ctrlKey && !e.altKey) {
     e.preventDefault();
-    applyVisualSystem(prefs.visualSystem === 'aurora' ? 'studio' : 'aurora');
+    cycleVisualSystem();
     return;
   }
   if (!typing && (e.key === 'i' || e.key === 'I') && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -2916,6 +3043,7 @@ function showWelcome(visible = true) {
 
 function syncWelcomeState() {
   showWelcome(!$('#diagramRender svg') && !$('#codeEditor').value.trim());
+  setHeaderContext();
 }
 
 function loadExampleDiagram() {
@@ -3044,6 +3172,31 @@ for (const button of document.querySelectorAll('[data-sidebar]')) {
 const appearanceButton = $('#btnAppearance');
 const appearanceWrap = appearanceButton.closest('.appearance-wrap');
 const appearancePopover = $('#appearancePopover');
+const toolbarMoreButton = $('#btnToolbarMore');
+const toolbarOverflowWrap = toolbarMoreButton.closest('.toolbar-overflow');
+const toolbarOverflowMenu = $('#toolbarOverflowMenu');
+function setToolbarOverflowOpen(open) {
+  toolbarOverflowMenu.hidden = !open;
+  toolbarMoreButton.setAttribute('aria-expanded', String(open));
+}
+toolbarMoreButton.addEventListener('click', (event) => {
+  event.stopPropagation();
+  setToolbarOverflowOpen(toolbarOverflowMenu.hidden);
+});
+toolbarOverflowMenu.addEventListener('click', (event) => {
+  if (event.target.closest('button')) setToolbarOverflowOpen(false);
+  event.stopPropagation();
+});
+$('#selTheme').addEventListener('click', (event) => event.stopPropagation());
+$('#btnOpenCommandsHeader').addEventListener('click', openCommandPalette);
+document.addEventListener('click', (event) => {
+  if (!toolbarOverflowMenu.hidden && !toolbarOverflowWrap.contains(event.target)) setToolbarOverflowOpen(false);
+  if (!appearancePopover.hidden && !appearanceWrap.contains(event.target)) setAppearanceOpen(false);
+  if (!event.target.closest('#btnCollabPulse') && !event.target.closest('#collabPulseDetail')) setCollabPulseDetailOpen(false);
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !toolbarOverflowMenu.hidden) setToolbarOverflowOpen(false);
+});
 function setAppearanceOpen(open) {
   appearancePopover.hidden = !open;
   appearancePopover.classList.toggle('open', open);
@@ -3061,10 +3214,6 @@ function setCollabPulseDetailOpen(open) {
   if (open) window.clearTimeout(collabLoadTimer);
   else if (collabLoadDeferred) resumeDeferredCollabLoad();
 }
-document.addEventListener('click', (event) => {
-  if (!appearancePopover.hidden && !appearanceWrap.contains(event.target)) setAppearanceOpen(false);
-  if (!event.target.closest('#btnCollabPulse') && !event.target.closest('#collabPulseDetail')) setCollabPulseDetailOpen(false);
-});
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !appearancePopover.hidden) setAppearanceOpen(false);
   if (event.key === 'Escape' && $('#collabPulseDetail').classList.contains('open')) setCollabPulseDetailOpen(false);
@@ -3251,7 +3400,7 @@ const COMMANDS = [
   { group: '工作区视图', icon: '1:1', title: '重置缩放', hint: '恢复 100% 与默认平移', shortcut: '0', keys: '重置 缩放 reset', run: () => resetView() },
   { group: '工作区视图', icon: '◎', title: '切换专注模式', hint: '隐藏概览、健康卡与流程条，放大三栏内容', shortcut: '7', keys: '专注 focus 概览 zen', run: () => setFocusMode(!prefs.focusMode) },
   { group: '工作区视图', icon: '◌', title: '切换沉浸工作区', hint: '让顶栏、图表库与状态栏退场，只留下当前图', shortcut: 'Z', keys: '沉浸 全屏 低干扰 zen workspace', run: () => setZenWorkspace(!prefs.zenWorkspace) },
-  { group: '工作区视图', icon: '✦', title: '切换 Aurora / Studio', hint: '在沉浸渐变光效与清爽高可读视觉间切换', shortcut: 'V', keys: '视觉 aurora studio 外观 主题', run: () => applyVisualSystem(prefs.visualSystem === 'aurora' ? 'studio' : 'aurora') },
+  { group: '工作区视图', icon: '✦', title: '循环切换视觉系统', hint: '在 Aurora、Studio 与工程蓝图 Atlas 之间依次切换', shortcut: 'V', keys: '视觉 aurora studio atlas 外观 主题', run: () => cycleVisualSystem() },
   { group: '工作区视图', icon: '◧', title: '切换上下文速览', hint: '展开或收起实时只读对象上下文', shortcut: 'I', keys: '速览 上下文 inspector 侧栏', run: () => setInspectorOpen(!prefs.inspectorOpen) },
   { group: '外观与帮助', icon: '◈', title: '切换视觉氛围', hint: '在鲜明品牌渐变与静谧低干扰配色间切换', shortcut: '', keys: '氛围 鲜明 静谧 ambient theme', run: () => setAmbient(prefs.ambient === 'calm' ? 'vivid' : 'calm') },
   { group: '协作流程', icon: '↔', title: '打开协作工作台', hint: '进入人 / AI 双向协作面板', shortcut: 'C', keys: '协作 对话 workbench', run: () => openCollab() },

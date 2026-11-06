@@ -128,6 +128,10 @@ try {
   await page.waitForFunction(() => document.body.classList.contains("visual-studio"));
   await new Promise((resolve) => setTimeout(resolve, 260));
   await page.screenshot({ path: path.join(outputDir, "studio-workspace-panel.png") });
+  await page.click('.visual-switch [data-visual="atlas"]');
+  await page.waitForFunction(() => document.body.classList.contains("visual-atlas"));
+  await new Promise((resolve) => setTimeout(resolve, 260));
+  await page.screenshot({ path: path.join(outputDir, "atlas-workspace-panel.png") });
   await page.click('.visual-switch [data-visual="aurora"]');
   await page.waitForFunction(() => document.body.classList.contains("visual-aurora"));
   await page.keyboard.press("3");
@@ -223,7 +227,7 @@ try {
   await page.waitForFunction(() => Number(document.querySelector("#canvasObjectConversation").dataset.openThreads) > 0, { timeout: 5000 });
   await new Promise((resolve) => setTimeout(resolve, 450));
   await page.screenshot({ path: path.join(outputDir, "zen-workspace-panel.png") });
-  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/studio-workspace-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png and docs/zen-workspace-panel.png");
+  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/studio-workspace-panel.png, docs/atlas-workspace-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png and docs/zen-workspace-panel.png");
 } finally {
   await browser.close();
   await preview.stop().catch(() => {});

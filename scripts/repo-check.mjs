@@ -720,8 +720,19 @@ for (const [label, file, needle] of [
   ["appearance visual system options", panel, "data-visual"],
   ["Aurora visual system", panel, "visual-aurora"],
   ["Studio visual system", panel, "visual-studio"],
+  ["Atlas visual system", panel, "visual-atlas"],
   ["visual system switcher", panel, "applyVisualSystem"],
-  ["visual system shortcut", panel, "切换 Aurora / Studio"],
+  ["visual system shortcut", panel, "循环切换 Aurora / Studio / Atlas"],
+  ["visual system cycle helper", panel, "cycleVisualSystem"],
+  ["focused header context", panel, "headerContextTitle"],
+  ["toolbar overflow menu", panel, "toolbarOverflowMenu"],
+  ["toolbar overflow browser regression", panelUiTest, "toolbarOverflowMenu"],
+  ["Atlas reproducible screenshot", capturePanelScript, "atlas-workspace-panel.png"],
+  ["Atlas screenshot in Chinese README", readme, "atlas-workspace-panel.png"],
+  ["Atlas screenshot in English README", englishQuickstart, "atlas-workspace-panel.png"],
+  ["Atlas visual system in changelog", changelog, "Atlas"],
+  ["Atlas visual system in launch kit", launchKit, "Atlas"],
+  ["Atlas visual system browser regression", panelUiTest, 'data-visual="atlas"'],
   ["live context inspector", panel, "liveInspector"],
   ["collaboration pulse", panel, "btnCollabPulse"],
   ["collaboration pulse renderer", panel, "renderCollabPulse"],
@@ -1132,6 +1143,7 @@ check(launchKit.includes("42187638417"), "launch kit does not record the green u
 check(governance.includes("42190267479"), "governance docs do not record the green node-badge CI run");
 check(launchKit.includes("42190267479"), "launch kit does not record the green node-badge CI run");
 check(launchKit.includes("协作可见性短帖"), "launch kit does not include the collaboration visibility post");
+check(launchKit.includes("三套视觉系统短帖"), "launch kit does not include the three visual systems post");
 check(launchKit.includes("push a metadata-relevant file to apply"), "launch kit does not describe automatic metadata convergence");
 check(packageJson.scripts?.["docs:assets"] === "node scripts/generate-doc-assets.mjs", "docs:assets script is missing");
 check(packageJson.scripts?.["docs:assets:check"] === "node scripts/generate-doc-assets.mjs --check", "docs:assets:check script is missing");

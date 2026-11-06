@@ -143,6 +143,16 @@ AI Draw MCP 的预览面板现在有两套视觉系统：默认 Aurora 是带渐
 每个增量都有真实浏览器回归、可复现截图和 Node 20/22/24 CI：https://github.com/2648782102/ai-draw-mcp
 ```
 
+### 三套视觉系统短帖（可单独发，不改写已发布 Release notes）
+
+```text
+AI Draw MCP 的预览面板现在有三套一眼可辨的视觉系统：Aurora 是沉浸式渐变光效，Studio 适合长时间高可读审阅，Atlas 把界面变成工程蓝图网格与等宽字，让结构、路径和 diff 更突出。
+
+顶栏同时收拢了低频操作：当前图形与「批准前只读」状态居中显示，Mermaid 主题、导出、复制 ID、命令面板和删除放在「⋯」本机菜单。V 键循环切换视觉，所有偏好都只存 localStorage，不改协议、不批准提案、不签发凭据，也不会写项目文件。
+
+Aurora / Studio / Atlas 都有可复现截图与真实浏览器回归：https://github.com/2648782102/ai-draw-mcp
+```
+
 ## 中文社区长帖提纲
 
 ### 发布后维护更新（不改写 0.3.4 Release notes）
