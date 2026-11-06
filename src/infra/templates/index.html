@@ -410,6 +410,25 @@
     }
     .workspace.welcome .canvas-focus-ring { display: none !important; }
     .workspace:not([data-view="canvas"]) .canvas-focus-ring { display: none !important; }
+    .canvas-focus-halo {
+      position: absolute; z-index: 17; display: none; pointer-events: none;
+      border: 1px solid rgba(187,154,247,.16); border-radius: 18px;
+      box-shadow: inset 0 0 0 1px rgba(187,154,247,.08), 0 0 0 9999px rgba(5,10,20,.10);
+      background: radial-gradient(circle at center, rgba(187,154,247,.09), rgba(187,154,247,.02) 70%, transparent);
+      transition: opacity .18s ease; opacity: 0;
+    }
+    .canvas-focus-halo[data-visible="true"] { display: block; opacity: 1; }
+    .canvas-focus-label {
+      position: absolute; z-index: 23; display: none; pointer-events: none;
+      max-width: 220px; padding: 4px 8px; overflow: hidden;
+      border: 1px solid rgba(187,154,247,.65); border-radius: 999px;
+      background: rgba(20,15,36,.92); box-shadow: 0 8px 20px rgba(0,0,0,.28);
+      color: #e5dcff; font-size: 9px; font-weight: 800; letter-spacing: .03em;
+      text-overflow: ellipsis; white-space: nowrap; backdrop-filter: blur(10px);
+    }
+    .canvas-focus-label::before { content: '◎'; margin-right: 5px; color: var(--accent2); }
+    .canvas-focus-label[data-visible="true"] { display: block; }
+    body.theme-light .canvas-focus-label { background: rgba(255,255,255,.95); color: #43346c; }
     @keyframes focus-ring-pulse { 0% { opacity: .7; transform: scale(.98); } 100% { opacity: 0; transform: scale(1.06); } }
     .canvas-object-card {
       position: absolute; right: 14px; top: 64px; z-index: 22; width: 260px; display: none;
@@ -1121,7 +1140,9 @@
         <div class="preview-wrap" id="previewWrap">
           <div id="diagramRender"></div>
           <div id="panOverlay"></div>
+          <div class="canvas-focus-halo" id="canvasFocusHalo" data-visible="false" aria-hidden="true"></div>
           <div class="canvas-focus-ring" id="canvasFocusRing" data-focus-node-id="" aria-hidden="true"></div>
+          <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" aria-hidden="true"></div>
           <div class="welcome-card" id="welcomeCard">
             <div class="welcome-main">
               <span class="welcome-kicker">LOCAL-FIRST · HUMAN ↔ AI</span>
@@ -1173,7 +1194,7 @@
             <button type="button" id="btnCanvasCommands" title="打开命令面板 (?)">⌘</button>
             <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
           </div>
-          <div class="canvas-chip">滚轮缩放 · 拖拽平移 · 双击重置 · F 适应窗口</div>
+          <div class="canvas-chip">滚轮缩放 · 拖拽平移 · 单击节点聚焦 · 双击重置 · F 适应窗口</div>
           <aside class="canvas-object-card" id="canvasObjectCard" aria-label="当前画布对象">
             <div class="canvas-object-head"><span class="canvas-object-kicker">Focus · read only</span><span class="canvas-object-index" id="canvasObjectIndex">0 / 0</span></div>
             <strong id="canvasObjectLabel">等待项目结构图</strong>
@@ -1183,7 +1204,7 @@
               <button type="button" id="btnCanvasNextNode" title="下一个节点">→</button>
               <button type="button" id="btnCanvasOpenNode" class="primary" title="在协作工作台查看项目图">查看节点</button>
             </div>
-            <div class="canvas-object-note">焦点只表达「人正在指哪个对象」，不签发凭据、不自动写项目文件。</div>
+            <div class="canvas-object-note">点击图中节点或按 `← / →` 切换；焦点只表达「人正在指哪个对象」，不签发凭据、不自动写项目文件。</div>
           </aside>
         </div>
       </div>
@@ -1211,6 +1232,7 @@
       </div>
       <div class="shortcut-group"><h4>画布</h4>
         <div class="shortcut-row"><span>滚轮缩放 / 拖拽平移</span><kbd>鼠标</kbd></div>
+        <div class="shortcut-row"><span>点选图中节点切换焦点</span><kbd>单击</kbd></div>
         <div class="shortcut-row"><span>适应窗口 / 重置</span><kbd>F / 0</kbd></div>
         <div class="shortcut-row"><span>双击画布重置</span><kbd>双击</kbd></div>
         <div class="shortcut-row"><span>上一个 / 下一个节点</span><kbd>[ / ]</kbd></div>
@@ -1541,6 +1563,7 @@ applyPrefs();
 // ── Zoom / Pan ──────────────────────────────────────────────────
 let zScale = 1, zX = 0, zY = 0;
 let isPanning = false, panStartX = 0, panStartY = 0;
+let panPointer = null;
 let viewportSyncTimer = null;
 let lastViewportPublished = null;
 
@@ -1591,7 +1614,7 @@ function svgNodeForFocus() {
   if (!currentId || currentId !== collabGraph?.diagramId) return null;
   const node = (collabGraph?.nodes || []).find((item) => item.id === selectedNodeId);
   if (!node) return null;
-  const groups = [...$('#diagramRender').querySelectorAll('svg g.nodes > g.node')];
+  const groups = focusNodeGroups();
   const byId = groups.find((group) => group.id.includes(node.id) || group.getAttribute('data-id') === node.id);
   if (byId) return byId;
   const label = node.label?.trim();
@@ -1602,14 +1625,31 @@ function svgNodeForFocus() {
   }) || null;
 }
 
+function focusNodeGroups() {
+  return [...$('#diagramRender').querySelectorAll('svg g.nodes > g.node')];
+}
+
+function nodeIdForFocusGroup(group) {
+  for (const node of collabGraph?.nodes || []) {
+    if (group.id.includes(node.id) || group.getAttribute('data-id') === node.id) return node.id;
+  }
+  const text = group.textContent?.replace(/\s+/g, ' ').trim() || '';
+  const node = (collabGraph?.nodes || []).find((item) => text === item.label || text === `📁 ${item.label}`);
+  return node?.id || null;
+}
+
 function positionFocusRing() {
   const ring = $('#canvasFocusRing');
+  const halo = $('#canvasFocusHalo');
+  const label = $('#canvasFocusLabel');
   const group = svgNodeForFocus();
   const shape = group?.querySelector('rect.basic.label-container, rect, polygon, path, ellipse, circle');
   if (!ring || !shape) {
     if (ring) {
       ring.style.display = 'none';
       ring.dataset.focusNodeId = '';
+      halo.dataset.visible = 'false';
+      label.dataset.visible = 'false';
     }
     return;
   }
@@ -1618,15 +1658,31 @@ function positionFocusRing() {
   if (!shapeRect.width || !shapeRect.height) {
     ring.style.display = 'none';
     ring.dataset.focusNodeId = '';
+    halo.dataset.visible = 'false';
+    label.dataset.visible = 'false';
     return;
   }
+  const left = shapeRect.left - wrapRect.left - 5;
+  const top = shapeRect.top - wrapRect.top - 5;
+  const width = shapeRect.width + 10;
+  const height = shapeRect.height + 10;
   ring.style.display = 'block';
-  ring.style.left = `${shapeRect.left - wrapRect.left - 5}px`;
-  ring.style.top = `${shapeRect.top - wrapRect.top - 5}px`;
-  ring.style.width = `${shapeRect.width + 10}px`;
-  ring.style.height = `${shapeRect.height + 10}px`;
+  ring.style.left = `${left}px`;
+  ring.style.top = `${top}px`;
+  ring.style.width = `${width}px`;
+  ring.style.height = `${height}px`;
   ring.dataset.focusNodeId = selectedNodeId || '';
-  ring.dataset.focusNodeLabel = group.textContent?.replace(/\s+/g, ' ').trim() || '';
+  const nodeText = group.textContent?.replace(/\s+/g, ' ').trim() || '';
+  ring.dataset.focusNodeLabel = nodeText;
+  halo.style.left = `${left - 12}px`;
+  halo.style.top = `${top - 12}px`;
+  halo.style.width = `${width + 24}px`;
+  halo.style.height = `${height + 24}px`;
+  halo.dataset.visible = 'true';
+  label.textContent = `当前焦点 · ${nodeText}`;
+  label.style.left = `${Math.max(8, left)}px`;
+  label.style.top = `${Math.max(8, top - 27)}px`;
+  label.dataset.visible = 'true';
 }
 
 function updateCanvasDock() {
@@ -1691,19 +1747,36 @@ previewWrap.addEventListener('wheel', (e) => {
 
 panOverlay.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
+  panPointer = { x: e.clientX, y: e.clientY, moved: false };
   isPanning = true;
   panStartX = e.clientX - zX;
   panStartY = e.clientY - zY;
   panOverlay.classList.add('panning');
 });
 window.addEventListener('mousemove', (e) => {
+  if (panPointer && Math.hypot(e.clientX - panPointer.x, e.clientY - panPointer.y) > 3) panPointer.moved = true;
   if (!isPanning) return;
   zX = e.clientX - panStartX;
   zY = e.clientY - panStartY;
   applyTransform();
 });
-window.addEventListener('mouseup', () => {
+window.addEventListener('mouseup', (e) => {
+  const pointer = panPointer;
+  panPointer = null;
   if (isPanning) { isPanning = false; panOverlay.classList.remove('panning'); }
+  if (!pointer || pointer.moved || e.button !== 0) return;
+  if ($('#workspace').dataset.view !== 'canvas' || !currentId || currentId !== collabGraph?.diagramId) return;
+  const group = focusNodeGroups().find((element) => {
+    const shape = element.querySelector('rect.basic.label-container, rect, polygon, path, ellipse, circle');
+    const rect = shape?.getBoundingClientRect();
+    return rect
+      && e.clientX >= rect.left
+      && e.clientX <= rect.right
+      && e.clientY >= rect.top
+      && e.clientY <= rect.bottom;
+  });
+  const nodeId = group ? nodeIdForFocusGroup(group) : null;
+  if (nodeId && nodeId !== selectedNodeId) setCanvasFocusNode(nodeId);
 });
 
 panOverlay.addEventListener('dblclick', () => resetView());

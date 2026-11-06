@@ -129,18 +129,31 @@ try {
   });
   await new Promise((resolve) => setTimeout(resolve, 450));
   const focusBefore = await page.$eval("#canvasObjectIndex", (element) => element.textContent);
-  await page.click("#btnCanvasNextNode");
-  await page.waitForFunction((previous) => document.querySelector("#canvasObjectIndex").textContent !== previous, { timeout: 5000 }, focusBefore);
+  const targetNode = await page.evaluate(() => {
+    const groups = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")];
+    const target = groups.find((group) => (group.textContent || "").includes("index.ts"));
+    if (!target) return null;
+    const rect = target.querySelector("rect.basic.label-container, rect, polygon, path, ellipse, circle").getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  });
+  if (!targetNode) throw new Error("Focus target node not found in rendered graph");
+  await page.mouse.click(targetNode.x, targetNode.y);
+  await page.waitForFunction(() => document.querySelector("#canvasObjectLabel").textContent.trim() === "index.ts", { timeout: 5000 });
   await page.waitForFunction(() => {
     const ring = document.querySelector("#canvasFocusRing");
-    const label = document.querySelector("#canvasObjectLabel").textContent.trim();
+    const halo = document.querySelector("#canvasFocusHalo");
+    const badge = document.querySelector("#canvasFocusLabel");
+    const focusLabel = document.querySelector("#canvasObjectLabel").textContent.trim();
     const ringId = ring.dataset.focusNodeId;
     const focusNode = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")]
       .find((group) => ringId && group.id.includes(ringId));
     const ringText = focusNode?.textContent?.replace(/\s+/g, " ").trim() || "";
     return getComputedStyle(ring).display === "block"
       && ringId
-      && (ringText === label || ringText === `📁 ${label}`);
+      && (ringText === focusLabel || ringText === `📁 ${focusLabel}`)
+      && halo.dataset.visible === "true"
+      && badge.dataset.visible === "true"
+      && badge.textContent.includes(focusLabel);
   }, { timeout: 5000 });
   await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
   await page.click("#btnCanvasHelp");

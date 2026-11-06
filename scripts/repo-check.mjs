@@ -55,6 +55,7 @@ const governance = await read("docs/GOVERNANCE.md");
 const goalMode = await read("docs/GOAL_MODE.md");
 const collaborationTest = await read("test/collab.integration.test.mjs");
 const panelUiTest = await read("test/panel-ui.test.mjs");
+const canvasFocusTest = await read("test/canvas-focus.test.mjs");
 const capturePanelScript = await read("scripts/capture-panel.mjs");
 const adrIndex = await read("docs/ADR/README.md");
 const releasing = await read("RELEASING.md");
@@ -773,6 +774,9 @@ for (const [label, file, needle] of [
   ["canvas focus ring", panel, "canvas-focus-ring"],
   ["canvas focus ring positioning", panel, "positionFocusRing"],
   ["canvas focus ring node matching", panel, "g.nodes > g.node"],
+  ["canvas focus halo", panel, "canvas-focus-halo"],
+  ["canvas focus label", panel, "canvas-focus-label"],
+  ["canvas node click focus", panel, "nodeIdForFocusGroup"],
   ["canvas object shortcut", panel, "[ / ]"],
   ["canvas shortcut help dialog", panel, "shortcutBackdrop"],
   ["canvas shortcut help action", panel, "btnCanvasHelp"],
@@ -825,6 +829,9 @@ for (const [label, file, needle] of [
   ["panel UI canvas shortcuts regression", panelUiTest, "shortcutBackdrop"],
   ["panel UI canvas object regression", panelUiTest, "canvasObjectLabel"],
   ["panel UI focus ring regression", panelUiTest, "canvasFocusRing"],
+  ["panel UI focus decoration regression", panelUiTest, "canvasFocusHalo"],
+  ["canvas focus click regression", canvasFocusTest, "page.mouse.click(target.x, target.y)"],
+  ["canvas focus transform regression", canvasFocusTest, "btnCanvasZoomIn"],
   ["panel UI proposal card regression", panelUiTest, "proposal-card.status-pending"],
   ["panel UI proposal diff regression", panelUiTest, "proposal-diff.loaded"],
   ["panel UI diff review progression regression", panelUiTest, "approveAwaiting"],

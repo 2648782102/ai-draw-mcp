@@ -504,6 +504,16 @@ describe("collaboration panel UI", () => {
       expect(focusRing.focusNodeId).toBe("");
       expect(focusRing.width).toBe(0);
       expect(focusRing.height).toBe(0);
+      const focusDecorations = await page.evaluate(() => ({
+        halo: document.querySelector("#canvasFocusHalo").dataset.visible,
+        label: document.querySelector("#canvasFocusLabel").dataset.visible,
+        chip: document.querySelector(".canvas-chip").textContent,
+        shortcuts: document.querySelector(".shortcut-dialog").textContent,
+      }));
+      expect(focusDecorations.halo).toBe("false");
+      expect(focusDecorations.label).toBe("false");
+      expect(focusDecorations.chip).toContain("单击节点聚焦");
+      expect(focusDecorations.shortcuts).toContain("点选图中节点切换焦点");
 
       await page.setViewport({ width: 820, height: 820 });
       await page.keyboard.press("c");
