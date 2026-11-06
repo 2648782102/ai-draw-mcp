@@ -15,6 +15,14 @@ function check(condition, message) {
 }
 
 const read = (relativePath) => fs.readFile(path.join(root, relativePath), "utf8");
+const assetExists = async (relativePath) => {
+  try {
+    await fs.access(path.join(root, relativePath));
+    return true;
+  } catch {
+    return false;
+  }
+};
 const packageJson = JSON.parse(await read("package.json"));
 const launchKit = await read("docs/LAUNCH_KIT.md");
 const githubMaintenance = await read("scripts/github-maintenance.mjs");
@@ -132,6 +140,8 @@ const expectedTopics = [
 ];
 
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
+check(await assetExists("docs/preview-panel.png"), "README is missing the refreshed preview panel screenshot");
+check(await assetExists("docs/collaboration-workbench-panel.png"), "README is missing the collaboration workbench screenshot");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
 check(launchKit.includes("25 MCP tools"), "docs/LAUNCH_KIT.md historical 0.3.3 release notes preserve the published 25 MCP tools");
@@ -667,6 +677,13 @@ for (const [label, file, needle] of [
   ["workorder freshness tool text", getSelectionWorkorderTool, "Selection freshness"],
   ["workorder freshness panel", panel, "workorder.freshness?.status"],
   ["workorder stale panel emphasis", panel, "signal stale"],
+  ["modern brand header", panel, "brand-mark"],
+  ["visual workspace subtitle", panel, "Human ↔ AI visual workspace"],
+  ["collaboration safety kicker", panel, "LOCAL · READ-ONLY UNTIL APPROVAL"],
+  ["collaboration section icons", panel, "section-icon"],
+  ["proposal empty state", panel, "empty-state"],
+  ["README links refreshed preview screenshot", readme, "新版预览面板"],
+  ["README links collaboration panel screenshot", readme, "collaboration-workbench-panel.png"],
   ["workorder freshness pure test", selectionWorkorderTest, "status: \"stale\""],
   ["workorder freshness MCP test", mcpTest, "Selection freshness none"],
   ["workorder freshness HTTP test", collaborationTest, "selectionStale: false"],

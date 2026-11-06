@@ -35,9 +35,15 @@
 
 ### 实际预览面板
 
-![AI Draw MCP 预览面板](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/preview-panel.png)
+![AI Draw MCP 新版预览面板](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/preview-panel.png)
 
-预览面板支持：滚轮缩放、拖拽平移、右下角小地图导航、双击重置、适应窗口（`F` 键）、明暗背景切换、SVG/PNG 导出。
+新版界面采用品牌化顶栏、玻璃感导航、卡片式侧栏与圆角工作区，保留滚轮缩放、拖拽平移、右下角小地图导航、双击重置、适应窗口（`F` 键）、明暗背景切换、SVG/PNG 导出等能力。
+
+### 双向协作工作台
+
+![AI Draw MCP 双向协作工作台](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-workbench-panel.png)
+
+协作工作台把「项目图 / 对话与批注 / 变更提案」分成三张信息卡，并用状态徽章明确：批准前一切上下文都是本地、只读；项目写入仍需逐行 diff、人工批准与一次性确认号。
 
 ---
 
