@@ -176,11 +176,12 @@ describe("collaboration panel UI", () => {
         shortcuts: document.querySelectorAll(".appearance-shortcuts kbd").length,
         activeTheme: document.querySelector('[data-ui-theme].active')?.dataset.uiTheme,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 8, activeTheme: "dark" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 9, activeTheme: "dark" });
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("7");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("[ / ]");
       await page.click('[data-ui-theme="light"]');
       expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
       await page.click('[data-density="compact"]');
@@ -479,6 +480,20 @@ describe("collaboration panel UI", () => {
 
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
+
+      const firstFocus = await page.$eval("#canvasObjectLabel", (element) => element.textContent);
+      const firstIndex = await page.$eval("#canvasObjectIndex", (element) => element.textContent);
+      expect(firstIndex).toMatch(/^1 \/ \d+$/);
+      await page.click("#btnCanvasNextNode");
+      const nextFocus = await page.$eval("#canvasObjectLabel", (element) => element.textContent);
+      const nextIndex = await page.$eval("#canvasObjectIndex", (element) => element.textContent);
+      expect(nextIndex).toMatch(/^\d+ \/ \d+$/);
+      expect(Number(nextIndex.split("/")[0].trim())).toBeGreaterThanOrEqual(1);
+      expect(nextFocus).toBeTruthy();
+      await page.keyboard.press("[");
+      expect(await page.$eval("#canvasObjectLabel", (element) => element.textContent)).toBe(firstFocus);
+      expect(await page.$eval("#focusSummary", (element) => element.textContent)).toContain(firstFocus);
+      expect(await page.$eval("#canvasObjectCard", (element) => getComputedStyle(element).display)).toBe("block");
 
       await page.setViewport({ width: 820, height: 820 });
       await page.keyboard.press("c");

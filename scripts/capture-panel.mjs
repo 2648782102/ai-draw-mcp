@@ -119,7 +119,18 @@ try {
   await page.waitForSelector("#diagramRender svg");
   await page.waitForFunction(() => getComputedStyle(document.querySelector(".canvas-dock")).display === "flex");
   await page.keyboard.press("f");
+  await page.click("#btnCollaborate");
+  await page.waitForSelector("#graphEditor .graph-row");
+  await page.click("#btnCloseCollab");
+  await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
+  await page.waitForFunction(() => {
+    const parts = document.querySelector("#canvasObjectIndex").textContent.split("/").map((part) => Number(part.trim()));
+    return parts[0] > 0 && parts[1] > 1;
+  });
   await new Promise((resolve) => setTimeout(resolve, 450));
+  const focusBefore = await page.$eval("#canvasObjectIndex", (element) => element.textContent);
+  await page.click("#btnCanvasNextNode");
+  await page.waitForFunction((previous) => document.querySelector("#canvasObjectIndex").textContent !== previous, { timeout: 5000 }, focusBefore);
   await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
   await page.click("#btnCanvasHelp");
   await page.waitForFunction(() => !document.querySelector("#shortcutBackdrop").hidden);
