@@ -250,6 +250,37 @@ describe("canvas focus interaction", () => {
       expect(objectCard.conversationOpen).toBeGreaterThan(0);
       expect(objectCard.conversationSummary).toContain("开放");
       expect(objectCard.focusBadge).toContain("开放讨论");
+      const relationMap = await page.evaluate(() => {
+        const map = document.querySelector("#canvasRelationMap");
+        const buttons = [...document.querySelectorAll("#canvasRelationNodes button[data-node-id]")];
+        return {
+          state: map.dataset.state,
+          edges: Number(map.dataset.edges),
+          inbound: Number(map.dataset.inbound),
+          outbound: Number(map.dataset.outbound),
+          inboundCount: Number(document.querySelector("#canvasRelationInbound").textContent),
+          outboundCount: Number(document.querySelector("#canvasRelationOutbound").textContent),
+          inboundBar: document.querySelector("#canvasRelationInboundBar").style.width,
+          outboundBar: document.querySelector("#canvasRelationOutboundBar").style.width,
+          total: document.querySelector("#canvasRelationTotal").textContent,
+          buttons: buttons.length,
+          directions: buttons.map((button) => button.dataset.direction),
+          nodeIds: buttons.map((button) => button.dataset.nodeId),
+          foot: document.querySelector(".canvas-relation-foot").textContent,
+        };
+      });
+      expect(relationMap.state).toBe("active");
+      expect(relationMap.edges).toBeGreaterThan(0);
+      expect(relationMap.inbound + relationMap.outbound).toBe(relationMap.edges);
+      expect(relationMap.inboundCount).toBe(relationMap.inbound);
+      expect(relationMap.outboundCount).toBe(relationMap.outbound);
+      expect(relationMap.inboundBar).toMatch(/^\d+%$/);
+      expect(relationMap.outboundBar).toMatch(/^\d+%$/);
+      expect(relationMap.total).toContain(`${relationMap.edges} 条真实连线`);
+      expect(relationMap.buttons).toBeGreaterThan(0);
+      expect(relationMap.directions.every((direction) => ["inbound", "outbound"].includes(direction))).toBe(true);
+      expect(relationMap.nodeIds.every((nodeId) => nodeId.startsWith("node_"))).toBe(true);
+      expect(relationMap.foot).toContain("不批准或写文件");
       const threadBadgeHandle = await page.waitForFunction(() => {
         const badge = document.querySelector("#canvasThreadLayer .canvas-thread-badge");
         if (!badge) return false;
@@ -298,6 +329,22 @@ describe("canvas focus interaction", () => {
       await page.click("#btnCanvasRelatedNode");
       await page.waitForFunction((previous) => document.querySelector("#canvasObjectLabel").textContent.trim() !== previous, { timeout: 5000 }, focus.label);
       expect(await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId)).toBeTruthy();
+
+      const relationTarget = await page.evaluate(() => {
+        const button = document.querySelector("#canvasRelationNodes button[data-node-id]");
+        return button ? { nodeId: button.dataset.nodeId, label: button.querySelector("strong").textContent.trim() } : null;
+      });
+      expect(relationTarget).toBeTruthy();
+      const sessionBeforeRelationClick = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
+      await page.click("#canvasRelationNodes button[data-node-id]");
+      await page.waitForFunction((label) => document.querySelector("#canvasObjectLabel").textContent.trim() === label, { timeout: 5000 }, relationTarget.label);
+      expect(await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId)).toBe(relationTarget.nodeId);
+      expect(await page.$eval("#canvasRelationMap", (element) => element.dataset.state)).toBe("active");
+      const sessionAfterRelationClick = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
+      expect(sessionAfterRelationClick.focus?.nodeId).toBe(relationTarget.nodeId);
+      expect(sessionAfterRelationClick.graphRevision).toBe(sessionBeforeRelationClick.graphRevision);
+      expect(sessionAfterRelationClick.messages?.length ?? 0).toBe(sessionBeforeRelationClick.messages?.length ?? 0);
+      expect(sessionAfterRelationClick.proposals?.length ?? 0).toBe(sessionBeforeRelationClick.proposals?.length ?? 0);
 
       const beforeDrag = await page.$eval("#canvasObjectLabel", (element) => element.textContent);
       const relatedLabel = beforeDrag.trim();

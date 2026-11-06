@@ -197,6 +197,7 @@ try {
   await page.mouse.move(targetNode.x, targetNode.y);
   await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "true", { timeout: 5000 });
   await page.waitForFunction(() => document.querySelectorAll("#diagramRender svg .flowchart-link.is-hover-path").length > 0, { timeout: 5000 });
+  await page.waitForFunction(() => Number(document.querySelector("#canvasRelationMap").dataset.edges) > 0, { timeout: 5000 });
   await new Promise((resolve) => setTimeout(resolve, 220));
   await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
   await page.click("#btnCanvasHelp");

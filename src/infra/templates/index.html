@@ -1445,6 +1445,49 @@
     .canvas-object-stats strong { color: var(--accent2); font-variant-numeric: tabular-nums; }
     #canvasRelatedStat::before { content: '◇'; margin-right: 4px; color: var(--text-muted); }
     #canvasRelatedStat[data-focus-paths]:not([data-focus-paths="0"])::before { content: '◆'; color: var(--accent2); text-shadow: 0 0 8px rgba(187,154,247,.6); }
+    .canvas-relation-map {
+      position: relative; margin-top: 7px; padding: 7px 8px 6px; border: 1px solid rgba(187,154,247,.38);
+      border-radius: 10px; background: linear-gradient(135deg, rgba(61,219,217,.10), rgba(122,162,247,.07) 48%, rgba(187,154,247,.12));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 18px rgba(187,154,247,.06); overflow: hidden;
+    }
+    .canvas-relation-map::before {
+      content: ''; position: absolute; left: 12px; right: 12px; top: -1px; height: 2px;
+      background: linear-gradient(90deg, var(--accent3), transparent 46%, var(--accent2)); opacity: .8;
+    }
+    .canvas-relation-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 5px; }
+    .canvas-relation-title { color: var(--text); font-size: 8px; font-weight: 850; letter-spacing: .06em; white-space: nowrap; }
+    .canvas-relation-total { overflow: hidden; color: var(--accent3); font-size: 8px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-relation-rails { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .canvas-relation-rail { min-width: 0; padding: 4px 5px; border: 1px solid rgba(122,162,247,.22); border-radius: 7px; background: rgba(4,10,20,.28); }
+    .canvas-relation-rail-label { display: flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 7px; white-space: nowrap; }
+    .canvas-relation-rail-label i { width: 13px; height: 13px; display: grid; place-items: center; border-radius: 50%; font-style: normal; font-weight: 900; }
+    .canvas-relation-rail-label strong { display: inline; margin: 0 0 0 auto; color: var(--text); font-size: 9px; font-variant-numeric: tabular-nums; }
+    .canvas-relation-rail[data-direction="inbound"] .canvas-relation-rail-label i { background: rgba(61,219,217,.18); color: var(--accent3); }
+    .canvas-relation-rail[data-direction="outbound"] .canvas-relation-rail-label i { background: rgba(187,154,247,.18); color: var(--accent2); }
+    .canvas-relation-rail-track { position: relative; height: 4px; margin-top: 4px; overflow: hidden; border-radius: 999px; background: rgba(122,162,247,.14); }
+    .canvas-relation-rail-track span { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; transition: width .24s ease; }
+    .canvas-relation-rail[data-direction="inbound"] .canvas-relation-rail-track span { background: linear-gradient(90deg, rgba(61,219,217,.45), var(--accent3)); box-shadow: 0 0 8px rgba(61,219,217,.35); }
+    .canvas-relation-rail[data-direction="outbound"] .canvas-relation-rail-track span { background: linear-gradient(90deg, rgba(187,154,247,.45), var(--accent2)); box-shadow: 0 0 8px rgba(187,154,247,.35); }
+    .canvas-relation-nodes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 5px; }
+    .canvas-relation-node {
+      display: flex; align-items: center; gap: 4px; min-width: 0; padding: 3px 5px; border: 1px solid rgba(122,162,247,.24);
+      border-radius: 6px; background: rgba(122,162,247,.08); color: var(--text-muted); font-size: 7px; text-align: left; cursor: pointer;
+      transition: border-color .15s, background .15s, transform .15s;
+    }
+    .canvas-relation-node:hover { transform: translateY(-1px); border-color: rgba(61,219,217,.58); background: rgba(61,219,217,.12); color: var(--text); }
+    .canvas-relation-node::before { content: '→'; color: var(--accent2); font-size: 9px; font-weight: 900; }
+    .canvas-relation-node[data-direction="inbound"]::before { content: '←'; color: var(--accent3); }
+    .canvas-relation-node strong { display: inline; overflow: hidden; margin: 0; color: var(--text); font-size: 8px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-relation-node span { overflow: hidden; color: var(--text-muted); font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-relation-more { display: grid; place-items: center; border: 1px dashed rgba(122,162,247,.34); border-radius: 6px; color: var(--text-muted); font-size: 8px; }
+    .canvas-relation-empty { padding: 5px 4px 2px; color: var(--text-muted); font-size: 8px; text-align: center; }
+    .canvas-relation-foot { margin-top: 5px; color: var(--text-muted); font-size: 7px; line-height: 1.35; text-align: center; }
+    .canvas-relation-map[data-state="empty"] .canvas-relation-rails, .canvas-relation-map[data-state="empty"] .canvas-relation-nodes { opacity: .45; }
+    body.visual-studio .canvas-relation-map, body.theme-light .canvas-relation-map { background: linear-gradient(135deg, rgba(13,145,140,.08), rgba(55,104,216,.05) 48%, rgba(143,114,203,.09)); }
+    body.visual-studio .canvas-relation-rail, body.theme-light .canvas-relation-rail { background: rgba(245,249,255,.72); }
+    body.visual-studio .canvas-relation-node, body.theme-light .canvas-relation-node { background: rgba(245,249,255,.85); }
+    body.visual-atlas .canvas-relation-map { border-radius: 3px; background: rgba(9,20,22,.88); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    body.visual-atlas .canvas-relation-rail, body.visual-atlas .canvas-relation-node, body.visual-atlas .canvas-relation-more, body.visual-atlas .canvas-relation-rail-track { border-radius: 2px; }
     .canvas-object-conversation { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 5px; padding: 5px 7px; border: 1px solid rgba(240,168,104,.32); border-radius: 8px; background: rgba(240,168,104,.08); color: var(--text-muted); font-size: 8px; }
     .canvas-object-conversation[data-state="clear"] { border-color: rgba(158,206,106,.34); background: rgba(158,206,106,.08); }
     .canvas-object-conversation[data-state="blocked"] { border-color: rgba(255,107,107,.38); background: rgba(255,107,107,.08); }
@@ -1468,6 +1511,11 @@
     @media (max-width: 860px) { .canvas-object-card { width: 220px; } }
     @media (max-width: 620px) {
       .canvas-object-card { right: 7px; top: 54px; width: min(220px, calc(100% - 14px)); }
+      .canvas-relation-map { padding: 5px 6px; }
+      .canvas-relation-rails { gap: 3px; }
+      .canvas-relation-rail-label span { display: none; }
+      .canvas-relation-nodes { gap: 3px; }
+      .canvas-relation-foot { display: none; }
     }
     .canvas-dock {
       position: absolute; left: 14px; bottom: 14px; z-index: 22; display: none;
@@ -2437,6 +2485,15 @@
               <button type="button" id="btnCanvasOpenNode" class="primary" title="在协作工作台查看项目图">查看节点</button>
             </div>
             <div class="canvas-object-stats"><span id="canvasRelatedStat" data-focus-paths="0">直接关联 <strong id="canvasRelatedCount">0</strong> 个对象</span><span id="canvasFocusRevision">rev —</span></div>
+            <div class="canvas-relation-map" id="canvasRelationMap" data-state="empty" aria-label="当前对象关系轨道">
+              <div class="canvas-relation-head"><span class="canvas-relation-title">关系轨道 · 只读</span><span class="canvas-relation-total" id="canvasRelationTotal">等待真实连线</span></div>
+              <div class="canvas-relation-rails">
+                <div class="canvas-relation-rail" data-direction="inbound"><div class="canvas-relation-rail-label"><i aria-hidden="true">←</i>入向<span>指向这里</span><strong id="canvasRelationInbound">0</strong></div><div class="canvas-relation-rail-track" aria-hidden="true"><span id="canvasRelationInboundBar"></span></div></div>
+                <div class="canvas-relation-rail" data-direction="outbound"><div class="canvas-relation-rail-label"><i aria-hidden="true">→</i>出向<span>指向别处</span><strong id="canvasRelationOutbound">0</strong></div><div class="canvas-relation-rail-track" aria-hidden="true"><span id="canvasRelationOutboundBar"></span></div></div>
+              </div>
+              <div class="canvas-relation-nodes" id="canvasRelationNodes"><div class="canvas-relation-empty">选中节点后显示相邻对象</div></div>
+              <div class="canvas-relation-foot">点击相邻对象同步既有只读焦点 · 不批准或写文件</div>
+            </div>
             <div class="canvas-object-conversation" id="canvasObjectConversation" data-state="clear">
               <span id="canvasConversationSummary">对话 · 暂无绑定批注</span>
               <button type="button" id="btnCanvasOpenConversation" title="进入对话工作台查看当前对象">↔ 对话</button>
@@ -5255,6 +5312,52 @@ function relatedCanvasNodeIds(nodeId = selectedNodeId) {
   return (collabGraph?.nodes || []).filter((node) => related.has(node.id)).map((node) => node.id);
 }
 
+function canvasRelationLinks(nodeId = selectedNodeId) {
+  if (!nodeId) return [];
+  const nodesById = new Map((collabGraph?.nodes || []).map((node) => [node.id, node]));
+  return (collabGraph?.edges || []).flatMap((edge) => {
+    if (edge.from === nodeId && edge.to !== nodeId && nodesById.has(edge.to)) {
+      return [{ direction: 'outbound', node: nodesById.get(edge.to), label: edge.label || edge.kind || '关联' }];
+    }
+    if (edge.to === nodeId && edge.from !== nodeId && nodesById.has(edge.from)) {
+      return [{ direction: 'inbound', node: nodesById.get(edge.from), label: edge.label || edge.kind || '关联' }];
+    }
+    return [];
+  });
+}
+
+function renderCanvasRelationMap() {
+  const map = $('#canvasRelationMap');
+  const nodesTarget = $('#canvasRelationNodes');
+  if (!map || !nodesTarget) return;
+  const links = canvasRelationLinks();
+  const inbound = links.filter((link) => link.direction === 'inbound');
+  const outbound = links.filter((link) => link.direction === 'outbound');
+  const total = links.length;
+  const maxDirection = Math.max(1, inbound.length, outbound.length);
+  map.dataset.state = total ? 'active' : 'empty';
+  map.dataset.inbound = String(inbound.length);
+  map.dataset.outbound = String(outbound.length);
+  map.dataset.edges = String(total);
+  $('#canvasRelationInbound').textContent = String(inbound.length);
+  $('#canvasRelationOutbound').textContent = String(outbound.length);
+  $('#canvasRelationInboundBar').style.width = `${Math.round(inbound.length / maxDirection * 100)}%`;
+  $('#canvasRelationOutboundBar').style.width = `${Math.round(outbound.length / maxDirection * 100)}%`;
+  $('#canvasRelationTotal').textContent = total ? `${total} 条真实连线 · ${relatedCanvasNodeIds().length} 个对象` : '等待真实连线';
+  if (!total) {
+    nodesTarget.innerHTML = '<div class="canvas-relation-empty">当前对象没有相邻边</div>';
+    return;
+  }
+  const visible = links.slice(0, 4);
+  nodesTarget.innerHTML = visible.map((link) => `
+    <button type="button" class="canvas-relation-node" data-node-id="${escapeHtml(link.node.id)}" data-direction="${link.direction}" title="${escapeHtml(link.node.path || link.node.label)} · 只切换只读焦点">
+      <strong>${escapeHtml(link.node.label)}</strong><span>${escapeHtml(link.label)}</span>
+    </button>
+  `).join('') + (links.length > visible.length
+    ? `<span class="canvas-relation-more">+${links.length - visible.length}</span>`
+    : '');
+}
+
 function stepRelatedCanvasFocus() {
   const relatedIds = relatedCanvasNodeIds();
   if (!relatedIds.length) return showToast('当前对象没有直接关联节点；仍可点选其他对象');
@@ -5386,6 +5489,13 @@ $('#canvasThreadLayer').addEventListener('click', (event) => {
   openCanvasThreadBadge(badge.dataset.nodeId);
 });
 
+$('#canvasRelationNodes').addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-node-id]');
+  if (!button) return;
+  setCanvasFocusNode(button.dataset.nodeId);
+  showToast('已沿真实连线同步既有只读焦点 · 不批准或写文件');
+});
+
 function syncFocusLabelConversation() {
   const label = $('#canvasFocusLabel');
   if (!label || label.dataset.visible !== 'true') return;
@@ -5418,6 +5528,7 @@ function renderCanvasObject() {
     lens.title = node ? `${node.label} · 只读焦点；不签发凭据、不批准提案、不写项目文件` : 'Flow 只读画布焦点';
   }
   renderCanvasConversation();
+  renderCanvasRelationMap();
   renderCanvasContextStrip();
   renderInspector();
   $('#canvasObjectCard').title = node

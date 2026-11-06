@@ -348,6 +348,24 @@ describe("collaboration panel UI", () => {
       expect(ambientSurfaces.lens).toContain("linear-gradient");
       expect(ambientSurfaces.objectCard).toContain("linear-gradient");
       expect(ambientSurfaces.chip).toContain("linear-gradient");
+      const relationMap = await page.evaluate(() => {
+        const card = document.querySelector("#canvasRelationMap");
+        const rails = [...document.querySelectorAll(".canvas-relation-rail")];
+        return {
+          visible: getComputedStyle(card).display !== "none",
+          gradient: getComputedStyle(card).backgroundImage,
+          rails: rails.length,
+          directions: rails.map((rail) => rail.dataset.direction),
+          total: document.querySelector("#canvasRelationTotal").textContent,
+          foot: document.querySelector(".canvas-relation-foot").textContent,
+        };
+      });
+      expect(relationMap.visible).toBe(true);
+      expect(relationMap.gradient).toContain("linear-gradient");
+      expect(relationMap.rails).toBe(2);
+      expect(relationMap.directions).toEqual(["inbound", "outbound"]);
+      expect(relationMap.total).toContain("真实连线");
+      expect(relationMap.foot).toContain("不批准或写文件");
       await page.click('#appearancePopover [data-visual="studio"]');
       expect(await page.$eval("body", (element) => element.classList.contains("visual-studio"))).toBe(true);
       expect(await page.$eval("#ribbonMode", (element) => element.textContent)).toContain("Studio");
