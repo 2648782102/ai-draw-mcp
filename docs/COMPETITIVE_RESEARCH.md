@@ -51,6 +51,10 @@ Conversation-first products preserve a visible beat of who spoke last, while rev
 
 Onboarding diagrams are more useful when their labels reflect the current workspace instead of only explaining an abstract loop. The first-run visual now borrows the onboarding-progress pattern from developer tools: a compact three-step **live collaboration route** reports existing graph-object count, dialogue count, and pending review / closed-gate state with bounded status lights. It shares the same derived session snapshot as the dialogue star track, never becomes a second persisted workflow model, and never grants write authority.
 
+## Focus-context research note (2026-11-06 22:05 CST)
+
+Code-map and design-canvas tools often keep a small context popover attached to the current selection, so a person can inspect why an object matters without losing the canvas. The canvas focus label now borrows that interaction with a bounded **focus context capsule**: hover shows real edge count, open discussion count, and source evidence; clicking reuses the existing chat workbench. It is pure local DOM/CSS derived from the current read-only focus and never publishes focus/viewport, sends messages, approves proposals, issues receipts, or writes project files.
+
 ## Positioning statement
 
 > AI Draw MCP is a local-first MCP workspace where an AI can turn a codebase into an editable visual map, a human can correct that map in the panel, and the pair can review a concrete change proposal before any file is written.

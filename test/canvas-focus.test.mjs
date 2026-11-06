@@ -239,6 +239,37 @@ describe("canvas focus interaction", () => {
       expect(focus.badgeText).toContain(focus.label);
       expect(focus.aligned).toBe(true);
       expect(focus.rippleTriggeredBy).toBe(focus.ringId);
+      const focusContext = await page.evaluate(() => {
+        const label = document.querySelector("#canvasFocusLabel");
+        label.dispatchEvent(new PointerEvent("pointerenter", { bubbles: true }));
+        const card = document.querySelector("#canvasFocusContext");
+        return {
+          hasContext: label.dataset.hasContext,
+          visible: card.dataset.visible,
+          gradient: getComputedStyle(card).backgroundImage,
+          label: document.querySelector("#canvasFocusContextLabel").textContent,
+          edges: Number(document.querySelector("#canvasFocusContextEdges").textContent),
+          threads: Number(document.querySelector("#canvasFocusContextThreads").textContent),
+          foot: document.querySelector(".canvas-focus-context-foot").textContent,
+        };
+      });
+      expect(focusContext.hasContext).toBe("true");
+      expect(focusContext.visible).toBe("true");
+      expect(focusContext.gradient).toContain("linear-gradient");
+      expect(focusContext.label).toContain(focus.label);
+      expect(focusContext.edges).toBeGreaterThan(0);
+      expect(focusContext.foot).toContain("不批准提案");
+      const sessionBeforeFocusLabel = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
+      await page.$eval("#canvasFocusLabel", (element) => element.click());
+      await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
+      expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("dialog");
+      expect(await page.$eval('[data-history-pane="chat"]', (element) => element.classList.contains("active"))).toBe(true);
+      const sessionAfterFocusLabel = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
+      expect(sessionAfterFocusLabel.focus?.nodeId).toBe(sessionBeforeFocusLabel.focus?.nodeId);
+      expect(sessionAfterFocusLabel.messages?.length ?? 0).toBe(sessionBeforeFocusLabel.messages?.length ?? 0);
+      expect(sessionAfterFocusLabel.graphRevision).toBe(sessionBeforeFocusLabel.graphRevision);
+      await page.$eval("#btnCloseCollab", (element) => element.click());
+      await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
 
       const objectCard = await page.evaluate(() => ({
         relatedCount: Number(document.querySelector("#canvasRelatedCount").textContent),

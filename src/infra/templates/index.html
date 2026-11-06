@@ -1367,6 +1367,29 @@
     .canvas-focus-label::before { content: '◎'; margin-right: 5px; color: var(--accent2); }
     .canvas-focus-label[data-visible="true"] { display: block; }
     body.theme-light .canvas-focus-label { background: rgba(255,255,255,.95); color: #43346c; }
+    .canvas-focus-label[data-has-context="true"] { pointer-events: auto; cursor: pointer; }
+    .canvas-focus-label[data-has-context="true"]:hover { border-color: var(--accent3); box-shadow: 0 10px 24px rgba(0,0,0,.30), 0 0 14px rgba(61,219,217,.24); }
+    .canvas-focus-context {
+      position: absolute; z-index: 25; display: none; width: 218px; padding: 9px 10px;
+      border: 1px solid rgba(61,219,217,.48); border-radius: 12px;
+      background: linear-gradient(145deg, rgba(12,23,40,.97), rgba(9,14,25,.97));
+      box-shadow: 0 18px 44px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
+      color: var(--text-muted); font-size: 9px; pointer-events: none;
+    }
+    .canvas-focus-context[data-visible="true"] { display: block; animation: canvas-hover-in .16s ease-out both; }
+    .canvas-focus-context::before { content: ''; position: absolute; left: 12px; right: 12px; top: -1px; height: 1px; background: linear-gradient(90deg, var(--accent3), var(--accent2), transparent); }
+    .canvas-focus-context-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; color: var(--accent3); font-size: 8px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .canvas-focus-context-head span { color: var(--text-muted); font-size: 7px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+    .canvas-focus-context strong { display: block; overflow: hidden; margin-bottom: 2px; color: var(--text); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-focus-context code { display: block; overflow: hidden; margin-bottom: 7px; color: var(--text-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-focus-context-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+    .canvas-focus-context-metric { padding: 5px 3px; border: 1px solid var(--border); border-radius: 7px; background: rgba(122,162,247,.06); text-align: center; }
+    .canvas-focus-context-metric b { display: block; color: var(--accent2); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .canvas-focus-context-metric span { color: var(--text-muted); font-size: 7px; }
+    .canvas-focus-context-foot { margin-top: 7px; color: var(--text-muted); font-size: 7px; line-height: 1.45; }
+    body.visual-studio .canvas-focus-context, body.theme-light .canvas-focus-context { background: rgba(255,255,255,.98); box-shadow: 0 14px 32px rgba(38,54,84,.18); }
+    body.visual-atlas .canvas-focus-context, body.visual-atlas .canvas-focus-context-metric { border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    @media (prefers-reduced-motion: reduce) { .canvas-focus-context[data-visible="true"] { animation: none; } }
     .canvas-focus-ripple {
       position: absolute; z-index: 19; display: none; pointer-events: none;
       border: 2px solid rgba(187,154,247,.72); border-radius: 14px;
@@ -2485,7 +2508,18 @@
           <div class="canvas-focus-halo" id="canvasFocusHalo" data-visible="false" aria-hidden="true"></div>
           <div class="canvas-focus-ring" id="canvasFocusRing" data-focus-node-id="" aria-hidden="true"></div>
           <div class="canvas-focus-ripple" id="canvasFocusRipple" data-active="false" data-triggered-by="" aria-hidden="true"></div>
-          <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" aria-hidden="true"></div>
+          <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" data-has-context="false" title="悬停查看当前对象只读上下文；点击打开既有对话工作台" aria-hidden="true"></div>
+          <div class="canvas-focus-context" id="canvasFocusContext" data-visible="false" aria-hidden="true">
+            <div class="canvas-focus-context-head">焦点上下文 · 只读<span>悬停胶囊展开</span></div>
+            <strong id="canvasFocusContextLabel">等待项目结构图</strong>
+            <code id="canvasFocusContextPath">选中节点后显示</code>
+            <div class="canvas-focus-context-grid">
+              <span class="canvas-focus-context-metric"><b id="canvasFocusContextEdges">0</b><span>真实边</span></span>
+              <span class="canvas-focus-context-metric"><b id="canvasFocusContextThreads">0</b><span>开放讨论</span></span>
+              <span class="canvas-focus-context-metric"><b id="canvasFocusContextEvidence">0</b><span>源码证据</span></span>
+            </div>
+            <div class="canvas-focus-context-foot">点击「当前焦点」胶囊只打开既有对话工作台；不发布焦点、不批准提案、不写项目文件。</div>
+          </div>
           <div class="canvas-hover-card" id="canvasHoverCard" data-visible="false" data-node-id="" aria-hidden="true">
             <div class="canvas-hover-head"><span class="canvas-hover-kicker">Object glance · read only</span><span class="canvas-hover-focus" id="canvasHoverFocus">悬停</span></div>
             <strong id="canvasHoverLabel">对象</strong>
@@ -3651,6 +3685,7 @@ function positionFocusRing() {
       ring.dataset.focusNodeId = '';
       halo.dataset.visible = 'false';
       label.dataset.visible = 'false';
+      $('#canvasFocusContext').dataset.visible = 'false';
     }
     return;
   }
@@ -3661,6 +3696,7 @@ function positionFocusRing() {
     ring.dataset.focusNodeId = '';
     halo.dataset.visible = 'false';
     label.dataset.visible = 'false';
+    $('#canvasFocusContext').dataset.visible = 'false';
     return;
   }
   const left = shapeRect.left - wrapRect.left - 5;
@@ -3685,6 +3721,9 @@ function positionFocusRing() {
   label.style.left = `${Math.max(8, left)}px`;
   label.style.top = `${top + height + 7}px`;
   label.dataset.visible = 'true';
+  const context = $('#canvasFocusContext');
+  context.style.left = `${Math.max(8, Math.min(left, $('#previewWrap').clientWidth - 226))}px`;
+  context.style.top = `${Math.min(top + height + 34, $('#previewWrap').clientHeight - 150)}px`;
   syncFocusLabelConversation();
 }
 
@@ -3738,6 +3777,9 @@ let canvasHoverFrame = 0;
 
 previewWrap.addEventListener('pointermove', (event) => {
   if (event.pointerType === 'touch') return;
+  if (!event.target.closest('#canvasFocusLabel') && !event.target.closest('#canvasFocusContext')) {
+    $('#canvasFocusContext').dataset.visible = 'false';
+  }
   if (isPanning || event.buttons !== 0) {
     hideCanvasHoverCard();
     return;
@@ -3757,9 +3799,13 @@ previewWrap.addEventListener('pointerleave', (event) => {
   canvasHoverPointer = null;
   if (canvasHoverFrame) cancelAnimationFrame(canvasHoverFrame);
   canvasHoverFrame = 0;
+  $('#canvasFocusContext').dataset.visible = 'false';
   hideCanvasHoverCard();
 }, { passive: true });
-previewWrap.addEventListener('wheel', () => hideCanvasHoverCard(), { passive: true });
+previewWrap.addEventListener('wheel', () => {
+  $('#canvasFocusContext').dataset.visible = 'false';
+  hideCanvasHoverCard();
+}, { passive: true });
 panOverlay.addEventListener('mousedown', () => hideCanvasHoverCard());
 
 if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -3877,6 +3923,24 @@ $('#btnCollabPulseOpen').addEventListener('click', () => {
   openCollab();
 });
 $('#btnHandoffOpen').addEventListener('click', openCollab);
+const canvasFocusLabel = $('#canvasFocusLabel');
+canvasFocusLabel.addEventListener('pointerenter', () => {
+  if (canvasFocusLabel.dataset.hasContext === 'true') $('#canvasFocusContext').dataset.visible = 'true';
+});
+canvasFocusLabel.addEventListener('pointerleave', () => {
+  $('#canvasFocusContext').dataset.visible = 'false';
+});
+canvasFocusLabel.addEventListener('click', (event) => {
+  event.stopPropagation();
+  if (canvasFocusLabel.dataset.hasContext !== 'true') return;
+  setCollabPulseDetailOpen(false);
+  openCollabFromCanvas('dialog', () => {
+    const chatTab = document.querySelector('[data-history-target="chat"]');
+    if (chatTab) setHistoryTab(chatTab);
+  });
+  $('#canvasFocusContext').dataset.visible = 'false';
+  showToast('已打开既有双向对话；只读焦点胶囊不改变会话或写入闸门');
+});
 function openDialogStarTrack() {
   openCollabFromCanvas('dialog', () => {
     const chatTab = document.querySelector('[data-history-target="chat"]');
@@ -5790,6 +5854,24 @@ function syncFocusLabelConversation() {
   const suffix = state.blocked ? ' · 批注重锚' : state.open ? ' · 开放讨论' : '';
   const nodeText = label.dataset.focusNodeLabel || '';
   label.textContent = `当前焦点 · ${nodeText}${suffix}`;
+  renderCanvasFocusContext();
+}
+
+function renderCanvasFocusContext() {
+  const card = $('#canvasFocusContext');
+  const label = $('#canvasFocusLabel');
+  if (!card || !label) return;
+  const node = (collabGraph?.nodes || []).find((item) => item.id === selectedNodeId);
+  const links = canvasRelationLinks(node?.id);
+  const state = focusConversationState(node?.id);
+  const evidence = node?.sourceEvidence?.filter((item) => item.path && Number.isFinite(item.line)) || [];
+  $('#canvasFocusContextLabel').textContent = node?.label || '等待项目结构图';
+  $('#canvasFocusContextPath').textContent = node?.path || '选中节点后显示只读上下文';
+  $('#canvasFocusContextEdges').textContent = String(links.length);
+  $('#canvasFocusContextThreads').textContent = String(state.open);
+  $('#canvasFocusContextEvidence').textContent = String(evidence.length);
+  label.dataset.hasContext = String(label.dataset.visible === 'true' && Boolean(node));
+  if (!node || label.dataset.visible !== 'true') card.dataset.visible = 'false';
 }
 
 function renderCanvasObject() {
