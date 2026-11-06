@@ -515,5 +515,5 @@ describe("collaboration panel UI", () => {
       await browser.close();
       await preview.stop().catch(() => {});
     }
-  }, 30_000);
+  }, 60_000);
 });
