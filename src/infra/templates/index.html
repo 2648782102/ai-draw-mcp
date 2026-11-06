@@ -3441,6 +3441,7 @@ function openCommandPalette() {
   window.clearTimeout(collabLoadTimer);
   requestAnimationFrame(() => backdrop.classList.add('open'));
   $('#commandSearch').value = '';
+  commandActiveIndex = 0;
   renderCommands();
   $('#commandSearch').focus();
 }

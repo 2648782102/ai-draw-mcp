@@ -297,6 +297,8 @@ describe("collaboration panel UI", () => {
 
       await page.keyboard.press("?");
       await page.waitForFunction(() => !document.querySelector("#commandBackdrop").hidden);
+      expect(await page.$eval("#commandSearch", (element) => element.value)).toBe("");
+      expect(await page.$eval(".command-item.active", (element) => element.dataset.commandIndex)).toBe("0");
       const commandPalette = await page.evaluate(() => ({
         title: document.querySelector("#commandTitle").textContent,
         count: document.querySelector("#commandCount").textContent,

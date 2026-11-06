@@ -831,6 +831,8 @@ for (const [label, file, needle] of [
   ["searchable command palette", panel, "commandBackdrop"],
   ["command palette shortcut", panel, "? · Esc"],
   ["command palette executor", panel, "function runCommand"],
+  ["command palette active index reset", panel, "commandActiveIndex = 0"],
+  ["command palette active index regression", panelUiTest, 'dataset.commandIndex)).toBe("0")'],
   ["command palette welcome entry", panel, "btnOpenCommandsWelcome"],
   ["collaboration focus mode", panel, "focus-mode"],
   ["focus mode toggle", panel, "btnFocusMode"],
