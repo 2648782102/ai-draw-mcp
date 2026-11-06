@@ -119,6 +119,8 @@ describe("collaboration panel UI", () => {
         scrollWidth: 1440,
         clientWidth: 1440,
       });
+      expect(await page.$eval("#collabHealth", (element) => element.className)).toContain("health-card");
+      expect(await page.$eval("#healthProgressLabel", (element) => element.textContent)).toMatch(/\/ 4 步/);
 
       await page.click("#btnGraphMore");
       expect(await page.$eval("#graphMoreActions", (element) => element.classList.contains("open"))).toBe(true);

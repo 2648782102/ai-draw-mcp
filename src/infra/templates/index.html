@@ -326,6 +326,20 @@
     .overview-stat strong { color: var(--text); font-size: 10px; }
     .overview-stat .pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
     .overview-stat.safety { margin-left: auto; border-color: rgba(240,168,104,.35); color: var(--orange); }
+    .health-card {
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+      margin: 9px 14px 0; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 11px; background: linear-gradient(90deg, rgba(122,162,247,.08), rgba(158,206,106,.04)), rgba(14,23,39,.72);
+    }
+    .health-orb { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: rgba(158,206,106,.14); color: var(--green); font-size: 15px; }
+    .health-card.warning .health-orb { background: rgba(240,168,104,.14); color: var(--orange); }
+    .health-card.blocked .health-orb { background: rgba(255,122,147,.14); color: var(--red); }
+    .health-main strong { display: block; font-size: 11px; margin-bottom: 3px; }
+    .health-main span { color: var(--text-muted); font-size: 10px; line-height: 1.45; }
+    .health-progress { width: 118px; }
+    .health-progress-track { height: 5px; border-radius: 999px; background: rgba(122,162,247,.16); overflow: hidden; }
+    .health-progress-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--green)); transition: width .25s ease; }
+    .health-progress span { display: block; margin-top: 4px; color: var(--text-muted); font-size: 9px; text-align: right; }
     .collab-tabs { display: none; gap: 6px; padding: 9px 10px 0; }
     .collab-tab {
       flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px 9px 0 0;
@@ -659,6 +673,11 @@
     <span class="overview-stat">选择 <strong id="overviewSelection">0 / 24</strong></span>
     <span class="overview-stat">活动 <strong id="overviewActivity">0</strong></span>
     <span class="overview-stat safety">🔒 批准前只读</span>
+  </div>
+  <div class="health-card" id="collabHealth">
+    <span class="health-orb" aria-hidden="true">✓</span>
+    <div class="health-main"><strong id="healthTitle">协作状态载入中</strong><span id="healthDetail">正在读取只读诊断、审阅就绪与下一步动作。</span></div>
+    <div class="health-progress"><div class="health-progress-track"><div class="health-progress-fill" id="healthProgressFill"></div></div><span id="healthProgressLabel">0 / 4 步</span></div>
   </div>
   <div class="collab-tabs" role="tablist" aria-label="协作工作区">
     <button class="collab-tab active" type="button" data-tab-target="graph" role="tab">◇ 项目图</button>
@@ -1554,6 +1573,7 @@ let collabCapabilities = null;
 let collabSelectionScope = null;
 let collabSelectionWorkorder = null;
 let collabViewport = null;
+let collabReviewReadiness = null;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -1669,6 +1689,35 @@ function updateOverview() {
   if (revision) revision.textContent = Number.isFinite(collabRevision) ? String(collabRevision) : '—';
   if (selection) selection.textContent = `${selectedNodeIds.length} / 24`;
   if (activity) activity.textContent = String((collabGraph?.annotations?.length || 0) + (collabGraph?.messages?.length || 0));
+  renderHealthCard();
+}
+
+function renderHealthCard() {
+  const card = $('#collabHealth');
+  if (!card) return;
+  const signals = Array.isArray(collabDiagnostics?.signals) ? collabDiagnostics.signals : [];
+  const actions = Array.isArray(collabDiagnostics?.nextActions) ? collabDiagnostics.nextActions : [];
+  const blockers = (collabReviewReadiness?.brief?.blockers?.length ?? 0) + (collabReviewReadiness?.decisionTrail?.gaps?.length ?? 0);
+  const stale = Boolean(collabSelectionWorkorder?.freshness?.selectionStale);
+  const hasGraph = Boolean(collabGraph?.nodes?.length);
+  const hasSelection = selectedNodeIds.length > 0;
+  const hasProposal = Boolean(collabSharedBrief?.proposal || collabReviewReadiness);
+  const steps = [hasGraph, hasSelection, hasProposal, blockers === 0 && !stale].filter(Boolean).length;
+  const state = stale || blockers > 0 ? 'blocked' : actions.length ? 'warning' : 'ready';
+  card.classList.toggle('warning', state === 'warning');
+  card.classList.toggle('blocked', state === 'blocked');
+  $('#healthTitle').textContent = state === 'blocked'
+    ? '需要先复核当前上下文'
+    : state === 'warning' ? '等待下一步人类 / AI 动作' : '协作上下文已就绪';
+  $('#healthDetail').textContent = stale
+    ? `选择已过期 · ${signals.length} 条信号 / ${actions.length} 个下一步；请清空并重新选择节点。`
+    : blockers > 0
+      ? `${blockers} 个审阅阻塞 · ${signals.length} 条信号 / ${actions.length} 个下一步；批准前仍需完整逐行 diff。`
+      : actions.length
+        ? `${actions[0]} · 所有上下文仍为只读，写入需人工批准。`
+        : '没有显式阻塞；批准前仍需完整逐行 diff、人工确认与一次性确认号。';
+  $('#healthProgressFill').style.width = `${steps * 25}%`;
+  $('#healthProgressLabel').textContent = `${steps} / 4 步`;
 }
 
 function localId(prefix) {
@@ -1870,6 +1919,7 @@ function renderSelectionWorkorder(workorder) {
   const freshnessClass = workorder.freshness?.selectionStale ? 'signal stale' : 'signal';
   const freshnessHtml = `<p class="${freshnessClass}">${escapeHtml(workorder.freshness?.hint || '选择新鲜度未知；请刷新面板并让人确认当前范围。')}</p>`;
   list.innerHTML = `${freshnessHtml}${pathsHtml}${gapsHtml}${nextHtml}`;
+  renderHealthCard();
 }
 
 async function copySelectionScope() {
@@ -2023,9 +2073,11 @@ function renderDiagnostics(diagnostics) {
   list.innerHTML = diagnostics
     ? `${signalHtml || '<p class="signal">暂无诊断信号。</p>'}${actionHtml}`
     : '<p class="signal">会话诊断不可用。</p>';
+  renderHealthCard();
 }
 
 function renderReviewReadiness(readiness) {
+  collabReviewReadiness = readiness;
   const summary = $('#reviewReadinessSummary');
   const list = $('#reviewReadinessList');
   if (!summary || !list) return;
@@ -2035,6 +2087,7 @@ function renderReviewReadiness(readiness) {
   summary.title = 'REVIEW_READINESS_JSON 派生自共享简报与决策链；它不批准变更，也不替代完整逐行 diff。';
   const pointHtml = points.slice(0, 8).map((point) => `<p class="signal ${point.severity === 'action' ? 'action' : ''}"><strong>${escapeHtml(point.source)}</strong> · ${escapeHtml(point.message)}</p>`).join('');
   list.innerHTML = pointHtml || '<p class="signal">暂无共享简报阻塞或决策链证据缺口；批准提案前仍须打开完整逐行 diff。</p>';
+  renderHealthCard();
 }
 
 function renderCapabilities(capabilities) {
