@@ -482,6 +482,13 @@
     .edge-editor { margin-top: 8px; border-top: 1px solid var(--border); }
     .edge-editor h4 { font-size: 10px; color: var(--text-muted); margin: 8px 0 4px; }
     .graph-empty { color: var(--text-muted); font-size: 10px; padding: 8px 0; }
+    .graph-row.is-dirty { border-color: rgba(240,168,104,.58); background: rgba(240,168,104,.06); }
+    .graph-row.is-dirty::after { background: var(--orange); }
+    .edge-row.is-dirty { border-bottom-color: rgba(240,168,104,.58); background: rgba(240,168,104,.05); }
+    .graph-dirty { display: flex; align-items: center; gap: 6px; margin: 0 0 7px; padding: 6px 8px; border: 1px solid rgba(240,168,104,.42); border-radius: 8px; background: rgba(240,168,104,.08); color: var(--orange); font-size: 9px; line-height: 1.45; }
+    .graph-dirty::before { content: '●'; font-size: 8px; }
+    .graph-dirty[hidden], .graph-dirty-count[hidden] { display: none; }
+    .graph-dirty-count { display: inline-grid; place-items: center; min-width: 16px; height: 16px; margin-left: 4px; padding: 0 4px; border-radius: 999px; background: rgba(9,14,25,.28); color: #08111f; font-size: 9px; font-weight: 800; }
     .graph-guide { display: flex; align-items: center; gap: 10px; margin: 7px 0; padding: 12px; border: 1px dashed rgba(122,162,247,.3); border-radius: 10px; background: rgba(122,162,247,.05); }
     .graph-guide-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: rgba(122,162,247,.14); color: var(--accent); font-size: 15px; flex-shrink: 0; }
     .graph-guide strong { display: block; color: var(--text); font-size: 11px; margin-bottom: 3px; }
@@ -873,6 +880,7 @@
       <p class="activity-summary" id="selectionSummary">选择范围 · 未多选节点；复选框可把「这几个模块」作为只读范围告诉 AI</p>
       <p class="activity-summary" id="viewportSummary">当前视口 · 尚未同步；缩放/平移只作为只读注意力上下文，不改图或授权写入</p>
       <p class="activity-summary" id="graphHistorySummary">图形历史 · 尚无撤销记录；撤销只恢复视觉状态，不写项目文件</p>
+      <p class="graph-dirty" id="graphDirtyHint" hidden>有未保存的图形编辑 · 点击「保存图形」后 AI 才能读取；不会自动写入项目文件</p>
       <p class="activity-summary" id="sourceEvidenceSummary">源码证据 · 等待扫描；只读 file:line 线索不授权项目写入</p>
       <div class="chat-log source-evidence-list" id="sourceEvidenceList"></div>
       <p class="activity-summary" id="sourceNavigationSummary">源码跳转 · 等待扫描；只生成可复制的相对 file:line 提示，不自动打开 IDE</p>
@@ -894,7 +902,7 @@
         <button id="btnAddEdge">＋ 连线</button>
         <button id="btnUndoGraph" disabled title="撤销上一次图形保存；不写项目文件">↶ 撤销</button>
         <button id="btnRedoGraph" disabled title="重做已撤销的图形状态；不写项目文件">↷ 重做</button>
-        <button id="btnSaveGraph" class="primary">保存图形</button>
+        <button id="btnSaveGraph" class="primary">保存图形 <span id="graphDirtyCount" class="graph-dirty-count" hidden>0</span></button>
         <button id="btnRescan" class="primary" title="只读扫描工作区并保留人工视觉状态">重新扫描项目</button>
       </div>
       <div class="collab-actions dock-secondary" id="graphMoreActions">
@@ -1803,6 +1811,7 @@ let collabSelectionScope = null;
 let collabSelectionWorkorder = null;
 let collabViewport = null;
 let collabReviewReadiness = null;
+let graphDirtyRows = new Set();
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -1827,6 +1836,8 @@ function renderGraphEditor() {
   const target = $('#graphEditor');
   const edgeTarget = $('#edgeEditor');
   if (!collabGraph) {
+    graphDirtyRows = new Set();
+    updateGraphDirtyState();
     target.innerHTML = '<div class="graph-guide"><span class="graph-guide-icon">◇</span><span><strong>先生成一张项目结构图</strong><span>让 AI 调用 scan_project，或点击「重新扫描项目」；节点出现后可在这里编辑并多选。</span></span></div>';
     edgeTarget.innerHTML = '<div class="graph-empty">暂无连线。</div>';
     selectedNodeIds = [];
@@ -1839,7 +1850,7 @@ function renderGraphEditor() {
   renderFocus();
   renderSelectionSummary();
   target.innerHTML = collabGraph.nodes.map((node, index) => `
-    <div class="graph-row ${node.id === selectedNodeId ? 'selected' : ''}" data-index="${index}" data-node-id="${escapeHtml(node.id)}" data-row-number="${String(index + 1).padStart(2, '0')}">
+    <div class="graph-row ${node.id === selectedNodeId ? 'selected' : ''} ${graphDirtyRows.has(`node:${index}`) ? 'is-dirty' : ''}" data-index="${index}" data-node-id="${escapeHtml(node.id)}" data-row-number="${String(index + 1).padStart(2, '0')}">
       <span class="graph-select-cell">
         <input type="radio" name="selectedNode" ${node.id === selectedNodeId ? 'checked' : ''} aria-label="焦点节点" title="设为焦点" />
         <input class="node-select" type="checkbox" ${selectedNodeIds.includes(node.id) ? 'checked' : ''} aria-label="加入选择范围" title="加入选择范围（最多 24 个）" />
@@ -1855,7 +1866,7 @@ function renderGraphEditor() {
   `).join('');
   const options = (selected) => collabGraph.nodes.map((node) => `<option value="${escapeHtml(node.id)}" ${node.id === selected ? 'selected' : ''}>${escapeHtml(node.label)}</option>`).join('');
   edgeTarget.innerHTML = collabGraph.edges.length ? collabGraph.edges.map((edge, index) => `
-    <div class="edge-row" data-index="${index}">
+    <div class="edge-row ${graphDirtyRows.has(`edge:${index}`) ? 'is-dirty' : ''}" data-index="${index}">
       <select class="edge-from" aria-label="连线起点">${options(edge.from)}</select>
       <select class="edge-to" aria-label="连线终点">${options(edge.to)}</select>
       <input class="edge-label" value="${escapeHtml(edge.label || '')}" aria-label="连线说明" />
@@ -1863,6 +1874,19 @@ function renderGraphEditor() {
       <button data-remove-edge="${index}" title="删除连线">✕</button>
     </div>
   `).join('') : '<div class="graph-empty">暂无连线。新增节点后可描述模块关系。</div>';
+
+  for (const row of target.querySelectorAll('.graph-row')) {
+    for (const field of row.querySelectorAll('input:not(.node-select):not([type="radio"])')) {
+      field.addEventListener('input', () => markGraphRowDirty(row, `node:${row.dataset.index}`));
+    }
+  }
+  for (const row of edgeTarget.querySelectorAll('.edge-row')) {
+    for (const field of row.querySelectorAll('input, select')) {
+      field.addEventListener('input', () => markGraphRowDirty(row, `edge:${row.dataset.index}`));
+      field.addEventListener('change', () => markGraphRowDirty(row, `edge:${row.dataset.index}`));
+    }
+  }
+  updateGraphDirtyState();
 
   for (const row of target.querySelectorAll('.graph-row')) {
     const checkbox = row.querySelector('.node-select');
@@ -1896,6 +1920,24 @@ function renderGraphEditor() {
   for (const button of edgeTarget.querySelectorAll('[data-remove-edge]')) {
     button.addEventListener('click', () => removeEdge(Number(button.dataset.removeEdge)));
   }
+}
+
+function markGraphRowDirty(row, key) {
+  row.classList.add('is-dirty');
+  graphDirtyRows.add(key);
+  updateGraphDirtyState();
+}
+
+function updateGraphDirtyState() {
+  const hint = $('#graphDirtyHint');
+  const badge = $('#graphDirtyCount');
+  const count = graphDirtyRows.size;
+  if (hint) hint.hidden = count === 0;
+  if (badge) {
+    badge.hidden = count === 0;
+    badge.textContent = String(count);
+  }
+  $('#btnSaveGraph')?.classList.toggle('has-dirty', count > 0);
 }
 
 function renderSelectionSummary() {
@@ -2225,6 +2267,7 @@ function addNode() {
   if (!collabGraph) collabGraph = { version: 1, diagramId: `panel_${Date.now()}`, nodes: [], edges: [], annotations: [] };
   const id = localId('node');
   collabGraph.nodes.push({ id, label: '新节点', kind: 'module', path: 'src/new-module', group: 'human' });
+  graphDirtyRows.add(`node:${collabGraph.nodes.length - 1}`);
   selectedNodeId = id;
   selectedNodeIds = [];
   renderGraphEditor();
@@ -2240,6 +2283,7 @@ function removeNode(index) {
     annotation.nodeId === node.id ? { ...annotation, anchorStatus: 'detached' } : annotation);
   if (selectedNodeId === node.id) selectedNodeId = null;
   selectedNodeIds = selectedNodeIds.filter((item) => item !== node.id);
+  graphDirtyRows = new Set([...graphDirtyRows].filter((key) => key !== `node:${index}` && !key.startsWith('edge:')));
   renderGraphEditor();
 }
 
@@ -2247,12 +2291,14 @@ function addEdge() {
   if (!collabGraph || collabGraph.nodes.length < 2) return showToast('至少需要两个节点才能建立连线');
   const [from, to] = collabGraph.nodes.slice(-2).map((node) => node.id);
   collabGraph.edges.push({ id: localId('edge'), from, to, label: 'relates', kind: 'relates' });
+  graphDirtyRows.add(`edge:${collabGraph.edges.length - 1}`);
   renderGraphEditor();
   $('#edgeEditor').scrollTop = $('#edgeEditor').scrollHeight;
 }
 
 function removeEdge(index) {
   collabGraph?.edges.splice(index, 1);
+  graphDirtyRows = new Set([...graphDirtyRows].filter((key) => key !== `edge:${index}`));
   renderGraphEditor();
 }
 
@@ -2910,6 +2956,8 @@ async function saveGraph() {
     collabRevision = result.graphRevision;
     const selection = await publishSelection(selectedNodeIds);
     selectedNodeIds = Array.isArray(selection?.nodeIds) ? selection.nodeIds : [];
+    graphDirtyRows = new Set();
+    updateGraphDirtyState();
     showToast(`图形已保存 · revision ${collabRevision}`);
     await loadCollab();
   } catch (error) {

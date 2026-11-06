@@ -218,7 +218,6 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#healthProgressLabel", (element) => element.textContent)).toMatch(/\/ 4 步/);
       expect(await page.$eval(".graph-guide", (element) => element.textContent)).toContain("先生成一张项目结构图");
       expect(await page.$eval(".graph-row-header", (element) => getComputedStyle(element).position)).toBe("sticky");
-      expect(await page.$$eval(".history-tab", (elements) => elements.length)).toBe(4);
       const chat = await page.evaluate(() => ({
         bubbles: document.querySelectorAll("#chatLog .chat-item").length,
         authors: [...document.querySelectorAll("#chatLog .chat-item")].map((element) => element.querySelector(".chat-meta strong")?.textContent),
@@ -240,12 +239,26 @@ describe("collaboration panel UI", () => {
       expect(chat.systemAvatar).toBe(0);
       expect(chat.evidenceItems).toBe(0);
       expect(await page.$eval('[data-history-count="activity"]', (element) => Number(element.textContent))).toBeGreaterThan(0);
+      await page.click("#btnAddNode");
+      await page.waitForSelector("#graphEditor .graph-row.is-dirty");
+      await page.$eval("#graphEditor .node-label", (element) => {
+        element.value = "人工编辑模块";
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      expect(await page.$eval("#graphDirtyHint", (element) => element.hidden)).toBe(false);
+      expect(await page.$eval("#graphDirtyCount", (element) => element.textContent)).toBe("1");
+      await page.click("#btnSaveGraph");
+      await page.waitForFunction(() => document.querySelector("#graphDirtyHint").hidden);
+      expect(await page.$eval("#btnSaveGraph", (element) => element.classList.contains("has-dirty"))).toBe(false);
+      expect(await page.$eval("#graphDirtyCount", (element) => element.hidden)).toBe(true);
+      expect(await page.$$eval(".history-tab", (elements) => elements.length)).toBe(4);
       await page.$eval('[data-history-target="diffs"]', (element) => element.click());
       await page.waitForFunction(() => document.querySelector('[data-history-pane="diffs"]').classList.contains("active"));
       expect(await page.$eval('[data-history-target="diffs"]', (element) => element.classList.contains("active"))).toBe(true);
       expect(await page.$eval('[data-history-target="diffs"]', (element) => element.getAttribute("aria-selected"))).toBe("true");
       expect(await page.$eval('[data-history-pane="diffs"]', (element) => element.getAttribute("role"))).toBe("tabpanel");
-      expect(await page.$eval('[data-history-pane="diffs"] .history-empty', (element) => element.textContent)).toContain("暂无图形修订");
+      expect(await page.$eval('[data-history-pane="diffs"] #graphDiffSummary', (element) => element.textContent)).toContain("图形修订差异");
+      expect(await page.$eval('[data-history-pane="diffs"] .graph-diff-list details', (element) => element.textContent)).toContain("人工编辑模块");
       await page.$eval('[data-history-target="annotations"]', (element) => element.click());
       expect(await page.$eval('[data-history-pane="annotations"] .history-empty', (element) => element.textContent)).toContain("还没有图形批注");
       await page.$eval('[data-history-target="activity"]', (element) => element.click());
