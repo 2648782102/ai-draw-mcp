@@ -818,6 +818,7 @@
     .proposal-checklist li:first-child { color: var(--text); font-size: 10px; margin-bottom: 3px; }
     .proposal-checklist li:first-child::before { content: '✓'; }
     .proposal-diff { margin: 8px 0; max-height: 220px; overflow: auto; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); font: 10px/1.45 'JetBrains Mono', Consolas, monospace; }
+    .proposal-diff.is-loading { border-color: rgba(122,162,247,.62); }
     .proposal-diff summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; list-style: none; cursor: pointer; padding: 8px 10px; color: var(--text); font-family: Inter, -apple-system, sans-serif; font-size: 10px; font-weight: 650; }
     .proposal-diff summary::-webkit-details-marker { display: none; }
     .proposal-diff summary > span:first-child { display: flex; align-items: center; gap: 7px; }
@@ -825,6 +826,7 @@
     .proposal-diff summary > span:last-child { color: var(--text-muted); font-size: 9px; font-weight: 500; }
     .proposal-diff[open] summary > span:first-child::before { transform: rotate(90deg); }
     .proposal-diff.loaded [data-diff-state] { color: var(--green); }
+    .proposal-diff.is-loading [data-diff-state] { color: var(--accent); }
     .proposal-diff.is-error [data-diff-state] { color: var(--red); }
     .proposal-diff pre { margin: 0; padding: 8px 10px 10px; border-top: 1px solid var(--border); white-space: pre-wrap; word-break: break-word; color: var(--text-muted); }
     .diff-line.add { color: #9be29f; }
@@ -860,9 +862,12 @@
     .proposal-actions button:hover { transform: translateY(-1px); }
     .proposal-actions button.approve { border-color: var(--green); background: linear-gradient(135deg, rgba(158,206,106,.18), rgba(122,162,247,.12)); color: var(--green); font-weight: 750; }
     .proposal-actions button.approve:hover { background: linear-gradient(135deg, rgba(158,206,106,.28), rgba(122,162,247,.18)); box-shadow: 0 6px 16px rgba(158,206,106,.12); }
+    .proposal-actions button.approve.awaiting-diff { border-color: rgba(240,168,104,.62); background: rgba(240,168,104,.08); color: var(--orange); }
     .proposal-actions button.reject { color: var(--text-muted); background: transparent; }
     .proposal-actions button.reject:hover { border-color: var(--red); color: var(--red); }
     .proposal-actions button.decision-error { border-color: var(--red) !important; color: var(--red) !important; }
+    .proposal-safety { margin-top: 7px; padding: 7px 9px; border: 1px dashed rgba(158,206,106,.42); border-radius: 8px; background: rgba(158,206,106,.06); color: var(--text-muted); font-size: 9px; line-height: 1.55; }
+    .proposal-safety strong { color: var(--green); }
     .proposal-error { margin-top: 7px; padding: 7px 8px; border-left: 2px solid var(--red); border-radius: 6px; background: rgba(255,122,147,.08); color: var(--red); font-size: 10px; line-height: 1.5; }
     .annotation-target { color: var(--accent); font-size: 9px; }
     .activity-list { flex: 0 0 190px; max-height: 190px; }
@@ -3380,14 +3385,14 @@ function renderProposals(proposals) {
       ${changes.length ? `<div class="proposal-files">${changes.map((change) => `<code title="${escapeHtml(change.path)}">${escapeHtml(change.kind)} · ${escapeHtml(change.path)}</code>`).join('')}</div>` : ''}
       ${isPending ? '<ul class="proposal-checklist"><li><strong>批准前检查</strong></li><li>展开并阅读完整逐行 diff</li><li>核对影响摘要与全部变更路径</li><li>批准后将一次性确认号发给 AI</li></ul>' : ''}
       <details class="proposal-diff" data-diff="${escapeHtml(proposal.id)}">
-        <summary><span>查看完整逐行差异</span><span data-diff-state>只读</span></summary>
+        <summary><span>查看完整逐行差异</span><span data-diff-state>待展开 · 只读</span></summary>
         <pre>加载中…</pre>
       </details>
       ${isPending
         ? `<div class="proposal-actions">
-             <button class="approve" data-approve="${escapeHtml(proposal.id)}">✓ 批准并签发确认号</button>
+             <button class="approve awaiting-diff" data-approve="${escapeHtml(proposal.id)}" title="建议先展开并阅读完整逐行 diff">⌕ 先审阅 diff，再批准</button>
              <button class="reject" data-reject="${escapeHtml(proposal.id)}">拒绝提案</button>
-           </div>`
+           </div><div class="proposal-safety"><strong>人工确认边界</strong> · 批准只签发一次性确认号；仍需人把它交给 AI 调用 <code>apply_visual_proposal</code>，面板不会自动写项目文件。</div>`
         : ''}
       ${proposal.error ? `<p class="proposal-error">${escapeHtml(proposal.error)}</p>` : ''}
     </article>`;
@@ -3403,6 +3408,9 @@ function renderProposals(proposals) {
   for (const details of $('#proposalList').querySelectorAll('[data-diff]')) {
     details.addEventListener('toggle', async () => {
       if (!details.open || details.dataset.loaded) return;
+      const state = details.querySelector('[data-diff-state]');
+      details.classList.add('is-loading');
+      state.textContent = '加载中…';
       try {
         const data = await collabFetch(`/api/collab/proposals/${encodeURIComponent(details.dataset.diff)}/diff`);
         details.querySelector('pre').innerHTML = data.diffs.map((diff) => [
@@ -3410,12 +3418,20 @@ function renderProposals(proposals) {
           ...diff.lines.map((line) => `<span class="diff-line ${line.type}">${line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' '} ${escapeHtml(line.text)}</span>`),
           diff.truncated ? '<span class="diff-line context">… diff truncated …</span>' : '',
         ].join('\n')).join('\n\n') || '暂无差异';
+        details.classList.remove('is-loading');
         details.classList.add('loaded');
-        details.querySelector('[data-diff-state]').textContent = '✓ 已加载';
+        state.textContent = '✓ 已加载 · 请逐行阅读';
         details.dataset.loaded = 'true';
+        const approve = $('#proposalList').querySelector(`[data-approve="${CSS.escape(details.dataset.diff)}"]`);
+        if (approve) {
+          approve.classList.remove('awaiting-diff');
+          approve.textContent = '✓ 批准并签发确认号';
+          approve.title = '人工批准后签发一次性确认号；仍需交给 AI 调用 apply_visual_proposal';
+        }
       } catch (error) {
+        details.classList.remove('is-loading');
         details.classList.add('is-error');
-        details.querySelector('[data-diff-state]').textContent = '加载失败';
+        state.textContent = '加载失败 · 可重新展开';
         details.querySelector('pre').textContent = `差异加载失败：${error.message}`;
       }
     });

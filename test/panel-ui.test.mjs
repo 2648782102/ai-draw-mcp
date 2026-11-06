@@ -314,9 +314,11 @@ describe("collaboration panel UI", () => {
           impact: card.querySelector("[data-impact]").textContent,
           diffSummary: card.querySelector(".proposal-diff summary").textContent,
           approveLabel: approve.textContent.trim(),
+          approveAwaiting: approve.classList.contains("awaiting-diff"),
           approveWeight: getComputedStyle(approve).fontWeight,
           rejectWeight: getComputedStyle(card.querySelector("[data-reject]")).fontWeight,
           rejectLabel: card.querySelector("[data-reject]").textContent.trim(),
+          safety: card.querySelector(".proposal-safety").textContent,
         };
       });
       expect(proposalCard.title).toContain("把 README 改成中文");
@@ -332,14 +334,18 @@ describe("collaboration panel UI", () => {
       expect(proposalCard.impact).toContain("安全路径");
       expect(proposalCard.impact).toContain("内容大小");
       expect(proposalCard.diffSummary).toContain("查看完整逐行差异");
-      expect(proposalCard.diffSummary).toContain("只读");
-      expect(proposalCard.approveLabel).toContain("批准并签发确认号");
+      expect(proposalCard.diffSummary).toContain("待展开 · 只读");
+      expect(proposalCard.approveLabel).toContain("先审阅 diff");
+      expect(proposalCard.approveAwaiting).toBe(true);
+      expect(proposalCard.safety).toContain("apply_visual_proposal");
+      expect(proposalCard.safety).toContain("面板不会自动写项目文件");
       expect(Number(proposalCard.approveWeight)).toBeGreaterThan(Number(proposalCard.rejectWeight));
       expect(proposalCard.rejectLabel).toContain("拒绝提案");
       await page.$eval(".proposal-diff", (element) => { element.open = true; });
       await page.waitForFunction(() => document.querySelector(".proposal-diff.loaded"));
       expect(await page.$eval(".proposal-diff.loaded pre", (element) => element.textContent)).toContain("演示项目");
-      expect(await page.$eval(".proposal-diff.loaded summary", (element) => element.textContent)).toContain("✓");
+      expect(await page.$eval(".proposal-diff.loaded summary", (element) => element.textContent)).toContain("✓ 已加载 · 请逐行阅读");
+      expect(await page.$eval(".proposal-card.status-pending [data-approve]", (element) => ({ label: element.textContent.trim(), awaiting: element.classList.contains("awaiting-diff") }))).toEqual({ label: "✓ 批准并签发确认号", awaiting: false });
       expect(await page.$eval("#collabHealth", (element) => element.className)).toContain("health-card");
       expect(await page.$eval("#healthProgressLabel", (element) => element.textContent)).toMatch(/\/ 4 步/);
       expect(await page.$eval(".graph-guide", (element) => element.textContent)).toContain("先生成一张项目结构图");

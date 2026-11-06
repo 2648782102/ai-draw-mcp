@@ -133,6 +133,17 @@ try {
   await page.waitForSelector("#overviewRevision");
   await page.waitForSelector(".proposal-card.status-pending .impact-grid");
   await page.waitForSelector("#chatLog .chat-item.ai");
+  await page.evaluate(() => {
+    const diff = document.querySelector(".proposal-card.status-pending .proposal-diff");
+    diff.open = true;
+  });
+  await page.waitForSelector(".proposal-card.status-pending .proposal-diff.loaded");
+  await page.evaluate(() => {
+    const card = document.querySelector(".proposal-card.status-pending");
+    card.querySelector(".proposal-diff").scrollIntoView({ block: "center" });
+    const pane = document.querySelector("#collabSectionProposals .section-scroll");
+    if (pane) pane.scrollTop = Math.max(0, pane.scrollHeight - pane.clientHeight);
+  });
   await page.waitForFunction(() => {
     const shell = document.querySelector("#collabShell");
     return Number(getComputedStyle(shell).opacity) >= 0.99;
