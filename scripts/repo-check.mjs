@@ -767,6 +767,11 @@ check(governance.includes("42133746976"), "GOVERNANCE.md is missing the 45e8280 
 check(governance.includes("42133747183"), "GOVERNANCE.md is missing the 45e8280 metadata drift evidence");
 check(governance.includes("29 advisories"), "GOVERNANCE.md is missing the 08:03 dependency audit evidence");
 check(governance.includes("42133986305"), "GOVERNANCE.md is missing the 355b8a7 CI evidence");
+check(governance.includes("42135660499"), "GOVERNANCE.md is missing the 132f90e CI evidence");
+check(governance.includes("127623011373"), "GOVERNANCE.md is missing the #82 Node 20 CI job evidence");
+check(governance.includes("127623011843"), "GOVERNANCE.md is missing the #82 Node 22 CI job evidence");
+check(governance.includes("127623011712"), "GOVERNANCE.md is missing the #82 Node 24 CI job evidence");
+check(governance.includes("A browser control check timed out twice"), "GOVERNANCE.md is missing the browser control timeout evidence");
 check(governance.includes("127617347972"), "GOVERNANCE.md is missing the Node 20 CI job evidence");
 check(governance.includes("127617347701"), "GOVERNANCE.md is missing the Node 22 CI job evidence");
 check(governance.includes("127617347854"), "GOVERNANCE.md is missing the Node 24 CI job evidence");
@@ -779,6 +784,12 @@ check(readme.includes("docs/GOAL_MODE.md"), "README.md does not link the goal-mo
 check(englishQuickstart.includes("docs/GOAL_MODE.md"), "README.en.md does not link the goal-mode contract");
 check(documentationMap.includes("GOAL_MODE.md"), "docs/README.md does not link the goal-mode contract");
 check(changelog.includes("docs/GOAL_MODE.md"), "CHANGELOG.md is missing the goal-mode contract evidence");
+check(changelog.includes("42135660499"), "CHANGELOG.md is missing the #82 CI evidence");
+check(launchKit.includes("发布后维护更新（不改写 0.3.4 Release notes）"), "LAUNCH_KIT.md is missing the post-release maintenance copy");
+check(launchKit.includes("42135660499"), "LAUNCH_KIT.md is missing the #82 CI evidence");
+check(launchKit.includes("GOAL_MODE.md"), "LAUNCH_KIT.md does not reference the goal-mode contract");
+check(research.includes("目标模式与维护证据的产品调研"), "COMPETITIVE_RESEARCH.md is missing the goal-mode maintenance research");
+check(research.includes("132f90e"), "COMPETITIVE_RESEARCH.md is missing the post-release maintenance commit evidence");
 check(dependencyMaintenance.includes("08:03 CST audit snapshot"), "DEPENDENCY_MAINTENANCE.md is missing the audit snapshot");
 check(dependencyMaintenance.includes("not applied"), "DEPENDENCY_MAINTENANCE.md does not record the no-auto-upgrade decision");
 check(releaseWorkflow.includes("Human ↔ AI visual collaboration"), "release workflow is missing the published Release title");
