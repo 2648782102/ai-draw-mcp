@@ -21,6 +21,10 @@ A first wave of seven Dependabot PRs was opened against `27343a8`. Their CI fail
 
 The first wave also reported that the repository did not have the `dependencies` and `ci` labels configured in `dependabot.yml`. Those label references were removed on `master`: Dependabot can open and update PRs using repository defaults, and maintainers can triage with existing issue labels or add new labels deliberately. This avoids bot comments on every dependency PR while preserving reproducible upgrade review.
 
+## 2026-11-06 08:03 CST audit snapshot
+
+At `45e8280` / version 0.3.4, `npm audit --omit=dev --json` reported 29 advisories: 1 critical, 20 high, 6 moderate, and 2 low. The critical item is `proxy-addr` (IPv4-mapped IPv6 trust-subnet spoofing); high-severity clusters include Mermaid/Puppeteer tooling, MCP TypeScript SDK, `body-parser`/`qs`/`ws`, DOMPurify/PostCSS/source-map parsing, and `sharp` libvips/libheif. `npm audit fix --dry-run --omit=dev` proposes broad transitive and major-version movement, including Mermaid CLI, MCP SDK, Puppeteer, Zod, sharp, and renderer dependencies; it was therefore **not applied** to `master`. This snapshot is informational: each open Dependabot PR must still be rebased onto the latest release line and pass `npm ci`, the full matrix CI, `npm run check`, and `node examples/collab-demo.mjs` before any merge. No lockfile was edited and no existing tag or Release was retagged.
+
 ## Decision rules
 
 - Merge patch/minor upgrades only after the push CI is green on every supported Node version.

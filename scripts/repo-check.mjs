@@ -761,6 +761,11 @@ check(launchKit.includes("Verified outcome for `v0.3.4`"), "LAUNCH_KIT.md is mis
 check(launchKit.includes("Published release notes — 0.3.4"), "LAUNCH_KIT.md does not mark 0.3.4 release notes as published");
 check(launchKit.includes("releases/tag/v0.3.4"), "LAUNCH_KIT.md is missing the published 0.3.4 Release URL");
 check(launchKit.includes("42131352599"), "LAUNCH_KIT.md is missing the 0.3.4 Release run evidence");
+check(governance.includes("42133746976"), "GOVERNANCE.md is missing the 45e8280 CI evidence");
+check(governance.includes("42133747183"), "GOVERNANCE.md is missing the 45e8280 metadata drift evidence");
+check(governance.includes("29 advisories"), "GOVERNANCE.md is missing the 08:03 dependency audit evidence");
+check(dependencyMaintenance.includes("08:03 CST audit snapshot"), "DEPENDENCY_MAINTENANCE.md is missing the audit snapshot");
+check(dependencyMaintenance.includes("not applied"), "DEPENDENCY_MAINTENANCE.md does not record the no-auto-upgrade decision");
 check(releaseWorkflow.includes("Human ↔ AI visual collaboration"), "release workflow is missing the published Release title");
 check(agents.includes("release.yml"), "AGENTS.md does not document the versioned tag Release workflow");
 check(getCapabilitiesTool.includes("SERVER_VERSION, type ToolContext"), "get-capabilities.ts bypasses the shared infra boundary");
