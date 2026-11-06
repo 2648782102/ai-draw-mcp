@@ -271,6 +271,7 @@
     .diagnostics-list .signal { margin: 0 0 4px; color: var(--text-muted); word-break: break-word; }
     .diagnostics-list .signal.action { color: var(--orange); }
     .diagnostics-list .signal.warning { color: #f0a868; }
+    .diagnostics-list .signal.stale { margin-bottom: 6px; padding: 4px 6px; border-left: 2px solid #f0a868; border-radius: 3px; background: rgba(240, 168, 104, 0.10); color: #f0a868; font-weight: 600; }
     .diagnostics-list .next-action { margin: 0 0 3px; color: var(--text); word-break: break-word; }
     .diagnostics-list .next-action::before { content: '→ '; color: var(--accent); }
     .graph-diff-list { flex: 0 0 150px; max-height: 150px; overflow-y: auto; margin-bottom: 6px; }
@@ -1407,7 +1408,8 @@ function renderSelectionWorkorder(workorder) {
     ? workorder.gaps.slice(0, 3).map((gap) => `<p class="signal">缺口 · ${escapeHtml(gap)}</p>`).join('')
     : '<p class="signal">暂无明确缺口；仍需读取完整会话并人工确认变更内容。</p>';
   const nextHtml = `<p class="next-action">${escapeHtml(workorder.safety?.excludesProjectChangeContent ? '工作单不含候选文件内容或逐行 diff；继续前须 preflight_visual_proposal、人工审阅与一次性确认号。' : '安全标记缺失，请勿继续。')}</p>`;
-  const freshnessHtml = `<p class="signal">${escapeHtml(workorder.freshness?.hint || '选择新鲜度未知；请刷新面板并让人确认当前范围。')}</p>`;
+  const freshnessClass = workorder.freshness?.selectionStale ? 'signal stale' : 'signal';
+  const freshnessHtml = `<p class="${freshnessClass}">${escapeHtml(workorder.freshness?.hint || '选择新鲜度未知；请刷新面板并让人确认当前范围。')}</p>`;
   list.innerHTML = `${freshnessHtml}${pathsHtml}${gapsHtml}${nextHtml}`;
 }
 

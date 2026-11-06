@@ -662,6 +662,7 @@ for (const [label, file, needle] of [
   ["workorder freshness guidance", selectionWorkorderDomain, "freshness is descriptive only"],
   ["workorder freshness tool text", getSelectionWorkorderTool, "Selection freshness"],
   ["workorder freshness panel", panel, "workorder.freshness?.status"],
+  ["workorder stale panel emphasis", panel, "signal stale"],
   ["workorder freshness pure test", selectionWorkorderTest, "status: \"stale\""],
   ["workorder freshness MCP test", mcpTest, "Selection freshness none"],
   ["workorder freshness HTTP test", collaborationTest, "selectionStale: false"],

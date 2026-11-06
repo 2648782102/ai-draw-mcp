@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Maintenance
 
+- 面板把 stale 选择新鲜度提示改为高对比警示行，让人类在重新扫描后一眼看到「旧选择不是当前授权」；只改 CSS/渲染类名，不改协议、写入边界或工作单字段，并由离线守卫覆盖。
 - 记录 `132f90e` 的 CI `42135660499` / #82 在 Node 20/22/24 全绿；新增发布后维护期宣发说明与目标模式/维护证据调研，不改变 `v0.3.4` 已发布 Release 文案，也不移动标签或自动发布 npm 包。浏览器 UI 检查连续超时，因此未通过未验证的网页会话改写仓库元数据；漂移继续由版本化 workflow 收敛。
 - 记录 `355b8a7` 的 CI `42133986305` / #81 在 Node 20/22/24 全绿及三个 job ID；新增 `docs/GOAL_MODE.md`，回答「如何给目标模式设任务、需要提供什么」并给出可复用中文模板，README、英文 quickstart、文档地图与治理入口同步链接。GitHub About/topics 漂移与本机缺少管理型 API 凭据的事实继续明确记录，不改写 `v0.3.4` 或更早 Release。
 - 回写 `v0.3.4` 的公开发布证据：CI `42131331089`、Release `42131352599`、GitHub Release 页面与发布时间；保留 `v0.3.2` / `v0.3.3` / `v0.3.4` 已发布事实，不改写标签或 Release。About/topics 漂移仍明确记录，npm 发布仍等待人工批准。
