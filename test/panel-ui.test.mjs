@@ -356,6 +356,10 @@ describe("collaboration panel UI", () => {
         proposalState: document.querySelector('[data-journey="proposals"]').dataset.state,
         reviewState: document.querySelector('[data-journey="review"]').dataset.state,
         reviewHint: document.querySelector('[data-journey-hint="review"]').textContent,
+        progressLabel: document.querySelector("#collabJourney").dataset.progressLabel,
+        progressContent: getComputedStyle(document.querySelector("#collabJourney"), "::before").content,
+        ctaCount: document.querySelectorAll(".journey-cta").length,
+        activeCtaOpacity: getComputedStyle(document.querySelector(".journey-step.active .journey-cta")).opacity,
         progress: document.querySelector("#collabJourney").style.getPropertyValue("--journey-progress"),
         progressState: document.querySelector("#collabJourney").dataset.journeyProgress,
       }));
@@ -363,6 +367,10 @@ describe("collaboration panel UI", () => {
       expect(journey.proposalState).toBe("busy");
       expect(journey.reviewState).toBe("busy");
       expect(journey.reviewHint).toContain("批准前先看完整 diff");
+      expect(journey.progressLabel).toMatch(/\d \/ 4 READY · \d+%/);
+      expect(journey.progressContent).toContain("READY");
+      expect(journey.ctaCount).toBe(4);
+      expect(Number(journey.activeCtaOpacity)).toBeGreaterThan(0.9);
       expect(Number.parseInt(journey.progress, 10)).toBeGreaterThan(0);
       expect(["active", "blocked"]).toContain(journey.progressState);
       await page.click('[data-journey="proposals"]');

@@ -765,6 +765,8 @@ for (const [label, file, needle] of [
   ["canvas handoff browser regression", panelUiTest, "btnHandoffOpen"],
   ["canvas handoff changelog", changelog, "交接航线"],
   ["collaboration journey progress rail", panel, "--journey-progress"],
+  ["collaboration journey progress label", panel, "data-progress-label"],
+  ["collaboration journey navigation CTA", panel, "journey-cta"],
   ["collaboration journey progress regression", panelUiTest, "progressState"],
   ["collaboration journey progress changelog", changelog, "连续进度轨道"],
   ["canvas thread badges", panel, "canvasThreadLayer"],

@@ -676,6 +676,11 @@
       background: linear-gradient(90deg, var(--accent3) 0 var(--journey-progress), var(--border) var(--journey-progress) 100%);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
     }
+    .collab-journey::before {
+      content: attr(data-progress-label); grid-column: 1 / -1; justify-self: end;
+      margin: 0 4px 1px; color: var(--text-muted); font-size: 8px; font-weight: 800;
+      letter-spacing: .08em; text-transform: uppercase; font-variant-numeric: tabular-nums;
+    }
     .collab-journey[data-journey-progress="blocked"]::after { background: linear-gradient(90deg, var(--orange) 0 var(--journey-progress), var(--border) var(--journey-progress) 100%); }
     .journey-step[data-state="ready"] { border-color: rgba(158,206,106,.48); }
     .journey-step[data-state="busy"] { border-color: rgba(240,168,104,.52); }
@@ -692,13 +697,22 @@
       content: ''; position: absolute; left: -8px; top: 50%; width: 8px; height: 1px;
       background: linear-gradient(90deg, transparent, rgba(122,162,247,.55)); pointer-events: none;
     }
-    .journey-step:hover { transform: translateY(-1px); border-color: rgba(122,162,247,.55); }
+    .journey-step:hover { transform: translateY(-1px); border-color: rgba(122,162,247,.55); box-shadow: 0 8px 18px rgba(0,0,0,.18); }
+    .journey-step[data-state="ready"] { background: linear-gradient(135deg, rgba(158,206,106,.09), rgba(24,36,58,.72)); }
+    .journey-step[data-state="busy"] { background: linear-gradient(135deg, rgba(240,168,104,.10), rgba(24,36,58,.72)); }
+    .journey-step[data-state="blocked"] { border-color: rgba(255,122,147,.55); }
     .journey-step.active {
       color: var(--text); border-color: rgba(122,162,247,.72);
       background: linear-gradient(135deg, rgba(122,162,247,.22), rgba(187,154,247,.12) 70%, rgba(61,219,217,.08));
       box-shadow: inset 0 2px 0 var(--accent), 0 8px 20px rgba(0,0,0,.16);
     }
     .journey-step:focus-visible { outline-offset: 3px; }
+    .journey-step .journey-cta {
+      display: block; margin-top: 2px; color: var(--accent3); font-size: 8px; font-weight: 800;
+      letter-spacing: .04em; opacity: 0; transform: translateY(-2px); transition: opacity .16s ease, transform .16s ease;
+    }
+    .journey-step:hover .journey-cta, .journey-step.active .journey-cta, .journey-step:focus-visible .journey-cta { opacity: 1; transform: none; }
+    body.visual-atlas .journey-step .journey-cta { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .journey-icon {
       display: grid; place-items: center; width: 26px; height: 26px; flex-shrink: 0;
       border: 1px solid var(--border); border-radius: 9px; background: rgba(9,14,25,.48);
@@ -2032,22 +2046,22 @@
   <nav class="collab-journey" id="collabJourney" aria-label="双向协作流程">
     <button class="journey-step active" type="button" data-journey="graph" data-journey-tab="graph" data-state="idle" aria-current="step" title="让 AI 扫描项目，获得可编辑的结构图">
       <span class="journey-icon" aria-hidden="true">◇</span>
-      <span class="journey-copy"><strong>1 · 看见结构</strong><span data-journey-hint="graph">扫描项目 · 生成结构图</span></span>
+      <span class="journey-copy"><strong>1 · 看见结构</strong><span data-journey-hint="graph">扫描项目 · 生成结构图</span><span class="journey-cta">进入项目图 →</span></span>
       <span class="journey-state" data-journey-state="graph">○</span>
     </button>
     <button class="journey-step" type="button" data-journey="dialog" data-journey-tab="dialog" data-state="idle" title="修改节点、批注并告诉 AI 你的意图">
       <span class="journey-icon" aria-hidden="true">↔</span>
-      <span class="journey-copy"><strong>2 · 表达意图</strong><span data-journey-hint="dialog">编辑图形 · 双向对话</span></span>
+      <span class="journey-copy"><strong>2 · 表达意图</strong><span data-journey-hint="dialog">编辑图形 · 双向对话</span><span class="journey-cta">打开双向对话 →</span></span>
       <span class="journey-state" data-journey-state="dialog">○</span>
     </button>
     <button class="journey-step" type="button" data-journey="proposals" data-journey-tab="proposals" data-state="idle" title="查看 AI 生成的逐行差异与影响摘要">
       <span class="journey-icon" aria-hidden="true">✓</span>
-      <span class="journey-copy"><strong>3 · 审阅变更</strong><span data-journey-hint="proposals">逐行 diff · 影响摘要</span><span class="journey-badge" id="journeyProposalCount" hidden>0</span></span>
+      <span class="journey-copy"><strong>3 · 审阅变更</strong><span data-journey-hint="proposals">逐行 diff · 影响摘要</span><span class="journey-badge" id="journeyProposalCount" hidden>0</span><span class="journey-cta">查看逐行 diff →</span></span>
       <span class="journey-state" data-journey-state="proposals">○</span>
     </button>
     <button class="journey-step" type="button" data-journey="review" data-journey-tab="proposals" data-state="idle" title="人工批准只签发一次性确认号，仍需 AI 调用 apply_visual_proposal">
       <span class="journey-icon" aria-hidden="true">⚿</span>
-      <span class="journey-copy"><strong>4 · 人工确认</strong><span data-journey-hint="review">确认号 · 安全写入</span></span>
+      <span class="journey-copy"><strong>4 · 人工确认</strong><span data-journey-hint="review">确认号 · 安全写入</span><span class="journey-cta">核对写入闸门 →</span></span>
       <span class="journey-state" data-journey-state="review">○</span>
     </button>
   </nav>
@@ -4067,6 +4081,7 @@ function renderJourney() {
   }
   journey.style.setProperty('--journey-progress', `${journeyProgress}%`);
   journey.dataset.journeyProgress = reviewStatus === 'blocked' ? 'blocked' : 'active';
+  journey.dataset.progressLabel = `${completedStates} / ${orderedStates.length} READY · ${journeyProgress}%`;
   journey.title = `协作进度 ${journeyProgress}% · ${completedStates} / ${orderedStates.length} 步已完成；批准前仍保持只读`;
   const badge = $('#journeyProposalCount');
   if (badge) {
