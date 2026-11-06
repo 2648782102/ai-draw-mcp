@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Maintenance
 
+- 记录 `e753aed` / `c02d048` / `09fd7b7` 的 CI #83 `42136060410`、#84 `42136310033`、#85 `42136720779` 在 Node 20/22/24 全绿，以及 metadata workflow #12 `42136060175` 的只读漂移检查证据；同步补充中英文 30 秒 stale 工作单 FAQ 与面板高对比警示行，但不改协议、写入边界或 `v0.3.4` 已发布 Release 文案。仓库 About/topics 仍为 `description: null` / `homepage: null` / `topics: []`，workflow 的 apply 步骤因缺少管理型 `GH_TOKEN` 被跳过；npm 发布、依赖重大升级和不可逆品牌决定仍等待人工批准。
 - 面板把 stale 选择新鲜度提示改为高对比警示行，让人类在重新扫描后一眼看到「旧选择不是当前授权」；只改 CSS/渲染类名，不改协议、写入边界或工作单字段，并由离线守卫覆盖。
 - 记录 `132f90e` 的 CI `42135660499` / #82 在 Node 20/22/24 全绿；新增发布后维护期宣发说明与目标模式/维护证据调研，不改变 `v0.3.4` 已发布 Release 文案，也不移动标签或自动发布 npm 包。浏览器 UI 检查连续超时，因此未通过未验证的网页会话改写仓库元数据；漂移继续由版本化 workflow 收敛。
 - 记录 `355b8a7` 的 CI `42133986305` / #81 在 Node 20/22/24 全绿及三个 job ID；新增 `docs/GOAL_MODE.md`，回答「如何给目标模式设任务、需要提供什么」并给出可复用中文模板，README、英文 quickstart、文档地图与治理入口同步链接。GitHub About/topics 漂移与本机缺少管理型 API 凭据的事实继续明确记录，不改写 `v0.3.4` 或更早 Release。
