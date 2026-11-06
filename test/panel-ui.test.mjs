@@ -137,6 +137,11 @@ describe("collaboration panel UI", () => {
       await page.waitForFunction(() => Number(document.querySelector("#collabPulseCount").textContent) > 0);
       expect(await page.$eval("#btnCollabPulse", (element) => getComputedStyle(element).display)).toBe("flex");
       expect(await page.$eval("#collabPulseHint", (element) => element.textContent)).toContain("提案待审");
+      await page.click("#btnCollabPulse");
+      expect(await page.$eval("#collabPulseDetail", (element) => element.classList.contains("open"))).toBe(true);
+      expect(Number(await page.$eval("#collabPulseProposals", (element) => element.textContent))).toBeGreaterThan(0);
+      await page.keyboard.press("Escape");
+      expect(await page.$eval("#collabPulseDetail", (element) => element.classList.contains("open"))).toBe(false);
       await page.mouse.move(880, 420);
       expect(await page.$eval("body", (element) => element.dataset.pointer)).toBe("active");
       expect(await page.$eval("body", (element) => getComputedStyle(element).getPropertyValue("--pointer-x").trim())).toMatch(/px$/);

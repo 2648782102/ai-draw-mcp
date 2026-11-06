@@ -771,6 +771,30 @@
     body.zen-workspace .collab-pulse { top: 12px; left: 12px; }
     @media (max-width: 860px) { .collab-pulse { min-width: 0; width: 172px; } }
     @media (max-width: 620px) { .workspace:not(.welcome) .collab-pulse { display: none; } }
+    .collab-pulse-detail {
+      position: absolute; left: 14px; top: 60px; z-index: 24; display: none; width: 258px;
+      padding: 10px; border: 1px solid rgba(61,219,217,.40); border-radius: 13px;
+      background: linear-gradient(145deg, rgba(12,23,40,.97), rgba(9,14,25,.97));
+      box-shadow: 0 20px 44px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
+      backdrop-filter: blur(16px); color: var(--text);
+    }
+    .collab-pulse-detail.open { display: block; animation: pulse-detail-in .18s ease-out both; }
+    @keyframes pulse-detail-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+    .collab-pulse-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .collab-pulse-detail-head strong { font-size: 10px; }
+    .collab-pulse-detail-head span { color: var(--accent3); font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .collab-pulse-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-bottom: 8px; }
+    .collab-pulse-metric { padding: 6px 5px; border: 1px solid var(--border); border-radius: 8px; background: rgba(122,162,247,.05); text-align: center; }
+    .collab-pulse-metric strong { display: block; color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .collab-pulse-metric span { color: var(--text-muted); font-size: 8px; }
+    .collab-pulse-next { padding: 7px 8px; border: 1px solid rgba(240,168,104,.32); border-radius: 8px; background: rgba(240,168,104,.07); color: var(--text-muted); font-size: 9px; line-height: 1.5; }
+    .collab-pulse-next strong { display: block; margin-bottom: 2px; color: var(--orange); font-size: 9px; }
+    .collab-pulse-open { width: 100%; height: 29px; margin-top: 8px; border: 1px solid rgba(61,219,217,.44); border-radius: 8px; background: rgba(61,219,217,.12); color: var(--accent3); font-size: 10px; font-weight: 800; cursor: pointer; }
+    .collab-pulse-open:hover { background: rgba(61,219,217,.20); }
+    .collab-pulse-detail-foot { margin-top: 7px; color: var(--text-muted); font-size: 8px; line-height: 1.45; }
+    body.visual-studio .collab-pulse-detail, body.theme-light .collab-pulse-detail { background: rgba(255,255,255,.97); border-color: rgba(80,110,165,.34); box-shadow: 0 14px 32px rgba(38,54,84,.16); }
+    body.zen-workspace .collab-pulse-detail { left: 12px; top: 58px; }
+    @media (max-width: 620px) { .collab-pulse-detail { display: none !important; } }
     .canvas-object-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
     .canvas-object-kicker { color: var(--accent); font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
     .canvas-object-index { color: var(--text-muted); font-size: 9px; font-variant-numeric: tabular-nums; }
@@ -1612,11 +1636,22 @@
             <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
           </div>
           <div class="canvas-chip">滚轮缩放 · 拖拽平移 · 单击节点聚焦 · 双击重置 · F 适应窗口</div>
-          <button type="button" class="collab-pulse" id="btnCollabPulse" data-state="ready" title="打开双向协作工作台（C）" aria-label="打开双向协作工作台">
+          <button type="button" class="collab-pulse" id="btnCollabPulse" data-state="ready" aria-expanded="false" aria-controls="collabPulseDetail" title="展开只读协作速览；再次点击按钮可收起" aria-label="展开只读协作速览">
             <span class="collab-pulse-orbit" aria-hidden="true"></span>
             <span class="collab-pulse-copy"><strong>人机协作脉搏</strong><span id="collabPulseHint">点击打开共享上下文 · C</span></span>
             <span class="collab-pulse-count" id="collabPulseCount">0</span>
           </button>
+          <section class="collab-pulse-detail" id="collabPulseDetail" aria-label="只读协作速览">
+            <div class="collab-pulse-detail-head"><strong>协作速览</strong><span>Read only</span></div>
+            <div class="collab-pulse-metrics">
+              <div class="collab-pulse-metric"><strong id="collabPulseMessages">0</strong><span>待 AI 消息</span></div>
+              <div class="collab-pulse-metric"><strong id="collabPulseProposals">0</strong><span>待审提案</span></div>
+              <div class="collab-pulse-metric"><strong id="collabPulseAnnotations">0</strong><span>开放批注</span></div>
+            </div>
+            <div class="collab-pulse-next"><strong>下一步</strong><span id="collabPulseNext">读取共享上下文，等待人工审阅。</span></div>
+            <button type="button" class="collab-pulse-open" id="btnCollabPulseOpen">↔ 打开完整协作工作台 · C</button>
+            <div class="collab-pulse-detail-foot">这里只汇总既有只读状态；批准前不会签发凭据或写项目文件。</div>
+          </section>
           <aside class="canvas-object-card" id="canvasObjectCard" aria-label="当前画布对象">
             <div class="canvas-object-head"><span class="canvas-object-kicker">Focus · read only</span><span class="canvas-object-index" id="canvasObjectIndex">0 / 0</span></div>
             <strong id="canvasObjectLabel">等待项目结构图</strong>
@@ -2310,10 +2345,11 @@ function fitView() {
 const previewWrap = $('#previewWrap');
 const panOverlay  = $('#panOverlay');
 
-if (window.matchMedia('(pointer: fine)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   let pointerFrame = 0;
   previewWrap.addEventListener('pointermove', (event) => {
     if (!document.body.classList.contains('visual-aurora')) return;
+    if (event.pointerType === 'touch') return;
     const rect = previewWrap.getBoundingClientRect();
     const x = `${Math.round(event.clientX - rect.left)}px`;
     const y = `${Math.round(event.clientY - rect.top)}px`;
@@ -2399,7 +2435,14 @@ $('#btnCanvasZoomIn').addEventListener('click', () => $('#btnZoomIn').click());
 $('#btnCanvasZoomOut').addEventListener('click', () => $('#btnZoomOut').click());
 $('#btnCanvasZoomFit').addEventListener('click', () => fitView());
 $('#btnCanvasCollab').addEventListener('click', () => openCollab());
-$('#btnCollabPulse').addEventListener('click', () => openCollab());
+$('#btnCollabPulse').addEventListener('click', () => {
+  const detail = $('#collabPulseDetail');
+  setCollabPulseDetailOpen(!detail.classList.contains('open'));
+});
+$('#btnCollabPulseOpen').addEventListener('click', () => {
+  setCollabPulseDetailOpen(false);
+  openCollab();
+});
 $('#btnCanvasCommands').addEventListener('click', () => openCommandPalette());
 $('#btnCanvasHelp').addEventListener('click', () => openShortcutDialog());
 $('#btnCanvasPrevNode').addEventListener('click', () => stepCanvasFocus(-1));
@@ -2845,11 +2888,17 @@ appearanceWrap.addEventListener('click', (event) => {
   if (event.target === appearanceButton) setAppearanceOpen(appearancePopover.hidden);
   event.stopPropagation();
 });
+function setCollabPulseDetailOpen(open) {
+  $('#collabPulseDetail').classList.toggle('open', open);
+  $('#btnCollabPulse').setAttribute('aria-expanded', String(open));
+}
 document.addEventListener('click', (event) => {
   if (!appearancePopover.hidden && !appearanceWrap.contains(event.target)) setAppearanceOpen(false);
+  if (!event.target.closest('#btnCollabPulse') && !event.target.closest('#collabPulseDetail')) setCollabPulseDetailOpen(false);
 });
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !appearancePopover.hidden) setAppearanceOpen(false);
+  if (event.key === 'Escape' && $('#collabPulseDetail').classList.contains('open')) setCollabPulseDetailOpen(false);
 });
 syncAppearanceControls();
 
@@ -3362,7 +3411,8 @@ function renderCollabPulse() {
   const review = collabPulseSnapshot?.reviewReadiness?.status || collabReviewReadiness?.status || (pendingProposals ? 'review' : 'ready');
   const focusNodeId = session?.focus?.nodeId || selectedNodeId;
   const focusLabel = graph?.nodes?.find((node) => node.id === focusNodeId)?.label;
-  const nextAction = diagnostics?.nextActions?.[0]?.label || diagnostics?.nextActions?.[0]?.body;
+  const nextActionItem = Array.isArray(diagnostics?.nextActions) ? diagnostics.nextActions[0] : null;
+  const nextAction = typeof nextActionItem === 'string' ? nextActionItem : nextActionItem?.label || nextActionItem?.body;
   const hint = $('#collabPulseHint');
   const count = $('#collabPulseCount');
   pulse.dataset.state = review === 'blocked' ? 'blocked' : review === 'ready' ? 'ready' : 'review';
@@ -3374,6 +3424,11 @@ function renderCollabPulse() {
   }
   if (count) count.textContent = attention > 0 ? String(attention) : collabGraph?.nodes?.length ? '✓' : '0';
   pulse.title = `打开双向协作工作台（C）· ${attention} 项待关注信号；批准前始终只读`;
+  const setMetric = (selector, value) => { const target = $(selector); if (target) target.textContent = String(value); };
+  setMetric('#collabPulseMessages', pendingMessages);
+  setMetric('#collabPulseProposals', pendingProposals);
+  setMetric('#collabPulseAnnotations', openAnnotations);
+  setMetric('#collabPulseNext', nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工决定是否批准。' : '打开工作台，继续编辑结构图或表达意图。'));
   if (!$('#welcomeCard')?.hidden) {
     renderWelcomeJourney({ pendingProposals, attention, hasGraph: Boolean(graph?.nodes?.length) });
   }
