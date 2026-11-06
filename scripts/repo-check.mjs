@@ -757,6 +757,8 @@ check(changelog.includes("42137519829"), "CHANGELOG.md is missing the #86 CI evi
 check(changelog.includes("42137519789"), "CHANGELOG.md is missing the #13 metadata workflow evidence");
 check(changelog.includes("42138738900"), "CHANGELOG.md is missing the #90 CI evidence");
 check(changelog.includes("42138152985"), "CHANGELOG.md is missing the #14 metadata workflow evidence");
+check(changelog.includes("42139816006"), "CHANGELOG.md is missing the #91 CI evidence");
+check(changelog.includes("42139816004"), "CHANGELOG.md is missing the #15 metadata workflow evidence");
 check(changelog.includes("不要沿用旧候选路径起草 changes"), "CHANGELOG.md is missing the actionable stale FAQ evidence");
 check(launchKit.includes("42137519829"), "LAUNCH_KIT.md is missing the #86 CI evidence");
 check(launchKit.includes("42137519789"), "LAUNCH_KIT.md is missing the #13 metadata workflow evidence");
