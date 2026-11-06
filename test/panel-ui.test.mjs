@@ -386,6 +386,10 @@ describe("collaboration panel UI", () => {
       expect(proposalCard.impact).toContain("内容大小");
       expect(proposalCard.diffSummary).toContain("查看完整逐行差异");
       expect(proposalCard.diffSummary).toContain("待展开 · 只读");
+      expect(await page.$eval(".proposal-card.status-pending .proposal-review-rail", (element) => ({
+        steps: [...element.querySelectorAll(".proposal-review-step")].map((step) => step.dataset.reviewState),
+        gate: element.parentElement.querySelector("[data-gate-detail]").textContent,
+      }))).toEqual({ steps: ["active", "done", "idle"], gate: "影响摘要已加载；还需展开并阅读完整逐行 diff。" });
       expect(proposalCard.approveLabel).toContain("先审阅 diff");
       expect(proposalCard.approveAwaiting).toBe(true);
       expect(proposalCard.safety).toContain("apply_visual_proposal");
@@ -394,6 +398,12 @@ describe("collaboration panel UI", () => {
       expect(proposalCard.rejectLabel).toContain("拒绝提案");
       await page.$eval(".proposal-diff", (element) => { element.open = true; });
       await page.waitForFunction(() => document.querySelector(".proposal-diff.loaded"));
+      expect(await page.$eval(".proposal-card.status-pending", (element) => ({
+        ready: element.dataset.reviewReady,
+        progress: element.style.getPropertyValue("--review-progress"),
+        steps: [...element.querySelectorAll(".proposal-review-step")].map((step) => step.dataset.reviewState),
+        gate: element.querySelector("[data-gate-detail]").textContent,
+      }))).toEqual({ ready: "true", progress: "100%", steps: ["done", "done", "active"], gate: "逐行 diff 与影响摘要已核对；批准仍只签发一次性确认号。" });
       expect(await page.$eval(".proposal-diff.loaded pre", (element) => element.textContent)).toContain("演示项目");
       expect(await page.$eval(".proposal-diff.loaded summary", (element) => element.textContent)).toContain("✓ 已加载 · 请逐行阅读");
       expect(await page.$eval(".proposal-card.status-pending [data-approve]", (element) => ({ label: element.textContent.trim(), awaiting: element.classList.contains("awaiting-diff") }))).toEqual({ label: "✓ 批准并签发确认号", awaiting: false });
@@ -502,6 +512,10 @@ describe("collaboration panel UI", () => {
         element.value = "";
         element.dispatchEvent(new Event("input", { bubbles: true }));
       });
+      const proposalNode = await page.$eval(".proposal-card.status-pending [data-approve]", (element) => {
+        window.__proposalApprovalNode = element;
+        return element.textContent;
+      });
       await page.$eval("#messageInput", (element) => {
         element.value = "前端交互回归";
         element.dispatchEvent(new Event("input", { bubbles: true }));
@@ -510,6 +524,8 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#btnSendMessage", (element) => element.classList.contains("has-draft"))).toBe(true);
       expect(await page.$eval(".safety-note", (element) => element.textContent)).toContain("写入闸门");
 
+      expect(await page.evaluate(() => window.__proposalApprovalNode?.isConnected)).toBe(true);
+      expect(proposalNode).toContain("批准");
       page.once("dialog", async (dialog) => dialog.accept());
       await page.click(".proposal-card.status-pending [data-approve]");
       await page.waitForFunction(() => !document.querySelector("#receiptBackdrop").hidden);

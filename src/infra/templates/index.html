@@ -1222,9 +1222,13 @@
     .proposal-list { display: flex; flex-direction: column; gap: 10px; }
     .proposal-card {
       --proposal-accent: var(--accent);
-      position: relative; padding: 12px; border: 1px solid var(--border); border-left: 3px solid var(--proposal-accent);
-      border-radius: 12px; background: linear-gradient(135deg, rgba(122,162,247,.06), transparent 55%), var(--surface2);
-      box-shadow: 0 8px 22px rgba(0,0,0,.16); animation: proposal-in .28s ease both;
+      position: relative; padding: 13px 12px 12px; overflow: hidden; border: 1px solid var(--border); border-left: 3px solid var(--proposal-accent);
+      border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--proposal-accent) 12%, transparent), transparent 46%), var(--surface2);
+      box-shadow: 0 10px 28px rgba(0,0,0,.18); animation: proposal-in .28s ease both;
+    }
+    .proposal-card::before {
+      content: ''; position: absolute; left: -3px; right: 0; top: 0; height: 2px;
+      background: linear-gradient(90deg, var(--proposal-accent), transparent 72%); opacity: .78;
     }
     .proposal-card.status-pending { --proposal-accent: var(--orange); }
     .proposal-card.status-approved { --proposal-accent: var(--green); }
@@ -1235,12 +1239,42 @@
     body.theme-light .proposal-card.status-applied { --proposal-accent: #6742ad; }
     body.theme-light .proposal-card.status-rejected, body.theme-light .proposal-card.status-failed { --proposal-accent: #ab3d52; }
     @keyframes proposal-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-    .proposal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+    .proposal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
     .proposal-head h4 { font-size: 12px; line-height: 1.35; word-break: break-word; }
-    .proposal-badge { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border: 1px solid var(--proposal-accent); border-radius: 999px; background: rgba(9,14,25,.38); color: var(--proposal-accent); font-size: 9px; font-weight: 700; letter-spacing: .02em; }
+    .proposal-badge { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border: 1px solid var(--proposal-accent); border-radius: 999px; background: color-mix(in srgb, var(--proposal-accent) 12%, rgba(9,14,25,.38)); color: var(--proposal-accent); font-size: 9px; font-weight: 800; letter-spacing: .02em; }
     body.theme-light .proposal-badge { background: rgba(255,255,255,.82); }
     .proposal-card > p { font-size: 10px; color: var(--text-muted); line-height: 1.55; margin-bottom: 8px; }
     .proposal-summary { padding-left: 8px; border-left: 2px solid var(--proposal-accent); }
+    .proposal-review-rail {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px;
+      margin: 0 0 8px; padding: 7px 8px; border: 1px solid var(--border); border-radius: 9px;
+      background: color-mix(in srgb, var(--proposal-accent) 7%, var(--panel));
+    }
+    .proposal-review-step { position: relative; display: flex; align-items: center; gap: 5px; min-width: 0; color: var(--text-muted); font-size: 8px; font-weight: 700; white-space: nowrap; }
+    .proposal-review-step + .proposal-review-step::before { content: ''; position: absolute; left: -5px; width: 1px; height: 12px; background: var(--border); }
+    .proposal-review-step .review-marker { display: grid; flex: 0 0 15px; width: 15px; height: 15px; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--surface2); color: var(--text-muted); font-size: 8px; }
+    .proposal-review-step[data-review-state="active"] { color: var(--proposal-accent); }
+    .proposal-review-step[data-review-state="active"] .review-marker { border-color: var(--proposal-accent); background: var(--surface2); color: var(--proposal-accent); box-shadow: 0 0 0 3px rgba(122,162,247,.12); }
+    .proposal-review-step[data-review-state="done"] { color: var(--green); }
+    .proposal-review-step[data-review-state="done"] .review-marker { border-color: var(--green); color: var(--green); }
+    .proposal-review-rail::after {
+      content: ''; grid-column: 1 / -1; height: 3px; border-radius: 999px;
+      background: linear-gradient(90deg, var(--proposal-accent) 0 var(--review-progress, 0%), var(--border) var(--review-progress, 0%) 100%);
+    }
+    .proposal-card[data-review-ready="true"] .proposal-review-rail { border-color: color-mix(in srgb, var(--green) 48%, var(--border)); }
+    .proposal-card[data-review-ready="true"] .proposal-review-rail::after { background: linear-gradient(90deg, var(--green) 0 100%, var(--border) 100%); }
+    body.visual-studio .proposal-review-rail { background: color-mix(in srgb, var(--proposal-accent) 5%, #fff); }
+    .proposal-gate {
+      display: flex; align-items: center; gap: 7px; margin: 0 0 8px; padding: 7px 8px;
+      border: 1px solid color-mix(in srgb, var(--proposal-accent) 38%, var(--border)); border-radius: 9px;
+      background: color-mix(in srgb, var(--proposal-accent) 8%, transparent); color: var(--text-muted);
+      font-size: 9px; line-height: 1.45;
+    }
+    .proposal-gate-icon { display: grid; flex: 0 0 22px; width: 22px; height: 22px; place-items: center; border: 1px solid var(--proposal-accent); border-radius: 7px; background: color-mix(in srgb, var(--proposal-accent) 14%, transparent); color: var(--proposal-accent); font-size: 11px; font-weight: 900; }
+    .proposal-gate strong { display: block; color: var(--text); font-size: 9px; }
+    .proposal-card[data-review-ready="true"] .proposal-gate { border-color: color-mix(in srgb, var(--green) 52%, var(--border)); background: rgba(158,206,106,.08); }
+    .proposal-card[data-review-ready="true"] .proposal-gate-icon { border-color: var(--green); background: rgba(158,206,106,.16); color: var(--green); }
+    .proposal-card.status-pending[data-review-ready="true"] { box-shadow: 0 10px 28px rgba(0,0,0,.18), 0 0 0 1px rgba(158,206,106,.18), 0 0 28px rgba(158,206,106,.08); }
     .proposal-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 7px; }
     .proposal-metric { padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
     .proposal-metric span { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 2px; }
@@ -2528,6 +2562,8 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && collabShell && !collabShell.hidden) {
     e.preventDefault();
     collabShell.hidden = true;
+    collabLoadDeferred = false;
+    window.clearTimeout(collabLoadTimer);
     return;
   }
   if (!typing && (e.key === 'c' || e.key === 'C') && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -2883,6 +2919,7 @@ function setAppearanceOpen(open) {
   appearancePopover.classList.toggle('open', open);
   appearanceButton.setAttribute('aria-expanded', String(open));
   if (open) syncAppearanceControls();
+  else if (collabLoadDeferred) resumeDeferredCollabLoad();
 }
 appearanceWrap.addEventListener('click', (event) => {
   if (event.target === appearanceButton) setAppearanceOpen(appearancePopover.hidden);
@@ -2891,6 +2928,8 @@ appearanceWrap.addEventListener('click', (event) => {
 function setCollabPulseDetailOpen(open) {
   $('#collabPulseDetail').classList.toggle('open', open);
   $('#btnCollabPulse').setAttribute('aria-expanded', String(open));
+  if (open) window.clearTimeout(collabLoadTimer);
+  else if (collabLoadDeferred) resumeDeferredCollabLoad();
 }
 document.addEventListener('click', (event) => {
   if (!appearancePopover.hidden && !appearanceWrap.contains(event.target)) setAppearanceOpen(false);
@@ -3051,13 +3090,14 @@ function openReceiptDialog(receipt) {
 function closeReceiptDialog() {
   const backdrop = $('#receiptBackdrop');
   backdrop.classList.remove('open');
-  window.setTimeout(() => { backdrop.hidden = true; resumeDeferredCollabLoad(); }, 180);
+  window.setTimeout(() => { backdrop.hidden = true; window.setTimeout(resumeDeferredCollabLoad, 1250); }, 180);
   activeReceipt = null;
 }
 
 function openShortcutDialog() {
   const backdrop = $('#shortcutBackdrop');
   backdrop.hidden = false;
+  window.clearTimeout(collabLoadTimer);
   requestAnimationFrame(() => backdrop.classList.add('open'));
   $('#btnCloseShortcuts').focus();
 }
@@ -3065,7 +3105,7 @@ function openShortcutDialog() {
 function closeShortcutDialog() {
   const backdrop = $('#shortcutBackdrop');
   backdrop.classList.remove('open');
-  window.setTimeout(() => { backdrop.hidden = true; }, 180);
+  window.setTimeout(() => { backdrop.hidden = true; resumeDeferredCollabLoad(); }, 180);
 }
 
 const COMMANDS = [
@@ -3100,6 +3140,7 @@ let commandActiveIndex = 0;
 function openCommandPalette() {
   const backdrop = $('#commandBackdrop');
   backdrop.hidden = false;
+  window.clearTimeout(collabLoadTimer);
   requestAnimationFrame(() => backdrop.classList.add('open'));
   $('#commandSearch').value = '';
   renderCommands();
@@ -3108,7 +3149,7 @@ function openCommandPalette() {
 function closeCommandPalette() {
   const backdrop = $('#commandBackdrop');
   backdrop.classList.remove('open');
-  window.setTimeout(() => { backdrop.hidden = true; }, 160);
+  window.setTimeout(() => { backdrop.hidden = true; resumeDeferredCollabLoad(); }, 160);
 }
 function renderCommands() {
   const query = $('#commandSearch').value.trim().toLowerCase();
@@ -3319,7 +3360,7 @@ function connectWs() {
 
       if (['graph_updated', 'chat_message', 'proposal_created', 'proposal_updated', 'session_updated'].includes(msg.type)
           && !$('#collabShell').hidden) {
-        if (collabInteractionDepth > 0 || !$('#receiptBackdrop')?.hidden) collabLoadDeferred = true;
+        if (collabRefreshBlocked()) { collabLoadDeferred = true; window.clearTimeout(collabLoadTimer); }
         else scheduleCollabLoad();
         window.clearTimeout(collabPulseTimer);
       } else if (['graph_updated', 'chat_message', 'proposal_created', 'proposal_updated', 'session_updated'].includes(msg.type)) {
@@ -3363,6 +3404,31 @@ let collabPulseSnapshot = null;
 let collabPulseTimer = null;
 let collabInteractionDepth = 0;
 let collabLoadDeferred = false;
+let collabPointerGuardUntil = 0;
+let collabPointerGuardTimer = null;
+let collabProposalsSignature = '';
+let collabProposalsRendered = false;
+let proposalListEventsBound = false;
+
+function isCollabOverlayOpen() {
+  for (const selector of ['#receiptBackdrop', '#commandBackdrop', '#shortcutBackdrop', '#appearancePopover']) {
+    const element = $(selector);
+    if (element && !element.hidden) return true;
+  }
+  return Boolean($('#collabPulseDetail')?.classList.contains('open'));
+}
+
+function collabRefreshBlocked() {
+  return collabInteractionDepth > 0 || Date.now() < collabPointerGuardUntil || isCollabOverlayOpen();
+}
+
+function protectCollabInteraction() {
+  if ($('#collabShell')?.hidden) return;
+  collabPointerGuardUntil = Date.now() + 450;
+  window.clearTimeout(collabLoadTimer);
+  window.clearTimeout(collabPointerGuardTimer);
+  collabPointerGuardTimer = window.setTimeout(resumeDeferredCollabLoad, 480);
+}
 
 function setCollabSyncState(state, detail = '') {
   const ribbon = $('#workspaceRibbon');
@@ -3472,14 +3538,14 @@ async function loadCollabPulse() {
 function scheduleCollabLoad() {
   window.clearTimeout(collabLoadTimer);
   collabLoadTimer = window.setTimeout(() => {
-    if (collabInteractionDepth > 0 || !$('#receiptBackdrop')?.hidden || !$('#commandBackdrop')?.hidden
-        || !$('#shortcutBackdrop')?.hidden) { collabLoadDeferred = true; return; }
+    if ($('#collabShell').hidden) { schedulePulseLoad(); return; }
+    if (collabRefreshBlocked()) { collabLoadDeferred = true; return; }
     loadCollab();
   }, 90);
 }
 
 function resumeDeferredCollabLoad() {
-  if (collabLoadDeferred && collabInteractionDepth === 0) {
+  if (collabLoadDeferred && !collabRefreshBlocked() && !$('#collabShell').hidden) {
     collabLoadDeferred = false;
     scheduleCollabLoad();
   }
@@ -4603,20 +4669,63 @@ function renderProposals(proposals) {
   const statusIcons = {
     draft: '◌', pending: '◷', approved: '✓', applied: '✓', rejected: '✕', failed: '!',
   };
-  collabProposals = Array.isArray(proposals) ? proposals : [];
-  $('#proposalList').innerHTML = proposals.length ? [...proposals].reverse().map((proposal) => {
+  const nextProposals = Array.isArray(proposals) ? proposals : [];
+  const signature = JSON.stringify(nextProposals.map((proposal) => ({
+    id: proposal.id,
+    title: proposal.title,
+    summary: proposal.summary,
+    status: proposal.status,
+    graphRevision: proposal.graphRevision,
+    contentHash: proposal.contentHash,
+    createdAt: proposal.createdAt,
+    error: proposal.error,
+    changes: Array.isArray(proposal.changes) ? proposal.changes.map((change) => [change.kind, change.path]) : [],
+  })));
+  collabProposals = nextProposals;
+  const list = $('#proposalList');
+  bindProposalListEvents();
+  if (collabProposalsRendered && signature === collabProposalsSignature && list.childElementCount) return;
+  const previousCards = new Map([...list.querySelectorAll('.proposal-card')]
+    .map((card) => [card.dataset.proposalId, card]));
+  collabProposalsSignature = signature;
+  collabProposalsRendered = true;
+  const orderedProposals = [...nextProposals].reverse();
+  const fragments = document.createDocumentFragment();
+  if (!orderedProposals.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.innerHTML = '<span class="empty-state-icon">✓</span><strong>等待人工确认</strong><p>AI 会先通过 get_visual_context 理解你的意图；提案出现后仍需逐行 diff、人工批准与一次性确认号。</p>';
+    fragments.appendChild(empty);
+  }
+  for (const proposal of orderedProposals) {
+    const existing = previousCards.get(proposal.id);
+    if (existing && existing.dataset.proposalSignature === JSON.stringify({
+      id: proposal.id, title: proposal.title, summary: proposal.summary, status: proposal.status,
+      graphRevision: proposal.graphRevision, contentHash: proposal.contentHash, createdAt: proposal.createdAt,
+      error: proposal.error, changes: Array.isArray(proposal.changes) ? proposal.changes.map((change) => [change.kind, change.path]) : [],
+    })) {
+      fragments.appendChild(existing);
+      continue;
+    }
     const status = escapeHtml(proposal.status);
     const changes = Array.isArray(proposal.changes) ? proposal.changes : [];
     const isPending = proposal.status === 'pending';
     const statusLabel = Object.hasOwn(statusLabels, proposal.status) ? statusLabels[proposal.status] : proposal.status;
     const statusIcon = Object.hasOwn(statusIcons, proposal.status) ? statusIcons[proposal.status] : '◇';
-    return `
-    <article class="proposal-card status-${status}" aria-label="${escapeHtml(proposal.title)} · ${escapeHtml(statusLabel)}">
+    const template = document.createElement('template');
+    template.innerHTML = `
+    <article class="proposal-card status-${status}" data-status="${status}" data-proposal-id="${escapeHtml(proposal.id)}" aria-label="${escapeHtml(proposal.title)} · ${escapeHtml(statusLabel)}">
       <div class="proposal-head">
         <h4>${escapeHtml(proposal.title)}</h4>
         <span class="proposal-badge" aria-label="提案状态">${statusIcon} ${escapeHtml(statusLabel)}</span>
       </div>
       <p class="proposal-summary">${escapeHtml(proposal.summary)}</p>
+      ${isPending ? `<div class="proposal-review-rail" aria-label="人工审阅进度">
+        <span class="proposal-review-step" data-review-step="diff" data-review-state="active"><span class="review-marker">1</span>逐行 diff</span>
+        <span class="proposal-review-step" data-review-step="impact" data-review-state="idle"><span class="review-marker">2</span>影响范围</span>
+        <span class="proposal-review-step" data-review-step="approval" data-review-state="idle"><span class="review-marker">3</span>人工确认</span>
+      </div>
+      <div class="proposal-gate"><span class="proposal-gate-icon" aria-hidden="true">◇</span><span><strong>写入闸门未开启</strong><span data-gate-detail>展开完整逐行 diff，再核对影响摘要与变更路径。</span></span></div>` : ''}
       <div class="proposal-metrics">
         <div class="proposal-metric"><span>图修订</span><strong>rev ${escapeHtml(proposal.graphRevision ?? 0)}</strong></div>
         <div class="proposal-metric"><span>变更范围</span><strong>${changes.length} 个文件 / 路径</strong></div>
@@ -4640,55 +4749,18 @@ function renderProposals(proposals) {
         : ''}
       ${proposal.error ? `<p class="proposal-error">${escapeHtml(proposal.error)}</p>` : ''}
     </article>`;
-  }).join('') : '<div class="empty-state"><span class="empty-state-icon">✓</span><strong>等待人工确认</strong><p>AI 会先通过 get_visual_context 理解你的意图；提案出现后仍需逐行 diff、人工批准与一次性确认号。</p></div>';
+    const card = template.content.firstElementChild;
+    card.dataset.proposalSignature = JSON.stringify({
+      id: proposal.id, title: proposal.title, summary: proposal.summary, status: proposal.status,
+      graphRevision: proposal.graphRevision, contentHash: proposal.contentHash, createdAt: proposal.createdAt,
+      error: proposal.error, changes: changes.map((change) => [change.kind, change.path]),
+    });
+    fragments.appendChild(card);
+  }
+  list.replaceChildren(fragments);
+  for (const card of list.querySelectorAll('.proposal-card')) updateProposalReviewRail(card);
   renderJourney();
-
-  for (const button of $('#proposalList').querySelectorAll('[data-approve]')) {
-    button.addEventListener('click', () => {
-      collabInteractionDepth += 1;
-      const id = button.dataset.approve;
-      decideProposal(id, 'approve').finally(finishCollabInteraction);
-    });
-  }
-  for (const button of $('#proposalList').querySelectorAll('[data-reject]')) {
-    button.addEventListener('click', () => {
-      collabInteractionDepth += 1;
-      const id = button.dataset.reject;
-      decideProposal(id, 'reject').finally(finishCollabInteraction);
-    });
-  }
-  for (const details of $('#proposalList').querySelectorAll('[data-diff]')) {
-    details.addEventListener('toggle', async () => {
-      if (!details.open || details.dataset.loaded) return;
-      const state = details.querySelector('[data-diff-state]');
-      details.classList.add('is-loading');
-      state.textContent = '加载中…';
-      try {
-        const data = await collabFetch(`/api/collab/proposals/${encodeURIComponent(details.dataset.diff)}/diff`);
-        details.querySelector('pre').innerHTML = data.diffs.map((diff) => [
-          `<strong>${escapeHtml(diff.kind)} ${escapeHtml(diff.path)}</strong>`,
-          ...diff.lines.map((line) => `<span class="diff-line ${line.type}">${line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' '} ${escapeHtml(line.text)}</span>`),
-          diff.truncated ? '<span class="diff-line context">… diff truncated …</span>' : '',
-        ].join('\n')).join('\n\n') || '暂无差异';
-        details.classList.remove('is-loading');
-        details.classList.add('loaded');
-        state.textContent = '✓ 已加载 · 请逐行阅读';
-        details.dataset.loaded = 'true';
-        const approve = $('#proposalList').querySelector(`[data-approve="${CSS.escape(details.dataset.diff)}"]`);
-        if (approve) {
-          approve.classList.remove('awaiting-diff');
-          approve.textContent = '✓ 批准并签发确认号';
-          approve.title = '人工批准后签发一次性确认号；仍需交给 AI 调用 apply_visual_proposal';
-        }
-      } catch (error) {
-        details.classList.remove('is-loading');
-        details.classList.add('is-error');
-        state.textContent = '加载失败 · 可重新展开';
-        details.querySelector('pre').textContent = `差异加载失败：${error.message}`;
-      }
-    });
-  }
-  for (const target of $('#proposalList').querySelectorAll('[data-impact]')) {
+  for (const target of list.querySelectorAll('[data-impact]:not([data-impact-loaded])')) {
     loadProposalImpact(target);
   }
 }
@@ -4706,10 +4778,81 @@ async function loadProposalImpact(target) {
         <span><small>新建 / 更新</small><strong>${escapeHtml(impact.created)} / ${escapeHtml(impact.updated)}</strong></span>
       </div>`;
     target.title = impact.notes.join(' ');
+    target.dataset.impactLoaded = 'true';
+    updateProposalReviewRail(target.closest('.proposal-card'));
   } catch (error) {
     target.textContent = `影响摘要不可用：${error.message}`;
     target.classList.add('is-warning');
   }
+}
+
+function updateProposalReviewRail(card) {
+  if (!card || card.dataset.status !== 'pending') return;
+  const diffLoaded = Boolean(card.querySelector('.proposal-diff.loaded'));
+  const impactLoaded = card.querySelector('[data-impact]')?.dataset.impactLoaded === 'true';
+  const ready = diffLoaded && impactLoaded;
+  const progress = diffLoaded ? (impactLoaded ? 100 : 66) : (impactLoaded ? 33 : 0);
+  card.dataset.reviewReady = String(ready);
+  card.style.setProperty('--review-progress', `${progress}%`);
+  for (const step of card.querySelectorAll('.proposal-review-step')) {
+    const done = step.dataset.reviewStep === 'diff' ? diffLoaded : step.dataset.reviewStep === 'impact' ? impactLoaded : false;
+    const active = !done && (step.dataset.reviewStep === 'diff' || (step.dataset.reviewStep === 'impact' && diffLoaded) || (step.dataset.reviewStep === 'approval' && diffLoaded && impactLoaded));
+    step.dataset.reviewState = done ? 'done' : active ? 'active' : 'idle';
+  }
+  const detail = card.querySelector('[data-gate-detail]');
+  if (detail) detail.textContent = ready
+    ? '逐行 diff 与影响摘要已核对；批准仍只签发一次性确认号。'
+    : diffLoaded ? '逐行 diff 已加载；继续核对影响摘要与变更路径。'
+    : impactLoaded ? '影响摘要已加载；还需展开并阅读完整逐行 diff。'
+    : '展开完整逐行 diff，再核对影响摘要与变更路径。';
+}
+
+function bindProposalListEvents() {
+  if (proposalListEventsBound) return;
+  const list = $('#proposalList');
+  proposalListEventsBound = true;
+  list.addEventListener('pointerdown', protectCollabInteraction);
+  list.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-approve], [data-reject]');
+    if (!button || !list.contains(button)) return;
+    protectCollabInteraction();
+    const decision = button.hasAttribute('data-approve') ? 'approve' : 'reject';
+    const id = button.dataset[decision];
+    collabInteractionDepth += 1;
+    decideProposal(id, decision).finally(finishCollabInteraction);
+  });
+  list.addEventListener('toggle', async (event) => {
+    const details = event.target;
+    if (!details.matches?.('[data-diff]') || !details.open || details.dataset.loaded) return;
+    protectCollabInteraction();
+    const state = details.querySelector('[data-diff-state]');
+    details.classList.add('is-loading');
+    state.textContent = '加载中…';
+    try {
+      const data = await collabFetch(`/api/collab/proposals/${encodeURIComponent(details.dataset.diff)}/diff`);
+      details.querySelector('pre').innerHTML = data.diffs.map((diff) => [
+        `<strong>${escapeHtml(diff.kind)} ${escapeHtml(diff.path)}</strong>`,
+        ...diff.lines.map((line) => `<span class="diff-line ${line.type}">${line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' '} ${escapeHtml(line.text)}</span>`),
+        diff.truncated ? '<span class="diff-line context">… diff truncated …</span>' : '',
+      ].join('\n')).join('\n\n') || '暂无差异';
+      details.classList.remove('is-loading');
+      details.classList.add('loaded');
+      state.textContent = '✓ 已加载 · 请逐行阅读';
+      details.dataset.loaded = 'true';
+      const approve = list.querySelector(`[data-approve="${CSS.escape(details.dataset.diff)}"]`);
+      if (approve) {
+        approve.classList.remove('awaiting-diff');
+        approve.textContent = '✓ 批准并签发确认号';
+        approve.title = '人工批准后签发一次性确认号；仍需交给 AI 调用 apply_visual_proposal';
+      }
+      updateProposalReviewRail(details.closest('.proposal-card'));
+    } catch (error) {
+      details.classList.remove('is-loading');
+      details.classList.add('is-error');
+      state.textContent = '加载失败 · 可重新展开';
+      details.querySelector('pre').textContent = `差异加载失败：${error.message}`;
+    }
+  }, true);
 }
 
 function renderCollabBundle(bundle, nodeContext) {
@@ -4806,7 +4949,7 @@ function renderCollabBundle(bundle, nodeContext) {
 
 async function loadCollab() {
   const loadToken = ++collabLoadToken;
-  setCollabSyncState('loading', '同步中');
+  if (!$('#collabShell').hidden) setCollabSyncState('loading', '同步中');
   const previousPending = collabLoadPending;
   const task = (async () => {
     if (previousPending) await previousPending;
@@ -4846,16 +4989,17 @@ async function loadCollab() {
       nodeContextQuery ? collabFetch(`/api/collab/node-context${nodeContextQuery}`).catch(() => null) : Promise.resolve(null),
     ]);
     if (loadToken !== collabLoadToken) return;
+    if (collabRefreshBlocked()) { collabLoadDeferred = true; return; }
     renderCollabBundle({ session, proposals, activity, diagnostics, reviewReadiness, graphDiffs, graphHistory,
       sourceEvidence, sharedBrief, decisionTrail, capabilities, selectionScope, selectionWorkorder,
       sourceNavigation }, nodeContext);
-    setCollabSyncState('fresh', `已同步 · ${settled.length + 2} 项`);
+    if (!$('#collabShell').hidden) setCollabSyncState('fresh', `已同步 · ${settled.length + 2} 项`);
   })();
   collabLoadPending = task;
   try {
     await task;
   } catch (error) {
-    if (loadToken === collabLoadToken) {
+    if (loadToken === collabLoadToken && !$('#collabShell').hidden) {
       $('#collabMeta').textContent = `同步失败：${error.message}`;
       setCollabSyncState('error', '同步异常');
     }
@@ -5252,6 +5396,7 @@ function openCollab() {
 }
 $('#btnCollaborate').addEventListener('click', openCollab);
 $('#btnCollaborate').setAttribute('aria-controls', 'collabShell');
+$('#collabShell').addEventListener('pointerdown', protectCollabInteraction, true);
 for (const tab of document.querySelectorAll('.collab-tab')) {
   tab.addEventListener('click', () => setCollabTab(tab.dataset.tabTarget));
   tab.addEventListener('keydown', (event) => {
@@ -5374,7 +5519,11 @@ messageInput.addEventListener('input', updateMessageCount);
 for (const button of document.querySelectorAll('.intent-preset')) {
   button.addEventListener('click', () => insertIntentPreset(button));
 }
-$('#btnCloseCollab').addEventListener('click', () => { $('#collabShell').hidden = true; });
+$('#btnCloseCollab').addEventListener('click', () => {
+  $('#collabShell').hidden = true;
+  collabLoadDeferred = false;
+  window.clearTimeout(collabLoadTimer);
+});
 $('#btnSaveGraph').addEventListener('click', saveGraph);
 $('#btnUndoGraph').addEventListener('click', () => restoreGraphHistory('undo'));
 $('#btnRedoGraph').addEventListener('click', () => restoreGraphHistory('redo'));

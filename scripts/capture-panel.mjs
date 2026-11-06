@@ -196,10 +196,11 @@ try {
   await page.waitForSelector(".proposal-card.status-pending .proposal-diff.loaded");
   await page.evaluate(() => {
     const card = document.querySelector(".proposal-card.status-pending");
-    card.querySelector(".proposal-diff").scrollIntoView({ block: "center" });
+    card.scrollIntoView({ block: "start" });
     const pane = document.querySelector("#collabSectionProposals .section-scroll");
-    if (pane) pane.scrollTop = Math.max(0, pane.scrollHeight - pane.clientHeight);
+    if (pane) pane.scrollTop = Math.max(0, pane.scrollTop - 12);
   });
+  await page.waitForFunction(() => document.querySelector(".proposal-card.status-pending").dataset.reviewReady === "true");
   await page.waitForFunction(() => {
     const shell = document.querySelector("#collabShell");
     return Number(getComputedStyle(shell).opacity) >= 0.99;
