@@ -49,6 +49,12 @@ npm run test:examples:workflow
 
 If Chrome is outside Puppeteer's cache, set `PUPPETEER_EXECUTABLE_PATH`. CI and hardened Linux environments may also need `MERMAID_CHROME_NO_SANDBOX=1`.
 
+## Panel appearance
+
+The local preview panel ships with a calm low-distraction palette and an optional vivid brand palette. Press `Z` to enter the immersive workspace: the header, diagram library, pane headers, and status bar recede so the project graph, focus card, and floating canvas controls stay visible. `Z`, `Esc`, or the top exit badge restores the full workspace. The appearance popover stores the theme, palette, density, preview background, and immersive preference in local browser storage only. These are presentation preferences: they do not change `focus` / `viewport`, session state, approval receipts, or the project-write gate. All screenshots, including the immersive workspace, are reproducible with `npm run ui:shots`.
+
+![Immersive workspace](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/zen-workspace-panel.png)
+
 ## Safety model
 
 - No account, no cloud service, and no public network binding by default.

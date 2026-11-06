@@ -149,9 +149,11 @@ check(await assetExists("docs/canvas-workbench-panel.png"), "README is missing t
 check(await assetExists("docs/canvas-shortcuts-panel.png"), "README is missing the canvas shortcuts screenshot");
 check(await assetExists("docs/collaboration-workbench-panel.png"), "README is missing the collaboration workbench screenshot");
 check(await assetExists("docs/collaboration-focus-panel.png"), "README is missing the collaboration focus-mode screenshot");
+check(await assetExists("docs/zen-workspace-panel.png"), "README is missing the immersive workspace screenshot");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
 check(launchKit.includes("25 MCP tools"), "docs/LAUNCH_KIT.md historical 0.3.3 release notes preserve the published 25 MCP tools");
+check(launchKit.includes("沉浸工作区"), "docs/LAUNCH_KIT.md is missing the UI iteration launch copy");
 check(githubMaintenance.includes(expectedDescription), "scripts/github-maintenance.mjs is missing the GitHub description");
 check(githubMaintenance.includes(expectedHomepage), "scripts/github-maintenance.mjs is missing the GitHub homepage");
 for (const topic of expectedTopics) {
@@ -283,6 +285,8 @@ for (const [label, file, needle] of [
   ["English quickstart workbench diagram", englishQuickstart, "docs/collaboration-workbench.svg"],
   ["Chinese README troubleshooting link", readme, "docs/TROUBLESHOOTING.md"],
   ["English quickstart troubleshooting link", englishQuickstart, "docs/TROUBLESHOOTING.md"],
+  ["English quickstart immersive workspace", englishQuickstart, "immersive workspace"],
+  ["English quickstart appearance boundary", englishQuickstart, "project-write gate"],
   ["one-time receipt FAQ", troubleshooting, "one-time receipt"],
   ["bilingual stale workorder FAQ", troubleshooting, "What does a stale selection workorder mean?"],
   ["stale workorder FAQ Chinese action", troubleshooting, "重新勾选目标节点"],
@@ -711,6 +715,13 @@ for (const [label, file, needle] of [
   ["compact density mode", panel, "density-compact"],
   ["appearance popover", panel, "appearance-popover"],
   ["appearance theme options", panel, "data-ui-theme"],
+  ["appearance ambient options", panel, "data-ambient"],
+  ["appearance zen options", panel, "data-zen"],
+  ["calm visual atmosphere", panel, "ambient-calm"],
+  ["immersive workspace", panel, "zen-workspace"],
+  ["immersive workspace exit", panel, "btnZenExit"],
+  ["immersive workspace shortcut", panel, "setZenWorkspace"],
+  ["immersive workspace command", panel, "切换沉浸工作区"],
   ["appearance density options", panel, "data-density"],
   ["appearance background options", panel, "data-preview-bg"],
   ["appearance sidebar options", panel, "data-sidebar"],
@@ -759,6 +770,9 @@ for (const [label, file, needle] of [
   ["canvas workbench screenshot in README", readme, "canvas-workbench-panel.png"],
   ["canvas shortcuts screenshot", capturePanelScript, "canvas-shortcuts-panel.png"],
   ["canvas shortcuts screenshot in README", readme, "canvas-shortcuts-panel.png"],
+  ["zen workspace screenshot", capturePanelScript, "zen-workspace-panel.png"],
+  ["zen workspace screenshot in README", readme, "zen-workspace-panel.png"],
+  ["zen workspace documentation map", documentationMap, "zen-workspace-panel.png"],
   ["reproducible canvas example project", capturePanelScript, "示例 · 人机协作项目结构"],
   ["intent composer card", panel, "intent-composer"],
   ["local intent draft", panel, "MESSAGE_DRAFT_KEY"],
@@ -814,6 +828,9 @@ for (const [label, file, needle] of [
   ["panel UI first-run regression", panelUiTest, "btnLoadExample"],
   ["panel UI hidden welcome regression", panelUiTest, 'getComputedStyle(element).display)).toBe("none")'],
   ["panel UI appearance popover regression", panelUiTest, "appearancePopover"],
+  ["panel UI ambient atmosphere regression", panelUiTest, "data-ambient"],
+  ["panel UI zen workspace regression", panelUiTest, "zen-workspace"],
+  ["panel UI zen shortcut regression", panelUiTest, 'page.keyboard.press("z")'],
   ["panel UI diagram library regression", panelUiTest, "diagramSearch"],
   ["panel UI health card regression", panelUiTest, "collabHealth"],
   ["panel UI graph editor regression", panelUiTest, "graph-guide"],

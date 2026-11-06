@@ -200,7 +200,18 @@ try {
   await page.waitForFunction(() => document.querySelector("#collabShell").classList.contains("focus-mode"));
   await new Promise((resolve) => setTimeout(resolve, 250));
   await page.screenshot({ path: path.join(outputDir, "collaboration-focus-panel.png") });
-  console.log("✅ Captured docs/preview-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png and docs/collaboration-focus-panel.png");
+  await page.click("#btnFocusMode");
+  await page.click("#btnCloseCollab");
+  await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
+  await page.keyboard.press("z");
+  await page.waitForFunction(() => document.body.classList.contains("zen-workspace"));
+  await page.waitForFunction(() => getComputedStyle(document.querySelector(".header")).opacity === "0", { timeout: 5000 });
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  await page.keyboard.press("f");
+  await page.waitForFunction(() => Number(document.querySelector("#canvasObjectConversation").dataset.openThreads) > 0, { timeout: 5000 });
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  await page.screenshot({ path: path.join(outputDir, "zen-workspace-panel.png") });
+  console.log("✅ Captured docs/preview-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png and docs/zen-workspace-panel.png");
 } finally {
   await browser.close();
   await preview.stop().catch(() => {});

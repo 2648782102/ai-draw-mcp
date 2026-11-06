@@ -175,15 +175,28 @@ describe("collaboration panel UI", () => {
         groups: document.querySelectorAll(".appearance-group").length,
         shortcuts: document.querySelectorAll(".appearance-shortcuts kbd").length,
         activeTheme: document.querySelector('[data-ui-theme].active')?.dataset.uiTheme,
+        activeAmbient: document.querySelector('[data-ambient].active')?.dataset.ambient,
+        activeZen: document.querySelector('[data-zen].active')?.dataset.zen,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 9, activeTheme: "dark" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 6, shortcuts: 10, activeTheme: "dark", activeAmbient: "calm", activeZen: "off" });
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("7");
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("Z");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("[ / ]");
       await page.click('[data-ui-theme="light"]');
       expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
+      await page.click('[data-ambient="vivid"]');
+      expect(await page.$eval("body", (element) => element.classList.contains("ambient-calm"))).toBe(false);
+      await page.click('[data-ambient="calm"]');
+      expect(await page.$eval("body", (element) => element.classList.contains("ambient-calm"))).toBe(true);
+      await page.click('[data-zen="on"]');
+      expect(await page.$eval("body", (element) => element.classList.contains("zen-workspace"))).toBe(true);
+      expect(await page.$eval("#btnZenExit", (element) => getComputedStyle(element).display)).toBe("flex");
+      expect(await page.$eval(".header", (element) => getComputedStyle(element).pointerEvents)).toBe("none");
+      await page.keyboard.press("z");
+      expect(await page.$eval("body", (element) => element.classList.contains("zen-workspace"))).toBe(false);
       await page.click('[data-density="compact"]');
       expect(await page.$eval("body", (element) => element.classList.contains("density-compact"))).toBe(true);
       await page.click('[data-preview-bg="dark"]');
@@ -204,6 +217,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#shortcutTitle", (element) => element.textContent)).toContain("画布快捷键");
       expect(await page.$$eval(".shortcut-group", (elements) => elements.length)).toBe(4);
       expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
+      expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("Z");
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.querySelector("#shortcutBackdrop").hidden);
       await page.keyboard.press("h");
@@ -385,6 +399,7 @@ describe("collaboration panel UI", () => {
       expect(chat.evidenceItems).toBe(0);
       expect(await page.$eval('[data-history-count="activity"]', (element) => Number(element.textContent))).toBeGreaterThan(0);
       await page.click("#btnAddNode");
+      expect(await page.$eval("#graphNodeCount", (element) => element.textContent)).toBe("1");
       await page.waitForSelector("#graphEditor .graph-row.is-dirty");
       const stableDirtyRows = await page.evaluate(() => {
         const rows = [...document.querySelectorAll("#graphEditor .graph-row")];
@@ -537,6 +552,7 @@ describe("collaboration panel UI", () => {
         clientWidth: 820,
       });
       await page.setViewport({ width: 560, height: 820 });
+      await page.waitForFunction(() => document.querySelector(".header").getBoundingClientRect().height === 50, { timeout: 5000 });
       const compact = await page.evaluate(() => ({
         headerHeight: document.querySelector(".header").getBoundingClientRect().height,
         themeHidden: getComputedStyle(document.querySelector("#selTheme")).display === "none",

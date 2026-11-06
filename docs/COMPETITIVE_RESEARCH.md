@@ -36,6 +36,7 @@ Short form for GitHub About:
 5. **MCP tools are a UX surface.** Names, descriptions, argument shapes, and machine-readable responses should be tested as an agent-facing API.
 6. **Trust is a differentiator.** Local-only defaults, no account, reviewable diffs, one-time approval, rollback, and documented non-goals should be prominent.
 7. **Open-source growth needs maintained metadata.** Description, topics, roadmap, release notes, issue templates, and repeatable launch copy are part of the product.
+8. **A visual workspace needs an atmospheric off-switch.** Developer tools such as Linear, Raycast, and focused editors commonly pair a strong brand surface with a low-distraction mode: chrome should recede once the real artifact (here, the shared graph) is present. The 2026-11-06 UI iteration adds a calm palette and `Z` immersive workspace. This is a presentation lesson only: hiding chrome must never hide the human approval boundary, alter attention state, or turn a view preference into write authority.
 
 ## Annotation-thread protocol notes
 

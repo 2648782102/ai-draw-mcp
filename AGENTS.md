@@ -76,6 +76,7 @@ src/
 
 test/                         Vitest：批注线程、活动时间线、领域契约、MCP 集成测试、协作集成测试
 scripts/doctor.mjs            环境自检（含真实 Mermaid 渲染探针）
+scripts/capture-panel.mjs     用临时示例项目生成全部真实面板截图
 scripts/github-maintenance.mjs GitHub About/topics 漂移检查、同步与 Release 创建维护者后备路径
 scripts/repo-check.mjs        离线一致性检查：发布文案、文档链接、脚本与 CHANGELOG
 scripts/generate-doc-assets.mjs 版本化 README 概念图；`npm run docs:assets` 生成、`--check` 校验
@@ -83,6 +84,7 @@ scripts/generate-doc-assets.mjs 版本化 README 概念图；`npm run docs:asset
 docs/ARCHITECTURE.md          架构、协议、安全模型
 docs/README.md                文档地图
 docs/COMPETITIVE_RESEARCH.md  同类产品调研与定位
+docs/zen-workspace-panel.png   可复现的沉浸工作区截图；由 `npm run ui:shots` 生成
 docs/DEPENDENCY_MAINTENANCE.md 依赖升级、CI 验证与重大版本决策记录
 docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
 docs/GOVERNANCE.md             开源治理、维护清单与元数据漂移证据
@@ -114,6 +116,7 @@ ROADMAP.md                   产品路线图与非目标
 - `VisualGraph` 与 `SessionSnapshot` 都是 `version: 1`，改协议时必须考虑向后兼容与迁移。
 - 预览服务默认绑定 `PREVIEW_HOST = 127.0.0.1`，不要改回监听所有网卡。
 - 面板 HTML 注入随机 `PANEL_TOKEN`；`/api/collab/*` 的非 GET 写操作必须带 `X-AI-Draw-Token`。
+- 面板外观偏好（界面主题、`ambient` 氛围、密度、预览背景、沉浸工作区）只写浏览器 localStorage，只影响本机 CSS/布局；不得把它当作 `focus` / `viewport`、批准凭据或项目写入授权。沉浸工作区隐藏界面 chrome 时仍要保留可见退出入口与「批准前只读」边界。
 
 ---
 
