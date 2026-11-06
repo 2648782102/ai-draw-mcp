@@ -1,12 +1,24 @@
 import fs from "node:fs/promises";
 import { existsSync } from "node:fs";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 
 const packageRoot = process.cwd();
 const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ai-draw-panel-ui-"));
-const port = 4417;
+async function freePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const { port } = server.address();
+      server.close(() => resolve(port));
+    });
+  });
+}
+
+const port = await freePort();
 const base = `http://127.0.0.1:${port}`;
 
 function resolveChrome() {
@@ -57,6 +69,14 @@ describe("collaboration panel UI", () => {
 
       expect(await page.$(".brand-mark")).toBeTruthy();
       expect(await page.$("#btnRender.primary")).toBeTruthy();
+      expect(await page.$('.view-switch button[data-view-target="split"].active')).toBeTruthy();
+
+      await page.keyboard.press("3");
+      expect(await page.$eval("#workspace", (element) => element.dataset.view)).toBe("canvas");
+      expect(await page.$eval("#editorPane", (element) => getComputedStyle(element).display)).toBe("none");
+      expect(await page.$eval(".canvas-chip", (element) => getComputedStyle(element).display)).toBe("flex");
+      await page.keyboard.press("1");
+      expect(await page.$eval("#workspace", (element) => element.dataset.view)).toBe("split");
 
       await page.keyboard.press("c");
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);

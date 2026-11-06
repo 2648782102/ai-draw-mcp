@@ -208,6 +208,19 @@
     }
     .toolbar button.subtle, .collab-actions button.subtle { background: transparent; color: var(--text-muted); }
     .toolbar button.subtle:hover, .collab-actions button.subtle:hover { color: var(--text); background: rgba(122,162,247,.12); }
+    .view-switch { display: flex; align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 9px; background: rgba(9,14,25,.55); }
+    .view-switch button { height: 24px; padding: 0 9px; border-color: transparent; background: transparent; color: var(--text-muted); font-size: 10px; }
+    .view-switch button.active { background: rgba(122,162,247,.18); color: var(--text); border-color: rgba(122,162,247,.42); font-weight: 700; }
+    .workspace[data-view="source"] #previewPane, .workspace[data-view="canvas"] #editorPane, .workspace[data-view="source"] #divider, .workspace[data-view="canvas"] #divider { display: none; }
+    .workspace[data-view="source"] #editorPane, .workspace[data-view="canvas"] #previewPane { flex: 1 1 100% !important; }
+    .canvas-chip {
+      position: absolute; left: 14px; bottom: 14px; z-index: 21; display: none;
+      align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid var(--border);
+      border-radius: 999px; background: rgba(9,14,25,.84); color: var(--text-muted); font-size: 10px;
+      backdrop-filter: blur(10px); box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    }
+    .canvas-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .workspace[data-view="canvas"] .canvas-chip { display: flex; }
     button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible {
       outline: 2px solid rgba(122,162,247,.85); outline-offset: 2px;
     }
@@ -476,6 +489,11 @@
   </div>
   <div class="toolbar">
     <button class="btn-icon" id="btnToggleSidebar" title="Toggle sidebar">☰</button>
+    <div class="view-switch" role="group" aria-label="工作区视图">
+      <button type="button" class="active" data-view-target="split" title="分屏视图（1）">◫ 分屏</button>
+      <button type="button" data-view-target="source" title="源码视图（2）">⌘ 源码</button>
+      <button type="button" data-view-target="canvas" title="画布视图（3）">◇ 画布</button>
+    </div>
     <select id="selTheme">
       <option value="default">Default</option>
       <option value="dark">Dark</option>
@@ -503,7 +521,7 @@
     <div class="sidebar-resize" id="sidebarResize"></div>
   </aside>
 
-  <div class="workspace">
+  <div class="workspace" id="workspace" data-view="split">
     <div class="panes">
       <div class="pane" id="editorPane">
         <div class="pane-header">
@@ -534,6 +552,7 @@
             <div id="minimapContent"></div>
             <div id="minimapViewport"></div>
           </div>
+          <div class="canvas-chip">画布模式 · 滚轮缩放 / 拖拽平移 / F 适应窗口</div>
         </div>
       </div>
     </div>
@@ -698,6 +717,7 @@ const PREFS_DEFAULT = {
   splitPct: 50,          // editor pane width %
   theme: 'default',
   darkBg: false,
+  viewMode: 'split',
   lastDiagramId: null,
 };
 let prefs = { ...PREFS_DEFAULT };
@@ -729,6 +749,20 @@ function applyPrefs() {
   }
   // Dark background
   if (prefs.darkBg) $('#previewWrap').classList.add('dark-bg');
+  setWorkspaceView(prefs.viewMode || 'split', false);
+}
+
+function setWorkspaceView(view, persist = true) {
+  const allowed = new Set(['split', 'source', 'canvas']);
+  const next = allowed.has(view) ? view : 'split';
+  $('#workspace').dataset.view = next;
+  for (const button of document.querySelectorAll('.view-switch button')) {
+    button.classList.toggle('active', button.dataset.viewTarget === next);
+  }
+  if (persist) {
+    prefs.viewMode = next;
+    savePrefs();
+  }
 }
 
 loadPrefs();
@@ -866,6 +900,11 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (document.activeElement === $('#codeEditor')) return;
+  if (!e.metaKey && !e.ctrlKey && !e.altKey && ['1', '2', '3'].includes(e.key)) {
+    e.preventDefault();
+    setWorkspaceView({ 1: 'split', 2: 'source', 3: 'canvas' }[e.key]);
+    return;
+  }
   if (e.key === 'f' || e.key === 'F') fitView();
   if (e.key === '0') resetView();
 });
@@ -2527,8 +2566,11 @@ for (const tab of document.querySelectorAll('.collab-tab')) {
   });
 }
 $('#btnCommandHint').addEventListener('click', () => {
-  showToast('快捷键：C 打开协作 · Esc 关闭 · F 适应窗口 · 0 重置缩放 · ⌘/Ctrl+Enter 渲染或发送', 4200);
+  showToast('快捷键：1 分屏 · 2 源码 · 3 画布 · C 协作 · Esc 关闭 · F 适应窗口 · 0 重置缩放 · ⌘/Ctrl+Enter 渲染或发送', 4800);
 });
+for (const button of document.querySelectorAll('.view-switch button')) {
+  button.addEventListener('click', () => setWorkspaceView(button.dataset.viewTarget));
+}
 $('#btnGraphMore').addEventListener('click', (event) => {
   const group = $('#graphMoreActions');
   group.classList.toggle('open');
