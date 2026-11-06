@@ -23,6 +23,31 @@
       --shadow: 0 18px 60px rgba(0, 0, 0, .48);
       --radius: 12px;
     }
+    body.theme-light {
+      --bg: #eef3fb;
+      --surface: #ffffff;
+      --surface2: #f2f6fd;
+      --border: #cfdaf0;
+      --text: #17243a;
+      --text-muted: #64769a;
+      --panel: #f8fbff;
+      --glass: rgba(255,255,255,.88);
+      --shadow: 0 18px 60px rgba(39,58,94,.18);
+    }
+    body.theme-light .header, body.theme-light .collab-shell { background: rgba(255,255,255,.92); }
+    body.theme-light .sidebar, body.theme-light .workspace, body.theme-light .pane, body.theme-light .collab-section { background: rgba(255,255,255,.86); }
+    body.theme-light .collab-body { background: rgba(238,243,251,.72); }
+    body.theme-light .preview-wrap { background: #ffffff; }
+    body.theme-light .preview-wrap.dark-bg { background: radial-gradient(circle at 50% 30%, #33476b, #111c31); }
+    body.theme-light .graph-editor, body.theme-light .chat-log, body.theme-light .proposal-list,
+    body.theme-light .diagnostics-list, body.theme-light .empty-state { background: #f5f8fd; }
+    body.theme-light #codeEditor { background: #f8fbff; color: #24334c; }
+    body.density-compact { --radius: 8px; }
+    body.density-compact .main { padding: 8px; gap: 8px; }
+    body.density-compact .collab-section { padding: 10px; }
+    body.density-compact .collab-help, body.density-compact .activity-summary { margin-bottom: 5px; }
+    body.density-compact .sidebar-item { padding: 7px 9px; }
+    body.density-compact .collab-actions button, body.density-compact .toolbar button { height: 27px; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -230,6 +255,8 @@
     .view-switch { display: flex; align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 9px; background: rgba(9,14,25,.55); }
     .view-switch button { height: 24px; padding: 0 9px; border-color: transparent; background: transparent; color: var(--text-muted); font-size: 10px; }
     .view-switch button.active { background: rgba(122,162,247,.18); color: var(--text); border-color: rgba(122,162,247,.42); font-weight: 700; }
+    .appearance-switch { display: flex; align-items: center; gap: 2px; }
+    .appearance-switch button { width: 28px; }
     .workspace[data-view="source"] #previewPane, .workspace[data-view="canvas"] #editorPane, .workspace[data-view="source"] #divider, .workspace[data-view="canvas"] #divider { display: none; }
     .workspace[data-view="source"] #editorPane, .workspace[data-view="canvas"] #previewPane { flex: 1 1 100% !important; }
     .canvas-chip {
@@ -526,6 +553,10 @@
     <button id="btnCopyId" type="button" title="复制当前图 ID">📋 ID</button>
     <button id="btnDeleteDiagram" type="button" title="从本机删除当前图">🗑 删当前</button>
     <button class="btn-icon" id="btnDarkBg" title="Toggle preview background">◐</button>
+    <div class="appearance-switch" role="group" aria-label="外观设置">
+      <button class="btn-icon subtle" id="btnToggleTheme" type="button" title="切换浅色 / 深色工作台">☾</button>
+      <button class="btn-icon subtle" id="btnToggleDensity" type="button" title="切换舒适 / 紧凑密度">▤</button>
+    </div>
   </div>
   <div class="status">
     <button id="btnCollaborate" title="打开双向协作工作台（C）">💬 协作</button>
@@ -753,6 +784,8 @@ const PREFS_DEFAULT = {
   theme: 'default',
   darkBg: false,
   viewMode: 'split',
+  uiTheme: 'dark',
+  density: 'comfortable',
   lastDiagramId: null,
 };
 let prefs = { ...PREFS_DEFAULT };
@@ -784,6 +817,8 @@ function applyPrefs() {
   }
   // Dark background
   if (prefs.darkBg) $('#previewWrap').classList.add('dark-bg');
+  document.body.classList.toggle('theme-light', prefs.uiTheme === 'light');
+  document.body.classList.toggle('density-compact', prefs.density === 'compact');
   setWorkspaceView(prefs.viewMode || 'split', false);
 }
 
@@ -2644,6 +2679,18 @@ $('#btnOpenCollabWelcome').addEventListener('click', openCollab);
 for (const button of document.querySelectorAll('.view-switch button')) {
   button.addEventListener('click', () => setWorkspaceView(button.dataset.viewTarget));
 }
+$('#btnToggleTheme').addEventListener('click', (event) => {
+  prefs.uiTheme = document.body.classList.toggle('theme-light') ? 'light' : 'dark';
+  event.currentTarget.textContent = prefs.uiTheme === 'light' ? '☀' : '☾';
+  savePrefs();
+  showToast(prefs.uiTheme === 'light' ? '已切换浅色工作台' : '已切换深色工作台');
+});
+$('#btnToggleDensity').addEventListener('click', () => {
+  prefs.density = document.body.classList.toggle('density-compact') ? 'compact' : 'comfortable';
+  savePrefs();
+  showToast(prefs.density === 'compact' ? '已切换紧凑密度' : '已切换舒适密度');
+});
+$('#btnToggleTheme').textContent = prefs.uiTheme === 'light' ? '☀' : '☾';
 $('#btnGraphMore').addEventListener('click', (event) => {
   const group = $('#graphMoreActions');
   group.classList.toggle('open');

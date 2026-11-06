@@ -89,6 +89,13 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("1");
       expect(await page.$eval("#workspace", (element) => element.dataset.view)).toBe("split");
 
+      await page.click("#btnToggleTheme");
+      expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
+      await page.click("#btnToggleDensity");
+      expect(await page.$eval("body", (element) => element.classList.contains("density-compact"))).toBe(true);
+      await page.click("#btnToggleTheme");
+      await page.click("#btnToggleDensity");
+
       await page.keyboard.press("c");
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
       await page.waitForSelector("#overviewRevision");
