@@ -1129,6 +1129,9 @@ check(governance.includes("42185011140"), "governance docs do not record the gre
 check(launchKit.includes("42185011140"), "launch kit does not record the green approval-gate CI run");
 check(governance.includes("42187638417"), "governance docs do not record the green unified-refresh CI run");
 check(launchKit.includes("42187638417"), "launch kit does not record the green unified-refresh CI run");
+check(governance.includes("42190267479"), "governance docs do not record the green node-badge CI run");
+check(launchKit.includes("42190267479"), "launch kit does not record the green node-badge CI run");
+check(launchKit.includes("协作可见性短帖"), "launch kit does not include the collaboration visibility post");
 check(launchKit.includes("push a metadata-relevant file to apply"), "launch kit does not describe automatic metadata convergence");
 check(packageJson.scripts?.["docs:assets"] === "node scripts/generate-doc-assets.mjs", "docs:assets script is missing");
 check(packageJson.scripts?.["docs:assets:check"] === "node scripts/generate-doc-assets.mjs --check", "docs:assets:check script is missing");
