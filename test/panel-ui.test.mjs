@@ -286,6 +286,17 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#canvasHoverCard", (element) => element.dataset.visible)).toBe("false");
       await page.keyboard.press("p");
       expect(await page.$eval('[data-hover-peek].active', (element) => element.dataset.hoverPeek)).toBe("on");
+      const toastPlacement = await page.evaluate(() => {
+        const toast = document.querySelector("#toast");
+        const rail = document.querySelector("#flowRail");
+        toast.classList.add("show");
+        const style = getComputedStyle(toast);
+        const rect = toast.getBoundingClientRect();
+        const railRect = rail.getBoundingClientRect();
+        return { bottom: style.bottom, centered: Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) < 2, belowRail: rect.top >= railRect.bottom };
+      });
+      expect(toastPlacement).toEqual({ bottom: "100px", centered: true, belowRail: true });
+      await page.evaluate(() => document.querySelector("#toast").classList.remove("show"));
       await page.click('#appearancePopover [data-layout-system="classic"]');
       expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(false);
       await page.click('#appearancePopover [data-layout-system="flow"]');

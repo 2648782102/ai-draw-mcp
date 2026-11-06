@@ -121,6 +121,7 @@ describe("canvas focus interaction", () => {
           label: document.querySelector("#canvasHoverLabel").textContent,
           path: document.querySelector("#canvasHoverPath").textContent,
           focus: document.querySelector("#canvasHoverFocus").textContent,
+          focusHint: document.querySelector("#canvasHoverCard").dataset.focusHint,
           related: document.querySelector("#canvasHoverRelated").textContent,
           evidence: document.querySelector("#canvasHoverEvidence").textContent,
           open: document.querySelector("#canvasHoverOpen").textContent,
@@ -138,7 +139,8 @@ describe("canvas focus interaction", () => {
       expect(hover.visible).toBe("true");
       expect(hover.label).toBe(target.label);
       expect(hover.path).toContain("src/index.ts");
-      expect(hover.focus).toBe("悬停预览");
+      expect(hover.focus).toContain("Enter 聚焦");
+      expect(hover.focusHint).toContain("Enter");
       expect(Number(hover.related)).toBeGreaterThan(0);
       expect(Number(hover.evidence)).toBeGreaterThanOrEqual(0);
       expect(Number(hover.open)).toBeGreaterThan(0);
@@ -175,6 +177,16 @@ describe("canvas focus interaction", () => {
       await page.keyboard.press("p");
       await page.mouse.move(target.x + 3, target.y + 3);
       await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "true");
+      const previewBefore = await page.$eval("#canvasHoverCard", (element) => ({ nodeId: element.dataset.nodeId, label: document.querySelector("#canvasHoverLabel").textContent }));
+      await page.keyboard.press("ArrowRight");
+      const previewAfter = await page.$eval("#canvasHoverCard", (element) => ({ nodeId: element.dataset.nodeId, label: document.querySelector("#canvasHoverLabel").textContent }));
+      expect(previewAfter.nodeId).not.toBe(previewBefore.nodeId);
+      expect(previewAfter.label).not.toBe(previewBefore.label);
+      expect(await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId)).toBe(focusRingBeforeHover);
+      await page.keyboard.press("Enter");
+      await page.waitForFunction((nodeId) => document.querySelector("#canvasFocusRing").dataset.focusNodeId === nodeId, { timeout: 5000 }, previewAfter.nodeId);
+      expect(await page.$eval("#canvasHoverFocus", (element) => element.textContent)).toBe("当前焦点");
+      await page.keyboard.press("Escape");
       await page.keyboard.press("0");
       await page.keyboard.press("f");
 
