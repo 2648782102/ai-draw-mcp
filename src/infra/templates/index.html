@@ -3909,6 +3909,7 @@ const COMMANDS = [
 ];
 let commandMatches = [];
 let commandActiveIndex = 0;
+let commandPointerMoved = false;
 function openCommandPalette() {
   const backdrop = $('#commandBackdrop');
   backdrop.hidden = false;
@@ -3916,6 +3917,7 @@ function openCommandPalette() {
   requestAnimationFrame(() => backdrop.classList.add('open'));
   $('#commandSearch').value = '';
   commandActiveIndex = 0;
+  commandPointerMoved = false;
   renderCommands();
   $('#commandSearch').focus();
 }
@@ -3942,7 +3944,8 @@ function renderCommands() {
   $('#commandCount').textContent = `${commandMatches.length} 条`;
   for (const item of list.querySelectorAll('[data-command-index]')) {
     item.addEventListener('click', () => runCommand(Number(item.dataset.commandIndex)));
-    item.addEventListener('mouseenter', () => {
+    item.addEventListener('mouseenter', (event) => {
+      if (event.buttons !== 0 || !commandPointerMoved || Number(item.getBoundingClientRect().top) < 0) return;
       commandActiveIndex = Number(item.dataset.commandIndex);
       for (const other of list.querySelectorAll('[data-command-index]')) {
         const active = Number(other.dataset.commandIndex) === commandActiveIndex;
@@ -3952,6 +3955,10 @@ function renderCommands() {
     });
   }
 }
+const commandList = $('#commandList');
+commandList.addEventListener('pointermove', (event) => {
+  if (event.pointerType !== 'touch') commandPointerMoved = true;
+}, { passive: true });
 function runCommand(index) {
   const command = commandMatches[index];
   if (!command) return;
