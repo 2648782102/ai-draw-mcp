@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Flow 工作台 CI 证据（2026-11-06 18:00 CST）：`618b737` 的 CI `42199110872` / #141 在 Node 20/22/24 三档 success（jobs `127829704899` / `127829705218` / `127829705186`）；metadata #25 `42199111045` 完成只读漂移检查。默认 Flow 布局、四步流程带、源码抽屉、可复现截图、浏览器回归与离线守卫均在完整 `npm run check` 中通过。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 retag、未改写已发布 Release、未自动发 npm 包。
+
+- Flow 焦点镜头条（2026-11-06 18:00 CST）：默认画布顶部中央新增轻量「当前焦点」胶囊，显示选中对象名称、工作区相对候选路径、关联数量、开放讨论数量与 `n / N` 序号，并提供 `← / →` 本机对象导航。它复用 `renderCanvasObject()` 的既有只读焦点状态，不新增会话状态、不改服务端 `focus` / `viewport`、不签发批准凭据或写项目文件；源码抽屉展开、沉浸工作区与首用卡状态自动隐藏或让位。浏览器回归和离线守卫同步覆盖。
+
 - 命令面板稳定性 CI 证据（2026-11-06 17:40 CST）：`c25f43a` 的 CI `42196201085` / #140 在 Node 20/22/24 三档 success（jobs `127819940490` / `127819940574` / `127819940275`），确认 `openCommandPalette()` 重置活动索引后，Node 20 慢速 runner 不再把历史命令当作默认选项。`d8a0c78` 的 #139 只作为偶发失败记录保留，未改写历史、未 force push、未移动标签。
 
 - Flow 画布优先工作台（2026-11-06 17:45 CST）：默认主壳从左右半屏编辑器改为「图形主舞台 + 窄图标图表库 + 四步人机协作流程带 + 可收起源码抽屉」。流程带把「AI 生成图 → 人改图 / 批注 → 共享上下文 → 人工批准」从既有 graph / messages / proposals / graphDiffs / review-readiness 派生为只读状态与进度；点击阶段只切换本机画布或打开已有协作工作台。`B` 在 Classic / Flow 间切换、`E` 展开 / 收起源码抽屉，⚙ 外观面板、快捷键帮助、命令面板和 `npm run ui:shots` 同步覆盖。新增 `docs/flow-workspace-panel.png` 可复现截图与浏览器回归；浏览器偏好仍只写 localStorage，不改 26 个 MCP 工具、version 1 协议、焦点/视口语义、批准凭据或项目写入闸门。

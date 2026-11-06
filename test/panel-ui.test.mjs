@@ -114,6 +114,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#flowRail", (element) => getComputedStyle(element).display)).toBe("grid");
       expect(await page.$eval("#flowRail", (element) => element.querySelectorAll(".flow-step").length)).toBe(4);
       expect(await page.$eval("#flowRailMeta", (element) => element.textContent)).toMatch(/待审/);
+      expect(await page.$eval("#flowLens", (element) => getComputedStyle(element).display)).toBe("none");
       expect(await page.$eval("#btnRibbonInspector", (element) => element.getAttribute("aria-pressed"))).toBe("false");
       expect(await page.$eval("#workspaceRibbon .sync-meter", (element) => getComputedStyle(element).display)).not.toBe("none");
       await page.waitForFunction(() => document.querySelector("#collabHandoff")?.dataset.actor === "human");
@@ -244,6 +245,11 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
       expect(await page.$eval("#flowRail", (element) => element.dataset.progressLabel)).toMatch(/\/ 4 READY/);
+      expect(await page.$eval("#flowLens", (element) => getComputedStyle(element).display)).toBe("flex");
+      expect(await page.$eval("#flowLensLabel", (element) => element.textContent)).toContain("等待项目结构图");
+      expect(await page.$eval("#flowLensIndex", (element) => element.textContent)).toMatch(/\/ \d+/);
+      await page.click("#btnFlowLensNext");
+      expect(await page.$eval("#flowLensIndex", (element) => element.textContent)).toMatch(/\/ \d+/);
 
       await page.click("#btnAppearance");
       const appearanceOpen = await page.evaluate(() => ({

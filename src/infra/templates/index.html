@@ -907,6 +907,32 @@
       .flow-rail-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
     @media (max-width: 900px) { body.flow-workspace .flow-rail { display: none; } }
+    .flow-lens {
+      position: absolute; left: 50%; top: 14px; z-index: 23; display: none;
+      align-items: center; gap: 7px; max-width: min(460px, 54vw); padding: 6px 8px 6px 6px;
+      border: 1px solid rgba(61,219,217,.42); border-radius: 999px;
+      background: linear-gradient(120deg, rgba(12,25,42,.95), rgba(9,14,25,.93));
+      box-shadow: 0 14px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.06);
+      backdrop-filter: blur(14px); transform: translateX(-50%); color: var(--text);
+    }
+    body.flow-workspace .workspace:not(.welcome) .flow-lens { display: flex; }
+    body.flow-source-open .flow-lens { opacity: 0; pointer-events: none; }
+    .flow-lens-orb { display: grid; place-items: center; width: 23px; height: 23px; flex-shrink: 0; border: 1px solid rgba(61,219,217,.52); border-radius: 50%; background: rgba(61,219,217,.12); color: var(--accent3); font-size: 10px; }
+    .flow-lens-copy { min-width: 0; }
+    .flow-lens-copy strong { display: block; overflow: hidden; max-width: 250px; color: var(--text); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .flow-lens-copy span { display: block; overflow: hidden; margin-top: 1px; max-width: 250px; color: var(--text-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .flow-lens-index { color: var(--accent3); font-size: 8px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .flow-lens button { height: 23px; padding: 0 7px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text-muted); font-size: 8px; cursor: pointer; white-space: nowrap; }
+    .flow-lens button:hover { border-color: var(--accent3); color: var(--accent3); }
+    body.visual-studio .flow-lens { background: rgba(255,255,255,.97); box-shadow: 0 12px 28px rgba(38,54,84,.16); }
+    body.visual-atlas .flow-lens { border-radius: 4px; background: rgba(10,19,21,.97); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    body.visual-atlas .flow-lens-orb, body.visual-atlas .flow-lens button { border-radius: 3px; }
+    body.zen-workspace .flow-lens { display: none !important; }
+    @media (max-width: 900px) {
+      body.flow-workspace .flow-lens { top: 10px; max-width: calc(100vw - 28px); }
+      .flow-lens-copy strong, .flow-lens-copy span { max-width: 140px; }
+      .flow-lens button { display: none; }
+    }
     @media (max-width: 620px) {
       body.flow-workspace .sidebar:not(.collapsed) { width: 72px !important; }
       body.flow-workspace.flow-source-open .workspace[data-view="split"] #editorPane { flex-basis: 45% !important; }
@@ -1995,6 +2021,13 @@
             <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
           </div>
           <div class="canvas-chip">滚轮缩放 · 拖拽平移 · 单击节点聚焦 · 双击重置 · F 适应窗口</div>
+          <div class="flow-lens" id="flowLens" aria-label="Flow 当前画布焦点" data-flow-lens-state="empty">
+            <span class="flow-lens-orb" aria-hidden="true">◎</span>
+            <span class="flow-lens-copy"><strong id="flowLensLabel">等待项目结构图</strong><span id="flowLensPath">点击节点，把「这个对象」作为只读上下文</span></span>
+            <span class="flow-lens-index" id="flowLensIndex">0 / 0</span>
+            <button type="button" id="btnFlowLensPrev" title="上一个节点（[）">←</button>
+            <button type="button" id="btnFlowLensNext" title="下一个节点（]）">→</button>
+          </div>
           <section class="collab-handoff" id="collabHandoff" data-actor="none" aria-label="只读人机交接航线">
             <div class="collab-handoff-track">
               <span class="collab-handoff-actor" data-handoff-actor="human"><span class="collab-handoff-dot" aria-hidden="true"></span><strong>人</strong></span>
@@ -3374,6 +3407,8 @@ for (const button of document.querySelectorAll('[data-layout-system]')) {
 }
 $('#btnFlowSource').addEventListener('click', toggleFlowSource);
 $('#btnFlowCollab').addEventListener('click', openCollab);
+$('#btnFlowLensPrev').addEventListener('click', () => stepCanvasFocus(-1));
+$('#btnFlowLensNext').addEventListener('click', () => stepCanvasFocus(1));
 for (const step of document.querySelectorAll('.flow-step')) {
   step.addEventListener('click', () => openFlowStage(step.dataset.flowStage));
 }
@@ -4614,12 +4649,23 @@ function renderCanvasObject() {
   const current = Math.max(0, nodes.findIndex((node) => node.id === selectedNodeId));
   const node = nodes[current];
   const relatedCount = relatedCanvasNodeIds(node?.id).length;
+  const state = focusConversationState(node?.id);
   $('#canvasObjectIndex').textContent = nodes.length ? `${current + 1} / ${nodes.length}` : '0 / 0';
   $('#canvasObjectLabel').textContent = node?.label || '等待项目结构图';
   $('#canvasObjectPath').textContent = node?.path || '选中节点后作为 AI 的只读上下文';
   $('#canvasRelatedCount').textContent = String(relatedCount);
   $('#canvasFocusRevision').textContent = `rev ${Number.isFinite(collabRevision) ? collabRevision : '—'}`;
   $('#btnCanvasRelatedNode').disabled = !relatedCount;
+  const lens = $('#flowLens');
+  if (lens) {
+    lens.dataset.flowLensState = node ? state.blocked ? 'blocked' : state.open ? 'discussion' : 'focused' : 'empty';
+    $('#flowLensLabel').textContent = node ? `焦点 · ${node.label}` : '等待项目结构图';
+    $('#flowLensPath').textContent = node
+      ? `${node.path || '无候选路径'} · ${relatedCount} 个关联${state.open ? ` · ${state.open} 条开放讨论` : ''}`
+      : '点击节点，把「这个对象」作为只读上下文';
+    $('#flowLensIndex').textContent = nodes.length ? `${current + 1} / ${nodes.length}` : '0 / 0';
+    lens.title = node ? `${node.label} · 只读焦点；不签发凭据、不批准提案、不写项目文件` : 'Flow 只读画布焦点';
+  }
   renderCanvasConversation();
   renderCanvasContextStrip();
   renderInspector();
