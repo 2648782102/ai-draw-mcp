@@ -38,6 +38,7 @@
     "github:sync": "node scripts/github-maintenance.mjs",
     "docs:assets": "node scripts/generate-doc-assets.mjs",
     "docs:assets:check": "node scripts/generate-doc-assets.mjs --check",
+    "ui:shots": "npm run build && node scripts/capture-panel.mjs",
     "repo:check": "node scripts/repo-check.mjs"
   },
   "keywords": [

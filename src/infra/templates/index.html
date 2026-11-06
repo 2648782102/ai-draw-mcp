@@ -185,6 +185,7 @@
       opacity: 0; transform: translateY(-8px); transition: all .25s;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
+    .toast::before { content: '✦'; margin-right: 8px; font-weight: 800; }
 
     /* ── Collaboration workbench ── */
     .status #btnCollaborate, .collab-actions button, .collab-header button {
@@ -197,6 +198,24 @@
       border-color: rgba(122,162,247,.55); font-weight: 700;
     }
     .status #btnCollaborate:hover { transform: translateY(-1px); border-color: var(--accent); }
+    .toolbar button.primary, .collab-actions button.primary {
+      background: linear-gradient(135deg, rgba(122,162,247,.92), rgba(187,154,247,.88));
+      border-color: transparent; color: #08111f; font-weight: 750;
+    }
+    .toolbar button.primary:hover, .collab-actions button.primary:hover {
+      background: linear-gradient(135deg, #8fb2ff, #c7a9ff);
+      border-color: transparent; box-shadow: 0 6px 18px rgba(122,162,247,.24);
+    }
+    .toolbar button.subtle, .collab-actions button.subtle { background: transparent; color: var(--text-muted); }
+    .toolbar button.subtle:hover, .collab-actions button.subtle:hover { color: var(--text); background: rgba(122,162,247,.12); }
+    button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible {
+      outline: 2px solid rgba(122,162,247,.85); outline-offset: 2px;
+    }
+    ::selection { background: rgba(122,162,247,.32); color: #fff; }
+    *::-webkit-scrollbar { width: 9px; height: 9px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: rgba(122,162,247,.25); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+    *::-webkit-scrollbar-thumb:hover { background: rgba(122,162,247,.45); background-clip: content-box; }
     .collab-shell {
       position: fixed; inset: 68px 18px 18px 18px; z-index: 500;
       background: rgba(9, 14, 25, .94); border: 1px solid var(--border); border-radius: 16px;
@@ -204,6 +223,20 @@
       overflow: hidden;
     }
     .collab-shell[hidden] { display: none; }
+    .collab-shell:not([hidden]) { animation: collab-in .22s cubic-bezier(.2,.8,.2,1) both; }
+    .collab-section { animation: section-in .28s ease both; }
+    .collab-section:nth-child(2) { animation-delay: .035s; }
+    .collab-section:nth-child(3) { animation-delay: .07s; }
+    @keyframes collab-in { from { opacity: 0; transform: translateY(8px) scale(.995); } to { opacity: 1; transform: none; } }
+    @keyframes section-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    button.busy { position: relative; color: transparent !important; pointer-events: none; }
+    button.busy::after {
+      content: ''; position: absolute; width: 12px; height: 12px; left: 50%; top: 50%;
+      margin: -6px 0 0 -6px; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    button.copied { border-color: rgba(158,206,106,.65) !important; color: var(--green) !important; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .collab-header {
       height: 58px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
       padding: 0 18px; border-bottom: 1px solid var(--border);
@@ -212,6 +245,27 @@
     .collab-header strong { font-size: 14px; letter-spacing: .01em; }
     .collab-header span { margin-left: 12px; font-size: 11px; color: var(--text-muted); }
     .collab-header button { width: 30px; padding: 0; }
+    .collab-header-actions { display: flex; align-items: center; gap: 8px; }
+    #btnCommandHint { width: auto; white-space: nowrap; }
+    .collab-overview {
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding: 9px 14px;
+      border-bottom: 1px solid var(--border); background: rgba(14,23,39,.72);
+    }
+    .overview-stat {
+      display: flex; align-items: center; gap: 6px; padding: 5px 9px;
+      border: 1px solid var(--border); border-radius: 999px; background: rgba(24,36,58,.72);
+      color: var(--text-muted); font-size: 10px; white-space: nowrap;
+    }
+    .overview-stat strong { color: var(--text); font-size: 10px; }
+    .overview-stat .pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .overview-stat.safety { margin-left: auto; border-color: rgba(240,168,104,.35); color: var(--orange); }
+    .collab-tabs { display: none; gap: 6px; padding: 9px 10px 0; }
+    .collab-tab {
+      flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px 9px 0 0;
+      background: rgba(24,36,58,.62); color: var(--text-muted); font-size: 11px; cursor: pointer;
+    }
+    .collab-tab.active { color: var(--text); border-color: rgba(122,162,247,.55); background: rgba(122,162,247,.14); font-weight: 700; }
+    .collab-tab.active { box-shadow: inset 0 2px 0 var(--accent); }
     .collab-kicker {
       display: inline-flex; align-items: center; gap: 6px; margin: 0 12px; padding: 4px 9px;
       border-radius: 999px; border: 1px solid rgba(122,162,247,.35);
@@ -220,10 +274,26 @@
     .collab-kicker::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
     .collab-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 10px; padding: 10px; background: rgba(9,14,25,.58); }
     .collab-section {
-      min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--border);
+      min-width: 0; min-height: 0; display: flex; flex-direction: column; border: 1px solid var(--border);
       border-radius: var(--radius); padding: 14px; background: var(--glass);
-      box-shadow: 0 8px 24px rgba(0,0,0,.18);
+      box-shadow: 0 8px 24px rgba(0,0,0,.18); overflow-y: auto;
     }
+    .collab-section > .section-scroll { flex: 1 1 auto; min-height: 0; }
+    .collab-section > .section-dock {
+      position: sticky; bottom: -14px; margin: 10px -14px -14px; padding: 10px 14px 14px;
+      border-top: 1px solid var(--border); background: linear-gradient(180deg, rgba(17,26,44,.72), rgba(17,26,44,.96));
+      backdrop-filter: blur(10px);
+    }
+    .collab-section > .section-dock .collab-actions { margin: 0; }
+    .dock-label { display: flex; align-items: center; justify-content: space-between; margin: 0 0 7px; color: var(--text-muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+    .dock-secondary { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .22s ease, opacity .22s ease, margin .22s ease; }
+    .dock-secondary.open { max-height: 150px; opacity: 1; margin-top: 6px; }
+    .dock-toggle { background: transparent; border-color: transparent; color: var(--text-muted); }
+    .input-row { position: relative; }
+    .input-row textarea { padding-bottom: 22px; }
+    .input-count { position: absolute; right: 9px; bottom: 7px; color: var(--text-muted); font-size: 9px; pointer-events: none; }
+    .safety-note { margin-top: 10px; padding: 10px; border: 1px solid rgba(240,168,104,.28); border-radius: 9px; background: rgba(240,168,104,.06); color: var(--text-muted); font-size: 10px; line-height: 1.55; }
+    .safety-note strong { display: block; color: var(--orange); margin-bottom: 4px; }
     .collab-section:last-child { border-right: 0; }
     .collab-section h3 {
       display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 0 0 10px;
@@ -255,6 +325,23 @@
     .empty-state-icon { font-size: 24px; opacity: .85; }
     .empty-state strong { color: var(--text); font-size: 12px; }
     .empty-state p { font-size: 10px; line-height: 1.6; max-width: 240px; }
+    .signal-drawer {
+      border: 1px solid var(--border); border-radius: 10px; background: rgba(14,23,39,.72);
+      margin: 0 0 8px; overflow: hidden;
+    }
+    .signal-drawer > summary {
+      list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 11px; color: var(--text); font-size: 11px; font-weight: 650;
+    }
+    .signal-drawer > summary::-webkit-details-marker { display: none; }
+    .signal-drawer > summary::after { content: '＋'; color: var(--accent); font-size: 13px; }
+    .signal-drawer[open] > summary::after { content: '−'; }
+    .signal-drawer > summary:hover { background: rgba(122,162,247,.07); }
+    .signal-drawer .drawer-body { padding: 0 10px 10px; }
+    .signal-drawer .diagnostics-list { margin-bottom: 6px; }
+    .shortcut-hint { color: var(--text-muted); font-size: 10px; opacity: .82; }
+    .collab-backdrop { position: absolute; inset: 0; z-index: 1001; pointer-events: none; }
+    .collab-shell { z-index: 1002; }
     .graph-row {
       display: grid; grid-template-columns: 34px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 5px;
       border-bottom: 1px solid var(--border); align-items: center;
@@ -355,7 +442,24 @@
     .collab-section textarea:focus, .collab-section > input:focus { outline: none; border-color: rgba(122,162,247,.65); box-shadow: 0 0 0 3px rgba(122,162,247,.10); }
     .collab-section textarea { height: 64px; resize: none; }
     .collab-section > input { margin-bottom: 6px; }
-    @media (max-width: 900px) { .collab-body { grid-template-columns: 1fr; overflow: auto; } .collab-section { min-height: 300px; } .header { padding: 0 10px; } .brand-wrap { min-width: 0; } .brand-sub { display: none; } }
+    @media (max-width: 900px) {
+      .collab-overview { overflow-x: auto; }
+      .overview-stat.safety { margin-left: 0; }
+      .collab-tabs { display: flex; }
+      .collab-body { grid-template-columns: 1fr; overflow: hidden; }
+      .collab-section { display: none; min-height: 0; }
+      .collab-shell[data-tab="graph"] .collab-section:nth-child(1),
+      .collab-shell[data-tab="dialog"] .collab-section:nth-child(2),
+      .collab-shell[data-tab="proposals"] .collab-section:nth-child(3) { display: flex; }
+      .header { padding: 0 10px; }
+      .brand-wrap { min-width: 0; }
+      .brand-sub, .collab-kicker, .shortcut-hint { display: none; }
+      .toolbar { gap: 2px; }
+      .toolbar #btnExportSvg, .toolbar #btnExportPng, .toolbar #btnCopyId, .toolbar #btnDeleteDiagram { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
 
     /* toggle sidebar */
     .sidebar.collapsed { width: 0; overflow: hidden; border: none; box-shadow: none; }
@@ -378,15 +482,15 @@
       <option value="forest">Forest</option>
       <option value="neutral">Neutral</option>
     </select>
-    <button id="btnRender">▶ Render</button>
-    <button id="btnExportSvg">↓ SVG</button>
-    <button id="btnExportPng">↓ PNG</button>
+    <button id="btnRender" class="primary">▶ Render</button>
+    <button id="btnExportSvg" class="subtle">↓ SVG</button>
+    <button id="btnExportPng" class="subtle">↓ PNG</button>
     <button id="btnCopyId" type="button" title="复制当前图 ID">📋 ID</button>
     <button id="btnDeleteDiagram" type="button" title="从本机删除当前图">🗑 删当前</button>
     <button class="btn-icon" id="btnDarkBg" title="Toggle preview background">◐</button>
   </div>
   <div class="status">
-    <button id="btnCollaborate" title="打开双向协作工作台">💬 协作</button>
+    <button id="btnCollaborate" title="打开双向协作工作台（C）">💬 协作</button>
     <span class="dot" id="wsStatus"></span>
     <span id="wsLabel">Connecting...</span>
   </div>
@@ -442,18 +546,36 @@
 
 <div class="toast" id="toast"></div>
 
-<div class="collab-shell" id="collabShell" hidden>
+<div class="collab-shell" id="collabShell" data-tab="graph" hidden>
   <div class="collab-header">
     <div>
       <strong>双向协作工作台</strong>
       <span class="collab-kicker">LOCAL · READ-ONLY UNTIL APPROVAL</span>
       <span id="collabMeta">等待同步…</span>
+      <span class="shortcut-hint">Esc 关闭 · C 打开</span>
     </div>
-    <button id="btnCloseCollab" title="关闭">✕</button>
+    <div class="collab-header-actions">
+      <button id="btnCommandHint" class="shortcut-hint" title="快捷键：C 打开协作，Esc 关闭，F 适应窗口，0 重置缩放">⌘ 快捷键</button>
+      <button id="btnCloseCollab" title="关闭（Esc）">✕</button>
+    </div>
+  </div>
+  <div class="collab-overview">
+    <span class="overview-stat"><span class="pulse"></span><strong>Live</strong> 本地连接</span>
+    <span class="overview-stat">工具 <strong>26</strong></span>
+    <span class="overview-stat">图修订 <strong id="overviewRevision">—</strong></span>
+    <span class="overview-stat">选择 <strong id="overviewSelection">0 / 24</strong></span>
+    <span class="overview-stat">活动 <strong id="overviewActivity">0</strong></span>
+    <span class="overview-stat safety">🔒 批准前只读</span>
+  </div>
+  <div class="collab-tabs" role="tablist" aria-label="协作工作区">
+    <button class="collab-tab active" type="button" data-tab-target="graph" role="tab">◇ 项目图</button>
+    <button class="collab-tab" type="button" data-tab-target="dialog" role="tab">↔ 对话</button>
+    <button class="collab-tab" type="button" data-tab-target="proposals" role="tab">✓ 提案</button>
   </div>
   <div class="collab-body">
     <section class="collab-section">
       <h3><span class="section-icon" aria-hidden="true">◇</span>项目图 · 节点编辑</h3>
+      <div class="section-scroll">
       <p class="collab-help">可编辑节点名称/类型/路径/分组与连线起点/终点/说明/类型；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
       <p class="activity-summary" id="rescanSummary">重新同步 · 按路径保留人工坐标、标签、批注与焦点；只读扫描项目文件</p>
       <p class="activity-summary" id="focusSummary">当前焦点 · 未选中节点</p>
@@ -473,58 +595,86 @@
         <div class="edge-row-header"><span>起点</span><span>终点</span><span>说明</span><span>类型</span><span></span></div>
         <div id="edgeEditor" class="graph-editor" style="flex: none; min-height: 60px; max-height: 160px;"></div>
       </div>
+      </div>
+      <div class="section-dock">
+      <div class="dock-label"><span>常用操作</span><button id="btnGraphMore" class="dock-toggle" type="button">更多 ⌄</button></div>
       <div class="collab-actions">
         <button id="btnAddNode">＋ 节点</button>
         <button id="btnAddEdge">＋ 连线</button>
         <button id="btnUndoGraph" disabled title="撤销上一次图形保存；不写项目文件">↶ 撤销</button>
         <button id="btnRedoGraph" disabled title="重做已撤销的图形状态；不写项目文件">↷ 重做</button>
-        <button id="btnSaveGraph">保存图形</button>
+        <button id="btnSaveGraph" class="primary">保存图形</button>
+        <button id="btnRescan" class="primary" title="只读扫描工作区并保留人工视觉状态">重新扫描项目</button>
+      </div>
+      <div class="collab-actions dock-secondary" id="graphMoreActions">
         <button id="btnExportSession">导出会话</button>
         <button id="btnImportSession">导入会话</button>
-        <button id="btnRescan" title="只读扫描工作区并保留人工视觉状态">重新扫描项目</button>
         <button id="btnClearSelection" title="清空多选范围；不写项目文件">清空选择范围</button>
         <button id="btnCopySelectionScope" title="复制只读 SELECTION_SCOPE_JSON；不签发凭据">复制选择范围</button>
         <button id="btnCopySelectionWorkorder" title="复制只读 SELECTION_WORKORDER_JSON 预提案工作单；不签发凭据">复制预提案工作单</button>
       </div>
+      </div>
     </section>
     <section class="collab-section">
       <h3><span class="section-icon" aria-hidden="true">↔</span>对话与批注</h3>
-      <p class="activity-summary" id="sharedBriefSummary">共享简报 · 加载中；只读交接视图不含批准凭据</p>
-      <div class="diagnostics-list" id="sharedBriefList"></div>
-      <p class="activity-summary" id="decisionTrailSummary">决策链 · 加载中；只读轨迹聚合意图、图修订与提案，不含确认号</p>
-      <div class="diagnostics-list" id="decisionTrailList"></div>
-      <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
-      <p class="activity-summary" id="diagnosticsSummary">会话诊断加载中…</p>
-      <div class="diagnostics-list" id="diagnosticsList"></div>
-      <p class="activity-summary" id="reviewReadinessSummary">审阅就绪 · 加载中；只聚合 BRIEF_JSON 阻塞与 DECISION_TRAIL_JSON 证据缺口</p>
-      <div class="diagnostics-list" id="reviewReadinessList"></div>
-      <p class="activity-summary" id="capabilitiesSummary">能力清单 · 加载中；只读列出 MCP 工具、JSON 契约与唯一项目写入边界</p>
-      <div class="diagnostics-list" id="capabilitiesList"></div>
-      <p class="activity-summary" id="selectionScopeSummary">选择范围上下文 · 加载中；只投影多选节点、内部连线与安全 file:line 证据</p>
-      <div class="diagnostics-list" id="selectionScopeList"></div>
-      <p class="activity-summary" id="selectionWorkorderSummary">预提案工作单 · 加载中；只汇总多选范围、安全候选路径、意图与缺口，不含文件内容</p>
-      <div class="diagnostics-list" id="selectionWorkorderList"></div>
+      <div class="section-scroll">
+      <details class="signal-drawer" open>
+        <summary>关键上下文</summary>
+        <div class="drawer-body">
+          <p class="activity-summary" id="diagnosticsSummary">会话诊断加载中…</p>
+          <div class="diagnostics-list" id="diagnosticsList"></div>
+          <p class="activity-summary" id="reviewReadinessSummary">审阅就绪 · 加载中；只聚合 BRIEF_JSON 阻塞与 DECISION_TRAIL_JSON 证据缺口</p>
+          <div class="diagnostics-list" id="reviewReadinessList"></div>
+          <p class="activity-summary" id="selectionWorkorderSummary">预提案工作单 · 加载中；只汇总多选范围、安全候选路径、意图与缺口，不含文件内容</p>
+          <div class="diagnostics-list" id="selectionWorkorderList"></div>
+        </div>
+      </details>
+      <details class="signal-drawer">
+        <summary>更多只读上下文</summary>
+        <div class="drawer-body">
+          <p class="activity-summary" id="sharedBriefSummary">共享简报 · 加载中；只读交接视图不含批准凭据</p>
+          <div class="diagnostics-list" id="sharedBriefList"></div>
+          <p class="activity-summary" id="decisionTrailSummary">决策链 · 加载中；只读轨迹聚合意图、图修订与提案，不含确认号</p>
+          <div class="diagnostics-list" id="decisionTrailList"></div>
+          <p class="activity-summary" id="capabilitiesSummary">能力清单 · 加载中；只读列出 MCP 工具、JSON 契约与唯一项目写入边界</p>
+          <div class="diagnostics-list" id="capabilitiesList"></div>
+          <p class="activity-summary" id="selectionScopeSummary">选择范围上下文 · 加载中；只投影多选节点、内部连线与安全 file:line 证据</p>
+          <div class="diagnostics-list" id="selectionScopeList"></div>
+          <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
+        </div>
+      </details>
       <p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p>
       <div class="chat-log graph-diff-list" id="graphDiffList"></div>
       <div class="chat-log activity-list" id="activityList"></div>
       <div class="chat-log" id="chatLog"></div>
       <div class="chat-log" id="annotationList"></div>
-      <textarea id="messageInput" placeholder="告诉 AI 你想怎样修改项目…"></textarea>
+      </div>
+      <div class="section-dock">
+      <div class="dock-label"><span>发消息给 AI · ⌘/Ctrl + Enter</span><span id="messageCount">0 / 2000</span></div>
+      <div class="input-row">
+        <textarea id="messageInput" maxlength="2000" placeholder="告诉 AI 你想怎样修改项目…"></textarea>
+        <span class="input-count" id="messageInputCount">0 / 2000</span>
+      </div>
       <div class="collab-actions">
-        <button id="btnSendMessage">发送消息</button>
+        <button id="btnSendMessage" class="primary">发送消息</button>
         <button id="btnAddAnnotation">添加图形批注</button>
-        <button id="btnCopyAiContext" title="复制只读提示，不写入会话、不签发凭据">复制给 AI 的上下文</button>
-        <button id="btnCopySharedBrief" title="复制紧凑只读 BRIEF_JSON，不写入会话、不签发凭据">复制共享简报</button>
-        <button id="btnCopyDecisionTrail" title="复制只读 DECISION_TRAIL_JSON，不写入会话、不签发凭据">复制决策链</button>
-        <button id="btnCopySourceNavigation" title="复制只读相对 file:line 跳转清单，不打开文件或签发凭据">复制源码跳转</button>
-        <button id="btnCopyCapabilities" title="复制只读 CAPABILITIES_JSON，不调用工具、不写入会话、不签发凭据">复制能力清单</button>
+        <button id="btnCopyAiContext" class="subtle" title="复制只读提示，不写入会话、不签发凭据">复制给 AI 的上下文</button>
+        <button id="btnCopySharedBrief" class="subtle" title="复制紧凑只读 BRIEF_JSON，不写入会话、不签发凭据">复制共享简报</button>
+      </div>
+      <div class="collab-actions dock-secondary" id="dialogMoreActions">
+        <button id="btnCopyDecisionTrail" class="subtle" title="复制只读 DECISION_TRAIL_JSON，不写入会话、不签发凭据">复制决策链</button>
+        <button id="btnCopySourceNavigation" class="subtle" title="复制只读相对 file:line 跳转清单，不打开文件或签发凭据">复制源码跳转</button>
+        <button id="btnCopyCapabilities" class="subtle" title="复制只读 CAPABILITIES_JSON，不调用工具、不写入会话、不签发凭据">复制能力清单</button>
+        <button id="btnDialogMore" class="dock-toggle" type="button">更多 ⌄</button>
       </div>
       <input id="annotationInput" placeholder="批注内容；先选中左侧节点即可绑定" />
+      </div>
     </section>
     <section class="collab-section">
       <h3><span class="section-icon" aria-hidden="true">✓</span>变更提案 · 人工确认</h3>
       <p class="collab-help">AI 生成提案后，先查看逐行差异；你点击“批准”并把一次性确认号发给 AI，项目文件才会改变。</p>
       <div class="proposal-list" id="proposalList"></div>
+      <div class="safety-note"><strong>写入闸门</strong>批准只签发一次性凭据；AI 仍需调用 apply_visual_proposal。面板不会自动写项目文件。</div>
     </section>
   </div>
   <input id="bundleFileInput" type="file" accept="application/json,.json" hidden />
@@ -703,6 +853,18 @@ $('#btnZoomReset').addEventListener('click', () => resetView());
 
 // Keyboard: F=fit, 0=reset, +/- zoom
 window.addEventListener('keydown', (e) => {
+  const collabShell = $('#collabShell');
+  const typing = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+  if (e.key === 'Escape' && collabShell && !collabShell.hidden) {
+    e.preventDefault();
+    collabShell.hidden = true;
+    return;
+  }
+  if (!typing && (e.key === 'c' || e.key === 'C') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    openCollab();
+    return;
+  }
   if (document.activeElement === $('#codeEditor')) return;
   if (e.key === 'f' || e.key === 'F') fitView();
   if (e.key === '0') resetView();
@@ -1045,6 +1207,26 @@ function showToast(msg, duration = 2500) {
   setTimeout(() => t.classList.remove('show'), duration);
 }
 
+function flashButton(button, className = 'copied') {
+  if (!button) return;
+  button.classList.add(className);
+  window.setTimeout(() => button.classList.remove(className), 1100);
+}
+
+async function withBusyButton(button, task) {
+  if (!button) return task();
+  const label = button.textContent;
+  button.classList.add('busy');
+  button.setAttribute('aria-busy', 'true');
+  try {
+    return await task();
+  } finally {
+    button.classList.remove('busy');
+    button.removeAttribute('aria-busy');
+    button.textContent = label;
+  }
+}
+
 // ── Diagram list ──
 async function loadList() {
   try {
@@ -1283,6 +1465,16 @@ function renderSelectionSummary() {
     ? `选择范围 · ${selectedNodeIds.length}/24 个节点${labels.length ? `：${labels.join('、')}${selectedNodeIds.length > labels.length ? ` 等 ${selectedNodeIds.length} 个` : ''}` : ''} · 只读上下文，不授权写入`
     : '选择范围 · 未多选节点；复选框可把「这几个模块」作为只读范围告诉 AI';
   target.title = '多选范围最多 24 个节点；保存图形、导入会话或节点删除后会自动清除失锚 ID。它不签发批准凭据，也不写项目文件。';
+  updateOverview();
+}
+
+function updateOverview() {
+  const revision = $('#overviewRevision');
+  const selection = $('#overviewSelection');
+  const activity = $('#overviewActivity');
+  if (revision) revision.textContent = Number.isFinite(collabRevision) ? String(collabRevision) : '—';
+  if (selection) selection.textContent = `${selectedNodeIds.length} / 24`;
+  if (activity) activity.textContent = String((collabGraph?.annotations?.length || 0) + (collabGraph?.messages?.length || 0));
 }
 
 function localId(prefix) {
@@ -1957,6 +2149,7 @@ async function loadCollab() {
     collabSessionId = session.id;
     collabWorkspaceRoot = session.workspaceRoot;
     $('#collabMeta').textContent = `session ${session.id} · revision ${session.graphRevision} · ${session.workspaceRoot}`;
+    updateOverview();
     collabViewport = session.viewport || null;
     selectedNodeIds = Array.isArray(session.selection?.nodeIds) ? session.selection.nodeIds.slice(0, 24) : [];
     renderViewport(collabViewport);
@@ -1968,6 +2161,9 @@ async function loadCollab() {
     renderProposals(proposals.proposals || []);
     const activity = await collabFetch('/api/collab/activity?limit=30');
     renderActivity(activity.timeline);
+    const activityCount = activity.timeline?.total ?? activity.timeline?.returned ?? 0;
+    const overviewActivity = $('#overviewActivity');
+    if (overviewActivity) overviewActivity.textContent = String(activityCount);
     const diagnostics = await collabFetch('/api/collab/diagnostics');
     collabDiagnostics = diagnostics.diagnostics;
     renderDiagnostics(diagnostics.diagnostics);
@@ -2207,7 +2403,8 @@ async function rescanProject() {
   const button = $('#btnRescan');
   if (button.disabled) return;
   button.disabled = true;
-  button.textContent = '扫描中…';
+  button.classList.add('busy');
+  button.setAttribute('aria-busy', 'true');
   try {
     const result = await collabFetch('/api/collab/rescan', {
       method: 'POST',
@@ -2221,6 +2418,8 @@ async function rescanProject() {
     showToast(`重新同步失败：${error.message}`);
   } finally {
     button.disabled = false;
+    button.classList.remove('busy');
+    button.removeAttribute('aria-busy');
     button.textContent = '重新扫描项目';
   }
 }
@@ -2313,18 +2512,61 @@ async function importSession(event) {
   }
 }
 
-$('#btnCollaborate').addEventListener('click', () => {
+function openCollab() {
   $('#collabShell').hidden = false;
   loadCollab();
+}
+$('#btnCollaborate').addEventListener('click', openCollab);
+for (const tab of document.querySelectorAll('.collab-tab')) {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.tabTarget;
+    $('#collabShell').dataset.tab = target;
+    for (const other of document.querySelectorAll('.collab-tab')) {
+      other.classList.toggle('active', other === tab);
+    }
+  });
+}
+$('#btnCommandHint').addEventListener('click', () => {
+  showToast('快捷键：C 打开协作 · Esc 关闭 · F 适应窗口 · 0 重置缩放 · ⌘/Ctrl+Enter 渲染或发送', 4200);
 });
+$('#btnGraphMore').addEventListener('click', (event) => {
+  const group = $('#graphMoreActions');
+  group.classList.toggle('open');
+  event.currentTarget.textContent = group.classList.contains('open') ? '收起 ⌃' : '更多 ⌄';
+});
+$('#btnDialogMore').addEventListener('click', (event) => {
+  const group = $('#dialogMoreActions');
+  group.classList.toggle('open');
+  event.currentTarget.textContent = group.classList.contains('open') ? '收起 ⌃' : '更多 ⌄';
+});
+const messageInput = $('#messageInput');
+const updateMessageCount = () => {
+  const count = messageInput.value.length;
+  const label = `${count} / 2000`;
+  $('#messageCount').textContent = label;
+  $('#messageInputCount').textContent = label;
+};
+messageInput.addEventListener('input', updateMessageCount);
 $('#btnCloseCollab').addEventListener('click', () => { $('#collabShell').hidden = true; });
 $('#btnSaveGraph').addEventListener('click', saveGraph);
 $('#btnUndoGraph').addEventListener('click', () => restoreGraphHistory('undo'));
 $('#btnRedoGraph').addEventListener('click', () => restoreGraphHistory('redo'));
 $('#btnRescan').addEventListener('click', rescanProject);
 $('#btnClearSelection').addEventListener('click', clearSelection);
-$('#btnCopySelectionScope').addEventListener('click', copySelectionScope);
-$('#btnCopySelectionWorkorder').addEventListener('click', copySelectionWorkorder);
+for (const [selector, handler] of [
+  ['#btnCopySelectionScope', copySelectionScope],
+  ['#btnCopySelectionWorkorder', copySelectionWorkorder],
+  ['#btnCopyAiContext', copyAiContext],
+  ['#btnCopySharedBrief', copySharedBrief],
+  ['#btnCopyDecisionTrail', copyDecisionTrail],
+  ['#btnCopySourceNavigation', copySourceNavigation],
+  ['#btnCopyCapabilities', copyCapabilities],
+]) {
+  $(selector).addEventListener('click', async (event) => {
+    await handler();
+    flashButton(event.currentTarget);
+  });
+}
 $('#btnAddNode').addEventListener('click', addNode);
 $('#btnAddEdge').addEventListener('click', addEdge);
 $('#btnExportSession').addEventListener('click', exportSession);
@@ -2335,11 +2577,6 @@ $('#messageInput').addEventListener('keydown', (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') sendMessage();
 });
 $('#btnAddAnnotation').addEventListener('click', addAnnotation);
-$('#btnCopyAiContext').addEventListener('click', copyAiContext);
-$('#btnCopySharedBrief').addEventListener('click', copySharedBrief);
-$('#btnCopyDecisionTrail').addEventListener('click', copyDecisionTrail);
-$('#btnCopySourceNavigation').addEventListener('click', copySourceNavigation);
-$('#btnCopyCapabilities').addEventListener('click', copyCapabilities);
 
 // ── Init ──
 loadList();

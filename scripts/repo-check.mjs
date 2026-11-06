@@ -54,6 +54,8 @@ const docAssetGenerator = await read("scripts/generate-doc-assets.mjs");
 const governance = await read("docs/GOVERNANCE.md");
 const goalMode = await read("docs/GOAL_MODE.md");
 const collaborationTest = await read("test/collab.integration.test.mjs");
+const panelUiTest = await read("test/panel-ui.test.mjs");
+const capturePanelScript = await read("scripts/capture-panel.mjs");
 const adrIndex = await read("docs/ADR/README.md");
 const releasing = await read("RELEASING.md");
 const changeTemplateDomain = await read("src/domain/change-templates.ts");
@@ -682,6 +684,24 @@ for (const [label, file, needle] of [
   ["collaboration safety kicker", panel, "LOCAL · READ-ONLY UNTIL APPROVAL"],
   ["collaboration section icons", panel, "section-icon"],
   ["proposal empty state", panel, "empty-state"],
+  ["collaboration overview strip", panel, "collab-overview"],
+  ["collaboration responsive tabs", panel, "collab-tabs"],
+  ["section scroll regions", panel, "section-scroll"],
+  ["sticky action docks", panel, "section-dock"],
+  ["collapsible signal drawers", panel, "signal-drawer"],
+  ["keyboard shortcut hint", panel, "btnCommandHint"],
+  ["button busy feedback", panel, "button.busy"],
+  ["copy success feedback", panel, "flashButton"],
+  ["reduced motion support", panel, "prefers-reduced-motion"],
+  ["keyboard collaboration shortcut", panel, "openCollab()"],
+  ["dense action grouping", panel, "dock-secondary"],
+  ["message input counter", panel, "messageInputCount"],
+  ["proposal safety note", panel, "safety-note"],
+  ["panel UI browser regression", panelUiTest, "collaboration panel UI"],
+  ["panel UI action grouping regression", panelUiTest, "btnGraphMore"],
+  ["panel UI message counter regression", panelUiTest, "messageCount"],
+  ["reproducible screenshot command", JSON.stringify(packageJson), "ui:shots"],
+  ["screenshot capture helper", capturePanelScript, "Captured docs/preview-panel.png"],
   ["README links refreshed preview screenshot", readme, "新版预览面板"],
   ["README links collaboration panel screenshot", readme, "collaboration-workbench-panel.png"],
   ["workorder freshness pure test", selectionWorkorderTest, "status: \"stale\""],
