@@ -143,6 +143,7 @@ try {
     const ring = document.querySelector("#canvasFocusRing");
     const halo = document.querySelector("#canvasFocusHalo");
     const badge = document.querySelector("#canvasFocusLabel");
+    const ripple = document.querySelector("#canvasFocusRipple");
     const focusLabel = document.querySelector("#canvasObjectLabel").textContent.trim();
     const ringId = ring.dataset.focusNodeId;
     const focusNode = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")]
@@ -153,8 +154,10 @@ try {
       && (ringText === focusLabel || ringText === `📁 ${focusLabel}`)
       && halo.dataset.visible === "true"
       && badge.dataset.visible === "true"
+      && ripple.dataset.triggeredBy === ringId
       && badge.textContent.includes(focusLabel);
   }, { timeout: 5000 });
+  await page.waitForFunction(() => document.querySelector("#canvasFocusRipple").dataset.active === "false", { timeout: 5000 });
   await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
   await page.click("#btnCanvasHelp");
   await page.waitForFunction(() => !document.querySelector("#shortcutBackdrop").hidden);

@@ -153,13 +153,20 @@
     .preview-wrap {
       flex: 1; overflow: hidden; position: relative;
       background-color: #ffffff;
-      background-image: radial-gradient(rgba(99, 132, 191, .16) .8px, transparent .8px);
-      background-size: 22px 22px;
+      background-image: linear-gradient(115deg, rgba(122,162,247,.07), transparent 36%, transparent 64%, rgba(187,154,247,.08)),
+                        radial-gradient(rgba(99, 132, 191, .16) .8px, transparent .8px);
+      background-size: auto, 22px 22px;
     }
     .preview-wrap.dark-bg {
       background-color: #0b1220;
-      background-image: radial-gradient(circle at 50% 30%, #15243d, #0b1220),
+      background-image: linear-gradient(115deg, rgba(122,162,247,.12), transparent 36%, transparent 64%, rgba(187,154,247,.11)),
+                        radial-gradient(circle at 50% 30%, #15243d, #0b1220),
                         radial-gradient(rgba(122, 162, 247, .14) .8px, transparent .8px);
+      background-size: auto, auto, 22px 22px;
+    }
+    body.theme-light .preview-wrap {
+      background-image: linear-gradient(115deg, rgba(122,162,247,.05), transparent 36%, transparent 64%, rgba(187,154,247,.06)),
+                        radial-gradient(rgba(99, 132, 191, .13) .8px, transparent .8px);
       background-size: auto, 22px 22px;
     }
     .welcome-card {
@@ -402,7 +409,7 @@
     .canvas-focus-ring {
       position: absolute; z-index: 18; display: none; pointer-events: none;
       border: 1.5px solid var(--accent2); border-radius: 12px;
-      box-shadow: 0 0 0 4px rgba(187,154,247,.12), 0 0 24px rgba(122,162,247,.24);
+      box-shadow: 0 0 0 5px rgba(187,154,247,.14), 0 0 26px rgba(122,162,247,.28);
     }
     .canvas-focus-ring::before {
       content: ''; position: absolute; inset: -7px; border: 1px dashed rgba(187,154,247,.62); border-radius: 16px;
@@ -414,7 +421,7 @@
       position: absolute; z-index: 17; display: none; pointer-events: none;
       border: 1px solid rgba(187,154,247,.16); border-radius: 18px;
       box-shadow: inset 0 0 0 1px rgba(187,154,247,.08), 0 0 0 9999px rgba(5,10,20,.10);
-      background: radial-gradient(circle at center, rgba(187,154,247,.09), rgba(187,154,247,.02) 70%, transparent);
+      background: rgba(187,154,247,.035);
       transition: opacity .18s ease; opacity: 0;
     }
     .canvas-focus-halo[data-visible="true"] { display: block; opacity: 1; }
@@ -429,6 +436,15 @@
     .canvas-focus-label::before { content: '◎'; margin-right: 5px; color: var(--accent2); }
     .canvas-focus-label[data-visible="true"] { display: block; }
     body.theme-light .canvas-focus-label { background: rgba(255,255,255,.95); color: #43346c; }
+    .canvas-focus-ripple {
+      position: absolute; z-index: 19; display: none; pointer-events: none;
+      border: 2px solid rgba(187,154,247,.72); border-radius: 14px;
+      box-shadow: 0 0 20px rgba(122,162,247,.32); transform-origin: center;
+    }
+    .canvas-focus-ripple[data-active="true"] { display: block; animation: focus-ripple .5s ease-out forwards; }
+    @keyframes focus-ripple { from { opacity: .85; transform: scale(.92); } to { opacity: 0; transform: scale(1.24); } }
+    #diagramRender { transition: transform .14s cubic-bezier(.2,.7,.2,1); }
+    #diagramRender.instant-transform { transition: none; }
     @keyframes focus-ring-pulse { 0% { opacity: .7; transform: scale(.98); } 100% { opacity: 0; transform: scale(1.06); } }
     .canvas-object-card {
       position: absolute; right: 14px; top: 64px; z-index: 22; width: 260px; display: none;
@@ -1142,6 +1158,7 @@
           <div id="panOverlay"></div>
           <div class="canvas-focus-halo" id="canvasFocusHalo" data-visible="false" aria-hidden="true"></div>
           <div class="canvas-focus-ring" id="canvasFocusRing" data-focus-node-id="" aria-hidden="true"></div>
+          <div class="canvas-focus-ripple" id="canvasFocusRipple" data-active="false" data-triggered-by="" aria-hidden="true"></div>
           <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" aria-hidden="true"></div>
           <div class="welcome-card" id="welcomeCard">
             <div class="welcome-main">
@@ -1599,7 +1616,14 @@ function scheduleViewportSync() {
 }
 
 function applyTransform() {
-  $('#diagramRender').style.transform = `translate(${zX}px,${zY}px) scale(${zScale})`;
+  const render = $('#diagramRender');
+  const animate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (animate) render.classList.add('instant-transform');
+  render.style.transform = `translate(${zX}px,${zY}px) scale(${zScale})`;
+  if (animate) {
+    render.getBoundingClientRect();
+    requestAnimationFrame(() => render.classList.remove('instant-transform'));
+  }
   const zoomLabel = `${Math.round(zScale * 100)}%`;
   $('#zoomLabel').textContent = zoomLabel;
   $('#canvasZoomLabel').textContent = zoomLabel;
@@ -2905,11 +2929,30 @@ function renderFocus(focus = null) {
 
 function setCanvasFocusNode(nodeId, publish = true) {
   if (!nodeId || !collabGraph?.nodes.some((node) => node.id === nodeId)) return;
+  const previousNodeId = selectedNodeId;
   selectedNodeId = nodeId;
   renderGraphEditor();
   renderFocus();
   renderCanvasObject();
+  if (previousNodeId !== nodeId && $('#workspace').dataset.view === 'canvas') playFocusRipple();
   if (publish) publishFocus(nodeId);
+}
+
+function playFocusRipple() {
+  const ripple = $('#canvasFocusRipple');
+  const ring = $('#canvasFocusRing');
+  if (!ripple || !ring) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  ripple.dataset.triggeredBy = selectedNodeId || '';
+  if (ring.style.display !== 'block') return;
+  ripple.style.left = ring.style.left;
+  ripple.style.top = ring.style.top;
+  ripple.style.width = ring.style.width;
+  ripple.style.height = ring.style.height;
+  ripple.dataset.active = 'false';
+  ripple.getBoundingClientRect();
+  ripple.dataset.active = 'true';
+  window.setTimeout(() => { ripple.dataset.active = 'false'; }, 520);
 }
 
 function stepCanvasFocus(direction) {

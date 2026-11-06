@@ -102,6 +102,7 @@ describe("canvas focus interaction", () => {
         const ring = document.querySelector("#canvasFocusRing");
         const halo = document.querySelector("#canvasFocusHalo");
         const badge = document.querySelector("#canvasFocusLabel");
+        const ripple = document.querySelector("#canvasFocusRipple");
         const group = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")]
           .find((element) => ring.dataset.focusNodeId && element.id.includes(ring.dataset.focusNodeId));
         const shape = group?.querySelector("rect.basic.label-container, rect, polygon, path, ellipse, circle");
@@ -113,6 +114,7 @@ describe("canvas focus interaction", () => {
           halo: halo.dataset.visible,
           badge: badge.dataset.visible,
           badgeText: badge.textContent,
+          rippleTriggeredBy: ripple.dataset.triggeredBy,
           ringId: ring.dataset.focusNodeId,
           aligned: Boolean(shapeRect) && Math.abs(ringRect.left - (shapeRect.left - 5)) < 2 && Math.abs(ringRect.top - (shapeRect.top - 5)) < 2,
         };
@@ -123,6 +125,7 @@ describe("canvas focus interaction", () => {
       expect(focus.badge).toBe("true");
       expect(focus.badgeText).toContain(focus.label);
       expect(focus.aligned).toBe(true);
+      expect(focus.rippleTriggeredBy).toBe(focus.ringId);
 
       const beforeDrag = await page.$eval("#canvasObjectLabel", (element) => element.textContent);
       await page.mouse.move(target.x, target.y);
