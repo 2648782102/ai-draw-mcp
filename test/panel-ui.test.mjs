@@ -124,12 +124,31 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("1");
       expect(await page.$eval("#workspace", (element) => element.dataset.view)).toBe("split");
 
-      await page.click("#btnToggleTheme");
+      await page.click("#btnAppearance");
+      const appearanceOpen = await page.evaluate(() => ({
+        visible: !document.querySelector("#appearancePopover").hidden,
+        expanded: document.querySelector("#btnAppearance").getAttribute("aria-expanded"),
+        groups: document.querySelectorAll(".appearance-group").length,
+        shortcuts: document.querySelectorAll(".appearance-shortcuts kbd").length,
+        activeTheme: document.querySelector('[data-ui-theme].active')?.dataset.uiTheme,
+      }));
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 4, activeTheme: "dark" });
+      await page.click('[data-ui-theme="light"]');
       expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
-      await page.click("#btnToggleDensity");
+      await page.click('[data-density="compact"]');
       expect(await page.$eval("body", (element) => element.classList.contains("density-compact"))).toBe(true);
-      await page.click("#btnToggleTheme");
-      await page.click("#btnToggleDensity");
+      await page.click('[data-preview-bg="dark"]');
+      expect(await page.$eval("#previewWrap", (element) => element.classList.contains("dark-bg"))).toBe(true);
+      await page.click('[data-sidebar="collapsed"]');
+      expect(await page.$eval("#sidebar", (element) => element.classList.contains("collapsed"))).toBe(true);
+      expect(await page.$eval('[data-preview-bg="dark"]', (element) => element.classList.contains("active"))).toBe(true);
+      await page.click('[data-ui-theme="dark"]');
+      await page.click('[data-density="comfortable"]');
+      await page.click('[data-preview-bg="light"]');
+      await page.click('[data-sidebar="open"]');
+      await page.keyboard.press("Escape");
+      expect(await page.$eval("#appearancePopover", (element) => element.hidden)).toBe(true);
+      expect(await page.$eval("#btnAppearance", (element) => element.getAttribute("aria-expanded"))).toBe("false");
 
       await page.keyboard.press("c");
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);

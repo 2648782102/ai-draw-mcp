@@ -61,7 +61,7 @@
     .header {
       height: 56px; display: flex; align-items: center; justify-content: space-between;
       padding: 0 18px; border-bottom: 1px solid var(--border); background: var(--glass);
-      backdrop-filter: blur(18px); flex-shrink: 0;
+      backdrop-filter: blur(18px); flex-shrink: 0; position: relative; z-index: 1200;
     }
     .brand-wrap { display: flex; align-items: center; gap: 10px; min-width: 200px; }
     .brand-mark {
@@ -262,8 +262,32 @@
     .view-switch { display: flex; align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 9px; background: rgba(9,14,25,.55); }
     .view-switch button { height: 24px; padding: 0 9px; border-color: transparent; background: transparent; color: var(--text-muted); font-size: 10px; }
     .view-switch button.active { background: rgba(122,162,247,.18); color: var(--text); border-color: rgba(122,162,247,.42); font-weight: 700; }
-    .appearance-switch { display: flex; align-items: center; gap: 2px; }
-    .appearance-switch button { width: 28px; }
+    .appearance-wrap { position: relative; z-index: 1200; }
+    .appearance-popover {
+      position: fixed; right: 18px; top: 52px; z-index: 1200; width: 268px; padding: 12px;
+      border: 1px solid var(--border); border-radius: 14px; background: var(--glass);
+      box-shadow: var(--shadow); backdrop-filter: blur(18px); transform-origin: top right;
+      transform: translateY(-4px) scale(.98); opacity: 0; pointer-events: none;
+      transition: opacity .18s, transform .18s;
+    }
+    .appearance-popover.open { transform: none; opacity: 1; pointer-events: auto; }
+    .appearance-popover[hidden] { display: none; }
+    .appearance-popover::before { content: ''; position: absolute; right: 20px; top: -6px; width: 10px; height: 10px; border-left: 1px solid var(--border); border-top: 1px solid var(--border); background: var(--glass); transform: rotate(45deg); pointer-events: none; }
+    .appearance-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--text); font-size: 11px; font-weight: 700; }
+    .appearance-title span { color: var(--text-muted); font-size: 9px; font-weight: 500; }
+    .appearance-group { margin-bottom: 11px; }
+    .appearance-group:last-of-type { margin-bottom: 8px; }
+    .appearance-label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 9px; letter-spacing: .07em; text-transform: uppercase; }
+    .appearance-options { display: flex; gap: 5px; }
+    .appearance-options button { flex: 1; height: 30px; padding: 0 7px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); color: var(--text-muted); font-size: 10px; cursor: pointer; transition: border-color .15s, background .15s, color .15s; }
+    .appearance-options button:hover { border-color: rgba(122,162,247,.55); color: var(--text); }
+    .appearance-options button.active { border-color: var(--accent); background: rgba(122,162,247,.16); color: var(--text); font-weight: 700; }
+    .appearance-shortcuts { display: grid; grid-template-columns: 1fr auto; gap: 5px 8px; padding: 9px; border: 1px dashed var(--border); border-radius: 10px; background: rgba(9,14,25,.35); color: var(--text-muted); font-size: 9px; line-height: 1.35; }
+    .appearance-shortcuts kbd { padding: 1px 5px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface2); color: var(--text); font: inherit; font-weight: 700; white-space: nowrap; }
+    body.theme-light .appearance-popover, body.theme-light .appearance-popover::before { background: rgba(255,255,255,.96); }
+    body.density-compact .appearance-popover { padding: 10px; }
+    body.density-compact .appearance-options button { height: 27px; }
+    body.theme-light .appearance-shortcuts { background: #f5f8fd; }
     .workspace[data-view="source"] #previewPane, .workspace[data-view="canvas"] #editorPane, .workspace[data-view="source"] #divider, .workspace[data-view="canvas"] #divider { display: none; }
     .workspace[data-view="source"] #editorPane, .workspace[data-view="canvas"] #previewPane { flex: 1 1 100% !important; }
     .canvas-chip {
@@ -659,10 +683,45 @@
     <button id="btnExportPng" class="subtle">↓ PNG</button>
     <button id="btnCopyId" type="button" title="复制当前图 ID">📋 ID</button>
     <button id="btnDeleteDiagram" type="button" title="从本机删除当前图">🗑 删当前</button>
-    <button class="btn-icon" id="btnDarkBg" title="Toggle preview background">◐</button>
-    <div class="appearance-switch" role="group" aria-label="外观设置">
-      <button class="btn-icon subtle" id="btnToggleTheme" type="button" title="切换浅色 / 深色工作台">☾</button>
-      <button class="btn-icon subtle" id="btnToggleDensity" type="button" title="切换舒适 / 紧凑密度">▤</button>
+    <div class="appearance-wrap">
+      <button class="btn-icon" id="btnAppearance" type="button" title="外观、布局与快捷键" aria-label="外观、布局与快捷键" aria-expanded="false" aria-controls="appearancePopover">⚙</button>
+      <div class="appearance-popover" id="appearancePopover" hidden role="dialog" aria-label="外观设置">
+        <div class="appearance-title">工作台外观 <span>本机偏好</span></div>
+        <div class="appearance-group">
+          <span class="appearance-label">界面主题</span>
+          <div class="appearance-options" role="group" aria-label="界面主题">
+            <button type="button" data-ui-theme="dark">☾ 深色</button>
+            <button type="button" data-ui-theme="light">☀ 浅色</button>
+          </div>
+        </div>
+        <div class="appearance-group">
+          <span class="appearance-label">信息密度</span>
+          <div class="appearance-options" role="group" aria-label="信息密度">
+            <button type="button" data-density="comfortable">舒适</button>
+            <button type="button" data-density="compact">紧凑</button>
+          </div>
+        </div>
+        <div class="appearance-group">
+          <span class="appearance-label">预览背景</span>
+          <div class="appearance-options" role="group" aria-label="预览背景">
+            <button type="button" data-preview-bg="light">浅底</button>
+            <button type="button" data-preview-bg="dark">深底</button>
+          </div>
+        </div>
+        <div class="appearance-group">
+          <span class="appearance-label">图表库</span>
+          <div class="appearance-options" role="group" aria-label="图表库">
+            <button type="button" data-sidebar="open">显示</button>
+            <button type="button" data-sidebar="collapsed">隐藏</button>
+          </div>
+        </div>
+        <div class="appearance-shortcuts">
+          <span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd>
+          <span>协作工作台</span><kbd>C · Esc</kbd>
+          <span>适应窗口 / 重置缩放</span><kbd>F / 0</kbd>
+          <span>渲染或发送</span><kbd>⌘/Ctrl + ↵</kbd>
+        </div>
+      </div>
     </div>
   </div>
   <div class="status">
@@ -1332,25 +1391,71 @@ $('#selTheme').addEventListener('change', async () => {
 });
 
 // ── Dark/light preview background ──
-$('#btnDarkBg').addEventListener('click', () => {
-  $('#previewWrap').classList.toggle('dark-bg');
-  prefs.darkBg = $('#previewWrap').classList.contains('dark-bg');
+function setPreviewBackground(mode) {
+  const dark = mode === 'dark';
+  $('#previewWrap').classList.toggle('dark-bg', dark);
+  prefs.darkBg = dark;
   savePrefs();
-});
+  syncAppearanceControls();
+}
 
-// ── Toggle sidebar ──
-$('#btnToggleSidebar').addEventListener('click', () => {
+function setSidebarCollapsed(collapsed) {
   const sidebar = $('#sidebar');
-  sidebar.classList.toggle('collapsed');
-  const isCollapsed = sidebar.classList.contains('collapsed');
-  prefs.sidebarCollapsed = isCollapsed;
-  if (isCollapsed) {
+  sidebar.classList.toggle('collapsed', collapsed);
+  prefs.sidebarCollapsed = collapsed;
+  if (collapsed) {
     sidebar.style.width = ''; // clear inline style → let CSS width:0 win
   } else {
     sidebar.style.width = `${Math.max(120, Math.min(480, prefs.sidebarWidth))}px`;
   }
   savePrefs();
+  syncAppearanceControls();
+}
+
+function syncAppearanceControls() {
+  for (const button of document.querySelectorAll('[data-ui-theme]')) {
+    button.classList.toggle('active', button.dataset.uiTheme === prefs.uiTheme);
+  }
+  for (const button of document.querySelectorAll('[data-density]')) {
+    button.classList.toggle('active', button.dataset.density === prefs.density);
+  }
+  for (const button of document.querySelectorAll('[data-preview-bg]')) {
+    button.classList.toggle('active', button.dataset.previewBg === (prefs.darkBg ? 'dark' : 'light'));
+  }
+  for (const button of document.querySelectorAll('[data-sidebar]')) {
+    button.classList.toggle('active', button.dataset.sidebar === (prefs.sidebarCollapsed ? 'collapsed' : 'open'));
+  }
+  $('#btnToggleSidebar').textContent = prefs.sidebarCollapsed ? '⟩' : '☰';
+}
+
+$('#btnToggleSidebar').addEventListener('click', () => setSidebarCollapsed(!prefs.sidebarCollapsed));
+for (const button of document.querySelectorAll('[data-preview-bg]')) {
+  button.addEventListener('click', () => setPreviewBackground(button.dataset.previewBg));
+}
+for (const button of document.querySelectorAll('[data-sidebar]')) {
+  button.addEventListener('click', () => setSidebarCollapsed(button.dataset.sidebar === 'collapsed'));
+}
+
+const appearanceButton = $('#btnAppearance');
+const appearanceWrap = appearanceButton.closest('.appearance-wrap');
+const appearancePopover = $('#appearancePopover');
+function setAppearanceOpen(open) {
+  appearancePopover.hidden = !open;
+  appearancePopover.classList.toggle('open', open);
+  appearanceButton.setAttribute('aria-expanded', String(open));
+  if (open) syncAppearanceControls();
+}
+appearanceWrap.addEventListener('click', (event) => {
+  if (event.target === appearanceButton) setAppearanceOpen(appearancePopover.hidden);
+  event.stopPropagation();
 });
+document.addEventListener('click', (event) => {
+  if (!appearancePopover.hidden && !appearanceWrap.contains(event.target)) setAppearanceOpen(false);
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !appearancePopover.hidden) setAppearanceOpen(false);
+});
+syncAppearanceControls();
 
 // ── Sidebar resize ──
 {
@@ -2929,18 +3034,28 @@ $('#btnOpenCollabWelcome').addEventListener('click', openCollab);
 for (const button of document.querySelectorAll('.view-switch button')) {
   button.addEventListener('click', () => setWorkspaceView(button.dataset.viewTarget));
 }
-$('#btnToggleTheme').addEventListener('click', (event) => {
-  prefs.uiTheme = document.body.classList.toggle('theme-light') ? 'light' : 'dark';
-  event.currentTarget.textContent = prefs.uiTheme === 'light' ? '☀' : '☾';
+function setUiTheme(mode) {
+  prefs.uiTheme = mode === 'light' ? 'light' : 'dark';
+  document.body.classList.toggle('theme-light', prefs.uiTheme === 'light');
   savePrefs();
+  syncAppearanceControls();
   showToast(prefs.uiTheme === 'light' ? '已切换浅色工作台' : '已切换深色工作台');
-});
-$('#btnToggleDensity').addEventListener('click', () => {
-  prefs.density = document.body.classList.toggle('density-compact') ? 'compact' : 'comfortable';
+}
+
+function setDensity(mode) {
+  prefs.density = mode === 'compact' ? 'compact' : 'comfortable';
+  document.body.classList.toggle('density-compact', prefs.density === 'compact');
   savePrefs();
+  syncAppearanceControls();
   showToast(prefs.density === 'compact' ? '已切换紧凑密度' : '已切换舒适密度');
-});
-$('#btnToggleTheme').textContent = prefs.uiTheme === 'light' ? '☀' : '☾';
+}
+
+for (const button of document.querySelectorAll('[data-ui-theme]')) {
+  button.addEventListener('click', () => setUiTheme(button.dataset.uiTheme));
+}
+for (const button of document.querySelectorAll('[data-density]')) {
+  button.addEventListener('click', () => setDensity(button.dataset.density));
+}
 $('#btnGraphMore').addEventListener('click', (event) => {
   const group = $('#graphMoreActions');
   group.classList.toggle('open');
