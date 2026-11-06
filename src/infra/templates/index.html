@@ -421,11 +421,14 @@
     .signal-drawer .drawer-body { padding: 0 10px 10px; }
     .signal-drawer .diagnostics-list { margin-bottom: 6px; }
     .history-tabs { display: flex; gap: 4px; margin: 0 0 7px; padding: 3px; border: 1px solid var(--border); border-radius: 9px; background: rgba(9,14,25,.42); }
-    .history-tab { flex: 1; height: 25px; padding: 0 5px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text-muted); font-size: 9px; cursor: pointer; }
+    .history-tab { flex: 1; height: 25px; padding: 0 5px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text-muted); font-size: 9px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
     .history-tab.active { background: rgba(122,162,247,.16); border-color: rgba(122,162,247,.42); color: var(--text); font-weight: 700; }
+    .history-tab-count { min-width: 15px; padding: 1px 4px; border-radius: 999px; background: rgba(9,14,25,.45); color: var(--text-muted); font-size: 8px; font-variant-numeric: tabular-nums; }
+    .history-tab[data-has-pending="true"] .history-tab-count { background: rgba(240,168,104,.18); color: var(--orange); }
+    .history-tab.active .history-tab-count { background: rgba(122,162,247,.22); color: var(--text); }
     .history-pane { display: none; }
     .history-pane.active { display: block; }
-    .history-pane > .chat-log { max-height: 220px; }
+    .history-pane > .chat-log { min-height: 180px; max-height: 260px; }
     .shortcut-hint { color: var(--text-muted); font-size: 10px; opacity: .82; }
     .collab-backdrop { position: absolute; inset: 0; z-index: 1001; pointer-events: none; }
     .collab-shell { z-index: 1002; }
@@ -459,11 +462,31 @@
     .graph-guide-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: rgba(122,162,247,.14); color: var(--accent); font-size: 15px; flex-shrink: 0; }
     .graph-guide strong { display: block; color: var(--text); font-size: 11px; margin-bottom: 3px; }
     .graph-guide span { color: var(--text-muted); font-size: 10px; line-height: 1.5; }
-    .chat-item { padding: 8px 9px; margin-bottom: 7px; border-radius: 8px; background: var(--surface2); font-size: 11px; line-height: 1.5; border: 1px solid transparent; }
-    .chat-item .meta { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 3px; }
-    .chat-item.human { border-left: 2px solid var(--green); }
-    .chat-item.ai { border-left: 2px solid var(--accent); }
-    .chat-item.pending { box-shadow: inset 0 0 0 1px var(--orange); }
+    #chatLog { display: flex; flex-direction: column; gap: 9px; }
+    .chat-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; min-height: 150px; padding: 18px; border: 1px dashed rgba(122,162,247,.28); border-radius: 11px; background: radial-gradient(circle at 50% 0%, rgba(122,162,247,.08), transparent 65%), var(--panel); color: var(--text-muted); text-align: center; }
+    .chat-empty-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: rgba(122,162,247,.14); color: var(--accent); font-size: 18px; }
+    .chat-empty strong { color: var(--text); font-size: 11px; }
+    .chat-empty p { font-size: 10px; line-height: 1.6; max-width: 250px; }
+    .chat-item { --chat-accent: var(--accent); display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: start; animation: chat-in .22s ease both; }
+    .chat-item.human { --chat-accent: var(--green); }
+    .chat-item.ai { --chat-accent: var(--accent); }
+    .chat-item.system { --chat-accent: var(--text-muted); grid-template-columns: 1fr; }
+    @keyframes chat-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .chat-avatar { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--chat-accent); border-radius: 9px; background: rgba(9,14,25,.42); color: var(--chat-accent); font-size: 11px; font-weight: 800; }
+    body.theme-light .chat-avatar { background: #fff; }
+    .chat-bubble { position: relative; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-left: 2px solid var(--chat-accent); border-radius: 3px 10px 10px 10px; background: var(--surface2); font-size: 11px; line-height: 1.55; word-break: break-word; box-shadow: 0 5px 14px rgba(0,0,0,.12); }
+    .chat-item.human .chat-bubble { border-radius: 10px 3px 10px 10px; background: linear-gradient(135deg, rgba(158,206,106,.10), transparent 70%), var(--surface2); }
+    .chat-item.system .chat-bubble { border-left-color: var(--border); border-radius: 9px; background: transparent; color: var(--text-muted); font-size: 10px; text-align: center; box-shadow: none; }
+    .chat-item.pending .chat-bubble { box-shadow: inset 0 0 0 1px rgba(240,168,104,.45), 0 5px 14px rgba(0,0,0,.12); }
+    .chat-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 5px; color: var(--text-muted); font-size: 9px; }
+    .chat-meta strong { color: var(--chat-accent); font-size: 9px; }
+    .chat-meta .chat-status { padding: 1px 5px; border: 1px solid var(--border); border-radius: 999px; }
+    .chat-item.pending .chat-meta .chat-status { border-color: var(--orange); color: var(--orange); }
+    .chat-meta .chat-status.answered, .chat-meta .chat-status.applied { border-color: rgba(158,206,106,.55); color: var(--green); }
+    .chat-meta .chat-status.rejected { border-color: rgba(255,122,147,.55); color: var(--red); }
+    .chat-meta time { margin-left: auto; opacity: .82; font-variant-numeric: tabular-nums; }
+    .evidence-item { padding: 7px 8px; margin-bottom: 5px; border-left: 2px solid var(--accent); border-radius: 6px; background: var(--surface2); font-size: 10px; line-height: 1.45; word-break: break-word; }
+    .evidence-meta { display: block; margin-bottom: 3px; color: var(--text-muted); font-size: 9px; }
     .proposal-list { display: flex; flex-direction: column; gap: 10px; }
     .proposal-card {
       --proposal-accent: var(--accent);
@@ -793,6 +816,16 @@
     <section class="collab-section">
       <h3><span class="section-icon" aria-hidden="true">↔</span>对话与批注</h3>
       <div class="section-scroll">
+      <div class="history-tabs" role="tablist" aria-label="对话历史视图">
+        <button class="history-tab active" type="button" data-history-target="chat" role="tab">对话 <span class="history-tab-count" data-history-count="chat">0</span></button>
+        <button class="history-tab" type="button" data-history-target="activity" role="tab">活动 <span class="history-tab-count" data-history-count="activity">0</span></button>
+        <button class="history-tab" type="button" data-history-target="annotations" role="tab">批注 <span class="history-tab-count" data-history-count="annotations">0</span></button>
+        <button class="history-tab" type="button" data-history-target="diffs" role="tab">差异 <span class="history-tab-count" data-history-count="diffs">0</span></button>
+      </div>
+      <div class="history-pane active" data-history-pane="chat"><div class="chat-log" id="chatLog"></div></div>
+      <div class="history-pane" data-history-pane="activity"><p class="activity-summary" id="activitySummary">活动时间线加载中…</p><div class="chat-log activity-list" id="activityList"></div></div>
+      <div class="history-pane" data-history-pane="annotations"><div class="chat-log" id="annotationList"></div></div>
+      <div class="history-pane" data-history-pane="diffs"><p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p><div class="chat-log graph-diff-list" id="graphDiffList"></div></div>
       <details class="signal-drawer" open>
         <summary>关键上下文</summary>
         <div class="drawer-body">
@@ -815,19 +848,8 @@
           <div class="diagnostics-list" id="capabilitiesList"></div>
           <p class="activity-summary" id="selectionScopeSummary">选择范围上下文 · 加载中；只投影多选节点、内部连线与安全 file:line 证据</p>
           <div class="diagnostics-list" id="selectionScopeList"></div>
-          <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
         </div>
       </details>
-      <div class="history-tabs" role="tablist" aria-label="对话历史视图">
-        <button class="history-tab active" type="button" data-history-target="chat" role="tab">对话</button>
-        <button class="history-tab" type="button" data-history-target="activity" role="tab">活动</button>
-        <button class="history-tab" type="button" data-history-target="annotations" role="tab">批注</button>
-        <button class="history-tab" type="button" data-history-target="diffs" role="tab">差异</button>
-      </div>
-      <div class="history-pane active" data-history-pane="chat"><div class="chat-log" id="chatLog"></div></div>
-      <div class="history-pane" data-history-pane="activity"><p class="activity-summary" id="activitySummary">活动时间线加载中…</p><div class="chat-log activity-list" id="activityList"></div></div>
-      <div class="history-pane" data-history-pane="annotations"><div class="chat-log" id="annotationList"></div></div>
-      <div class="history-pane" data-history-pane="diffs"><p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p><div class="chat-log graph-diff-list" id="graphDiffList"></div></div>
       </div>
       <div class="section-dock">
       <div class="dock-label"><span>发消息给 AI · ⌘/Ctrl + Enter</span><span id="messageCount">0 / 2000</span></div>
@@ -1835,10 +1857,7 @@ function renderSourceEvidence() {
   }
   if (!target) return;
   target.innerHTML = items.length ? items.slice(0, 20).map((item) => `
-    <div class="chat-item system">
-      <span class="meta">${escapeHtml(item.kind)} · ${escapeHtml(item.path)}:${escapeHtml(item.line)} · ${escapeHtml(item.nodeLabel || item.nodeId)}</span>
-      ${escapeHtml(item.excerpt)}
-    </div>
+    <div class="evidence-item"><span class="evidence-meta">${escapeHtml(item.kind)} · ${escapeHtml(item.path)}:${escapeHtml(item.line)} · ${escapeHtml(item.nodeLabel || item.nodeId)}</span>${escapeHtml(item.excerpt)}</div>
   `).join('') : '<div class="collab-help">暂无源码证据。让 AI 调用 scan_project 扫描包含源码/文档的工作区。</div>';
 }
 
@@ -1874,7 +1893,7 @@ async function renderNodeContext() {
       ...(context.graphDiffs || []).flatMap((diff) => diff.items.map((item) => `图形差异 · rev ${diff.toRevision} · ${item.entity}:${item.change} ${item.label || item.id}`)),
     ];
     target.innerHTML = lines.length
-      ? lines.slice(0, 20).map((line) => `<div class="chat-item system">${escapeHtml(line)}</div>`).join('')
+      ? lines.slice(0, 20).map((line) => `<div class="evidence-item">${escapeHtml(line)}</div>`).join('')
       : '<div class="collab-help">该节点暂无额外证据、批注、连线或图形差异。</div>';
   } catch (error) {
     summary.textContent = `节点上下文不可用：${error.message}`;
@@ -2099,13 +2118,38 @@ function removeEdge(index) {
 }
 
 function renderChat(messages) {
-  $('#chatLog').innerHTML = messages.map((message) => `
-    <div class="chat-item ${message.author} ${message.status || ''}">
-      <span class="meta">${escapeHtml(message.author)} · ${escapeHtml(message.createdAt)} · ${escapeHtml(message.status || '')}</span>
-      ${escapeHtml(message.body)}
-    </div>
-  `).join('');
+  const authorLabels = { human: '人', ai: 'AI', system: '系统' };
+  const authorIcons = { human: '我', ai: 'AI', system: '·' };
+  const statusLabels = { pending: '等待 AI', answered: '已回复', applied: '已应用', rejected: '已拒绝' };
+  const items = Array.isArray(messages) ? messages : [];
+  $('#chatLog').innerHTML = items.length ? items.map((message) => {
+    const author = Object.hasOwn(authorLabels, message.author) ? message.author : 'system';
+    const status = Object.hasOwn(statusLabels, message.status) ? message.status : '';
+    const statusLabel = status ? statusLabels[status] : '已完成';
+    const avatar = author === 'system' ? '' : `<span class="chat-avatar" aria-hidden="true">${authorIcons[author]}</span>`;
+    return `
+    <article class="chat-item ${author} ${status}">
+      ${avatar}
+      <div class="chat-bubble">
+        <div class="chat-meta">
+          <strong>${authorLabels[author]}</strong>
+          <span class="chat-status ${status}">${statusLabel}</span>
+          ${message.graphRevision !== undefined ? `<span>rev ${escapeHtml(message.graphRevision)}</span>` : ''}
+          <time datetime="${escapeHtml(message.createdAt)}">${escapeHtml(relativeTime(message.createdAt))}</time>
+        </div>
+        <div class="chat-body">${escapeHtml(message.body)}</div>
+      </div>
+    </article>`;
+  }).join('') : '<div class="chat-empty"><span class="chat-empty-icon">↔</span><strong>对话从这里开始</strong><p>告诉 AI 你想怎样修改项目；消息会作为只读意图进入上下文，项目写入仍需批准后的一次性确认号。</p></div>';
   $('#chatLog').scrollTop = $('#chatLog').scrollHeight;
+  updateHistoryCount('chat', items.length, items.some((message) => message.status === 'pending'));
+}
+
+function updateHistoryCount(name, count, hasPending = false) {
+  const badge = $(`[data-history-count="${name}"]`);
+  if (badge) badge.textContent = String(count);
+  const tab = $(`[data-history-target="${name}"]`);
+  if (tab) tab.dataset.hasPending = String(hasPending);
 }
 
 function renderActivity(timeline) {
@@ -2121,6 +2165,7 @@ function renderActivity(timeline) {
       ${escapeHtml(item.body)}
     </div>
   `).join('') : '<div class="collab-help">暂无活动。让 AI 扫描项目，或从消息与节点批注开始。</div>';
+  updateHistoryCount('activity', items.length, timeline?.nextActor === 'ai');
 }
 
 function renderDiagnostics(diagnostics) {
@@ -2253,6 +2298,7 @@ function renderGraphDiffs(diffs) {
     return `<details ${index === 0 ? 'open' : ''}><summary>${escapeHtml(label)}</summary><span class="graph-diff-meta">${escapeHtml(diff.source || 'human')} · ${escapeHtml(diff.createdAt || '')}</span>${changeHtml}</details>`;
   }).join('') : '<div class="collab-help">暂无图形修订。保存节点或连线后，这里会显示字段级差异。</div>';
   list.title = '只读差异视图不生成提案、不签发批准凭据，也不授权项目写入。';
+  updateHistoryCount('diffs', items.length);
 }
 
 function graphDiffEntityLabel(entity) {
@@ -2323,6 +2369,7 @@ function renderAnnotations(annotations) {
       if (event.key === 'Enter') sendAnnotationReply(input.closest('.annotation-thread')?.dataset.annotationId);
     });
   }
+  updateHistoryCount('annotations', annotations.length, annotations.some((annotation) => !annotation.resolved));
 }
 
 function annotationThreadNextActor(annotation) {

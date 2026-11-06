@@ -52,6 +52,18 @@ async function seedProposalCard() {
     }),
   });
   if (!response.ok) throw new Error(`Unable to seed proposal card: HTTP ${response.status}`);
+  const headers = { "Content-Type": "application/json", "X-AI-Draw-Token": token };
+  for (const message of [
+    { author: "human", body: "请根据图形更新说明，但不要直接写项目文件。" },
+    { author: "ai", body: "已生成变更提案，等待人工审阅完整逐行差异。" },
+  ]) {
+    const chatResponse = await fetch(`${base}/api/collab/messages`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(message),
+    });
+    if (!chatResponse.ok) throw new Error(`Unable to seed chat message: HTTP ${chatResponse.status}`);
+  }
 }
 
 await seedProposalCard();
@@ -71,6 +83,7 @@ try {
   await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
   await page.waitForSelector("#overviewRevision");
   await page.waitForSelector(".proposal-card.status-pending .impact-grid");
+  await page.waitForSelector("#chatLog .chat-item.ai");
   await page.waitForFunction(() => {
     const shell = document.querySelector("#collabShell");
     return Number(getComputedStyle(shell).opacity) >= 0.99;

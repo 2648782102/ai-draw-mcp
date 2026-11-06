@@ -36,6 +36,16 @@ async function seedProposalCard(base) {
   }).then((response) => response.json());
   expect(proposal.id).toBeTruthy();
   expect(proposal.contentHash).toMatch(/^[a-f0-9]{64}$/);
+  await fetch(`${base}/api/collab/messages`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ body: "请根据图形更新说明，但不要直接写项目文件。", author: "human" }),
+  });
+  await fetch(`${base}/api/collab/messages`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ body: "已生成变更提案，等待人工审阅完整逐行差异。", author: "ai" }),
+  });
   return { id: proposal.id };
 }
 
@@ -190,6 +200,27 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval(".graph-guide", (element) => element.textContent)).toContain("先生成一张项目结构图");
       expect(await page.$eval(".graph-row-header", (element) => getComputedStyle(element).position)).toBe("sticky");
       expect(await page.$$eval(".history-tab", (elements) => elements.length)).toBe(4);
+      const chat = await page.evaluate(() => ({
+        bubbles: document.querySelectorAll("#chatLog .chat-item").length,
+        authors: [...document.querySelectorAll("#chatLog .chat-item")].map((element) => element.querySelector(".chat-meta strong")?.textContent),
+        statuses: [...document.querySelectorAll("#chatLog .chat-item")].map((element) => element.querySelector(".chat-status")?.textContent),
+        times: [...document.querySelectorAll("#chatLog time")].map((element) => element.textContent),
+        avatars: document.querySelectorAll("#chatLog .chat-avatar").length,
+        pendingTab: document.querySelector('[data-history-target="chat"]').dataset.hasPending,
+        chatCount: document.querySelector('[data-history-count="chat"]').textContent,
+        systemAvatar: document.querySelectorAll("#chatLog .chat-item.system .chat-avatar").length,
+        evidenceItems: document.querySelectorAll(".evidence-item").length,
+      }));
+      expect(chat.bubbles).toBe(3);
+      expect(chat.authors).toEqual(["人", "人", "AI"]);
+      expect(chat.statuses).toEqual(["等待 AI", "等待 AI", "已回复"]);
+      expect(chat.times.every((time) => time.includes("刚刚"))).toBe(true);
+      expect(chat.avatars).toBe(3);
+      expect(chat.pendingTab).toBe("true");
+      expect(chat.chatCount).toBe("3");
+      expect(chat.systemAvatar).toBe(0);
+      expect(chat.evidenceItems).toBe(0);
+      expect(await page.$eval('[data-history-count="activity"]', (element) => Number(element.textContent))).toBeGreaterThan(0);
       await page.$eval('[data-history-target="diffs"]', (element) => element.click());
       await page.waitForFunction(() => document.querySelector('[data-history-pane="diffs"]').classList.contains("active"));
       expect(await page.$eval('[data-history-target="diffs"]', (element) => element.classList.contains("active"))).toBe(true);
