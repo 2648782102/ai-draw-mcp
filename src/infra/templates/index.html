@@ -3122,6 +3122,10 @@ function receiptText(receipt) {
   ].join('\n');
 }
 function openReceiptDialog(receipt) {
+  collabLoadDeferred = false;
+  window.clearTimeout(collabLoadTimer);
+  window.clearTimeout(collabPointerGuardTimer);
+  collabPointerGuardUntil = 0;
   activeReceipt = receipt;
   const fields = [
     ['提案 ID', receipt.proposalId],
@@ -3141,8 +3145,9 @@ function openReceiptDialog(receipt) {
 }
 function closeReceiptDialog() {
   const backdrop = $('#receiptBackdrop');
+  collabLoadDeferred = false;
   backdrop.classList.remove('open');
-  window.setTimeout(() => { backdrop.hidden = true; window.setTimeout(resumeDeferredCollabLoad, 1250); }, 180);
+  window.setTimeout(() => { backdrop.hidden = true; }, 180);
   activeReceipt = null;
 }
 
@@ -3412,8 +3417,7 @@ function connectWs() {
 
       if (['graph_updated', 'chat_message', 'proposal_created', 'proposal_updated', 'session_updated'].includes(msg.type)
           && !$('#collabShell').hidden) {
-        if (collabRefreshBlocked()) { collabLoadDeferred = true; window.clearTimeout(collabLoadTimer); }
-        else scheduleCollabLoad();
+        refreshCollabSafely();
         window.clearTimeout(collabPulseTimer);
       } else if (['graph_updated', 'chat_message', 'proposal_created', 'proposal_updated', 'session_updated'].includes(msg.type)) {
         schedulePulseLoad();
@@ -3474,12 +3478,22 @@ function collabRefreshBlocked() {
   return collabInteractionDepth > 0 || Date.now() < collabPointerGuardUntil || isCollabOverlayOpen();
 }
 
+function refreshCollabSafely() {
+  if ($('#collabShell')?.hidden) return;
+  if (collabRefreshBlocked()) {
+    collabLoadDeferred = true;
+    window.clearTimeout(collabLoadTimer);
+    return;
+  }
+  scheduleCollabLoad();
+}
+
 function protectCollabInteraction() {
   if ($('#collabShell')?.hidden) return;
-  collabPointerGuardUntil = Date.now() + 450;
+  collabPointerGuardUntil = Date.now() + 900;
   window.clearTimeout(collabLoadTimer);
   window.clearTimeout(collabPointerGuardTimer);
-  collabPointerGuardTimer = window.setTimeout(resumeDeferredCollabLoad, 480);
+  collabPointerGuardTimer = window.setTimeout(resumeDeferredCollabLoad, 930);
 }
 
 function setCollabSyncState(state, detail = '') {
@@ -3611,7 +3625,7 @@ async function loadCollabPulse() {
 function scheduleCollabLoad() {
   window.clearTimeout(collabLoadTimer);
   collabLoadTimer = window.setTimeout(() => {
-    if ($('#collabShell').hidden) { schedulePulseLoad(); return; }
+    if ($('#collabShell').hidden) return;
     if (collabRefreshBlocked()) { collabLoadDeferred = true; return; }
     loadCollab();
   }, 90);
@@ -4186,7 +4200,7 @@ async function restoreGraphHistory(direction) {
     collabGraphHistory = result.history || collabGraphHistory;
     renderGraphHistory();
     showToast(`图形已${direction === 'undo' ? '撤销' : '重做'} · revision ${collabRevision} · 未写项目文件`);
-    await loadCollab();
+    refreshCollabSafely();
   } catch (error) {
     showToast(`图形${direction === 'undo' ? '撤销' : '重做'}失败：${error.message}`);
   }
@@ -4696,7 +4710,7 @@ async function setAnnotationStatus(id, status) {
       body: JSON.stringify({ status }),
     });
     showToast(status === 'resolved' ? '批注线程已解决' : '批注线程已重开');
-    await loadCollab();
+    refreshCollabSafely();
   } catch (error) {
     showToast(`更新批注状态失败：${error.message}`);
   }
@@ -4714,7 +4728,7 @@ async function sendAnnotationReply(id) {
       body: JSON.stringify({ body, author: 'human' }),
     });
     showToast('回复已加入节点批注线程');
-    await loadCollab();
+    refreshCollabSafely();
   } catch (error) {
     showToast(`回复失败：${error.message}`);
   }
@@ -4728,7 +4742,7 @@ async function reanchorAnnotation(id) {
       body: JSON.stringify({ confirmedBy: 'human' }),
     });
     showToast('批注线程已重锚，AI 可读取当前节点');
-    await loadCollab();
+    refreshCollabSafely();
   } catch (error) {
     showToast(`重锚失败：${error.message}`);
   }
@@ -5267,7 +5281,7 @@ async function saveGraph() {
     graphDirtyRows = new Set();
     updateGraphDirtyState();
     showToast(`图形已保存 · revision ${collabRevision}`);
-    scheduleCollabLoad();
+    refreshCollabSafely();
   } catch (error) {
     showToast(`保存失败：${error.message}`);
   } finally {
@@ -5297,7 +5311,7 @@ async function sendMessage() {
     state.className = 'intent-state sent';
     state.textContent = '✓ 已发送 · 等待 AI 读取';
     showToast('消息已发送，等待 AI 读取');
-    await loadCollab();
+    refreshCollabSafely();
   } catch (error) {
     state.className = 'intent-state error';
     state.textContent = '发送失败 · 草稿已保留';
@@ -5365,7 +5379,7 @@ async function rescanProject() {
     });
     $('#rescanSummary').textContent = `重新同步完成 · rev ${result.graphRevision} · 保留 ${result.preservation.preservedCoordinates} 个节点坐标（${result.preservation.humanCoordinates} 个人工布局）/ ${result.preservation.preservedLabels} 个自定义标签 / ${result.preservation.carriedAnnotations} 条批注 · ${result.preservation.detachedAnnotations} 条失锚；此操作只读项目文件`;
     showToast(`项目结构已同步 · 保留 ${result.preservation.humanCoordinates} 个人工布局`);
-    await loadCollab();
+    refreshCollabSafely();
   } catch (error) {
     $('#rescanSummary').textContent = `重新同步失败：${error.message}`;
     showToast(`重新同步失败：${error.message}`);
@@ -5389,7 +5403,7 @@ async function addAnnotation() {
       body: JSON.stringify({ body, nodeId }),
     });
     showToast(nodeId ? '批注已绑定到选中节点' : '批注已加入图形');
-    await loadCollab();
+    refreshCollabSafely();
   } catch (error) {
     showToast(`批注失败：${error.message}`);
   }
@@ -5399,6 +5413,7 @@ async function decideProposal(id, decision) {
   if (decision === 'approve' && !confirm('确认批准该提案？下一步会显示一次性确认号，仍需把它交给 AI；面板不会自动写项目文件。')) return;
   const button = [...$('#proposalList').querySelectorAll(`[data-${decision}]`)]
     .find((candidate) => candidate.dataset[decision] === id);
+  protectCollabInteraction();
   try {
     const result = await withBusyButton(button, () => collabFetch(`/api/collab/proposals/${encodeURIComponent(id)}/${decision}`, {
         method: 'POST',
@@ -5411,7 +5426,7 @@ async function decideProposal(id, decision) {
     } else {
       showToast(decision === 'approve' ? '提案已批准' : '提案已拒绝');
     }
-    await loadCollab();
+    refreshCollabSafely();
   } catch (error) {
     if (button) flashButton(button, 'decision-error');
     showToast(`操作失败：${error.message}`);
@@ -5455,7 +5470,7 @@ async function importSession(event) {
     });
     showToast(`会话已导入 · revision ${result.graphRevision}`);
     selectedNodeIds = [];
-    await loadCollab();
+    refreshCollabSafely();
   } catch (error) {
     showToast(`导入失败：${error.message}`);
   }

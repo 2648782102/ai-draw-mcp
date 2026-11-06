@@ -731,6 +731,7 @@ for (const [label, file, needle] of [
   ["panel stale revision guard", panel, "collabAuthoritativeRevision"],
   ["panel deferred interaction refresh", panel, "collabInteractionDepth"],
   ["panel pointer interaction guard", panel, "protectCollabInteraction"],
+  ["panel unified safe refresh", panel, "refreshCollabSafely"],
   ["proposal DOM reuse guard", panel, "collabProposalsSignature"],
   ["proposal review progress", panel, "proposal-review-rail"],
   ["proposal approval gate", panel, "写入闸门未开启"],

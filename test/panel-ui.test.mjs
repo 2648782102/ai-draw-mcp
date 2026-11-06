@@ -545,7 +545,7 @@ describe("collaboration panel UI", () => {
       expect(await page.evaluate(() => window.__proposalApprovalNode?.isConnected)).toBe(true);
       expect(proposalNode).toContain("批准");
       page.once("dialog", async (dialog) => dialog.accept());
-      await page.click(".proposal-card.status-pending [data-approve]");
+      await page.$eval(".proposal-card.status-pending [data-approve]", (element) => element.click());
       await page.waitForFunction(() => !document.querySelector("#receiptBackdrop").hidden);
       const receipt = await page.evaluate(() => ({
         title: document.querySelector("#receiptTitle").textContent,
@@ -566,6 +566,7 @@ describe("collaboration panel UI", () => {
 
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
+      expect(await page.evaluate(() => document.querySelector("#workspaceRibbon")?.dataset.sync || "idle")).not.toBe("loading");
 
       const firstFocus = await page.$eval("#canvasObjectLabel", (element) => element.textContent);
       const firstIndex = await page.$eval("#canvasObjectIndex", (element) => element.textContent);
