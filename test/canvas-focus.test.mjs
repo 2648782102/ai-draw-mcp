@@ -152,6 +152,20 @@ describe("canvas focus interaction", () => {
       expect(objectCard.conversationOpen).toBeGreaterThan(0);
       expect(objectCard.conversationSummary).toContain("开放");
       expect(objectCard.focusBadge).toContain("开放讨论");
+      const threadBadge = await page.$eval("#canvasThreadLayer .canvas-thread-badge", (element) => {
+        const rect = element.getBoundingClientRect();
+        const group = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")]
+          .find((candidate) => candidate.id.includes(element.dataset.nodeId));
+        const shapeRect = group?.querySelector("rect.basic.label-container, rect, polygon, path, ellipse, circle")?.getBoundingClientRect();
+        return {
+          state: element.dataset.state,
+          text: element.textContent,
+          aligned: Boolean(shapeRect) && Math.abs(rect.left - (shapeRect.left - 2)) < 4,
+        };
+      });
+      expect(threadBadge.state).toBe("open");
+      expect(threadBadge.text).toContain("条讨论");
+      expect(threadBadge.aligned).toBe(true);
 
       await page.click("#btnCanvasOpenConversation");
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
@@ -163,6 +177,13 @@ describe("canvas focus interaction", () => {
       expect(conversation.tab).toBe("dialog");
       expect(conversation.history).toBe(true);
       expect(conversation.threads).toBeGreaterThan(0);
+      await page.click("#btnCloseCollab");
+      await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
+
+      await page.$eval("#canvasThreadLayer .canvas-thread-badge", (element) => element.click());
+      await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
+      expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("dialog");
+      expect(await page.$eval('[data-history-pane="annotations"]', (element) => element.classList.contains("active"))).toBe(true);
       await page.click("#btnCloseCollab");
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
 

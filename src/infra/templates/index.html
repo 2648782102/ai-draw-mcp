@@ -744,6 +744,24 @@
       content: ''; position: absolute; inset: -7px; border: 1px dashed rgba(187,154,247,.62); border-radius: 16px;
       animation: focus-ring-pulse 2.4s ease-out infinite;
     }
+    .canvas-thread-layer { position: absolute; inset: 0; z-index: 24; pointer-events: none; overflow: hidden; }
+    .canvas-thread-badge {
+      position: absolute; display: flex; align-items: center; gap: 4px; min-width: 24px; height: 22px;
+      padding: 0 6px; border: 1px solid rgba(240,168,104,.64); border-radius: 999px;
+      background: linear-gradient(135deg, rgba(43,30,18,.96), rgba(14,23,39,.96));
+      box-shadow: 0 8px 18px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.06);
+      color: var(--orange); font-size: 9px; font-weight: 850; cursor: pointer; pointer-events: auto;
+      transform: translate(0, -100%); transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .canvas-thread-badge::before { content: '↔'; font-size: 10px; }
+    .canvas-thread-badge:hover { transform: translate(0, -100%) translateY(-2px); border-color: var(--orange); box-shadow: 0 10px 22px rgba(240,168,104,.22); }
+    .canvas-thread-badge[data-state="blocked"] { border-color: rgba(255,122,147,.72); color: var(--red); }
+    .canvas-thread-badge[data-state="resolved"] { border-color: rgba(158,206,106,.62); color: var(--green); }
+    .canvas-thread-badge[data-state="focused"] { box-shadow: 0 0 0 3px rgba(61,219,217,.16), 0 10px 24px rgba(0,0,0,.34); }
+    body.visual-studio .canvas-thread-badge, body.theme-light .canvas-thread-badge { background: rgba(255,255,255,.97); box-shadow: 0 8px 18px rgba(38,54,84,.18); }
+    .workspace:not([data-view="canvas"]) .canvas-thread-layer { display: none; }
+    .workspace.welcome .canvas-thread-layer { display: none; }
     .workspace.welcome .canvas-focus-ring { display: none !important; }
     .workspace:not([data-view="canvas"]) .canvas-focus-ring { display: none !important; }
     .canvas-focus-halo {
@@ -1653,6 +1671,7 @@
           <div class="canvas-focus-ring" id="canvasFocusRing" data-focus-node-id="" aria-hidden="true"></div>
           <div class="canvas-focus-ripple" id="canvasFocusRipple" data-active="false" data-triggered-by="" aria-hidden="true"></div>
           <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" aria-hidden="true"></div>
+          <div class="canvas-thread-layer" id="canvasThreadLayer" aria-label="图形节点上的只读讨论标记"></div>
           <div class="welcome-card" id="welcomeCard">
             <div class="welcome-main">
               <span class="welcome-kicker">LOCAL-FIRST · HUMAN ↔ AI</span>
@@ -2316,6 +2335,7 @@ function applyTransform() {
   updateCanvasDock();
   scheduleMinimapUpdate();
   scheduleViewportSync();
+  renderCanvasThreadBadges();
 }
 
 function svgNodeForFocus() {
@@ -2345,6 +2365,53 @@ function nodeIdForFocusGroup(group) {
   const text = group.textContent?.replace(/\s+/g, ' ').trim() || '';
   const node = (collabGraph?.nodes || []).find((item) => text === item.label || text === `📁 ${item.label}`);
   return node?.id || null;
+}
+
+function canvasThreadBadgeLabel(state) {
+  if (state.blocked) return `${state.open || state.total} · 重锚`;
+  if (state.open) return `${state.open} 条讨论`;
+  return `${state.total} 条已解决`;
+}
+
+function renderCanvasThreadBadges() {
+  const layer = $('#canvasThreadLayer');
+  if (!layer) return;
+  if ($('#workspace').dataset.view !== 'canvas' || !currentId || currentId !== collabGraph?.diagramId) {
+    layer.replaceChildren();
+    return;
+  }
+  const annotations = Array.isArray(collabGraph?.annotations) ? collabGraph.annotations : [];
+  const byNodeId = new Map();
+  for (const annotation of annotations) {
+    if (!annotation.nodeId) continue;
+    if (!byNodeId.has(annotation.nodeId)) byNodeId.set(annotation.nodeId, []);
+    byNodeId.get(annotation.nodeId).push(annotation);
+  }
+  const wrapRect = $('#previewWrap').getBoundingClientRect();
+  const fragments = document.createDocumentFragment();
+  for (const [nodeId, threads] of byNodeId) {
+    const group = focusNodeGroups().find((candidate) => nodeIdForFocusGroup(candidate) === nodeId);
+    const shape = group?.querySelector('rect.basic.label-container, rect, polygon, path, ellipse, circle');
+    if (!shape) continue;
+    const shapeRect = shape.getBoundingClientRect();
+    if (!shapeRect.width || !shapeRect.height) continue;
+    const openThreads = threads.filter((annotation) => !annotation.resolved);
+    const blocked = openThreads.some((annotation) => annotation.anchorStatus === 'detached' || annotation.anchorStatus === 'outdated');
+    const state = blocked ? 'blocked' : openThreads.length ? 'open' : 'resolved';
+    const badge = document.createElement('button');
+    badge.type = 'button';
+    badge.className = 'canvas-thread-badge';
+    badge.dataset.nodeId = nodeId;
+    badge.dataset.state = state;
+    badge.dataset.focused = String(nodeId === selectedNodeId);
+    badge.textContent = canvasThreadBadgeLabel({ total: threads.length, open: openThreads.length, blocked });
+    badge.title = `${threads.length} 条绑定讨论 · ${openThreads.length} 条开放 · 只读状态；点击切换焦点并打开协作工作台`;
+    badge.setAttribute('aria-label', badge.title);
+    badge.style.left = `${shapeRect.left - wrapRect.left - 2}px`;
+    badge.style.top = `${shapeRect.top - wrapRect.top - 8}px`;
+    fragments.appendChild(badge);
+  }
+  layer.replaceChildren(fragments);
 }
 
 function positionFocusRing() {
@@ -2391,7 +2458,7 @@ function positionFocusRing() {
   label.dataset.focusNodeLabel = nodeText;
   label.textContent = `当前焦点 · ${nodeText}`;
   label.style.left = `${Math.max(8, left)}px`;
-  label.style.top = `${Math.max(8, top - 27)}px`;
+  label.style.top = `${top + height + 7}px`;
   label.dataset.visible = 'true';
   syncFocusLabelConversation();
 }
@@ -4095,6 +4162,22 @@ function openFocusConversation() {
   showToast('已定位当前对象的批注；讨论状态不等于批准或写入授权');
 }
 
+function openCanvasThreadBadge(nodeId) {
+  if (!nodeId) return;
+  setCanvasFocusNode(nodeId, false);
+  openCollab();
+  setCollabTab('dialog');
+  const annotationsTab = document.querySelector('[data-history-target="annotations"]');
+  if (annotationsTab) setHistoryTab(annotationsTab);
+  showToast('已把本机焦点移到绑定讨论的节点；只读标记不改会话、不批准提案或写文件');
+}
+
+$('#canvasThreadLayer').addEventListener('click', (event) => {
+  const badge = event.target.closest('[data-node-id]');
+  if (!badge) return;
+  openCanvasThreadBadge(badge.dataset.nodeId);
+});
+
 function syncFocusLabelConversation() {
   const label = $('#canvasFocusLabel');
   if (!label || label.dataset.visible !== 'true') return;
@@ -4122,6 +4205,7 @@ function renderCanvasObject() {
     ? `${node.label} · ${node.path || '无路径'} · 只读焦点`
     : '项目结构图加载后可切换节点';
   positionFocusRing();
+  renderCanvasThreadBadges();
 }
 
 function renderViewport(viewport = null) {
