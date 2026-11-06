@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 三套视觉系统 CI 证据（2026-11-06 17:20 CST）：`5770f41` 的 CI `42193671562` / #136 在 Node 20/22/24 三档 success（jobs `127811500934` / `127811501390` / `127811501219`），metadata #22 `42193671506` 完成只读漂移检查。本地 `npm run check` 全过：25 个测试文件 / 81 个测试、276 文件 dry-run、九张可复现截图、doctor、examples 与离线守卫；新增 Atlas 截图与三套视觉宣发短帖。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 retag、未改写已发布 Release、未自动发 npm 包。
+
 - 三套视觉系统与聚焦式顶栏（2026-11-06 17:10 CST）：新增 **Atlas** 工程蓝图视觉，用网格背景、绿色等宽字、直角卡片与高对比边框重做默认主壳；`V`、顶栏分段控件、外观面板和命令面板现在循环切换 Aurora / Studio / Atlas。顶栏中央加入当前图形与「批准前只读」上下文带，Mermaid 主题、导出、复制 ID、命令入口与删除动作收进「⋯」本机菜单，降低视觉噪声但保留全部既有操作。所有外观偏好仍只写 localStorage，不改 26 个工具、version 1 协议、焦点/视口语义、批准凭据或项目写入闸门；中英文 README、离线守卫、浏览器回归与 `npm run ui:shots` 可复现截图同步覆盖。
 
 - CI 与宣发证据（2026-11-06 16:50 CST）：`534d868` 的 CI `42188634194` / #133、`f68ab1f` 的 CI `42190267479` / #134 均在 Node 20/22/24 三档 success；metadata #20 `42188634203` 完成只读漂移检查。版本化治理文档、发布套件新增「协作可见性短帖」与作业 ID 证据，离线守卫覆盖两次绿色 CI；公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 retag、未改写已发布 Release、未自动发 npm 包。
