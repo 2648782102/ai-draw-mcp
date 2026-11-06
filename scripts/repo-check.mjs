@@ -44,6 +44,7 @@ const troubleshooting = await read("docs/TROUBLESHOOTING.md");
 const documentationMap = await read("docs/README.md");
 const docAssetGenerator = await read("scripts/generate-doc-assets.mjs");
 const governance = await read("docs/GOVERNANCE.md");
+const goalMode = await read("docs/GOAL_MODE.md");
 const collaborationTest = await read("test/collab.integration.test.mjs");
 const adrIndex = await read("docs/ADR/README.md");
 const releasing = await read("RELEASING.md");
@@ -659,6 +660,7 @@ for (const [label, file, needle] of [
   ["workorder freshness MCP test", mcpTest, "Selection freshness none"],
   ["workorder freshness HTTP test", collaborationTest, "selectionStale: false"],
   ["stale selection workorder HTTP test", collaborationTest, "status: \"stale\""],
+  ["stale workorder after human-confirmed rescan", collaborationTest, "rescanWorkorder.freshness"],
   ["workorder freshness workflow example", agentWorkflowExample, "freshness contract"],
   ["workorder freshness ADR", selectionWorkorderAdr, "Silently refresh a stale selection"],
   ["workorder freshness architecture", architecture, "纯派生 `freshness`"],
@@ -764,6 +766,19 @@ check(launchKit.includes("42131352599"), "LAUNCH_KIT.md is missing the 0.3.4 Rel
 check(governance.includes("42133746976"), "GOVERNANCE.md is missing the 45e8280 CI evidence");
 check(governance.includes("42133747183"), "GOVERNANCE.md is missing the 45e8280 metadata drift evidence");
 check(governance.includes("29 advisories"), "GOVERNANCE.md is missing the 08:03 dependency audit evidence");
+check(governance.includes("42133986305"), "GOVERNANCE.md is missing the 355b8a7 CI evidence");
+check(governance.includes("127617347972"), "GOVERNANCE.md is missing the Node 20 CI job evidence");
+check(governance.includes("127617347701"), "GOVERNANCE.md is missing the Node 22 CI job evidence");
+check(governance.includes("127617347854"), "GOVERNANCE.md is missing the Node 24 CI job evidence");
+check(governance.includes("docs/GOAL_MODE.md"), "GOVERNANCE.md does not link the goal-mode contract");
+check(goalMode.includes("2026-11-06 09:00"), "GOAL_MODE.md is missing the overnight time boundary");
+check(goalMode.includes("No force push"), "GOAL_MODE.md is missing the push/history red line");
+check(goalMode.includes("Final audit"), "GOAL_MODE.md is missing the final-audit rule");
+check(goalMode.includes("Reusable Chinese goal template"), "GOAL_MODE.md is missing the reusable goal template");
+check(readme.includes("docs/GOAL_MODE.md"), "README.md does not link the goal-mode contract");
+check(englishQuickstart.includes("docs/GOAL_MODE.md"), "README.en.md does not link the goal-mode contract");
+check(documentationMap.includes("GOAL_MODE.md"), "docs/README.md does not link the goal-mode contract");
+check(changelog.includes("docs/GOAL_MODE.md"), "CHANGELOG.md is missing the goal-mode contract evidence");
 check(dependencyMaintenance.includes("08:03 CST audit snapshot"), "DEPENDENCY_MAINTENANCE.md is missing the audit snapshot");
 check(dependencyMaintenance.includes("not applied"), "DEPENDENCY_MAINTENANCE.md does not record the no-auto-upgrade decision");
 check(releaseWorkflow.includes("Human ↔ AI visual collaboration"), "release workflow is missing the published Release title");

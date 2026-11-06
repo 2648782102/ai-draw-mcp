@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Maintenance
 
+- 记录 `355b8a7` 的 CI `42133986305` / #81 在 Node 20/22/24 全绿及三个 job ID；新增 `docs/GOAL_MODE.md`，回答「如何给目标模式设任务、需要提供什么」并给出可复用中文模板，README、英文 quickstart、文档地图与治理入口同步链接。GitHub About/topics 漂移与本机缺少管理型 API 凭据的事实继续明确记录，不改写 `v0.3.4` 或更早 Release。
 - 回写 `v0.3.4` 的公开发布证据：CI `42131331089`、Release `42131352599`、GitHub Release 页面与发布时间；保留 `v0.3.2` / `v0.3.3` / `v0.3.4` 已发布事实，不改写标签或 Release。About/topics 漂移仍明确记录，npm 发布仍等待人工批准。
 - 记录 `45e8280` 的 Node 20/22/24 CI 与只读元数据漂移检查证据；`npm audit --omit=dev` 的 29 条告警只作为隔离 Dependabot 验证输入，不在维护提交里自动升级 Mermaid/Puppeteer/MCP SDK/Zod/sharp 等高风险依赖。
 

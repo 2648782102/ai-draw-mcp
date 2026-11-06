@@ -13,6 +13,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [DEPENDENCY_MAINTENANCE.md](DEPENDENCY_MAINTENANCE.md) | Maintainers | Dependabot policy, verification order, and major-version decisions |
 | [LAUNCH_KIT.md](LAUNCH_KIT.md) | Maintainers | Copy for GitHub About, releases, Show HN, X/Mastodon, and Chinese communities |
 | [GOVERNANCE.md](GOVERNANCE.md) | Maintainers, contributors | Public surfaces, maintainer checklist, and observed metadata drift |
+| [GOAL_MODE.md](GOAL_MODE.md) | Maintainers, AI agents | How to set a time-boxed autonomous goal, safety boundaries, evidence, and final-audit rules |
 | [ADR/README.md](ADR/README.md) | Contributors, reviewers | Accepted protocol and safety decisions with consequences and alternatives |
 | [ADR/0007-agent-workflow-is-a-read-only-contract.md](ADR/0007-agent-workflow-is-a-read-only-contract.md) | AI agents, reviewers | Why the eight-step workflow is descriptive and never grants project-write authority |
 | [ADR/0008-visual-undo-is-not-project-undo.md](ADR/0008-visual-undo-is-not-project-undo.md) | Contributors, reviewers | Why bounded graph history never reverses approved project writes |

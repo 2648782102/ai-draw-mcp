@@ -705,6 +705,15 @@ describe("collaboration session", () => {
       });
       expect(focused.ok).toBe(true);
 
+      const selectionBeforeRescan = await fetch(`${base}/api/collab/selection`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ nodeIds: [readmeNode.id], confirmedBy: "human" }),
+      });
+      expect(selectionBeforeRescan.ok).toBe(true);
+      const savedSelection = (await selectionBeforeRescan.json()).selection;
+      expect(savedSelection).toMatchObject({ version: 1, source: "human", nodeIds: [readmeNode.id] });
+
       await fs.writeFile(path.join(rescanWorkspaceRoot, "src", "new.ts"), "export const next = 2;\n", "utf8");
       const unauthorized = await fetch(`${base}/api/collab/rescan`, {
         method: "POST",
@@ -736,6 +745,19 @@ describe("collaboration session", () => {
         preservedFocus: true,
       });
       expect(rescanResult.preservation.newNodes).toBeGreaterThanOrEqual(1);
+      const rescanWorkorder = await fetch(`${base}/api/collab/selection-workorder`, { headers })
+        .then((response) => response.json());
+      expect(rescanWorkorder.freshness).toMatchObject({
+        status: "stale",
+        selectionStale: true,
+        selectedAtRevision: savedSelection.graphRevision,
+        graphRevision: rescanResult.graphRevision,
+      });
+      expect(rescanWorkorder.gaps.join(" ")).toContain("selection is stale");
+      expect(rescanWorkorder.copyText).toContain("Selection freshness: stale");
+      expect(JSON.stringify(rescanWorkorder)).not.toContain("approvalGrant");
+      expect(sessions.getSelection()).toEqual(savedSelection);
+      expect(sessions.getSnapshot().selection).toEqual(savedSelection);
       const evidenceResponse = await fetch(`${base}/api/collab/source-evidence`, { headers });
       expect(evidenceResponse.ok).toBe(true);
       const evidence = await evidenceResponse.json();
