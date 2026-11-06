@@ -367,11 +367,29 @@ describe("collaboration panel UI", () => {
 
       await page.click("#btnGraphMore");
       expect(await page.$eval("#graphMoreActions", (element) => element.classList.contains("open"))).toBe(true);
+      expect(await page.$(".intent-composer")).toBeTruthy();
+      await page.click('[data-intent-preset="describe"]');
+      const intent = await page.evaluate(() => ({
+        text: document.querySelector("#messageInput").value,
+        state: document.querySelector("#intentState").textContent,
+        count: document.querySelector("#messageCount").textContent,
+        activePresets: document.querySelectorAll(".intent-preset.active").length,
+        readonlyNote: document.querySelector(".intent-foot").textContent,
+      }));
+      expect(intent.text).toContain("get_visual_context");
+      expect(intent.state).toContain("本机草稿");
+      expect(intent.activePresets).toBe(1);
+      expect(intent.readonlyNote).toContain("不授权写入");
+      await page.$eval("#messageInput", (element) => {
+        element.value = "";
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+      });
       await page.$eval("#messageInput", (element) => {
         element.value = "前端交互回归";
         element.dispatchEvent(new Event("input", { bubbles: true }));
       });
       expect(await page.$eval("#messageCount", (element) => element.textContent)).toBe("6 / 2000");
+      expect(await page.$eval("#btnSendMessage", (element) => element.classList.contains("has-draft"))).toBe(true);
       expect(await page.$eval(".safety-note", (element) => element.textContent)).toContain("写入闸门");
 
       page.once("dialog", async (dialog) => dialog.accept());

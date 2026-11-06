@@ -542,6 +542,24 @@
     .input-row { position: relative; }
     .input-row textarea { padding-bottom: 22px; }
     .input-count { position: absolute; right: 9px; bottom: 7px; color: var(--text-muted); font-size: 9px; pointer-events: none; }
+    .intent-composer { border: 1px solid var(--border); border-radius: 11px; background: linear-gradient(145deg, rgba(122,162,247,.055), transparent 65%), var(--panel); overflow: hidden; }
+    .intent-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+    .intent-head strong { font-size: 10px; }
+    .intent-state { display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 9px; }
+    .intent-state::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+    .intent-state.busy::before { background: var(--orange); animation: spin .7s linear infinite; }
+    .intent-state.error::before { background: var(--red); }
+    .intent-state.sent::before { background: var(--accent); }
+    .intent-presets { display: flex; gap: 4px; flex-wrap: wrap; padding: 7px 10px 0; }
+    .intent-preset { padding: 4px 8px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text-muted); font-size: 9px; cursor: pointer; }
+    .intent-preset:hover { border-color: rgba(122,162,247,.6); color: var(--text); }
+    .intent-preset.active { border-color: rgba(122,162,247,.72); background: rgba(122,162,247,.14); color: var(--text); }
+    .intent-composer .input-row textarea { height: 68px; padding: 9px 10px 23px; border: none; border-radius: 0; background: transparent; box-shadow: none; }
+    .intent-composer .input-row textarea:focus { box-shadow: inset 0 0 0 1px rgba(122,162,247,.38); }
+    .intent-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 9px; }
+    .intent-foot .draft-note { display: inline-flex; align-items: center; gap: 4px; }
+    .intent-foot code { color: var(--accent); font-size: 9px; }
+    #btnSendMessage.has-draft { box-shadow: 0 0 0 2px rgba(122,162,247,.14); }
     .safety-note { margin-top: 10px; padding: 10px; border: 1px solid rgba(240,168,104,.28); border-radius: 9px; background: rgba(240,168,104,.06); color: var(--text-muted); font-size: 10px; line-height: 1.55; }
     .safety-note strong { display: block; color: var(--orange); margin-bottom: 4px; }
     .collab-section:last-child { border-right: 0; }
@@ -842,6 +860,9 @@
       .journey-step + .journey-step::before { display: none; }
       .proposal-impact .impact-grid { grid-template-columns: repeat(2, 1fr); }
       .proposal-actions { flex-direction: column; }
+      .intent-presets { flex-wrap: nowrap; overflow-x: auto; }
+      .intent-preset { flex: 0 0 auto; }
+      .intent-foot span:last-child { display: none; }
       .welcome-card { grid-template-columns: 1fr; width: min(480px, calc(100% - 24px)); max-height: calc(100vh - 120px); overflow-y: auto; }
       .welcome-visual { display: none; }
       .welcome-main { padding: 20px; }
@@ -1188,9 +1209,19 @@
       </div>
       <div class="section-dock">
       <div class="dock-label"><span>发消息给 AI · ⌘/Ctrl + Enter</span><span id="messageCount">0 / 2000</span></div>
-      <div class="input-row">
-        <textarea id="messageInput" maxlength="2000" placeholder="告诉 AI 你想怎样修改项目…"></textarea>
-        <span class="input-count" id="messageInputCount">0 / 2000</span>
+      <div class="intent-composer">
+        <div class="intent-head"><strong>意图草稿 <span class="badge-mode">只读上下文</span></strong><span class="intent-state" id="intentState">本机草稿 · 尚未发送</span></div>
+        <div class="intent-presets" aria-label="快捷意图">
+          <button class="intent-preset" type="button" data-intent-preset="describe">解释这张图</button>
+          <button class="intent-preset" type="button" data-intent-preset="scope">只看选中模块</button>
+          <button class="intent-preset" type="button" data-intent-preset="preflight">先做只读预检</button>
+          <button class="intent-preset" type="button" data-intent-preset="diff">生成待审提案</button>
+        </div>
+        <div class="input-row">
+          <textarea id="messageInput" maxlength="2000" placeholder="告诉 AI 你想怎样修改项目…"></textarea>
+          <span class="input-count" id="messageInputCount">0 / 2000</span>
+        </div>
+        <div class="intent-foot"><span class="draft-note">◇ 草稿只存本机 · 不授权写入</span><span><code>get_visual_context</code> 后再预检 / 提案</span></div>
       </div>
       <div class="collab-actions">
         <button id="btnSendMessage" class="primary">发送消息</button>
@@ -1943,6 +1974,7 @@ const COMMANDS = [
   { group: '协作流程', icon: '↔', title: '查看双向对话', hint: '切到消息、批注与活动时间线', shortcut: '5', keys: '对话 消息 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
   { group: '协作流程', icon: '✓', title: '查看变更提案', hint: '切到逐行 diff 与人工批准', shortcut: '6', keys: '提案 diff 批准 proposal', run: () => { openCollab(); setCollabTab('proposals'); } },
   { group: '协作流程', icon: '◇', title: '载入示例图形', hint: '只写入本机编辑器并渲染预览', shortcut: '', keys: '示例 demo mermaid', run: () => loadExampleDiagram() },
+  { group: '协作流程', icon: '↔', title: '解释这张图', hint: '把只读结构说明插入意图草稿，不发送', shortcut: '', keys: '意图 模板 解释 结构', run: () => { openCollab(); setCollabTab('dialog'); insertIntentPreset(document.querySelector('[data-intent-preset="describe"]')); } },
   { group: '外观与帮助', icon: '☀', title: '切换浅色 / 深色主题', hint: '只影响本机界面，不改图主题', shortcut: '', keys: '主题 浅色 深色 theme', run: () => setUiTheme(prefs.uiTheme === 'light' ? 'dark' : 'light') },
   { group: '外观与帮助', icon: '⚙', title: '打开外观设置', hint: '主题、密度、预览背景与图表库', shortcut: '', keys: '外观 设置 快捷键 appearance', run: () => setAppearanceOpen(true) },
 ];
@@ -3419,17 +3451,77 @@ async function sendMessage() {
   const input = $('#messageInput');
   const body = input.value.trim();
   if (!body) return;
-  input.value = '';
+  const button = $('#btnSendMessage');
+  const state = $('#intentState');
+  button.disabled = true;
+  button.classList.add('busy');
+  button.setAttribute('aria-busy', 'true');
+  state.className = 'intent-state busy';
+  state.textContent = '正在发送到本机会话…';
   try {
     await collabFetch('/api/collab/messages', {
       method: 'POST',
       body: JSON.stringify({ body, author: 'human', diagramId: currentId || undefined }),
     });
+    input.value = '';
+    updateMessageCount();
+    clearMessageDraft();
+    state.className = 'intent-state sent';
+    state.textContent = '✓ 已发送 · 等待 AI 读取';
     showToast('消息已发送，等待 AI 读取');
     await loadCollab();
   } catch (error) {
+    state.className = 'intent-state error';
+    state.textContent = '发送失败 · 草稿已保留';
     showToast(`发送失败：${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.classList.remove('busy');
+    button.removeAttribute('aria-busy');
   }
+}
+
+const MESSAGE_DRAFT_KEY = 'ai-draw:message-draft';
+function clearMessageDraft() {
+  try { localStorage.removeItem(MESSAGE_DRAFT_KEY); } catch {}
+}
+function updateMessageCount() {
+  const input = $('#messageInput');
+  const count = input.value.length;
+  const label = `${count} / 2000`;
+  $('#messageCount').textContent = label;
+  $('#messageInputCount').textContent = label;
+  $('#btnSendMessage').classList.toggle('has-draft', count > 0);
+  const state = $('#intentState');
+  if (state && !state.classList.contains('busy') && !state.classList.contains('error') && !state.classList.contains('sent')) {
+    state.textContent = count ? '本机草稿 · 尚未发送' : '等待输入意图';
+  }
+  try {
+    if (count) localStorage.setItem(MESSAGE_DRAFT_KEY, input.value);
+    else clearMessageDraft();
+  } catch {}
+}
+
+const INTENT_PRESETS = {
+  describe: '请先用 get_visual_context 读取当前图和对话，再用中文解释这张项目结构图；只描述，不创建提案或写项目文件。',
+  scope: '请先看我当前选中的节点范围与焦点，只围绕这些模块解释关系；选择范围是只读上下文，不授权写入。',
+  preflight: '请先读取当前意图与图形差异，对候选改动做 preflight_visual_proposal；先不要创建提案，也不要写项目文件。',
+  diff: '请根据当前意图和图形修订生成待审变更提案，先展示完整逐行 diff 与影响摘要；我批准并给确认号前不要写项目文件。',
+};
+function insertIntentPreset(button) {
+  const input = $('#messageInput');
+  const text = INTENT_PRESETS[button.dataset.intentPreset];
+  if (!text) return;
+  const existing = input.value.trim();
+  const next = existing ? `${existing}\n\n${text}` : text;
+  input.value = next.slice(0, 2000);
+  for (const candidate of document.querySelectorAll('.intent-preset')) candidate.classList.toggle('active', candidate === button);
+  updateMessageCount();
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  const state = $('#intentState');
+  state.className = 'intent-state';
+  state.textContent = '已插入意图模板 · 仍在本机草稿';
 }
 
 async function rescanProject() {
@@ -3656,13 +3748,17 @@ for (const tab of document.querySelectorAll('.history-tab')) {
   });
 }
 const messageInput = $('#messageInput');
-const updateMessageCount = () => {
-  const count = messageInput.value.length;
-  const label = `${count} / 2000`;
-  $('#messageCount').textContent = label;
-  $('#messageInputCount').textContent = label;
-};
+try {
+  const savedDraft = localStorage.getItem(MESSAGE_DRAFT_KEY);
+  if (savedDraft) {
+    messageInput.value = savedDraft.slice(0, 2000);
+    $('#intentState').textContent = '已恢复本机草稿 · 尚未发送';
+  }
+} catch {}
 messageInput.addEventListener('input', updateMessageCount);
+for (const button of document.querySelectorAll('.intent-preset')) {
+  button.addEventListener('click', () => insertIntentPreset(button));
+}
 $('#btnCloseCollab').addEventListener('click', () => { $('#collabShell').hidden = true; });
 $('#btnSaveGraph').addEventListener('click', saveGraph);
 $('#btnUndoGraph').addEventListener('click', () => restoreGraphHistory('undo'));
@@ -3692,6 +3788,7 @@ $('#btnSendMessage').addEventListener('click', sendMessage);
 $('#messageInput').addEventListener('keydown', (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') sendMessage();
 });
+updateMessageCount();
 $('#btnAddAnnotation').addEventListener('click', addAnnotation);
 
 // ── Init ──
