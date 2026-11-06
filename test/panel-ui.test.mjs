@@ -243,6 +243,11 @@ describe("collaboration panel UI", () => {
       await page.$eval('[data-history-target="diffs"]', (element) => element.click());
       await page.waitForFunction(() => document.querySelector('[data-history-pane="diffs"]').classList.contains("active"));
       expect(await page.$eval('[data-history-target="diffs"]', (element) => element.classList.contains("active"))).toBe(true);
+      expect(await page.$eval('[data-history-pane="diffs"] .history-empty', (element) => element.textContent)).toContain("暂无图形修订");
+      await page.$eval('[data-history-target="annotations"]', (element) => element.click());
+      expect(await page.$eval('[data-history-pane="annotations"] .history-empty', (element) => element.textContent)).toContain("还没有图形批注");
+      await page.$eval('[data-history-target="activity"]', (element) => element.click());
+      expect(await page.$$eval('[data-history-pane="activity"] .activity-item', (elements) => elements.length)).toBeGreaterThan(0);
       await page.$eval('[data-history-target="chat"]', (element) => element.click());
 
       await page.click("#btnGraphMore");

@@ -491,6 +491,11 @@
     .chat-empty-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: rgba(122,162,247,.14); color: var(--accent); font-size: 18px; }
     .chat-empty strong { color: var(--text); font-size: 11px; }
     .chat-empty p { font-size: 10px; line-height: 1.6; max-width: 250px; }
+    .history-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 150px; padding: 16px; border: 1px dashed rgba(122,162,247,.28); border-radius: 11px; background: radial-gradient(circle at 50% 0%, rgba(122,162,247,.07), transparent 68%), var(--panel); text-align: center; }
+    .history-empty-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: rgba(122,162,247,.14); color: var(--accent); font-size: 17px; }
+    .history-empty strong { color: var(--text); font-size: 11px; }
+    .history-empty span { display: block; color: var(--text-muted); font-size: 10px; line-height: 1.55; max-width: 250px; }
+    .history-empty code { padding: 1px 4px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface2); color: var(--accent); font-size: 9px; }
     .chat-item { --chat-accent: var(--accent); display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: start; animation: chat-in .22s ease both; }
     .chat-item.human { --chat-accent: var(--green); }
     .chat-item.ai { --chat-accent: var(--accent); }
@@ -606,6 +611,10 @@
     .activity-item.human { border-left-color: var(--green); }
     .activity-item.ai { border-left-color: var(--accent); }
     .activity-item.system { border-left-color: var(--text-muted); }
+    .activity-item::before { content: ''; display: inline-block; width: 5px; height: 5px; margin-right: 5px; border-radius: 50%; background: var(--border); vertical-align: middle; }
+    .activity-item.human::before { background: var(--green); }
+    .activity-item.ai::before { background: var(--accent); }
+    .activity-item.system::before { background: var(--text-muted); }
     .activity-meta { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 2px; }
     .activity-summary { font-size: 9px; color: var(--text-muted); margin: 0 0 5px; }
     .diagnostics-list {
@@ -622,6 +631,7 @@
     .diagnostics-list .next-action::before { content: '→ '; color: var(--accent); }
     .graph-diff-list { flex: 0 0 150px; max-height: 150px; overflow-y: auto; margin-bottom: 6px; }
     .graph-diff-list details { margin-bottom: 5px; padding: 5px 7px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface2); font-size: 10px; line-height: 1.45; }
+    .graph-diff-list details[open] { border-color: rgba(122,162,247,.48); background: linear-gradient(135deg, rgba(122,162,247,.07), transparent 65%), var(--surface2); }
     .graph-diff-list summary { cursor: pointer; color: var(--text); }
     .graph-diff-meta { display: block; color: var(--text-muted); font-size: 9px; margin-top: 3px; }
     .graph-diff-item { margin-top: 5px; padding-left: 7px; border-left: 2px solid var(--accent); word-break: break-word; }
@@ -2257,6 +2267,10 @@ function updateHistoryCount(name, count, hasPending = false) {
   if (tab) tab.dataset.hasPending = String(hasPending);
 }
 
+function historyEmpty(icon, title, hint) {
+  return `<div class="history-empty"><span class="history-empty-icon">${icon}</span><strong>${title}</strong><span>${hint}</span></div>`;
+}
+
 function renderActivity(timeline) {
   const target = $('#activityList');
   if (!target) return;
@@ -2269,7 +2283,7 @@ function renderActivity(timeline) {
       <span class="activity-meta">${escapeHtml(activityKindLabel(item.kind))} · ${escapeHtml(item.actor)} · ${escapeHtml(item.createdAt)}${item.nodeLabel ? ` · @ ${escapeHtml(item.nodeLabel)}` : ''}</span>
       ${escapeHtml(item.body)}
     </div>
-  `).join('') : '<div class="collab-help">暂无活动。让 AI 扫描项目，或从消息与节点批注开始。</div>';
+  `).join('') : historyEmpty('◷', '还没有活动记录', '消息、节点批注、图形修订与提案会在这里形成只读时间线；下一步由人和 AI 共同推进。');
   updateHistoryCount('activity', items.length, timeline?.nextActor === 'ai');
 }
 
@@ -2401,7 +2415,7 @@ function renderGraphDiffs(diffs) {
       return `<div class="graph-diff-item">${escapeHtml(graphDiffEntityLabel(change.entity))} ${escapeHtml(graphDiffChangeLabel(change.change))} · ${escapeHtml(change.label || change.id)}${fieldText ? `<span class="graph-diff-fields">${escapeHtml(fieldText)}</span>` : ''}</div>`;
     }).join('') : '<div class="collab-help">此修订没有字段级变化。</div>';
     return `<details ${index === 0 ? 'open' : ''}><summary>${escapeHtml(label)}</summary><span class="graph-diff-meta">${escapeHtml(diff.source || 'human')} · ${escapeHtml(diff.createdAt || '')}</span>${changeHtml}</details>`;
-  }).join('') : '<div class="collab-help">暂无图形修订。保存节点或连线后，这里会显示字段级差异。</div>';
+  }).join('') : historyEmpty('⇄', '暂无图形修订', '保存节点或连线后，这里会显示字段级差异；图形差异只描述视觉状态，不授权项目写入。');
   list.title = '只读差异视图不生成提案、不签发批准凭据，也不授权项目写入。';
   updateHistoryCount('diffs', items.length);
 }
@@ -2458,7 +2472,7 @@ function renderAnnotations(annotations) {
         <button data-annotation-reply="${escapeHtml(annotation.id)}">回复</button>
       </div>
     </article>
-  `).join('') : '<div class="collab-help">暂无批注。选中左侧节点后可以添加绑定到节点的批注。</div>';
+  `).join('') : historyEmpty('⌖', '还没有图形批注', '在左侧项目图选中节点，再用 <code>添加图形批注</code> 把想法绑定到对象；AI 会把它作为只读讨论上下文。');
 
   for (const button of target.querySelectorAll('[data-annotation-status]')) {
     button.addEventListener('click', () => setAnnotationStatus(button.dataset.annotationStatus, button.dataset.status));
