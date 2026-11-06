@@ -462,6 +462,11 @@
     .canvas-object-actions button { height: 25px; padding: 0 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface2); color: var(--text-muted); font-size: 9px; cursor: pointer; }
     .canvas-object-actions button:hover { border-color: rgba(122,162,247,.62); color: var(--text); }
     .canvas-object-actions button.primary { flex: 1; border-color: rgba(122,162,247,.42); background: rgba(122,162,247,.14); color: var(--accent); font-weight: 700; }
+    .canvas-object-stats { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 8px; }
+    .canvas-object-stats strong { color: var(--accent2); font-variant-numeric: tabular-nums; }
+    .canvas-object-actions.secondary { margin-top: 5px; gap: 4px; }
+    .canvas-object-actions.secondary button { flex: 1; padding: 0 5px; color: var(--text); font-size: 8px; white-space: nowrap; }
+    .canvas-object-actions button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
     .canvas-object-note { margin-top: 7px; color: var(--text-muted); font-size: 8px; line-height: 1.45; }
     body.theme-light .canvas-object-card { background: rgba(255,255,255,.94); }
     @media (max-width: 860px) { .canvas-object-card { width: 220px; } }
@@ -1221,6 +1226,11 @@
               <button type="button" id="btnCanvasNextNode" title="下一个节点">→</button>
               <button type="button" id="btnCanvasOpenNode" class="primary" title="在协作工作台查看项目图">查看节点</button>
             </div>
+            <div class="canvas-object-stats"><span>直接关联 <strong id="canvasRelatedCount">0</strong> 个对象</span><span id="canvasFocusRevision">rev —</span></div>
+            <div class="canvas-object-actions secondary">
+              <button type="button" id="btnCanvasRelatedNode" title="沿真实连线切换到相邻对象">↗ 关联</button>
+              <button type="button" id="btnCanvasCopyFocus" title="复制只读焦点上下文给 AI">⧉ 复制</button>
+            </div>
             <div class="canvas-object-note">点击图中节点或按 `← / →` 切换；焦点只表达「人正在指哪个对象」，不签发凭据、不自动写项目文件。</div>
           </aside>
         </div>
@@ -1828,6 +1838,8 @@ $('#btnCanvasHelp').addEventListener('click', () => openShortcutDialog());
 $('#btnCanvasPrevNode').addEventListener('click', () => stepCanvasFocus(-1));
 $('#btnCanvasNextNode').addEventListener('click', () => stepCanvasFocus(1));
 $('#btnCanvasOpenNode').addEventListener('click', () => { openCollab(); setCollabTab('graph'); });
+$('#btnCanvasRelatedNode').addEventListener('click', stepRelatedCanvasFocus);
+$('#btnCanvasCopyFocus').addEventListener('click', copyCanvasFocusContext);
 
 // Keyboard: F=fit, 0=reset, +/- zoom
 window.addEventListener('keydown', (e) => {
@@ -2402,6 +2414,8 @@ const COMMANDS = [
   { group: '协作流程', icon: '◇', title: '载入示例图形', hint: '只写入本机编辑器并渲染预览', shortcut: '', keys: '示例 demo mermaid', run: () => loadExampleDiagram() },
   { group: '协作流程', icon: '↔', title: '解释这张图', hint: '把只读结构说明插入意图草稿，不发送', shortcut: '', keys: '意图 模板 解释 结构', run: () => { openCollab(); setCollabTab('dialog'); insertIntentPreset(document.querySelector('[data-intent-preset="describe"]')); } },
   { group: '协作流程', icon: '→', title: '切换下一个节点', hint: '把只读焦点移到下一个项目结构节点', shortcut: ']', keys: '节点 焦点 next object', run: () => stepCanvasFocus(1) },
+  { group: '协作流程', icon: '↗', title: '跳到关联对象', hint: '沿真实连线切换当前只读焦点', shortcut: '', keys: '关联 相邻 边 edge 对象', run: () => stepRelatedCanvasFocus() },
+  { group: '协作流程', icon: '⧉', title: '复制焦点上下文', hint: '复制当前节点的只读上下文提示给 AI', shortcut: '', keys: '复制 焦点 上下文 context', run: () => copyCanvasFocusContext() },
   { group: '外观与帮助', icon: '☀', title: '切换浅色 / 深色主题', hint: '只影响本机界面，不改图主题', shortcut: '', keys: '主题 浅色 深色 theme', run: () => setUiTheme(prefs.uiTheme === 'light' ? 'dark' : 'light') },
   { group: '外观与帮助', icon: '⚙', title: '打开外观设置', hint: '主题、密度、预览背景与图表库', shortcut: '', keys: '外观 设置 快捷键 appearance', run: () => setAppearanceOpen(true) },
   { group: '外观与帮助', icon: '?', title: '打开快捷键帮助', hint: '查看视图、画布、效率与编辑快捷键', shortcut: 'H', keys: '帮助 快捷键 help keyboard', run: () => openShortcutDialog() },
@@ -2963,13 +2977,63 @@ function stepCanvasFocus(direction) {
   setCanvasFocusNode(nodes[next].id);
 }
 
+function relatedCanvasNodeIds(nodeId = selectedNodeId) {
+  if (!nodeId) return [];
+  const related = new Set();
+  for (const edge of collabGraph?.edges || []) {
+    if (edge.from === nodeId && edge.to !== nodeId) related.add(edge.to);
+    if (edge.to === nodeId && edge.from !== nodeId) related.add(edge.from);
+  }
+  return (collabGraph?.nodes || []).filter((node) => related.has(node.id)).map((node) => node.id);
+}
+
+function stepRelatedCanvasFocus() {
+  const relatedIds = relatedCanvasNodeIds();
+  if (!relatedIds.length) return showToast('当前对象没有直接关联节点；仍可点选其他对象');
+  const currentIndex = relatedIds.indexOf(selectedNodeId);
+  const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % relatedIds.length;
+  const nextId = relatedIds[nextIndex] === selectedNodeId
+    ? relatedIds[(nextIndex + 1) % relatedIds.length]
+    : relatedIds[nextIndex];
+  setCanvasFocusNode(nextId);
+}
+
+async function copyCanvasFocusContext() {
+  const node = (collabGraph?.nodes || []).find((item) => item.id === selectedNodeId);
+  if (!node) return showToast('先让 AI 扫描项目，并在画布上选中一个对象');
+  const relatedIds = relatedCanvasNodeIds(node.id);
+  const relatedLabels = (collabGraph?.nodes || [])
+    .filter((item) => relatedIds.includes(item.id))
+    .map((item) => `${item.label}${item.path ? ` (${item.path})` : ''}`);
+  const prompt = [
+    '请调用 get_visual_context 与 get_node_context 读取同一份 version 1 会话；下面是人在画布上指向的只读对象：',
+    `焦点：${node.label}${node.path ? ` · ${node.path}` : ''} · ${node.id}`,
+    `图修订：rev ${collabRevision} · 直接关联 ${relatedIds.length} 个对象`,
+    relatedLabels.length ? `关联对象：${relatedLabels.join('、')}` : '关联对象：无',
+    '',
+    '请先解释这个对象及相邻关系；如需改变项目文件，仍须 preflight_visual_proposal、完整逐行 diff、人工批准与一次性确认号。此提示不含批准凭据，也不授权写入。',
+  ].join('\n');
+  try {
+    await navigator.clipboard.writeText(prompt);
+    showToast('已复制只读焦点上下文；不含确认号、绝对路径或写入授权');
+  } catch {
+    $('#messageInput').value = prompt;
+    $('#messageInput').focus();
+    showToast('剪贴板不可用，已把只读焦点提示放入消息框（尚未发送）');
+  }
+}
+
 function renderCanvasObject() {
   const nodes = collabGraph?.nodes || [];
   const current = Math.max(0, nodes.findIndex((node) => node.id === selectedNodeId));
   const node = nodes[current];
+  const relatedCount = relatedCanvasNodeIds(node?.id).length;
   $('#canvasObjectIndex').textContent = nodes.length ? `${current + 1} / ${nodes.length}` : '0 / 0';
   $('#canvasObjectLabel').textContent = node?.label || '等待项目结构图';
   $('#canvasObjectPath').textContent = node?.path || '选中节点后作为 AI 的只读上下文';
+  $('#canvasRelatedCount').textContent = String(relatedCount);
+  $('#canvasFocusRevision').textContent = `rev ${Number.isFinite(collabRevision) ? collabRevision : '—'}`;
+  $('#btnCanvasRelatedNode').disabled = !relatedCount;
   $('#canvasObjectCard').title = node
     ? `${node.label} · ${node.path || '无路径'} · 只读焦点`
     : '项目结构图加载后可切换节点';

@@ -127,7 +127,36 @@ describe("canvas focus interaction", () => {
       expect(focus.aligned).toBe(true);
       expect(focus.rippleTriggeredBy).toBe(focus.ringId);
 
+      const objectCard = await page.evaluate(() => ({
+        relatedCount: Number(document.querySelector("#canvasRelatedCount").textContent),
+        revision: document.querySelector("#canvasFocusRevision").textContent,
+        relatedDisabled: document.querySelector("#btnCanvasRelatedNode").disabled,
+        ringId: document.querySelector("#canvasFocusRing").dataset.focusNodeId,
+      }));
+      expect(objectCard.relatedCount).toBeGreaterThan(0);
+      expect(objectCard.revision).toMatch(/^rev \d+$/);
+      expect(objectCard.relatedDisabled).toBe(false);
+      expect(objectCard.ringId).toBe(focus.ringId);
+
+      await page.evaluate(() => {
+        window.copiedFocusContext = "";
+        navigator.clipboard.writeText = async (text) => { window.copiedFocusContext = text; };
+      });
+      await page.click("#btnCanvasCopyFocus");
+      const clipboard = await page.evaluate(() => window.copiedFocusContext);
+      expect(clipboard).toContain(focus.label);
+      expect(clipboard).toContain("get_node_context");
+      expect(clipboard).toContain("不授权写入");
+      expect(clipboard).not.toContain("receipt");
+      expect(clipboard).not.toContain(tempDir);
+      await page.click("#btnCanvasRelatedNode");
+      await page.waitForFunction((previous) => document.querySelector("#canvasObjectLabel").textContent.trim() !== previous, { timeout: 5000 }, focus.label);
+      expect(await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId)).toBeTruthy();
+
       const beforeDrag = await page.$eval("#canvasObjectLabel", (element) => element.textContent);
+      const relatedLabel = beforeDrag.trim();
+      const ringAfterRelated = await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId);
+      expect(ringAfterRelated).toBeTruthy();
       await page.mouse.move(target.x, target.y);
       await page.mouse.down();
       await page.mouse.move(target.x + 48, target.y + 24, { steps: 6 });
