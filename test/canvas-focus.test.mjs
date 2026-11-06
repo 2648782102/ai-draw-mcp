@@ -78,6 +78,9 @@ describe("canvas focus interaction", () => {
     });
     expect(annotationResponse.ok).toBe(true);
 
+    const tokenHeaders = { "Content-Type": "application/json", "X-AI-Draw-Token": token };
+    const sessionBeforeHover = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
+
     try {
       const page = await browser.newPage();
       const pageErrors = [];
@@ -92,6 +95,7 @@ describe("canvas focus interaction", () => {
       await page.click("#btnCloseCollab");
       await page.keyboard.press("3");
       await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
+      const focusRingBeforeHover = await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId);
 
       const nodes = await page.evaluate(() => {
         const groups = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")];
@@ -103,6 +107,76 @@ describe("canvas focus interaction", () => {
       expect(nodes.length).toBeGreaterThan(1);
       const target = nodes.find((node) => node.label === seededNode.label) ?? nodes.at(-1);
       expect(target).toBeTruthy();
+
+      await page.mouse.move(target.x, target.y);
+      await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "true");
+      const hover = await page.evaluate((label) => {
+        const card = document.querySelector("#canvasHoverCard");
+        const wrapRect = document.querySelector("#previewWrap").getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
+        const group = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")]
+          .find((element) => element.textContent.replace(/\s+/g, " ").trim() === label);
+        const shapeRect = group?.querySelector("rect.basic.label-container, rect, polygon, path, ellipse, circle")?.getBoundingClientRect();
+        return {
+          label: document.querySelector("#canvasHoverLabel").textContent,
+          path: document.querySelector("#canvasHoverPath").textContent,
+          focus: document.querySelector("#canvasHoverFocus").textContent,
+          related: document.querySelector("#canvasHoverRelated").textContent,
+          evidence: document.querySelector("#canvasHoverEvidence").textContent,
+          open: document.querySelector("#canvasHoverOpen").textContent,
+          note: document.querySelector(".canvas-hover-note").textContent,
+          visible: card.dataset.visible,
+          nodeId: card.dataset.nodeId,
+          selectedNodeId: document.querySelector("#canvasFocusRing").dataset.focusNodeId,
+          inCanvas: cardRect.left >= wrapRect.left - 1 && cardRect.right <= wrapRect.right + 1
+            && cardRect.top >= wrapRect.top - 1 && cardRect.bottom <= wrapRect.bottom + 1,
+          nearShape: Boolean(shapeRect) && Math.abs(cardRect.left + cardRect.width / 2 - (shapeRect.left + shapeRect.width / 2)) < 160,
+          hoveredNodes: document.querySelectorAll("#diagramRender svg .node.is-hovered").length,
+          relatedNodes: document.querySelectorAll("#diagramRender svg .node.is-related").length,
+        };
+      }, target.label);
+      expect(hover.visible).toBe("true");
+      expect(hover.label).toBe(target.label);
+      expect(hover.path).toContain("src/index.ts");
+      expect(hover.focus).toBe("悬停预览");
+      expect(Number(hover.related)).toBeGreaterThan(0);
+      expect(Number(hover.evidence)).toBeGreaterThanOrEqual(0);
+      expect(Number(hover.open)).toBeGreaterThan(0);
+      expect(hover.note).toContain("不批准或写文件");
+      expect(hover.nodeId).toMatch(/^node_/);
+      expect(hover.selectedNodeId).toBe(focusRingBeforeHover);
+      expect(hover.inCanvas).toBe(true);
+      expect(hover.nearShape).toBe(true);
+      expect(hover.hoveredNodes).toBe(1);
+      expect(hover.relatedNodes).toBe(Number(hover.related));
+      const sessionAfterHover = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
+      expect(sessionAfterHover.focus ?? null).toEqual(sessionBeforeHover.focus ?? null);
+      expect(sessionAfterHover.graphRevision).toBe(sessionBeforeHover.graphRevision);
+      expect(sessionAfterHover.messages?.length ?? 0).toBe(sessionBeforeHover.messages?.length ?? 0);
+      expect(sessionAfterHover.proposals?.length ?? 0).toBe(sessionBeforeHover.proposals?.length ?? 0);
+      await page.waitForFunction((focusNodeId) => document.querySelector("#canvasFocusRing").dataset.focusNodeId === focusNodeId, { timeout: 5000 }, focusRingBeforeHover);
+
+      const hoverLeftBeforeZoom = await page.$eval("#canvasHoverCard", (element) => element.style.left);
+      await page.click("#btnCanvasZoomIn");
+      await page.waitForFunction(() => Number(document.querySelector("#canvasZoomLabel").textContent.replace("%", "")) > 90);
+      await page.mouse.move(target.x + 1, target.y + 1);
+      const hoverAfterZoom = await page.evaluate(() => ({
+        visible: document.querySelector("#canvasHoverCard").dataset.visible,
+        left: document.querySelector("#canvasHoverCard").style.left,
+      }));
+      expect(hoverAfterZoom.visible).toBe("true");
+      expect(hoverAfterZoom.left).not.toBe(hoverLeftBeforeZoom);
+
+      await page.keyboard.press("p");
+      expect(await page.$eval("#canvasHoverCard", (element) => element.dataset.visible)).toBe("false");
+      expect(await page.$$eval("#diagramRender svg .node.is-related", (elements) => elements.length)).toBe(0);
+      await page.mouse.move(target.x + 2, target.y + 2);
+      expect(await page.$eval("#canvasHoverCard", (element) => element.dataset.visible)).toBe("false");
+      await page.keyboard.press("p");
+      await page.mouse.move(target.x + 3, target.y + 3);
+      await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "true");
+      await page.keyboard.press("0");
+      await page.keyboard.press("f");
 
       await page.mouse.click(target.x, target.y);
       await page.waitForFunction((label) => document.querySelector("#canvasObjectLabel").textContent.trim() === label, { timeout: 5000 }, target.label);

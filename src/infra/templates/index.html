@@ -586,6 +586,32 @@
     body.flow-workspace.visual-atlas #diagramRender svg .node.is-focused path,
     body.flow-workspace.visual-atlas #diagramRender svg .node.is-focused circle,
     body.flow-workspace.visual-atlas #diagramRender svg .node.is-focused ellipse { stroke: var(--accent2) !important; fill: #151021 !important; }
+    body.flow-workspace #diagramRender svg .node.is-hovered rect,
+    body.flow-workspace #diagramRender svg .node.is-hovered polygon,
+    body.flow-workspace #diagramRender svg .node.is-hovered path,
+    body.flow-workspace #diagramRender svg .node.is-hovered circle,
+    body.flow-workspace #diagramRender svg .node.is-hovered ellipse {
+      stroke: var(--accent3) !important; stroke-width: 2.6px !important;
+      filter: drop-shadow(0 0 12px rgba(61,219,217,.48));
+    }
+    body.flow-workspace #diagramRender svg .node.is-related rect,
+    body.flow-workspace #diagramRender svg .node.is-related polygon,
+    body.flow-workspace #diagramRender svg .node.is-related path,
+    body.flow-workspace #diagramRender svg .node.is-related circle,
+    body.flow-workspace #diagramRender svg .node.is-related ellipse {
+      stroke: var(--accent2) !important; stroke-width: 2px !important;
+      filter: drop-shadow(0 0 8px rgba(187,154,247,.34));
+    }
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-hovered rect,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-hovered polygon,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-hovered path,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-hovered circle,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-hovered ellipse { stroke: var(--accent) !important; fill: #10241c !important; filter: none; }
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-related rect,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-related polygon,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-related path,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-related circle,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-related ellipse { stroke: var(--accent2) !important; fill: #101820 !important; filter: none; }
     body.graph-skin-off #diagramRender svg .node rect,
     body.graph-skin-off #diagramRender svg .node polygon,
     body.graph-skin-off #diagramRender svg .node path,
@@ -596,6 +622,16 @@
     body.graph-skin-off #diagramRender svg .node.is-focused path,
     body.graph-skin-off #diagramRender svg .node.is-focused circle,
     body.graph-skin-off #diagramRender svg .node.is-focused ellipse,
+    body.graph-skin-off #diagramRender svg .node.is-hovered rect,
+    body.graph-skin-off #diagramRender svg .node.is-hovered polygon,
+    body.graph-skin-off #diagramRender svg .node.is-hovered path,
+    body.graph-skin-off #diagramRender svg .node.is-hovered circle,
+    body.graph-skin-off #diagramRender svg .node.is-hovered ellipse,
+    body.graph-skin-off #diagramRender svg .node.is-related rect,
+    body.graph-skin-off #diagramRender svg .node.is-related polygon,
+    body.graph-skin-off #diagramRender svg .node.is-related path,
+    body.graph-skin-off #diagramRender svg .node.is-related circle,
+    body.graph-skin-off #diagramRender svg .node.is-related ellipse,
     body.graph-skin-off #diagramRender svg .edgePath .path,
     body.graph-skin-off #diagramRender svg .edgeLabel,
     body.graph-skin-off #diagramRender svg .edgeLabel .label,
@@ -609,6 +645,10 @@
       .node rect, .node polygon, .node path, .node circle, .node ellipse,
       .node.is-focused rect, .node.is-focused polygon, .node.is-focused path,
       .node.is-focused circle, .node.is-focused ellipse,
+      .node.is-hovered rect, .node.is-hovered polygon, .node.is-hovered path,
+      .node.is-hovered circle, .node.is-hovered ellipse,
+      .node.is-related rect, .node.is-related polygon, .node.is-related path,
+      .node.is-related circle, .node.is-related ellipse,
       .edgePath .path, .edgeLabel, .edgeLabel .label, .nodeLabel
     ) {
       filter: none !important; stroke: revert !important; stroke-width: revert !important;
@@ -1202,6 +1242,38 @@
       box-shadow: 0 16px 38px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
       backdrop-filter: blur(14px); color: var(--text);
     }
+    .canvas-hover-card {
+      position: absolute; z-index: 26; display: none; width: 232px; pointer-events: none;
+      padding: 10px 11px; border: 1px solid rgba(122,162,247,.56); border-radius: 13px;
+      background: linear-gradient(150deg, rgba(15,24,42,.97), rgba(9,14,25,.97));
+      box-shadow: 0 18px 42px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
+      backdrop-filter: blur(16px); color: var(--text);
+    }
+    .canvas-hover-card[data-visible="true"] { display: block; animation: canvas-hover-in .16s ease-out both; }
+    @keyframes canvas-hover-in { from { opacity: 0; transform: translateY(4px) scale(.98); } to { opacity: 1; transform: none; } }
+    .canvas-hover-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+    .canvas-hover-kicker { color: var(--accent3); font-size: 8px; font-weight: 850; letter-spacing: .10em; text-transform: uppercase; }
+    .canvas-hover-focus { color: var(--text-muted); font-size: 8px; font-weight: 700; }
+    .canvas-hover-card strong { display: block; overflow: hidden; color: var(--text); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-hover-path { display: block; overflow: hidden; margin-top: 3px; color: var(--text-muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-hover-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
+    .canvas-hover-metric { padding: 5px 4px; border: 1px solid var(--border); border-radius: 8px; background: rgba(122,162,247,.06); text-align: center; }
+    .canvas-hover-metric strong { color: var(--accent2); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .canvas-hover-metric span { display: block; color: var(--text-muted); font-size: 7px; }
+    .canvas-hover-note { display: flex; align-items: center; gap: 5px; margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 8px; line-height: 1.4; }
+    .canvas-hover-note::before { content: '◇'; color: var(--green); font-size: 10px; }
+    body.visual-aurora .canvas-hover-card { border-color: rgba(61,219,217,.56); box-shadow: 0 18px 46px rgba(0,0,0,.46), 0 0 26px rgba(61,219,217,.10), inset 0 1px 0 rgba(255,255,255,.06); }
+    body.visual-aurora .canvas-hover-card::before { content: ''; position: absolute; left: 16px; right: 16px; top: -1px; height: 2px; background: linear-gradient(90deg, transparent, var(--accent3), var(--accent2), transparent); }
+    body.visual-studio .canvas-hover-card { border-radius: 7px; border-color: rgba(55,104,216,.42); background: rgba(255,255,255,.97); box-shadow: 0 14px 34px rgba(38,54,84,.19); }
+    body.visual-atlas .canvas-hover-card { border-radius: 3px; border-color: rgba(142,230,168,.58); background: rgba(9,18,20,.97); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    body.visual-atlas .canvas-hover-metric { border-radius: 2px; }
+    body.visual-atlas .canvas-hover-kicker, body.visual-atlas .canvas-hover-metric strong { color: var(--accent); }
+    body.theme-light .canvas-hover-card { background: rgba(255,255,255,.97); box-shadow: 0 14px 34px rgba(38,54,84,.19); }
+    body.graph-skin-off .canvas-hover-card { border-color: var(--border); box-shadow: 0 14px 34px rgba(0,0,0,.32); }
+    body.zen-workspace .canvas-hover-card, body.flow-source-open .canvas-hover-card,
+    .workspace.welcome .canvas-hover-card, .workspace:not([data-view="canvas"]) .canvas-hover-card { display: none !important; }
+    @media (max-width: 620px) { .canvas-hover-card { display: none !important; } }
+    @media (prefers-reduced-motion: reduce) { .canvas-hover-card[data-visible="true"] { animation: none; } }
     body.visual-aurora .canvas-object-card { border-color: rgba(61,219,217,.48); box-shadow: 0 18px 46px rgba(0,0,0,.44), 0 0 28px rgba(61,219,217,.08), inset 0 1px 0 rgba(255,255,255,.06); }
     body.visual-aurora .canvas-object-card::before {
       content: ''; position: absolute; left: 16px; right: 16px; top: -1px; height: 2px;
@@ -1998,6 +2070,13 @@
           </div>
         </div>
         <div class="appearance-group">
+          <span class="appearance-label">节点悬停速览</span>
+          <div class="appearance-options" role="group" aria-label="节点悬停速览">
+            <button type="button" data-hover-peek="on">◉ 显示</button>
+            <button type="button" data-hover-peek="off">◌ 隐藏</button>
+          </div>
+        </div>
+        <div class="appearance-group">
           <span class="appearance-label">界面主题</span>
           <div class="appearance-options" role="group" aria-label="界面主题">
             <button type="button" data-ui-theme="dark">☾ 深色</button>
@@ -2043,6 +2122,7 @@
           <span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd>
           <span>Classic / Flow 布局</span><kbd>B</kbd>
           <span>增强 / 原色图形皮肤</span><kbd>G</kbd>
+          <span>显示 / 隐藏节点悬停速览</span><kbd>P</kbd>
           <span>循环切换 Aurora / Studio / Atlas</span><kbd>V</kbd>
           <span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd>
           <span>命令面板</span><kbd>? · Esc</kbd>
@@ -2118,6 +2198,17 @@
           <div class="canvas-focus-ring" id="canvasFocusRing" data-focus-node-id="" aria-hidden="true"></div>
           <div class="canvas-focus-ripple" id="canvasFocusRipple" data-active="false" data-triggered-by="" aria-hidden="true"></div>
           <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" aria-hidden="true"></div>
+          <div class="canvas-hover-card" id="canvasHoverCard" data-visible="false" data-node-id="" aria-hidden="true">
+            <div class="canvas-hover-head"><span class="canvas-hover-kicker">Object glance · read only</span><span class="canvas-hover-focus" id="canvasHoverFocus">悬停</span></div>
+            <strong id="canvasHoverLabel">对象</strong>
+            <code class="canvas-hover-path" id="canvasHoverPath">工作区相对路径</code>
+            <div class="canvas-hover-metrics">
+              <div class="canvas-hover-metric"><strong id="canvasHoverRelated">0</strong><span>关联</span></div>
+              <div class="canvas-hover-metric"><strong id="canvasHoverEvidence">0</strong><span>证据</span></div>
+              <div class="canvas-hover-metric"><strong id="canvasHoverOpen">0</strong><span>开放讨论</span></div>
+            </div>
+            <div class="canvas-hover-note">悬停只预览 · 单击聚焦 · 不批准或写文件</div>
+          </div>
           <div class="canvas-thread-layer" id="canvasThreadLayer" aria-label="图形节点上的只读讨论标记"></div>
           <div class="welcome-card" id="welcomeCard">
             <div class="welcome-main">
@@ -2293,6 +2384,7 @@
         <div class="shortcut-row"><span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd></div>
         <div class="shortcut-row"><span>切换 Classic / Flow 布局</span><kbd>B</kbd></div>
         <div class="shortcut-row"><span>切换增强 / 原色图形皮肤</span><kbd>G</kbd></div>
+        <div class="shortcut-row"><span>显示 / 隐藏节点悬停速览</span><kbd>P</kbd></div>
         <div class="shortcut-row"><span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd></div>
         <div class="shortcut-row"><span>协作工作台 / 专注模式</span><kbd>C / 7</kbd></div>
         <div class="shortcut-row"><span>沉浸工作区</span><kbd>Z</kbd></div>
@@ -2300,6 +2392,7 @@
       <div class="shortcut-group"><h4>画布</h4>
         <div class="shortcut-row"><span>滚轮缩放 / 拖拽平移</span><kbd>鼠标</kbd></div>
         <div class="shortcut-row"><span>点选图中节点切换焦点</span><kbd>单击</kbd></div>
+        <div class="shortcut-row"><span>悬停节点查看只读速览</span><kbd>悬停</kbd></div>
         <div class="shortcut-row"><span>适应窗口 / 重置</span><kbd>F / 0</kbd></div>
         <div class="shortcut-row"><span>双击画布重置</span><kbd>双击</kbd></div>
         <div class="shortcut-row"><span>上一个 / 下一个节点</span><kbd>[ / ]</kbd></div>
@@ -2567,6 +2660,7 @@ const PREFS_DEFAULT = {
   visualSystem: 'aurora',
   layoutSystem: 'flow',
   graphSkin: 'on',
+  hoverPeek: 'on',
   flowSourceOpen: false,
   inspectorOpen: false,
   lastDiagramId: null,
@@ -2612,6 +2706,7 @@ function applyPrefs() {
   $('#btnFocusMode').setAttribute('aria-pressed', String(prefs.focusMode === true));
   $('#btnFocusMode').textContent = prefs.focusMode ? '◉ 退出专注' : '◎ 专注';
   setWorkspaceView(prefs.viewMode || 'split', false);
+  syncAppearanceControls();
   syncGraphSkin();
 }
 
@@ -2668,6 +2763,21 @@ function toggleGraphSkin() {
   applyGraphSkin(prefs.graphSkin === 'on' ? 'off' : 'on');
 }
 
+function applyHoverPeek(mode, persist = true) {
+  const next = mode === 'off' ? 'off' : 'on';
+  prefs.hoverPeek = next;
+  if (next === 'off') hideCanvasHoverCard();
+  if (persist) {
+    savePrefs();
+    syncAppearanceControls();
+    showToast(next === 'on' ? '已启用节点悬停速览 · 只读查看对象上下文' : '已隐藏节点悬停速览 · 单击节点仍可切换焦点');
+  }
+}
+
+function toggleHoverPeek() {
+  applyHoverPeek(prefs.hoverPeek === 'on' ? 'off' : 'on');
+}
+
 function syncGraphSkin() {
   const frame = $('#canvasFrame');
   if (!frame) return;
@@ -2718,6 +2828,7 @@ function applyFlowSourceOpen(open, persist = true) {
     button.textContent = next ? '⌘ 收起源码' : '⌘ 源码';
   }
   if (persist) savePrefs();
+  if (next) hideCanvasHoverCard();
   syncGraphSkin();
 }
 
@@ -2829,6 +2940,7 @@ function setZenWorkspace(enabled) {
   document.body.classList.toggle('zen-workspace', prefs.zenWorkspace);
   savePrefs();
   syncAppearanceControls();
+  hideCanvasHoverCard();
   window.setTimeout(() => { positionFocusRing(); }, 240);
   showToast(prefs.zenWorkspace ? '已进入沉浸工作区 · 顶栏和图表库暂时退场' : '已退出沉浸工作区 · 恢复完整工作区');
 }
@@ -2844,6 +2956,7 @@ function setWorkspaceView(view, persist = true) {
     prefs.viewMode = next;
     savePrefs();
   }
+  if (next !== 'canvas') hideCanvasHoverCard();
   positionFocusRing();
   syncGraphSkin();
 }
@@ -2909,6 +3022,7 @@ function applyTransform() {
   scheduleMinimapUpdate();
   scheduleViewportSync();
   renderCanvasThreadBadges();
+  syncCanvasHoverCard();
 }
 
 function svgNodeForFocus() {
@@ -2938,6 +3052,89 @@ function nodeIdForFocusGroup(group) {
   const text = group.textContent?.replace(/\s+/g, ' ').trim() || '';
   const node = (collabGraph?.nodes || []).find((item) => text === item.label || text === `📁 ${item.label}`);
   return node?.id || null;
+}
+
+function hideCanvasHoverCard() {
+  const card = $('#canvasHoverCard');
+  if (!card) return;
+  card.dataset.visible = 'false';
+  card.dataset.nodeId = '';
+  card.setAttribute('aria-hidden', 'true');
+  for (const group of focusNodeGroups()) {
+    group.classList.remove('is-hovered', 'is-related');
+  }
+}
+
+function canvasHoverGroupAt(clientX, clientY) {
+  return focusNodeGroups().find((group) => {
+    const shape = group.querySelector('rect.basic.label-container, rect, polygon, path, ellipse, circle');
+    const rect = shape?.getBoundingClientRect();
+    return rect && clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+  }) || null;
+}
+
+function syncCanvasHoverCard() {
+  const card = $('#canvasHoverCard');
+  if (!card || card.dataset.visible !== 'true' || !card.dataset.nodeId) return;
+  const group = focusNodeGroups().find((candidate) => nodeIdForFocusGroup(candidate) === card.dataset.nodeId);
+  if (group) showCanvasHoverCard(group);
+  else hideCanvasHoverCard();
+}
+
+function showCanvasHoverCard(group) {
+  const card = $('#canvasHoverCard');
+  if (!card || !group) return;
+  if (prefs.hoverPeek === 'off'
+      || $('#workspace').dataset.view !== 'canvas'
+      || !currentId
+      || currentId !== collabGraph?.diagramId
+      || document.body.classList.contains('flow-source-open')
+      || document.body.classList.contains('zen-workspace')
+      || !$('#collabShell').hidden
+      || isCollabOverlayOpen()) {
+    hideCanvasHoverCard();
+    return;
+  }
+  const nodeId = nodeIdForFocusGroup(group);
+  const node = (collabGraph?.nodes || []).find((item) => item.id === nodeId);
+  if (!node) {
+    hideCanvasHoverCard();
+    return;
+  }
+  const shape = group.querySelector('rect.basic.label-container, rect, polygon, path, ellipse, circle');
+  const shapeRect = shape?.getBoundingClientRect();
+  const wrapRect = $('#previewWrap').getBoundingClientRect();
+  if (!shapeRect?.width || !shapeRect?.height) {
+    hideCanvasHoverCard();
+    return;
+  }
+  const state = focusConversationState(node.id);
+  const evidence = (node.sourceEvidence || []).filter((item) => item.path && Number.isFinite(item.line)).length;
+  const relatedIds = new Set(relatedCanvasNodeIds(node.id));
+  for (const candidate of focusNodeGroups()) {
+    const candidateId = nodeIdForFocusGroup(candidate);
+    candidate.classList.toggle('is-hovered', candidateId === node.id);
+    candidate.classList.toggle('is-related', candidateId !== node.id && relatedIds.has(candidateId));
+  }
+  $('#canvasHoverFocus').textContent = node.id === selectedNodeId ? '当前焦点' : '悬停预览';
+  $('#canvasHoverLabel').textContent = node.label || node.id;
+  $('#canvasHoverPath').textContent = node.path || '无工作区相对路径';
+  $('#canvasHoverRelated').textContent = String(relatedIds.size);
+  $('#canvasHoverEvidence').textContent = String(evidence);
+  $('#canvasHoverOpen').textContent = String(state.open);
+  card.dataset.nodeId = node.id;
+  card.dataset.visible = 'true';
+  card.setAttribute('aria-hidden', 'false');
+  const width = card.offsetWidth || 232;
+  const height = card.offsetHeight || 150;
+  const preferredLeft = shapeRect.left - wrapRect.left + shapeRect.width / 2 - width / 2;
+  const preferredTop = shapeRect.bottom - wrapRect.top + 12;
+  const cardLeft = Math.max(8, Math.min(preferredLeft, wrapRect.width - width - 8));
+  const cardTop = preferredTop + height <= wrapRect.height - 8
+    ? preferredTop
+    : Math.max(8, shapeRect.top - wrapRect.top - height - 12);
+  card.style.left = `${cardLeft}px`;
+  card.style.top = `${cardTop}px`;
 }
 
 function canvasThreadBadgeLabel(state) {
@@ -3082,6 +3279,26 @@ function fitView() {
 
 const previewWrap = $('#previewWrap');
 const panOverlay  = $('#panOverlay');
+let canvasHoverPointer = null;
+
+previewWrap.addEventListener('pointermove', (event) => {
+  if (event.pointerType === 'touch') return;
+  if (isPanning || event.buttons !== 0) {
+    hideCanvasHoverCard();
+    return;
+  }
+  canvasHoverPointer = { x: event.clientX, y: event.clientY };
+  const group = canvasHoverGroupAt(event.clientX, event.clientY);
+  if (group) showCanvasHoverCard(group);
+  else hideCanvasHoverCard();
+}, { passive: true });
+previewWrap.addEventListener('pointerleave', (event) => {
+  if (event.pointerType === 'touch') return;
+  canvasHoverPointer = null;
+  hideCanvasHoverCard();
+}, { passive: true });
+previewWrap.addEventListener('wheel', () => hideCanvasHoverCard(), { passive: true });
+panOverlay.addEventListener('mousedown', () => hideCanvasHoverCard());
 
 if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   let pointerFrame = 0;
@@ -3138,6 +3355,10 @@ window.addEventListener('mouseup', (e) => {
   const pointer = panPointer;
   panPointer = null;
   if (isPanning) { isPanning = false; panOverlay.classList.remove('panning'); }
+  if (canvasHoverPointer) {
+    const group = canvasHoverGroupAt(canvasHoverPointer.x, canvasHoverPointer.y);
+    if (group) showCanvasHoverCard(group);
+  }
   if (!pointer || pointer.moved || e.button !== 0) return;
   if ($('#workspace').dataset.view !== 'canvas' || !currentId || currentId !== collabGraph?.diagramId) return;
   const group = focusNodeGroups().find((element) => {
@@ -3252,6 +3473,11 @@ window.addEventListener('keydown', (e) => {
   if (!typing && (e.key === 'g' || e.key === 'G') && !e.metaKey && !e.ctrlKey && !e.altKey) {
     e.preventDefault();
     toggleGraphSkin();
+    return;
+  }
+  if (!typing && (e.key === 'p' || e.key === 'P') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    toggleHoverPeek();
     return;
   }
   if (!typing && (e.key === 'e' || e.key === 'E') && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -3427,12 +3653,14 @@ async function renderDiagram(code, keepView = false) {
   const container = $('#diagramRender');
   if (!code || !code.trim()) {
     container.innerHTML = '';
+    hideCanvasHoverCard();
     showWelcome(true);
     return;
   }
   try {
     const { svg } = await mermaid.render('mmd-' + Date.now(), code);
     container.innerHTML = svg;
+    hideCanvasHoverCard();
     showWelcome(false);
     // Ensure SVG stays vector-sharp at any zoom level:
     // preserve natural size in viewBox, then let CSS transform handle scaling.
@@ -3466,6 +3694,7 @@ function renderSvgPreview(raw, keepView = false) {
   const t = (raw || '').trim();
   if (!t) {
     container.innerHTML = '';
+    hideCanvasHoverCard();
     showWelcome(true);
     return;
   }
@@ -3475,6 +3704,7 @@ function renderSvgPreview(raw, keepView = false) {
     } else {
       container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">${t}</svg>`;
     }
+    hideCanvasHoverCard();
     showWelcome(false);
     $('#statusErr').textContent = '';
     $('#statusMsg').textContent = `SVG · ${new Date().toLocaleTimeString()}`;
@@ -3596,6 +3826,9 @@ function syncAppearanceControls() {
   for (const button of document.querySelectorAll('[data-graph-skin]')) {
     button.classList.toggle('active', button.dataset.graphSkin === prefs.graphSkin);
   }
+  for (const button of document.querySelectorAll('[data-hover-peek]')) {
+    button.classList.toggle('active', button.dataset.hoverPeek === prefs.hoverPeek);
+  }
   for (const button of document.querySelectorAll('[data-ui-theme]')) {
     button.classList.toggle('active', button.dataset.uiTheme === prefs.uiTheme);
   }
@@ -3628,6 +3861,9 @@ for (const button of document.querySelectorAll('[data-layout-system]')) {
 }
 for (const button of document.querySelectorAll('[data-graph-skin]')) {
   button.addEventListener('click', () => applyGraphSkin(button.dataset.graphSkin));
+}
+for (const button of document.querySelectorAll('[data-hover-peek]')) {
+  button.addEventListener('click', () => applyHoverPeek(button.dataset.hoverPeek));
 }
 $('#btnFlowSource').addEventListener('click', toggleFlowSource);
 $('#btnFlowCollab').addEventListener('click', openCollab);
@@ -3685,6 +3921,7 @@ function setAppearanceOpen(open) {
   appearancePopover.hidden = !open;
   appearancePopover.classList.toggle('open', open);
   appearanceButton.setAttribute('aria-expanded', String(open));
+  if (open) hideCanvasHoverCard();
   if (open) syncAppearanceControls();
   else if (collabLoadDeferred) resumeDeferredCollabLoad();
 }
@@ -3695,6 +3932,7 @@ appearanceWrap.addEventListener('click', (event) => {
 function setCollabPulseDetailOpen(open) {
   $('#collabPulseDetail').classList.toggle('open', open);
   $('#btnCollabPulse').setAttribute('aria-expanded', String(open));
+  if (open) hideCanvasHoverCard();
   if (open) window.clearTimeout(collabLoadTimer);
   else if (collabLoadDeferred) resumeDeferredCollabLoad();
 }
@@ -3833,6 +4071,7 @@ function receiptText(receipt) {
   ].join('\n');
 }
 function openReceiptDialog(receipt) {
+  hideCanvasHoverCard();
   collabLoadDeferred = false;
   window.clearTimeout(collabLoadTimer);
   window.clearTimeout(collabPointerGuardTimer);
@@ -3863,6 +4102,7 @@ function closeReceiptDialog() {
 }
 
 function openShortcutDialog() {
+  hideCanvasHoverCard();
   const backdrop = $('#shortcutBackdrop');
   backdrop.hidden = false;
   window.clearTimeout(collabLoadTimer);
@@ -3887,6 +4127,7 @@ const COMMANDS = [
   { group: '工作区视图', icon: '✦', title: '循环切换视觉系统', hint: '在 Aurora、Studio 与工程蓝图 Atlas 之间依次切换', shortcut: 'V', keys: '视觉 aurora studio atlas 外观 主题', run: () => cycleVisualSystem() },
   { group: '工作区视图', icon: '◇', title: '切换 Classic / Flow 布局', hint: '在经典分栏与画布优先的 Flow 工作台之间切换', shortcut: 'B', keys: '布局 classic flow 画布 分栏 workspace', run: () => toggleLayoutSystem() },
   { group: '工作区视图', icon: '✦', title: '切换增强 / 原色图形皮肤', hint: '让节点、连线与标签随视觉系统呈现，或回到 Mermaid 原色', shortcut: 'G', keys: '图形 皮肤 原色 增强 graph skin mermaid', run: () => toggleGraphSkin() },
+  { group: '工作区视图', icon: '◉', title: '显示 / 隐藏节点悬停速览', hint: '悬停真实图形节点时预览对象名、路径、关联、证据与开放讨论；只读', shortcut: 'P', keys: '悬停 速览 对象 节点 hover peek 只读', run: () => toggleHoverPeek() },
   { group: '工作区视图', icon: '⌘', title: '展开 / 收起 Flow 源码抽屉', hint: '显示或隐藏画布旁边的本机源码编辑器', shortcut: 'E', keys: '源码 抽屉 flow source editor', run: () => toggleFlowSource() },
   { group: '工作区视图', icon: '◧', title: '切换上下文速览', hint: '展开或收起实时只读对象上下文', shortcut: 'I', keys: '速览 上下文 inspector 侧栏', run: () => setInspectorOpen(!prefs.inspectorOpen) },
   { group: '外观与帮助', icon: '◈', title: '切换视觉氛围', hint: '在鲜明品牌渐变与静谧低干扰配色间切换', shortcut: '', keys: '氛围 鲜明 静谧 ambient theme', run: () => setAmbient(prefs.ambient === 'calm' ? 'vivid' : 'calm') },
@@ -3911,6 +4152,7 @@ let commandMatches = [];
 let commandActiveIndex = 0;
 let commandPointerMoved = false;
 function openCommandPalette() {
+  hideCanvasHoverCard();
   const backdrop = $('#commandBackdrop');
   backdrop.hidden = false;
   window.clearTimeout(collabLoadTimer);
@@ -4907,6 +5149,7 @@ function renderCanvasObject() {
   syncGraphSkin();
   positionFocusRing();
   renderCanvasThreadBadges();
+  syncCanvasHoverCard();
 }
 
 function renderViewport(viewport = null) {
@@ -6279,6 +6522,7 @@ async function importSession(event) {
 }
 
 function openCollab() {
+  hideCanvasHoverCard();
   const shell = $('#collabShell');
   shell.hidden = false;
   setCollabTab(shell.dataset.tab || 'graph');

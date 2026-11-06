@@ -194,6 +194,9 @@ try {
       && badge.textContent.includes(focusLabel);
   }, { timeout: 5000 });
   await page.waitForFunction(() => document.querySelector("#canvasFocusRipple").dataset.active === "false", { timeout: 5000 });
+  await page.mouse.move(targetNode.x, targetNode.y);
+  await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "true", { timeout: 5000 });
+  await new Promise((resolve) => setTimeout(resolve, 220));
   await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
   await page.click("#btnCanvasHelp");
   await page.waitForFunction(() => !document.querySelector("#shortcutBackdrop").hidden);

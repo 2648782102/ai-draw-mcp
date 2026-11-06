@@ -268,8 +268,9 @@ describe("collaboration panel UI", () => {
         activeZen: document.querySelector('[data-zen].active')?.dataset.zen,
         activeLayout: document.querySelector('[data-layout-system].active')?.dataset.layoutSystem,
         activeGraphSkin: document.querySelector('[data-graph-skin].active')?.dataset.graphSkin,
+        activeHoverPeek: document.querySelector('[data-hover-peek].active')?.dataset.hoverPeek,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 9, shortcuts: 14, visualSystems: 6, activeVisual: "aurora", activeTheme: "dark", activeAmbient: "calm", activeZen: "off", activeLayout: "flow", activeGraphSkin: "on" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 10, shortcuts: 15, visualSystems: 6, activeVisual: "aurora", activeTheme: "dark", activeAmbient: "calm", activeZen: "off", activeLayout: "flow", activeGraphSkin: "on", activeHoverPeek: "on" });
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("V");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
@@ -279,7 +280,12 @@ describe("collaboration panel UI", () => {
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("[ / ]");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("B");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("G");
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("P");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("E");
+      await page.click('#appearancePopover [data-hover-peek="off"]');
+      expect(await page.$eval("#canvasHoverCard", (element) => element.dataset.visible)).toBe("false");
+      await page.keyboard.press("p");
+      expect(await page.$eval('[data-hover-peek].active', (element) => element.dataset.hoverPeek)).toBe("on");
       await page.click('#appearancePopover [data-layout-system="classic"]');
       expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(false);
       await page.click('#appearancePopover [data-layout-system="flow"]');
@@ -347,6 +353,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$$eval(".shortcut-group", (elements) => elements.length)).toBe(4);
       expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
       expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("G");
+      expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("P");
       expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("Z");
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.querySelector("#shortcutBackdrop").hidden);
@@ -369,6 +376,7 @@ describe("collaboration panel UI", () => {
       expect(Number.parseInt(commandPalette.count, 10)).toBeGreaterThan(10);
       expect(commandPalette.items).toContain("打开协作工作台");
       expect(commandPalette.items).toContain("查看变更提案");
+      expect(commandPalette.items).toContain("显示 / 隐藏节点悬停速览");
       expect(commandPalette.active).toContain("分屏视图");
       await page.type("#commandSearch", "切换浅色");
       expect(await page.$eval("#commandCount", (element) => element.textContent)).toBe("1 条");
