@@ -49,6 +49,7 @@
     body.density-compact .sidebar-item { padding: 7px 9px; }
     body.density-compact .collab-actions button, body.density-compact .toolbar button { height: 27px; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     body {
       font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       background: radial-gradient(circle at 12% 0%, rgba(122, 162, 247, .12), transparent 28%),
@@ -408,6 +409,33 @@
     .receipt-actions button.copied { border-color: var(--green); color: var(--green); }
     body.theme-light .receipt-dialog { background: linear-gradient(150deg, #ffffff, #eff5fd); }
     body.theme-light .receipt-grid label, body.theme-light .receipt-value { background: #f7faff; }
+    .command-backdrop {
+      position: fixed; inset: 0; z-index: 1350; display: grid; align-items: start; justify-items: center;
+      padding: 84px 18px 18px; background: rgba(3,7,15,.62); backdrop-filter: blur(7px);
+      opacity: 0; pointer-events: none; transition: opacity .16s ease;
+    }
+    .command-backdrop.open { opacity: 1; pointer-events: auto; }
+    .command-backdrop[hidden] { display: none; }
+    .command-dialog { width: min(620px, 100%); max-height: min(620px, calc(100vh - 110px)); display: flex; flex-direction: column; border: 1px solid rgba(122,162,247,.4); border-radius: 16px; background: linear-gradient(150deg, rgba(20,32,52,.98), rgba(9,14,25,.98)); box-shadow: 0 28px 80px rgba(0,0,0,.56); transform: translateY(-8px); transition: transform .18s cubic-bezier(.2,.8,.2,1); overflow: hidden; }
+    .command-backdrop.open .command-dialog { transform: none; }
+    .command-head { display: flex; align-items: center; gap: 10px; padding: 13px 15px; border-bottom: 1px solid var(--border); }
+    .command-head span { color: var(--accent); font-size: 15px; }
+    .command-head input { flex: 1; min-width: 0; height: 32px; padding: 0 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--panel); color: var(--text); font-size: 12px; outline: none; }
+    .command-head input:focus { border-color: rgba(122,162,247,.76); box-shadow: 0 0 0 3px rgba(122,162,247,.10); }
+    .command-head kbd { padding: 3px 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); color: var(--text-muted); font: inherit; font-size: 9px; white-space: nowrap; }
+    .command-hint { padding: 8px 15px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 9px; line-height: 1.5; }
+    .command-list { flex: 1; min-height: 0; overflow-y: auto; padding: 8px; }
+    .command-group-label { padding: 7px 9px 4px; color: var(--text-muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+    .command-item { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 9px; align-items: center; width: 100%; padding: 8px 9px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+    .command-item:hover, .command-item.active { border-color: rgba(122,162,247,.45); background: rgba(122,162,247,.12); }
+    .command-icon { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 8px; background: rgba(9,14,25,.45); color: var(--accent); font-size: 12px; font-weight: 800; }
+    .command-item strong { display: block; font-size: 11px; margin-bottom: 2px; }
+    .command-item small { display: block; color: var(--text-muted); font-size: 9px; line-height: 1.4; }
+    .command-item kbd { padding: 2px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface2); color: var(--text-muted); font: inherit; font-size: 9px; white-space: nowrap; }
+    .command-empty { padding: 28px 16px; color: var(--text-muted); font-size: 11px; text-align: center; }
+    .command-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 9px; }
+    body.theme-light .command-dialog { background: linear-gradient(150deg, #ffffff, #eff5fd); }
+    body.theme-light .command-head input, body.theme-light .command-item kbd, body.theme-light .command-head kbd { background: #f7faff; }
     ::selection { background: rgba(122,162,247,.32); color: #fff; }
     *::-webkit-scrollbar { width: 9px; height: 9px; }
     *::-webkit-scrollbar-track { background: transparent; }
@@ -807,6 +835,8 @@
       .welcome-visual { display: none; }
       .welcome-main { padding: 20px; }
       .receipt-grid { grid-template-columns: 1fr; }
+      .command-backdrop { padding: 58px 8px 8px; }
+      .command-head kbd { display: none; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
@@ -878,6 +908,7 @@
         <div class="appearance-shortcuts">
           <span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd>
           <span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd>
+          <span>命令面板</span><kbd>? · Esc</kbd>
           <span>协作工作台</span><kbd>C · Esc</kbd>
           <span>适应窗口 / 重置缩放</span><kbd>F / 0</kbd>
           <span>渲染或发送</span><kbd>⌘/Ctrl + ↵</kbd>
@@ -941,6 +972,7 @@
               <div class="welcome-actions">
                 <button type="button" class="primary" id="btnLoadExample">载入示例图形</button>
                 <button type="button" id="btnOpenCollabWelcome">打开协作工作台</button>
+                <button type="button" id="btnOpenCommandsWelcome">⌘ 命令面板</button>
               </div>
               <div class="welcome-shortcuts">示例只写入本机编辑器并渲染预览，不创建图、不改协作会话、不写项目文件。</div>
             </div>
@@ -974,6 +1006,20 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="command-backdrop" id="commandBackdrop" hidden>
+  <section class="command-dialog" role="dialog" aria-modal="true" aria-labelledby="commandTitle">
+    <div class="command-head">
+      <span aria-hidden="true">⌘</span>
+      <label for="commandSearch" class="sr-only" id="commandTitle">搜索面板命令</label>
+      <input id="commandSearch" type="search" placeholder="搜索命令：视图、协作、主题、保存、复制…" autocomplete="off" />
+      <kbd>Esc 关闭</kbd>
+    </div>
+    <div class="command-hint">输入关键词筛选；`↑ / ↓` 选择，`Enter` 执行。命令只操作本机面板视图、复制只读上下文或打开已有工作台，不会批准提案或写项目文件。</div>
+    <div class="command-list" id="commandList" role="listbox" aria-label="可用命令"></div>
+    <div class="command-footer"><span>本地面板命令 · 不调用项目写入</span><span id="commandCount">0 条</span></div>
+  </section>
+</div>
+
 <div class="receipt-backdrop" id="receiptBackdrop" hidden>
   <section class="receipt-dialog" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
     <div class="receipt-head">
@@ -1001,7 +1047,7 @@
       <span class="shortcut-hint">Esc 关闭 · C 打开</span>
     </div>
     <div class="collab-header-actions">
-      <button id="btnCommandHint" class="shortcut-hint" title="快捷键：C 打开协作，Esc 关闭，F 适应窗口，0 重置缩放">⌘ 快捷键</button>
+      <button id="btnCommandHint" class="shortcut-hint" title="打开命令面板与快捷键（?）">⌘ 命令</button>
       <button id="btnCloseCollab" title="关闭（Esc）">✕</button>
     </div>
   </div>
@@ -1352,7 +1398,24 @@ $('#btnZoomReset').addEventListener('click', () => resetView());
 window.addEventListener('keydown', (e) => {
   const collabShell = $('#collabShell');
   const receiptBackdrop = $('#receiptBackdrop');
+  const commandBackdrop = $('#commandBackdrop');
   const typing = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+  if (commandBackdrop && !commandBackdrop.hidden) {
+    if (e.key === 'Escape') { e.preventDefault(); closeCommandPalette(); return; }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!commandMatches.length) return;
+      commandActiveIndex = (commandActiveIndex + (e.key === 'ArrowDown' ? 1 : commandMatches.length - 1)) % commandMatches.length;
+      renderCommands();
+      return;
+    }
+    if (e.key === 'Enter') { e.preventDefault(); runCommand(commandActiveIndex); return; }
+  }
+  if (!typing && (e.key === '?' || e.key === '？') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    openCommandPalette();
+    return;
+  }
   if (e.key === 'Escape' && receiptBackdrop && !receiptBackdrop.hidden) {
     e.preventDefault();
     closeReceiptDialog();
@@ -1835,6 +1898,70 @@ function closeReceiptDialog() {
   backdrop.classList.remove('open');
   window.setTimeout(() => { backdrop.hidden = true; }, 180);
   activeReceipt = null;
+}
+
+const COMMANDS = [
+  { group: '工作区视图', icon: '◫', title: '分屏视图', hint: '同时看 Mermaid 源码和预览', shortcut: '1', keys: '分屏 源码 预览 split', run: () => setWorkspaceView('split') },
+  { group: '工作区视图', icon: '⌘', title: '源码视图', hint: '只显示可编辑 Mermaid / SVG 源码', shortcut: '2', keys: '源码 编辑 source', run: () => setWorkspaceView('source') },
+  { group: '工作区视图', icon: '◇', title: '画布视图', hint: '只显示图形预览与缩放工具', shortcut: '3', keys: '画布 canvas preview', run: () => setWorkspaceView('canvas') },
+  { group: '工作区视图', icon: '⊡', title: '适应窗口', hint: '把当前图形缩放到预览区', shortcut: 'F', keys: '适应 缩放 fit', run: () => fitView() },
+  { group: '工作区视图', icon: '1:1', title: '重置缩放', hint: '恢复 100% 与默认平移', shortcut: '0', keys: '重置 缩放 reset', run: () => resetView() },
+  { group: '协作流程', icon: '↔', title: '打开协作工作台', hint: '进入人 / AI 双向协作面板', shortcut: 'C', keys: '协作 对话 workbench', run: () => openCollab() },
+  { group: '协作流程', icon: '◇', title: '查看项目结构图', hint: '切到节点编辑与扫描流程', shortcut: '4', keys: '项目图 结构 graph scan', run: () => { openCollab(); setCollabTab('graph'); } },
+  { group: '协作流程', icon: '↔', title: '查看双向对话', hint: '切到消息、批注与活动时间线', shortcut: '5', keys: '对话 消息 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
+  { group: '协作流程', icon: '✓', title: '查看变更提案', hint: '切到逐行 diff 与人工批准', shortcut: '6', keys: '提案 diff 批准 proposal', run: () => { openCollab(); setCollabTab('proposals'); } },
+  { group: '协作流程', icon: '◇', title: '载入示例图形', hint: '只写入本机编辑器并渲染预览', shortcut: '', keys: '示例 demo mermaid', run: () => loadExampleDiagram() },
+  { group: '外观与帮助', icon: '☀', title: '切换浅色 / 深色主题', hint: '只影响本机界面，不改图主题', shortcut: '', keys: '主题 浅色 深色 theme', run: () => setUiTheme(prefs.uiTheme === 'light' ? 'dark' : 'light') },
+  { group: '外观与帮助', icon: '⚙', title: '打开外观设置', hint: '主题、密度、预览背景与图表库', shortcut: '', keys: '外观 设置 快捷键 appearance', run: () => setAppearanceOpen(true) },
+];
+let commandMatches = [];
+let commandActiveIndex = 0;
+function openCommandPalette() {
+  const backdrop = $('#commandBackdrop');
+  backdrop.hidden = false;
+  requestAnimationFrame(() => backdrop.classList.add('open'));
+  $('#commandSearch').value = '';
+  renderCommands();
+  $('#commandSearch').focus();
+}
+function closeCommandPalette() {
+  const backdrop = $('#commandBackdrop');
+  backdrop.classList.remove('open');
+  window.setTimeout(() => { backdrop.hidden = true; }, 160);
+}
+function renderCommands() {
+  const query = $('#commandSearch').value.trim().toLowerCase();
+  commandMatches = COMMANDS.filter((command) => !query || `${command.group} ${command.title} ${command.hint} ${command.shortcut} ${command.keys}`.toLowerCase().includes(query));
+  commandActiveIndex = Math.min(commandActiveIndex, Math.max(0, commandMatches.length - 1));
+  const list = $('#commandList');
+  let lastGroup = '';
+  list.innerHTML = commandMatches.length ? commandMatches.map((command, index) => {
+    const group = command.group === lastGroup ? '' : `<div class="command-group-label">${escapeHtml(command.group)}</div>`;
+    lastGroup = command.group;
+    return `${group}<button type="button" class="command-item ${index === commandActiveIndex ? 'active' : ''}" data-command-index="${index}" role="option" aria-selected="${index === commandActiveIndex}">
+      <span class="command-icon" aria-hidden="true">${escapeHtml(command.icon)}</span>
+      <span><strong>${escapeHtml(command.title)}</strong><small>${escapeHtml(command.hint)}</small></span>
+      ${command.shortcut ? `<kbd>${escapeHtml(command.shortcut)}</kbd>` : ''}
+    </button>`;
+  }).join('') : '<div class="command-empty">没有匹配命令。试试「视图」「对话」或「主题」。</div>';
+  $('#commandCount').textContent = `${commandMatches.length} 条`;
+  for (const item of list.querySelectorAll('[data-command-index]')) {
+    item.addEventListener('click', () => runCommand(Number(item.dataset.commandIndex)));
+    item.addEventListener('mouseenter', () => {
+      commandActiveIndex = Number(item.dataset.commandIndex);
+      for (const other of list.querySelectorAll('[data-command-index]')) {
+        const active = Number(other.dataset.commandIndex) === commandActiveIndex;
+        other.classList.toggle('active', active);
+        other.setAttribute('aria-selected', String(active));
+      }
+    });
+  }
+}
+function runCommand(index) {
+  const command = commandMatches[index];
+  if (!command) return;
+  closeCommandPalette();
+  command.run();
 }
 
 function flashButton(button, className = 'copied') {
@@ -3413,7 +3540,12 @@ for (const step of document.querySelectorAll('.journey-step')) {
   });
 }
 $('#btnCommandHint').addEventListener('click', () => {
-  showToast('快捷键：1 分屏 · 2 源码 · 3 画布 · 4 结构 · 5 对话 · 6 提案 · C 协作 · Esc 关闭 · F 适应窗口 · 0 重置缩放 · ⌘/Ctrl+Enter 渲染或发送', 4800);
+  openCommandPalette();
+});
+$('#btnOpenCommandsWelcome').addEventListener('click', openCommandPalette);
+$('#commandSearch').addEventListener('input', () => { commandActiveIndex = 0; renderCommands(); });
+$('#commandBackdrop').addEventListener('click', (event) => {
+  if (event.target === $('#commandBackdrop')) closeCommandPalette();
 });
 $('#btnCopyReceipt').addEventListener('click', async (event) => {
   if (!activeReceipt) return;

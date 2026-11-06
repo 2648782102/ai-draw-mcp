@@ -148,8 +148,9 @@ describe("collaboration panel UI", () => {
         shortcuts: document.querySelectorAll(".appearance-shortcuts kbd").length,
         activeTheme: document.querySelector('[data-ui-theme].active')?.dataset.uiTheme,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 5, activeTheme: "dark" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 6, activeTheme: "dark" });
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
       await page.click('[data-ui-theme="light"]');
       expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
       await page.click('[data-density="compact"]');
@@ -166,6 +167,31 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("Escape");
       expect(await page.$eval("#appearancePopover", (element) => element.hidden)).toBe(true);
       expect(await page.$eval("#btnAppearance", (element) => element.getAttribute("aria-expanded"))).toBe("false");
+
+      await page.click("#btnOpenCommandsWelcome");
+      await page.waitForFunction(() => !document.querySelector("#commandBackdrop").hidden);
+      const commandPalette = await page.evaluate(() => ({
+        title: document.querySelector("#commandTitle").textContent,
+        count: document.querySelector("#commandCount").textContent,
+        items: [...document.querySelectorAll(".command-item strong")].map((element) => element.textContent),
+        active: document.querySelector(".command-item.active strong").textContent,
+      }));
+      expect(commandPalette.title).toContain("搜索面板命令");
+      expect(Number.parseInt(commandPalette.count, 10)).toBeGreaterThan(10);
+      expect(commandPalette.items).toContain("打开协作工作台");
+      expect(commandPalette.items).toContain("查看变更提案");
+      expect(commandPalette.active).toContain("分屏视图");
+      await page.type("#commandSearch", "切换浅色");
+      expect(await page.$eval("#commandCount", (element) => element.textContent)).toBe("1 条");
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.querySelector("#commandBackdrop").hidden);
+      expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
+      await page.keyboard.press("?");
+      await page.waitForFunction(() => !document.querySelector("#commandBackdrop").hidden);
+      await page.type("#commandSearch", "切换浅色");
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.querySelector("#commandBackdrop").hidden);
+      expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(false);
 
       await page.keyboard.press("c");
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
