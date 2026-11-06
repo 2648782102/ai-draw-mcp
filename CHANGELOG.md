@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 阶段卡交互 CI 证据（2026-11-06 17:30 CST）：`ebd088b` 的 CI `42194826679` / #138 在 Node 20/22/24 三档 success（jobs `127815339753` / `127815339185` / `127815339504`）；`2d88120` 的 CI `42194010429` / #137 与 metadata #23 `42194010386` 也完成绿色只读检查。本地 `npm run check` 全过：25 个测试文件 / 81 个测试、276 文件 dry-run、九张可复现截图、doctor、examples 与离线守卫。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 retag、未改写已发布 Release、未自动发 npm 包。
+
 - 协作阶段卡交互强化（2026-11-06 17:25 CST）：四步流程卡新增按状态变化的底色、明确的「进入项目图 / 打开双向对话 / 查看逐行 diff / 核对写入闸门」悬停与聚焦提示，并在连续进度轨道旁显示 `n / 4 READY · n%` 只读进度标签。卡片仍只切换本机工作台标签与焦点，不创建提案、不批准变更、不签发凭据或写项目文件；浏览器回归覆盖进度标签、CTA 可见性、点击导航与原有状态色。
 
 - 三套视觉系统 CI 证据（2026-11-06 17:20 CST）：`5770f41` 的 CI `42193671562` / #136 在 Node 20/22/24 三档 success（jobs `127811500934` / `127811501390` / `127811501219`），metadata #22 `42193671506` 完成只读漂移检查。本地 `npm run check` 全过：25 个测试文件 / 81 个测试、276 文件 dry-run、九张可复现截图、doctor、examples 与离线守卫；新增 Atlas 截图与三套视觉宣发短帖。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 retag、未改写已发布 Release、未自动发 npm 包。

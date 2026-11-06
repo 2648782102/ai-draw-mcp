@@ -1146,6 +1146,8 @@ check(governance.includes("42190267479"), "governance docs do not record the gre
 check(launchKit.includes("42190267479"), "launch kit does not record the green node-badge CI run");
 check(governance.includes("42193671562"), "governance docs do not record the green Atlas CI run");
 check(launchKit.includes("42193671562"), "launch kit does not record the green Atlas CI run");
+check(governance.includes("42194826679"), "governance docs do not record the green journey-interaction CI run");
+check(launchKit.includes("42194826679"), "launch kit does not record the green journey-interaction CI run");
 check(launchKit.includes("协作可见性短帖"), "launch kit does not include the collaboration visibility post");
 check(launchKit.includes("三套视觉系统短帖"), "launch kit does not include the three visual systems post");
 check(launchKit.includes("push a metadata-relevant file to apply"), "launch kit does not describe automatic metadata convergence");
