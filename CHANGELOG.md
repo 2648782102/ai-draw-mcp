@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 画布人机交接航线（2026-11-06 16:15 CST）：全屏画布视图左下角新增常驻只读交接面板，用 人 ⇄ AI 轨道高亮既有诊断里的 `nextActor`，三格显示等待 AI 的消息、待审提案与开放批注，并压缩展示下一步建议；「↔ 工作台 · C」按钮只打开既有协作面板。状态全部从既有 session / proposals / diagnostics 派生，不发送消息、不创建/批准提案、不签发凭据、不写项目文件；浅色、Studio、沉浸与窄屏布局都有适配，中英文 README、浏览器回归、离线守卫与可复现截图同步覆盖。
+
+- CI 恢复证据（2026-11-06 16:05 CST）：`ad61a1c` 的 GitHub Actions CI `42185011140` / #130 在 Node 20/22/24 三档全部 success（jobs `127783169454` / `127783169129` / `127783169479`）；此前的 #127–#129 暴露 pointer 媒体查询与提案卡片 detached-node 竞态，现已由可复用 DOM、交互刷新窗口和稳定浏览器回归替代。本地 `npm run check` 为 25 个测试文件 / 81 个测试、276 文件 dry-run，`npm run ui:shots` 的八张截图全部重新生成并视觉复核；版本化治理/发布文档同步记录。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 retag、未改写已发布 Release、未自动发 npm 包。
+
 - 审阅闸门与稳定交互（2026-11-06 16:05 CST）：待审提案卡新增醒目的「逐行 diff → 影响范围 → 人工确认」三步进度轨道、进度条、状态色顶边与「写入闸门未开启」提示；影响摘要与逐行 diff 加载完成后逐步点亮到 100%，但就绪只说明材料已核对，批准仍由人工点击、仍只签发一次性确认号、仍不自动写项目文件。提案列表改为按稳定签名复用 DOM，并在协作工作台指针交互、弹层可见和确认号卡片关闭后的短暂窗口内统一延后后台刷新；事件委托和旧卡片复用避免 WebSocket / 保存图形后的刷新把正在点击的 `[data-approve]` 节点从文档中摘除，修复 Node 24 CI 的 detached-node 竞态。所有状态只从既有只读 proposals / impact / diff 派生，不新增 MCP 工具、不改 version 1 协议、不持久化审阅偏好、不签发凭据、不批准提案或写项目文件；中英文 README、浏览器回归、离线守卫与可复现截图同步覆盖。
 
 - CI 前端兼容性修复（2026-11-06 16:00 CST）：`ae55844` 的 GitHub Actions Node 22 面板回归暴露 Aurora 鼠标光斑监听器使用 `(pointer: fine)` 媒体查询，而 headless Chrome 在 Linux runner 上不报告精细指针，导致 `data-pointer` 断言失败、同 workflow 的 Node 20/24 作业被连带取消。改为按 `pointermove.pointerType` 排除触摸并始终注册精细视觉反馈；仍遵守「减少动态效果」偏好，且不改变本机偏好、会话协议或写入闸门。浏览器回归与离线守卫保持覆盖，后续 CI 需重新验证 Node 20/22/24 三档。

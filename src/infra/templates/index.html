@@ -686,6 +686,44 @@
     .canvas-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
     .workspace[data-view="canvas"] .canvas-chip { display: flex; }
     .workspace.welcome #minimap, .workspace.welcome .canvas-chip { display: none; }
+    .collab-handoff {
+      position: absolute; left: 14px; bottom: 68px; z-index: 22; display: none;
+      width: min(310px, calc(100% - 280px)); min-width: 220px; padding: 8px 9px;
+      border: 1px solid rgba(61,219,217,.36); border-radius: 12px;
+      background: linear-gradient(135deg, rgba(12,25,42,.94), rgba(9,14,25,.92));
+      box-shadow: 0 14px 34px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.05);
+      backdrop-filter: blur(14px); color: var(--text);
+    }
+    .workspace[data-view="canvas"]:not(.welcome) .collab-handoff { display: block; }
+    .collab-handoff::before {
+      content: ''; position: absolute; left: 12px; right: 12px; top: -1px; height: 2px;
+      background: linear-gradient(90deg, var(--accent3), var(--accent2), transparent); opacity: .8;
+    }
+    .collab-handoff-track { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; margin-bottom: 6px; }
+    .collab-handoff-actor { display: flex; align-items: center; gap: 5px; min-width: 0; color: var(--text-muted); font-size: 8px; font-weight: 700; }
+    .collab-handoff-actor strong { overflow: hidden; color: var(--text); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .collab-handoff-actor[data-active="true"] strong { color: var(--accent3); }
+    .collab-handoff-actor[data-active="true"] .collab-handoff-dot { border-color: var(--accent3); background: var(--accent3); box-shadow: 0 0 10px rgba(61,219,217,.55); }
+    .collab-handoff-dot { width: 8px; height: 8px; flex: 0 0 8px; border: 1px solid rgba(61,219,217,.5); border-radius: 50%; background: transparent; }
+    .collab-handoff-line { position: relative; height: 1px; min-width: 28px; background: var(--border); }
+    .collab-handoff-line::after { content: '›'; position: absolute; right: -4px; top: -8px; color: var(--accent3); font-size: 12px; font-weight: 800; }
+    .collab-handoff-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-bottom: 6px; }
+    .collab-handoff-meta span { padding: 4px 5px; border: 1px solid var(--border); border-radius: 7px; background: rgba(122,162,247,.06); color: var(--text-muted); font-size: 8px; text-align: center; }
+    .collab-handoff-meta strong { display: block; color: var(--text); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .collab-handoff-next { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 8px; line-height: 1.4; }
+    .collab-handoff-next span { overflow: hidden; flex: 1; text-overflow: ellipsis; white-space: nowrap; }
+    .collab-handoff-next button { height: 22px; padding: 0 7px; border: 1px solid rgba(61,219,217,.44); border-radius: 7px; background: rgba(61,219,217,.12); color: var(--accent3); font-size: 8px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .collab-handoff-next button:hover { background: rgba(61,219,217,.20); }
+    .collab-handoff[data-actor="human"] { border-color: rgba(240,168,104,.44); }
+    .collab-handoff[data-actor="human"]::before { background: linear-gradient(90deg, var(--orange), var(--accent2), transparent); }
+    .collab-handoff[data-actor="human"] .collab-handoff-actor[data-active="true"] strong,
+    .collab-handoff[data-actor="human"] .collab-handoff-line::after { color: var(--orange); }
+    .collab-handoff[data-actor="human"] .collab-handoff-actor[data-active="true"] .collab-handoff-dot { border-color: var(--orange); background: var(--orange); box-shadow: 0 0 10px rgba(240,168,104,.45); }
+    .collab-handoff[data-actor="human"] .collab-handoff-next button { border-color: rgba(240,168,104,.46); background: rgba(240,168,104,.12); color: var(--orange); }
+    body.visual-studio .collab-handoff, body.theme-light .collab-handoff { background: rgba(255,255,255,.96); border-color: rgba(80,110,165,.34); box-shadow: 0 12px 28px rgba(38,54,84,.16); }
+    body.zen-workspace .collab-handoff { bottom: 62px; left: 12px; }
+    @media (max-width: 860px) { .collab-handoff { width: 245px; min-width: 0; } }
+    @media (max-width: 620px) { .workspace[data-view="canvas"]:not(.welcome) .collab-handoff { display: none; } }
     .canvas-focus-ring {
       position: absolute; z-index: 18; display: none; pointer-events: none;
       border: 1.5px solid var(--accent2); border-radius: 12px;
@@ -1670,6 +1708,19 @@
             <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
           </div>
           <div class="canvas-chip">滚轮缩放 · 拖拽平移 · 单击节点聚焦 · 双击重置 · F 适应窗口</div>
+          <section class="collab-handoff" id="collabHandoff" data-actor="none" aria-label="只读人机交接航线">
+            <div class="collab-handoff-track">
+              <span class="collab-handoff-actor" data-handoff-actor="human"><span class="collab-handoff-dot" aria-hidden="true"></span><strong>人</strong></span>
+              <span class="collab-handoff-line" aria-hidden="true"></span>
+              <span class="collab-handoff-actor" data-handoff-actor="ai"><span class="collab-handoff-dot" aria-hidden="true"></span><strong>AI</strong></span>
+            </div>
+            <div class="collab-handoff-meta">
+              <span>待 AI<strong id="handoffMessages">0</strong></span>
+              <span>待审<strong id="handoffProposals">0</strong></span>
+              <span>批注<strong id="handoffAnnotations">0</strong></span>
+            </div>
+            <div class="collab-handoff-next"><span id="handoffNext">读取共享上下文，等待下一步。</span><button type="button" id="btnHandoffOpen" aria-label="打开完整协作工作台">↔ 工作台 · C</button></div>
+          </section>
           <button type="button" class="collab-pulse" id="btnCollabPulse" data-state="ready" aria-expanded="false" aria-controls="collabPulseDetail" title="展开只读协作速览；再次点击按钮可收起" aria-label="展开只读协作速览">
             <span class="collab-pulse-orbit" aria-hidden="true"></span>
             <span class="collab-pulse-copy"><strong>人机协作脉搏</strong><span id="collabPulseHint">点击打开共享上下文 · C</span></span>
@@ -2477,6 +2528,7 @@ $('#btnCollabPulseOpen').addEventListener('click', () => {
   setCollabPulseDetailOpen(false);
   openCollab();
 });
+$('#btnHandoffOpen').addEventListener('click', openCollab);
 $('#btnCanvasCommands').addEventListener('click', () => openCommandPalette());
 $('#btnCanvasHelp').addEventListener('click', () => openShortcutDialog());
 $('#btnCanvasPrevNode').addEventListener('click', () => stepCanvasFocus(-1));
@@ -3495,9 +3547,30 @@ function renderCollabPulse() {
   setMetric('#collabPulseProposals', pendingProposals);
   setMetric('#collabPulseAnnotations', openAnnotations);
   setMetric('#collabPulseNext', nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工决定是否批准。' : '打开工作台，继续编辑结构图或表达意图。'));
+  renderCollabHandoff({ pendingMessages, pendingProposals, openAnnotations, nextAction, nextActor: diagnostics?.activity?.nextActor });
   if (!$('#welcomeCard')?.hidden) {
     renderWelcomeJourney({ pendingProposals, attention, hasGraph: Boolean(graph?.nodes?.length) });
   }
+}
+
+function renderCollabHandoff({ pendingMessages, pendingProposals, openAnnotations, nextAction, nextActor }) {
+  const handoff = $('#collabHandoff');
+  if (!handoff) return;
+  const actor = nextActor === 'human' || nextActor === 'ai'
+    ? nextActor
+    : pendingProposals > 0 || openAnnotations > 0 ? 'human' : pendingMessages > 0 ? 'ai' : 'none';
+  handoff.dataset.actor = actor;
+  for (const marker of handoff.querySelectorAll('[data-handoff-actor]')) {
+    marker.dataset.active = String(marker.dataset.handoffActor === actor);
+  }
+  const setHandoffMetric = (selector, value) => { const target = $(selector); if (target) target.textContent = String(value); };
+  setHandoffMetric('#handoffMessages', pendingMessages);
+  setHandoffMetric('#handoffProposals', pendingProposals);
+  setHandoffMetric('#handoffAnnotations', openAnnotations);
+  const label = actor === 'human' ? '下一棒 · 人' : actor === 'ai' ? '下一棒 · AI' : '下一棒 · 就绪';
+  const hint = nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工决定是否批准。' : '打开工作台，继续编辑结构图或表达意图。');
+  $('#handoffNext').textContent = `${label} · ${hint}`;
+  $('#handoffNext').title = '只读派生自 session / proposals / diagnostics；不发送消息、不批准提案、不写项目文件。';
 }
 
 function renderWelcomeJourney({ pendingProposals, attention, hasGraph }) {
@@ -5562,6 +5635,7 @@ syncWelcomeState();
 syncAppearanceControls();
 renderInspector();
 renderWelcomeJourney({ pendingProposals: 0, attention: 0, hasGraph: false });
+renderCollabHandoff({ pendingMessages: 0, pendingProposals: 0, openAnnotations: 0, nextAction: '', nextActor: 'none' });
 loadCollabPulse();
 
 // Restore last viewed diagram (URL path takes priority)

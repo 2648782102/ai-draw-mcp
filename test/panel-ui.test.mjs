@@ -110,6 +110,22 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
       expect(await page.$eval("#btnRibbonInspector", (element) => element.getAttribute("aria-pressed"))).toBe("false");
       expect(await page.$eval("#workspaceRibbon .sync-meter", (element) => getComputedStyle(element).display)).not.toBe("none");
+      await page.waitForFunction(() => document.querySelector("#collabHandoff")?.dataset.actor === "human");
+      const handoff = await page.evaluate(() => {
+        const element = document.querySelector("#collabHandoff");
+        return {
+          actor: element.dataset.actor,
+          messages: element.querySelector("#handoffMessages").textContent,
+          proposals: element.querySelector("#handoffProposals").textContent,
+          next: element.querySelector("#handoffNext").textContent,
+          active: element.querySelectorAll('[data-handoff-actor][data-active="true"]').length,
+        };
+      });
+      expect(handoff.actor).toBe("human");
+      expect(Number(handoff.messages)).toBeGreaterThan(0);
+      expect(handoff.proposals).toBe("1");
+      expect(handoff.next).toContain("下一棒 · 人");
+      expect(handoff.active).toBe(1);
       expect(await page.$eval("#btnRender", (element) => getComputedStyle(element).backgroundImage)).toContain("linear-gradient");
       const welcome = await page.evaluate(() => ({
         kicker: document.querySelector(".welcome-kicker").textContent,
@@ -182,6 +198,8 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#workspace", (element) => element.dataset.view)).toBe("canvas");
       expect(await page.$eval("#editorPane", (element) => getComputedStyle(element).display)).toBe("none");
       expect(await page.$eval(".canvas-chip", (element) => getComputedStyle(element).display)).toBe("flex");
+      expect(await page.$eval("#collabHandoff", (element) => getComputedStyle(element).display)).toBe("block");
+      expect(await page.$eval("#btnHandoffOpen", (element) => `${element.getAttribute("aria-label")} ${element.textContent}`)).toContain("工作台");
       await page.keyboard.press("1");
       expect(await page.$eval("#workspace", (element) => element.dataset.view)).toBe("split");
 

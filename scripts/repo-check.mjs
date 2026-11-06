@@ -747,6 +747,11 @@ for (const [label, file, needle] of [
   ["welcome panel screenshot in English README", englishQuickstart, "welcome-panel.png"],
   ["welcome panel documentation map", documentationMap, "welcome-panel.png"],
   ["welcome journey changelog", changelog, "四步协作闭环条"],
+  ["canvas handoff rail", panel, "collabHandoff"],
+  ["canvas handoff renderer", panel, "renderCollabHandoff"],
+  ["canvas handoff read-only copy", panel, "不发送消息、不批准提案、不写项目文件"],
+  ["canvas handoff browser regression", panelUiTest, "btnHandoffOpen"],
+  ["canvas handoff changelog", changelog, "交接航线"],
   ["panel sync browser regression", panelUiTest, "sync-meter"],
   ["Chinese collaboration pulse docs", readme, "人机协作脉搏"],
   ["English collaboration pulse docs", englishQuickstart, "collaboration pulse"],
@@ -1111,6 +1116,8 @@ check(metadataWorkflow.includes(".github/workflows/maintain-github-metadata.yml"
 check(metadataWorkflow.includes("env:\n      GH_ADMIN_TOKEN: ${{ secrets.GH_TOKEN }}"), "metadata workflow does not expose the admin token through job env");
 check(metadataWorkflow.includes("env.GH_ADMIN_TOKEN != ''"), "metadata workflow does not guard metadata writes with an admin token");
 check(governance.includes("read-only drift check on every master/main push"), "governance docs do not describe automatic metadata drift checks");
+check(governance.includes("42185011140"), "governance docs do not record the green approval-gate CI run");
+check(launchKit.includes("42185011140"), "launch kit does not record the green approval-gate CI run");
 check(launchKit.includes("push a metadata-relevant file to apply"), "launch kit does not describe automatic metadata convergence");
 check(packageJson.scripts?.["docs:assets"] === "node scripts/generate-doc-assets.mjs", "docs:assets script is missing");
 check(packageJson.scripts?.["docs:assets:check"] === "node scripts/generate-doc-assets.mjs --check", "docs:assets:check script is missing");
