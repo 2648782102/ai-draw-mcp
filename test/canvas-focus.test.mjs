@@ -68,6 +68,15 @@ describe("canvas focus interaction", () => {
       openPanel: false,
       render: false,
     });
+    const panelHtml = await fetch(base).then((response) => response.text());
+    const token = panelHtml.match(/const PANEL_TOKEN = "([^"]+)"/)[1];
+    const seededNode = scan.graph.nodes.find((node) => node.label === "index.ts") ?? scan.graph.nodes.at(-1);
+    const annotationResponse = await fetch(`${base}/api/collab/annotations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-AI-Draw-Token": token },
+      body: JSON.stringify({ nodeId: seededNode.id, body: "请解释这个对象与相邻模块的关系，先不要写文件。" }),
+    });
+    expect(annotationResponse.ok).toBe(true);
 
     try {
       const page = await browser.newPage();
@@ -92,7 +101,7 @@ describe("canvas focus interaction", () => {
         });
       });
       expect(nodes.length).toBeGreaterThan(1);
-      const target = nodes.find((node) => node.label === "index.ts") ?? nodes.at(-1);
+      const target = nodes.find((node) => node.label === seededNode.label) ?? nodes.at(-1);
       expect(target).toBeTruthy();
 
       await page.mouse.click(target.x, target.y);
@@ -132,11 +141,30 @@ describe("canvas focus interaction", () => {
         revision: document.querySelector("#canvasFocusRevision").textContent,
         relatedDisabled: document.querySelector("#btnCanvasRelatedNode").disabled,
         ringId: document.querySelector("#canvasFocusRing").dataset.focusNodeId,
+        conversationOpen: Number(document.querySelector("#canvasObjectConversation").dataset.openThreads),
+        conversationSummary: document.querySelector("#canvasConversationSummary").textContent,
+        focusBadge: document.querySelector("#canvasFocusLabel").textContent,
       }));
       expect(objectCard.relatedCount).toBeGreaterThan(0);
       expect(objectCard.revision).toMatch(/^rev \d+$/);
       expect(objectCard.relatedDisabled).toBe(false);
       expect(objectCard.ringId).toBe(focus.ringId);
+      expect(objectCard.conversationOpen).toBeGreaterThan(0);
+      expect(objectCard.conversationSummary).toContain("开放");
+      expect(objectCard.focusBadge).toContain("开放讨论");
+
+      await page.click("#btnCanvasOpenConversation");
+      await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
+      const conversation = await page.evaluate(() => ({
+        tab: document.querySelector("#collabShell").dataset.tab,
+        history: document.querySelector('[data-history-pane="annotations"]').classList.contains("active"),
+        threads: document.querySelectorAll("#annotationList .annotation-thread").length,
+      }));
+      expect(conversation.tab).toBe("dialog");
+      expect(conversation.history).toBe(true);
+      expect(conversation.threads).toBeGreaterThan(0);
+      await page.click("#btnCloseCollab");
+      await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
 
       await page.evaluate(() => {
         window.copiedFocusContext = "";

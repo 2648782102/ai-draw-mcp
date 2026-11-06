@@ -84,7 +84,7 @@ async function seedProposalCard() {
     });
     if (!chatResponse.ok) throw new Error(`Unable to seed chat message: HTTP ${chatResponse.status}`);
   }
-  const focusNode = scanResult.graph.nodes.find((node) => node.path?.includes("src")) ?? scanResult.graph.nodes[0];
+  const focusNode = scanResult.graph.nodes.find((node) => node.label === "index.ts") ?? scanResult.graph.nodes[0];
   if (focusNode) {
     const focusResponse = await fetch(`${base}/api/collab/focus`, {
       method: "POST",
@@ -92,6 +92,12 @@ async function seedProposalCard() {
       body: JSON.stringify({ nodeId: focusNode.id, confirmedBy: "human" }),
     });
     if (!focusResponse.ok) throw new Error(`Unable to seed selected node: HTTP ${focusResponse.status}`);
+    const annotationResponse = await fetch(`${base}/api/collab/annotations`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ nodeId: focusNode.id, body: "请解释这个对象与相邻模块的关系，先不要写文件。" }),
+    });
+    if (!annotationResponse.ok) throw new Error(`Unable to seed focused annotation: HTTP ${annotationResponse.status}`);
   }
 }
 
@@ -121,6 +127,7 @@ try {
   await page.keyboard.press("f");
   await page.click("#btnCollaborate");
   await page.waitForSelector("#graphEditor .graph-row");
+  await page.waitForSelector("#annotationList .annotation-thread");
   await page.click("#btnCloseCollab");
   await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
   await page.waitForFunction(() => {
@@ -139,6 +146,7 @@ try {
   if (!targetNode) throw new Error("Focus target node not found in rendered graph");
   await page.mouse.click(targetNode.x, targetNode.y);
   await page.waitForFunction(() => document.querySelector("#canvasObjectLabel").textContent.trim() === "index.ts", { timeout: 5000 });
+  await page.waitForFunction(() => Number(document.querySelector("#canvasObjectConversation").dataset.openThreads) > 0, { timeout: 5000 });
   await page.waitForFunction(() => {
     const ring = document.querySelector("#canvasFocusRing");
     const halo = document.querySelector("#canvasFocusHalo");
@@ -154,7 +162,7 @@ try {
       && (ringText === focusLabel || ringText === `📁 ${focusLabel}`)
       && halo.dataset.visible === "true"
       && badge.dataset.visible === "true"
-      && ripple.dataset.triggeredBy === ringId
+      && (ripple.dataset.active === "false" || ripple.dataset.triggeredBy === ringId)
       && badge.textContent.includes(focusLabel);
   }, { timeout: 5000 });
   await page.waitForFunction(() => document.querySelector("#canvasFocusRipple").dataset.active === "false", { timeout: 5000 });

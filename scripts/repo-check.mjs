@@ -24,6 +24,7 @@ const assetExists = async (relativePath) => {
   }
 };
 const packageJson = JSON.parse(await read("package.json"));
+const vitestConfig = await read("vitest.config.ts");
 const launchKit = await read("docs/LAUNCH_KIT.md");
 const githubMaintenance = await read("scripts/github-maintenance.mjs");
 const readme = await read("README.md");
@@ -773,6 +774,8 @@ for (const [label, file, needle] of [
   ["canvas object stepping", panel, "stepCanvasFocus"],
   ["canvas related object navigation", panel, "stepRelatedCanvasFocus"],
   ["canvas focus context copy", panel, "copyCanvasFocusContext"],
+  ["canvas object conversation bridge", panel, "openFocusConversation"],
+  ["canvas object thread state", panel, "focusConversationState"],
   ["canvas focus ring", panel, "canvas-focus-ring"],
   ["canvas focus ring positioning", panel, "positionFocusRing"],
   ["canvas focus ring node matching", panel, "g.nodes > g.node"],
@@ -839,6 +842,8 @@ for (const [label, file, needle] of [
   ["canvas focus ripple regression", canvasFocusTest, "canvasFocusRipple"],
   ["canvas related object regression", canvasFocusTest, "btnCanvasRelatedNode"],
   ["canvas focus context boundary regression", canvasFocusTest, "不授权写入"],
+  ["canvas object conversation regression", canvasFocusTest, "canvasObjectConversation"],
+  ["canvas conversation navigation regression", canvasFocusTest, "btnCanvasOpenConversation"],
   ["panel UI proposal card regression", panelUiTest, "proposal-card.status-pending"],
   ["panel UI proposal diff regression", panelUiTest, "proposal-diff.loaded"],
   ["panel UI diff review progression regression", panelUiTest, "approveAwaiting"],
@@ -899,6 +904,7 @@ check(getAgentWorkflowTool.includes("get_agent_workflow"), "get-agent-workflow.t
 check(agentWorkflowDomain.includes('grantsWriteAuthority: false'), "agent-workflow.ts is missing the no-authority invariant");
 check(agentWorkflowExample.includes('step.writes === "project"'), "workflow example does not verify the project-write boundary");
 check(packageJson.scripts?.check?.includes("npm run test:examples:workflow"), "npm run check does not execute the workflow example");
+check(vitestConfig.includes("fileParallelism: false"), "vitest.config.ts does not serialize browser regression files");
 check(readme.includes("list_change_templates"), "README.md does not document change templates");
 check(agents.includes("change-templates.ts"), "AGENTS.md does not list the change template module");
 check(agents.includes("list_change_templates"), "AGENTS.md does not document change templates");

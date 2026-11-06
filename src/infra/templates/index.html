@@ -464,6 +464,12 @@
     .canvas-object-actions button.primary { flex: 1; border-color: rgba(122,162,247,.42); background: rgba(122,162,247,.14); color: var(--accent); font-weight: 700; }
     .canvas-object-stats { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 8px; }
     .canvas-object-stats strong { color: var(--accent2); font-variant-numeric: tabular-nums; }
+    .canvas-object-conversation { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 5px; padding: 5px 7px; border: 1px solid rgba(240,168,104,.32); border-radius: 8px; background: rgba(240,168,104,.08); color: var(--text-muted); font-size: 8px; }
+    .canvas-object-conversation[data-state="clear"] { border-color: rgba(158,206,106,.34); background: rgba(158,206,106,.08); }
+    .canvas-object-conversation[data-state="blocked"] { border-color: rgba(255,107,107,.38); background: rgba(255,107,107,.08); }
+    .canvas-object-conversation strong { color: var(--text); }
+    .canvas-object-conversation button { height: 20px; padding: 0 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); color: var(--text); font-size: 8px; cursor: pointer; white-space: nowrap; }
+    .canvas-object-conversation button:hover { border-color: var(--accent); }
     .canvas-object-actions.secondary { margin-top: 5px; gap: 4px; }
     .canvas-object-actions.secondary button { flex: 1; padding: 0 5px; color: var(--text); font-size: 8px; white-space: nowrap; }
     .canvas-object-actions button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
@@ -1227,6 +1233,10 @@
               <button type="button" id="btnCanvasOpenNode" class="primary" title="在协作工作台查看项目图">查看节点</button>
             </div>
             <div class="canvas-object-stats"><span>直接关联 <strong id="canvasRelatedCount">0</strong> 个对象</span><span id="canvasFocusRevision">rev —</span></div>
+            <div class="canvas-object-conversation" id="canvasObjectConversation" data-state="clear">
+              <span id="canvasConversationSummary">对话 · 暂无绑定批注</span>
+              <button type="button" id="btnCanvasOpenConversation" title="进入对话工作台查看当前对象">↔ 对话</button>
+            </div>
             <div class="canvas-object-actions secondary">
               <button type="button" id="btnCanvasRelatedNode" title="沿真实连线切换到相邻对象">↗ 关联</button>
               <button type="button" id="btnCanvasCopyFocus" title="复制只读焦点上下文给 AI">⧉ 复制</button>
@@ -1713,10 +1723,12 @@ function positionFocusRing() {
   halo.style.width = `${width + 24}px`;
   halo.style.height = `${height + 24}px`;
   halo.dataset.visible = 'true';
+  label.dataset.focusNodeLabel = nodeText;
   label.textContent = `当前焦点 · ${nodeText}`;
   label.style.left = `${Math.max(8, left)}px`;
   label.style.top = `${Math.max(8, top - 27)}px`;
   label.dataset.visible = 'true';
+  syncFocusLabelConversation();
 }
 
 function updateCanvasDock() {
@@ -1840,6 +1852,7 @@ $('#btnCanvasNextNode').addEventListener('click', () => stepCanvasFocus(1));
 $('#btnCanvasOpenNode').addEventListener('click', () => { openCollab(); setCollabTab('graph'); });
 $('#btnCanvasRelatedNode').addEventListener('click', stepRelatedCanvasFocus);
 $('#btnCanvasCopyFocus').addEventListener('click', copyCanvasFocusContext);
+$('#btnCanvasOpenConversation').addEventListener('click', openFocusConversation);
 
 // Keyboard: F=fit, 0=reset, +/- zoom
 window.addEventListener('keydown', (e) => {
@@ -2416,6 +2429,7 @@ const COMMANDS = [
   { group: '协作流程', icon: '→', title: '切换下一个节点', hint: '把只读焦点移到下一个项目结构节点', shortcut: ']', keys: '节点 焦点 next object', run: () => stepCanvasFocus(1) },
   { group: '协作流程', icon: '↗', title: '跳到关联对象', hint: '沿真实连线切换当前只读焦点', shortcut: '', keys: '关联 相邻 边 edge 对象', run: () => stepRelatedCanvasFocus() },
   { group: '协作流程', icon: '⧉', title: '复制焦点上下文', hint: '复制当前节点的只读上下文提示给 AI', shortcut: '', keys: '复制 焦点 上下文 context', run: () => copyCanvasFocusContext() },
+  { group: '协作流程', icon: '↔', title: '查看当前对象对话', hint: '定位到焦点节点绑定的批注与下一棒', shortcut: '', keys: '对话 批注 下一棒 对象', run: () => openFocusConversation() },
   { group: '外观与帮助', icon: '☀', title: '切换浅色 / 深色主题', hint: '只影响本机界面，不改图主题', shortcut: '', keys: '主题 浅色 深色 theme', run: () => setUiTheme(prefs.uiTheme === 'light' ? 'dark' : 'light') },
   { group: '外观与帮助', icon: '⚙', title: '打开外观设置', hint: '主题、密度、预览背景与图表库', shortcut: '', keys: '外观 设置 快捷键 appearance', run: () => setAppearanceOpen(true) },
   { group: '外观与帮助', icon: '?', title: '打开快捷键帮助', hint: '查看视图、画布、效率与编辑快捷键', shortcut: 'H', keys: '帮助 快捷键 help keyboard', run: () => openShortcutDialog() },
@@ -2823,6 +2837,7 @@ function setCollabTab(target) {
     tab.tabIndex = active ? 0 : -1;
   }
   renderJourney();
+  if (next === 'graph') renderCanvasConversation();
 }
 
 function renderJourney() {
@@ -3023,6 +3038,56 @@ async function copyCanvasFocusContext() {
   }
 }
 
+function focusConversationThreads(nodeId = selectedNodeId) {
+  if (!nodeId) return [];
+  return (collabGraph?.annotations || []).filter((annotation) => annotation.nodeId === nodeId);
+}
+
+function focusConversationState(nodeId = selectedNodeId) {
+  const threads = focusConversationThreads(nodeId);
+  const openThreads = threads.filter((annotation) => !annotation.resolved);
+  const blockedThreads = openThreads.filter((annotation) => annotation.anchorStatus === 'detached' || annotation.anchorStatus === 'outdated');
+  const nextActor = openThreads.some((annotation) => annotationThreadNextActor(annotation).includes('AI')) ? '等待 AI' : null;
+  return { total: threads.length, open: openThreads.length, blocked: blockedThreads.length, nextActor };
+}
+
+function renderCanvasConversation() {
+  const card = $('#canvasObjectConversation');
+  const summary = $('#canvasConversationSummary');
+  const button = $('#btnCanvasOpenConversation');
+  if (!card || !summary || !button) return;
+  const state = focusConversationState();
+  card.dataset.state = state.blocked ? 'blocked' : state.open ? 'pending' : 'clear';
+  card.dataset.openThreads = String(state.open);
+  card.dataset.blockedThreads = String(state.blocked);
+  if (!state.total) summary.textContent = '对话 · 暂无绑定批注';
+  else if (state.blocked) summary.innerHTML = `对话 · <strong>${state.blocked}</strong> 条批注需重锚`;
+  else if (state.open) summary.innerHTML = `对话 · <strong>${state.open}</strong> 条开放 · ${state.nextActor || '等待人回复'}`;
+  else summary.textContent = '对话 · 批注已全部解决';
+  button.disabled = !state.total;
+}
+
+function openFocusConversation() {
+  const state = focusConversationState();
+  if (!state.total) return showToast('当前对象还没有绑定批注；可先在项目图栏添加图形批注');
+  openCollab();
+  setCollabTab('dialog');
+  const annotationsTab = document.querySelector('[data-history-target="annotations"]');
+  if (annotationsTab) setHistoryTab(annotationsTab);
+  const firstThread = $('#annotationList').querySelector('.annotation-thread');
+  if (firstThread) firstThread.scrollIntoView({ block: 'center' });
+  showToast('已定位当前对象的批注；讨论状态不等于批准或写入授权');
+}
+
+function syncFocusLabelConversation() {
+  const label = $('#canvasFocusLabel');
+  if (!label || label.dataset.visible !== 'true') return;
+  const state = focusConversationState();
+  const suffix = state.blocked ? ' · 批注重锚' : state.open ? ' · 开放讨论' : '';
+  const nodeText = label.dataset.focusNodeLabel || '';
+  label.textContent = `当前焦点 · ${nodeText}${suffix}`;
+}
+
 function renderCanvasObject() {
   const nodes = collabGraph?.nodes || [];
   const current = Math.max(0, nodes.findIndex((node) => node.id === selectedNodeId));
@@ -3034,6 +3099,7 @@ function renderCanvasObject() {
   $('#canvasRelatedCount').textContent = String(relatedCount);
   $('#canvasFocusRevision').textContent = `rev ${Number.isFinite(collabRevision) ? collabRevision : '—'}`;
   $('#btnCanvasRelatedNode').disabled = !relatedCount;
+  renderCanvasConversation();
   $('#canvasObjectCard').title = node
     ? `${node.label} · ${node.path || '无路径'} · 只读焦点`
     : '项目结构图加载后可切换节点';
@@ -3585,6 +3651,8 @@ function renderAnnotations(annotations) {
       </div>
     </article>
   `).join('') : historyEmpty('⌖', '还没有图形批注', '在左侧项目图选中节点，再用 <code>添加图形批注</code> 把想法绑定到对象；AI 会把它作为只读讨论上下文。');
+  renderCanvasConversation();
+  syncFocusLabelConversation();
 
   for (const button of target.querySelectorAll('[data-annotation-status]')) {
     button.addEventListener('click', () => setAnnotationStatus(button.dataset.annotationStatus, button.dataset.status));
@@ -3790,7 +3858,14 @@ async function loadCollab() {
     selectedNodeIds = Array.isArray(session.selection?.nodeIds) ? session.selection.nodeIds.slice(0, 24) : [];
     renderViewport(collabViewport);
     renderGraphEditor();
-    restoreFocus();
+    if (session.focus?.nodeId && collabGraph?.nodes.some((node) => node.id === session.focus.nodeId)) {
+      selectedNodeId = session.focus.nodeId;
+      renderGraphEditor();
+      renderFocus(session.focus);
+      renderNodeContext();
+    } else {
+      restoreFocus();
+    }
     renderChat(session.messages || []);
     renderAnnotations(session.graph?.annotations || []);
     const proposals = await collabFetch('/api/collab/proposals');
