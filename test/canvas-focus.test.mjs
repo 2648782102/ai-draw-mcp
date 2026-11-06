@@ -178,8 +178,13 @@ describe("canvas focus interaction", () => {
       expect(await page.$eval("#canvasHoverCard", (element) => element.dataset.visible)).toBe("false");
       expect(await page.$$eval("#diagramRender svg .node.is-related", (elements) => elements.length)).toBe(0);
       expect(await page.$$eval("#diagramRender svg .flowchart-link.is-hover-path", (elements) => elements.length)).toBe(0);
+      expect(await page.$$eval("#diagramRender svg .flowchart-link.is-focus-path", (elements) => elements.length)).toBeGreaterThan(0);
       await page.mouse.move(target.x + 2, target.y + 2);
       expect(await page.$eval("#canvasHoverCard", (element) => element.dataset.visible)).toBe("false");
+      const steadyFocusPaths = await page.$$eval("#diagramRender svg .flowchart-link.is-focus-path", (elements) => elements.length);
+      expect(steadyFocusPaths).toBeGreaterThan(0);
+      expect(await page.$eval("#canvasFrame", (element) => Number(element.dataset.focusPaths))).toBeGreaterThan(0);
+      expect(await page.$eval("#canvasRelatedStat", (element) => Number(element.dataset.focusPaths))).toBeGreaterThan(0);
       await page.keyboard.press("p");
       await page.mouse.move(target.x + 3, target.y + 3);
       await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "true");

@@ -607,6 +607,13 @@
       stroke: var(--accent2) !important; stroke-width: 2px !important;
       filter: drop-shadow(0 0 8px rgba(187,154,247,.34));
     }
+    body.flow-workspace #diagramRender svg .flowchart-link.is-focus-path {
+      stroke: var(--accent2) !important; stroke-width: 2.4px !important; opacity: .92 !important;
+      filter: drop-shadow(0 0 4px rgba(187,154,247,.48));
+    }
+    body.flow-workspace #diagramRender svg .edgeLabel.is-focus-path .edgeLabel {
+      color: var(--accent2) !important; font-weight: 750 !important;
+    }
     body.flow-workspace #diagramRender svg .flowchart-link.is-hover-path {
       stroke: var(--accent3) !important; stroke-width: 3px !important; opacity: 1 !important;
       filter: drop-shadow(0 0 5px rgba(61,219,217,.72));
@@ -615,8 +622,12 @@
       color: var(--accent3) !important; font-weight: 800 !important;
     }
     body.flow-workspace.visual-studio #diagramRender svg .flowchart-link.is-hover-path,
+    body.flow-workspace.visual-studio #diagramRender svg .flowchart-link.is-focus-path,
     body.flow-workspace.theme-light #diagramRender svg .flowchart-link.is-hover-path {
       stroke: #168d99 !important; filter: drop-shadow(0 0 4px rgba(22,141,153,.46));
+    }
+    body.flow-workspace.visual-atlas #diagramRender svg .flowchart-link.is-focus-path {
+      stroke: #8ee6a8 !important; stroke-dasharray: none !important; filter: none;
     }
     body.flow-workspace.visual-atlas #diagramRender svg .flowchart-link.is-hover-path {
       stroke: #b5ffcb !important; stroke-dasharray: none !important; filter: drop-shadow(0 0 5px rgba(142,230,168,.72));
@@ -653,6 +664,7 @@
     body.graph-skin-off #diagramRender svg .node.is-related ellipse,
     body.graph-skin-off #diagramRender svg .edgePath .path,
     body.graph-skin-off #diagramRender svg .flowchart-link.is-hover-path,
+    body.graph-skin-off #diagramRender svg .flowchart-link.is-focus-path,
     body.graph-skin-off #diagramRender svg .flowchart-link,
     body.graph-skin-off #diagramRender svg .edgeLabel,
     body.graph-skin-off #diagramRender svg .edgeLabel .label,
@@ -670,7 +682,7 @@
       .node.is-hovered circle, .node.is-hovered ellipse,
       .node.is-related rect, .node.is-related polygon, .node.is-related path,
       .node.is-related circle, .node.is-related ellipse,
-      .edgePath .path, .flowchart-link, .flowchart-link.is-hover-path, .edgeLabel, .edgeLabel .label, .nodeLabel
+      .edgePath .path, .flowchart-link, .flowchart-link.is-hover-path, .flowchart-link.is-focus-path, .edgeLabel, .edgeLabel .label, .nodeLabel
     ) {
       filter: none !important; stroke: revert !important; stroke-width: revert !important;
       fill: revert !important; color: revert !important; background-color: revert !important; border: revert !important;
@@ -1431,6 +1443,8 @@
     .canvas-object-actions button.primary { flex: 1; border-color: rgba(122,162,247,.42); background: rgba(122,162,247,.14); color: var(--accent); font-weight: 700; }
     .canvas-object-stats { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 8px; }
     .canvas-object-stats strong { color: var(--accent2); font-variant-numeric: tabular-nums; }
+    #canvasRelatedStat::before { content: '◇'; margin-right: 4px; color: var(--text-muted); }
+    #canvasRelatedStat[data-focus-paths]:not([data-focus-paths="0"])::before { content: '◆'; color: var(--accent2); text-shadow: 0 0 8px rgba(187,154,247,.6); }
     .canvas-object-conversation { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 5px; padding: 5px 7px; border: 1px solid rgba(240,168,104,.32); border-radius: 8px; background: rgba(240,168,104,.08); color: var(--text-muted); font-size: 8px; }
     .canvas-object-conversation[data-state="clear"] { border-color: rgba(158,206,106,.34); background: rgba(158,206,106,.08); }
     .canvas-object-conversation[data-state="blocked"] { border-color: rgba(255,107,107,.38); background: rgba(255,107,107,.08); }
@@ -2422,7 +2436,7 @@
               <button type="button" id="btnCanvasNextNode" title="下一个节点">→</button>
               <button type="button" id="btnCanvasOpenNode" class="primary" title="在协作工作台查看项目图">查看节点</button>
             </div>
-            <div class="canvas-object-stats"><span>直接关联 <strong id="canvasRelatedCount">0</strong> 个对象</span><span id="canvasFocusRevision">rev —</span></div>
+            <div class="canvas-object-stats"><span id="canvasRelatedStat" data-focus-paths="0">直接关联 <strong id="canvasRelatedCount">0</strong> 个对象</span><span id="canvasFocusRevision">rev —</span></div>
             <div class="canvas-object-conversation" id="canvasObjectConversation" data-state="clear">
               <span id="canvasConversationSummary">对话 · 暂无绑定批注</span>
               <button type="button" id="btnCanvasOpenConversation" title="进入对话工作台查看当前对象">↔ 对话</button>
@@ -2894,6 +2908,10 @@ function syncGraphSkin() {
   for (const group of focusNodeGroups()) {
     group.classList.toggle('is-focused', group === focusGroup);
   }
+  const focusPathCount = focused ? syncCanvasFocusEdges() : (clearCanvasPathClass('is-focus-path'), 0);
+  if (frame) frame.dataset.focusPaths = String(focusPathCount);
+  const relatedStat = $('#canvasRelatedStat');
+  if (relatedStat) relatedStat.dataset.focusPaths = String(focusPathCount);
 }
 
 function applyLayoutSystem(system, persist = true) {
@@ -3196,14 +3214,14 @@ function hideCanvasHoverCard() {
   clearCanvasHoverEdges();
 }
 
-function clearCanvasHoverEdges() {
-  for (const edge of $('#diagramRender').querySelectorAll('.flowchart-link.is-hover-path, .edgeLabel.is-hover-path')) {
-    edge.classList.remove('is-hover-path');
+function clearCanvasPathClass(className) {
+  for (const edge of $('#diagramRender').querySelectorAll(`.flowchart-link.${className}, .edgeLabel.${className}`)) {
+    edge.classList.remove(className);
   }
 }
 
-function highlightCanvasHoverEdges(nodeId) {
-  clearCanvasHoverEdges();
+function highlightCanvasEdges(nodeId, className) {
+  clearCanvasPathClass(className);
   const adjacentEdges = (collabGraph?.edges || [])
     .filter((edge) => (edge.from === nodeId || edge.to === nodeId) && edge.from !== edge.to);
   if (!adjacentEdges.length) return 0;
@@ -3212,14 +3230,29 @@ function highlightCanvasHoverEdges(nodeId) {
     const path = [...$('#diagramRender').querySelectorAll('path.flowchart-link')]
       .find((candidate) => candidate.id.includes(`_${edge.from}_${edge.to}_`) || (candidate.getAttribute('data-id') || '').includes(`_${edge.from}_${edge.to}_`));
     if (!path) continue;
-    path.classList.add('is-hover-path');
+    path.classList.add(className);
     const labelIdentity = path.getAttribute('data-id') || path.id.replace(/^mmd-\d+-/, '');
     const label = [...$('#diagramRender').querySelectorAll('g.edgeLabel')]
       .find((candidate) => candidate.querySelector(`.label[data-id="${CSS.escape(labelIdentity)}"]`));
-    if (label) label.classList.add('is-hover-path');
+    if (label) label.classList.add(className);
     highlighted += 1;
   }
   return highlighted;
+}
+
+function clearCanvasHoverEdges() {
+  clearCanvasPathClass('is-hover-path');
+}
+
+function highlightCanvasHoverEdges(nodeId) {
+  return highlightCanvasEdges(nodeId, 'is-hover-path');
+}
+
+function syncCanvasFocusEdges() {
+  const nodeId = selectedNodeId;
+  clearCanvasPathClass('is-focus-path');
+  if (!nodeId || prefs.graphSkin === 'off') return 0;
+  return highlightCanvasEdges(nodeId, 'is-focus-path');
 }
 
 function canvasHoverGroupAt(clientX, clientY) {

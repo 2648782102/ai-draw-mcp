@@ -23,6 +23,10 @@ Most visual tools optimize either **AI generation** or **human editing**. Mermai
 
 Status-bearing surfaces in developer tools work best when the current state is visible without opening a secondary panel. The wider collaboration pulse, three derived micro bars, and layered focus/object surfaces borrow that legibility cue from Figma/tldraw-style canvases and review dashboards: a person sees message, proposal, and annotation pressure at a glance, and an AI still receives the same structured session through MCP. The bars are derived CSS projections, not a second state machine; they do not publish focus/viewport, send messages, approve proposals, issue receipts, or write project files.
 
+## Focus-path legibility research note (2026-11-06 20:45 CST)
+
+Code maps and review dashboards make the currently addressed object legible by keeping its immediate relationships visible, not only by drawing a selection ring. The steady violet focus-path layer borrows that cue while preserving a separate cyan hover-path layer, so a human can distinguish "the object currently shared with the AI" from "the object I am only inspecting". Both layers are derived CSS classes on real Mermaid edges; they do not alter graph data, exports, session focus/viewport, approval receipts, or project files.
+
 ## Positioning statement
 
 > AI Draw MCP is a local-first MCP workspace where an AI can turn a codebase into an editable visual map, a human can correct that map in the panel, and the pair can review a concrete change proposal before any file is written.
