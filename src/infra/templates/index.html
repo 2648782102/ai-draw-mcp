@@ -312,6 +312,17 @@
     .journey-step .journey-badge { margin-left: 4px; padding: 1px 5px; border-radius: 999px; background: rgba(240,168,104,.16); color: var(--orange); font-size: 8px; font-weight: 800; }
     .collab-shell[data-tab="dialog"] .collab-journey .journey-step[data-journey="dialog"],
     .collab-shell[data-tab="proposals"] .collab-journey .journey-step[data-journey="proposals"] { box-shadow: inset 0 2px 0 var(--green); }
+    .collab-shell.focus-mode .collab-overview,
+    .collab-shell.focus-mode .health-card,
+    .collab-shell.focus-mode .collab-journey { display: none; }
+    .collab-shell.focus-mode .collab-header { height: 48px; background: linear-gradient(90deg, rgba(158,206,106,.10), transparent); }
+    .collab-shell.focus-mode .collab-body { grid-template-columns: 1.02fr 1.18fr .95fr; padding-top: 8px; }
+    .collab-shell.focus-mode .collab-section { padding: 12px; }
+    .focus-badge { display: none; align-items: center; gap: 5px; margin-left: 8px; padding: 3px 8px; border: 1px solid rgba(158,206,106,.5); border-radius: 999px; background: rgba(158,206,106,.10); color: var(--green); font-size: 9px; font-weight: 800; white-space: nowrap; }
+    .collab-shell.focus-mode .focus-badge { display: inline-flex; }
+    .focus-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+    #btnFocusMode { width: auto; padding: 0 9px; white-space: nowrap; }
+    #btnFocusMode[aria-pressed="true"] { border-color: rgba(158,206,106,.58); background: rgba(158,206,106,.14); color: var(--green); }
 
     /* ── Collaboration workbench ── */
     .status #btnCollaborate, .collab-actions button, .collab-header button {
@@ -909,6 +920,7 @@
           <span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd>
           <span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd>
           <span>命令面板</span><kbd>? · Esc</kbd>
+          <span>专注模式</span><kbd>7</kbd>
           <span>协作工作台</span><kbd>C · Esc</kbd>
           <span>适应窗口 / 重置缩放</span><kbd>F / 0</kbd>
           <span>渲染或发送</span><kbd>⌘/Ctrl + ↵</kbd>
@@ -1041,12 +1053,13 @@
 <div class="collab-shell" id="collabShell" data-tab="graph" hidden>
   <div class="collab-header">
     <div>
-      <strong>双向协作工作台</strong>
+      <strong>双向协作工作台</strong><span class="focus-badge">专注模式 · 概览已隐藏</span>
       <span class="collab-kicker">LOCAL · READ-ONLY UNTIL APPROVAL</span>
       <span id="collabMeta">等待同步…</span>
       <span class="shortcut-hint">Esc 关闭 · C 打开</span>
     </div>
     <div class="collab-header-actions">
+      <button id="btnFocusMode" type="button" aria-pressed="false" title="专注模式：隐藏概览、健康卡与流程条（7）">◎ 专注</button>
       <button id="btnCommandHint" class="shortcut-hint" title="打开命令面板与快捷键（?）">⌘ 命令</button>
       <button id="btnCloseCollab" title="关闭（Esc）">✕</button>
     </div>
@@ -1223,6 +1236,7 @@ const PREFS_DEFAULT = {
   theme: 'default',
   darkBg: false,
   viewMode: 'split',
+  focusMode: false,
   uiTheme: 'dark',
   density: 'comfortable',
   lastDiagramId: null,
@@ -1258,7 +1272,19 @@ function applyPrefs() {
   if (prefs.darkBg) $('#previewWrap').classList.add('dark-bg');
   document.body.classList.toggle('theme-light', prefs.uiTheme === 'light');
   document.body.classList.toggle('density-compact', prefs.density === 'compact');
+  $('#collabShell').classList.toggle('focus-mode', prefs.focusMode === true);
+  $('#btnFocusMode').setAttribute('aria-pressed', String(prefs.focusMode === true));
+  $('#btnFocusMode').textContent = prefs.focusMode ? '◉ 退出专注' : '◎ 专注';
   setWorkspaceView(prefs.viewMode || 'split', false);
+}
+
+function setFocusMode(enabled) {
+  prefs.focusMode = Boolean(enabled);
+  $('#collabShell').classList.toggle('focus-mode', prefs.focusMode);
+  $('#btnFocusMode').setAttribute('aria-pressed', String(prefs.focusMode));
+  $('#btnFocusMode').textContent = prefs.focusMode ? '◉ 退出专注' : '◎ 专注';
+  savePrefs();
+  showToast(prefs.focusMode ? '已开启专注模式 · 概览与流程条暂时隐藏' : '已退出专注模式 · 恢复全部概览');
 }
 
 function setWorkspaceView(view, persist = true) {
@@ -1434,6 +1460,11 @@ window.addEventListener('keydown', (e) => {
   if (collabShell && !collabShell.hidden && !typing && ['4', '5', '6'].includes(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
     e.preventDefault();
     setCollabTab({ 4: 'graph', 5: 'dialog', 6: 'proposals' }[e.key]);
+    return;
+  }
+  if (collabShell && !collabShell.hidden && !typing && e.key === '7' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    setFocusMode(!prefs.focusMode);
     return;
   }
   if (document.activeElement === $('#codeEditor')) return;
@@ -1906,6 +1937,7 @@ const COMMANDS = [
   { group: '工作区视图', icon: '◇', title: '画布视图', hint: '只显示图形预览与缩放工具', shortcut: '3', keys: '画布 canvas preview', run: () => setWorkspaceView('canvas') },
   { group: '工作区视图', icon: '⊡', title: '适应窗口', hint: '把当前图形缩放到预览区', shortcut: 'F', keys: '适应 缩放 fit', run: () => fitView() },
   { group: '工作区视图', icon: '1:1', title: '重置缩放', hint: '恢复 100% 与默认平移', shortcut: '0', keys: '重置 缩放 reset', run: () => resetView() },
+  { group: '工作区视图', icon: '◎', title: '切换专注模式', hint: '隐藏概览、健康卡与流程条，放大三栏内容', shortcut: '7', keys: '专注 focus 概览 zen', run: () => setFocusMode(!prefs.focusMode) },
   { group: '协作流程', icon: '↔', title: '打开协作工作台', hint: '进入人 / AI 双向协作面板', shortcut: 'C', keys: '协作 对话 workbench', run: () => openCollab() },
   { group: '协作流程', icon: '◇', title: '查看项目结构图', hint: '切到节点编辑与扫描流程', shortcut: '4', keys: '项目图 结构 graph scan', run: () => { openCollab(); setCollabTab('graph'); } },
   { group: '协作流程', icon: '↔', title: '查看双向对话', hint: '切到消息、批注与活动时间线', shortcut: '5', keys: '对话 消息 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
@@ -3542,6 +3574,7 @@ for (const step of document.querySelectorAll('.journey-step')) {
 $('#btnCommandHint').addEventListener('click', () => {
   openCommandPalette();
 });
+$('#btnFocusMode').addEventListener('click', () => setFocusMode(!prefs.focusMode));
 $('#btnOpenCommandsWelcome').addEventListener('click', openCommandPalette);
 $('#commandSearch').addEventListener('input', () => { commandActiveIndex = 0; renderCommands(); });
 $('#commandBackdrop').addEventListener('click', (event) => {

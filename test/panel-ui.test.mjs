@@ -148,9 +148,10 @@ describe("collaboration panel UI", () => {
         shortcuts: document.querySelectorAll(".appearance-shortcuts kbd").length,
         activeTheme: document.querySelector('[data-ui-theme].active')?.dataset.uiTheme,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 6, activeTheme: "dark" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 7, activeTheme: "dark" });
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("7");
       await page.click('[data-ui-theme="light"]');
       expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
       await page.click('[data-density="compact"]');
@@ -237,6 +238,13 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval('[data-journey="proposals"]', (element) => element.getAttribute("aria-current"))).toBe("step");
       await page.keyboard.press("4");
       expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("graph");
+      await page.keyboard.press("7");
+      expect(await page.$eval("#collabShell", (element) => element.classList.contains("focus-mode"))).toBe(true);
+      expect(await page.$eval("#btnFocusMode", (element) => element.getAttribute("aria-pressed"))).toBe("true");
+      expect(await page.$eval(".collab-overview", (element) => getComputedStyle(element).display)).toBe("none");
+      expect(await page.$eval(".focus-badge", (element) => getComputedStyle(element).display)).not.toBe("none");
+      await page.click("#btnFocusMode");
+      expect(await page.$eval("#collabShell", (element) => element.classList.contains("focus-mode"))).toBe(false);
       await page.click('[data-journey="dialog"]');
       expect(await page.$eval('[data-journey="dialog"]', (element) => element.classList.contains("active"))).toBe(true);
       await page.$eval('[data-tab-target="dialog"]', (element) => {

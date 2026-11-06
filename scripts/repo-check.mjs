@@ -144,6 +144,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(await assetExists("docs/preview-panel.png"), "README is missing the refreshed preview panel screenshot");
 check(await assetExists("docs/collaboration-workbench-panel.png"), "README is missing the collaboration workbench screenshot");
+check(await assetExists("docs/collaboration-focus-panel.png"), "README is missing the collaboration focus-mode screenshot");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
 check(launchKit.includes("25 MCP tools"), "docs/LAUNCH_KIT.md historical 0.3.3 release notes preserve the published 25 MCP tools");
@@ -745,6 +746,11 @@ for (const [label, file, needle] of [
   ["command palette shortcut", panel, "? · Esc"],
   ["command palette executor", panel, "function runCommand"],
   ["command palette welcome entry", panel, "btnOpenCommandsWelcome"],
+  ["collaboration focus mode", panel, "focus-mode"],
+  ["focus mode toggle", panel, "btnFocusMode"],
+  ["focus mode shortcut", panel, "专注模式"],
+  ["focus mode screenshot", capturePanelScript, "collaboration-focus-panel.png"],
+  ["focus mode screenshot in README", readme, "collaboration-focus-panel.png"],
   ["history tab counts", panel, "data-history-count"],
   ["conversation-first history order", panel, 'data-history-pane="chat"'],
   ["distinct source evidence cards", panel, "evidence-item"],
@@ -775,6 +781,7 @@ for (const [label, file, needle] of [
   ["panel UI welcome visual regression", panelUiTest, "welcome-visual"],
   ["panel UI receipt dialog regression", panelUiTest, "receiptBackdrop"],
   ["panel UI command palette regression", panelUiTest, "commandPalette"],
+  ["panel UI focus mode regression", panelUiTest, "focus-mode"],
   ["panel UI proposal card regression", panelUiTest, "proposal-card.status-pending"],
   ["panel UI proposal diff regression", panelUiTest, "proposal-diff.loaded"],
   ["reproducible proposal screenshot", capturePanelScript, "seedProposalCard"],
