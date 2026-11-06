@@ -184,6 +184,18 @@ describe("collaboration panel UI", () => {
       expect(welcomeDialogTrack.active).toBe(1);
       expect(welcomeDialogTrack.count).toContain(String(welcomeDialogTrack.messageCount));
       expect(welcomeDialogTrack.meta).toContain("待 AI");
+      const welcomeLiveRoute = await page.evaluate(() => ({
+        steps: [...document.querySelectorAll("#welcomeLiveRoute .welcome-live-step")].map((step) => ({
+          name: step.dataset.liveStep,
+          state: step.dataset.state,
+          detail: step.querySelector("span").textContent,
+        })),
+        gradient: getComputedStyle(document.querySelector("#welcomeLiveRoute")).backgroundImage,
+      }));
+      expect(welcomeLiveRoute.steps.map((step) => step.name)).toEqual(["structure", "dialog", "review"]);
+      expect(welcomeLiveRoute.steps.find((step) => step.name === "dialog").state).toBe("active");
+      expect(welcomeLiveRoute.steps.find((step) => step.name === "dialog").detail).toMatch(/\d+ 消息/);
+      expect(welcomeLiveRoute.steps.find((step) => step.name === "review").state).toBe("review");
       expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("none");
 
       const diagramsBefore = await fetch(`${base}/api/diagrams`).then((response) => response.json());

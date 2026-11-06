@@ -751,6 +751,28 @@
     .welcome-flow-center::after { content: ''; position: absolute; inset: -13px; border: 1px solid rgba(122,162,247,.42); border-radius: 50%; animation: welcome-pulse 2.6s ease-out infinite; }
     @keyframes welcome-pulse { 0% { opacity: .8; transform: scale(.85); } 100% { opacity: 0; transform: scale(1.35); } }
     .welcome-caption { position: absolute; left: 8px; right: 8px; bottom: 14px; text-align: center; color: var(--text-muted); font-size: 8px; letter-spacing: .08em; line-height: 1.5; text-transform: uppercase; }
+    .welcome-live-route {
+      position: absolute; left: 10px; right: 10px; top: 12px; z-index: 4;
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px;
+      padding: 5px; border: 1px solid rgba(122,162,247,.30); border-radius: 9px;
+      background: rgba(5,12,24,.52); backdrop-filter: blur(10px);
+    }
+    .welcome-live-route::before {
+      content: ''; position: absolute; left: 6px; right: 6px; top: -1px; height: 1px;
+      background: linear-gradient(90deg, var(--accent3), var(--accent), var(--accent2), transparent);
+    }
+    .welcome-live-step { display: grid; justify-items: center; gap: 1px; min-width: 0; padding: 3px 2px; border-radius: 6px; background: rgba(122,162,247,.055); }
+    .welcome-live-step::before { content: ''; width: 4px; height: 4px; margin-bottom: 1px; border-radius: 50%; background: var(--border); box-shadow: 0 0 0 2px rgba(122,162,247,.10); }
+    .welcome-live-step strong { color: var(--text-muted); font-size: 7px; font-weight: 800; letter-spacing: .04em; white-space: nowrap; }
+    .welcome-live-step span { color: var(--text-muted); font-size: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .welcome-live-step[data-state="active"] { background: rgba(61,219,217,.12); box-shadow: inset 0 1px 0 rgba(61,219,217,.28); }
+    .welcome-live-step[data-state="active"]::before { background: var(--accent3); box-shadow: 0 0 7px rgba(61,219,217,.52); }
+    .welcome-live-step[data-state="active"] strong { color: var(--text); }
+    .welcome-live-step[data-state="review"] { background: rgba(240,168,104,.12); }
+    .welcome-live-step[data-state="review"]::before { background: var(--orange); box-shadow: 0 0 7px rgba(240,168,104,.48); }
+    .welcome-live-step[data-state="review"] strong { color: var(--orange); }
+    body.theme-light .welcome-live-route, body.visual-studio .welcome-live-route { background: rgba(255,255,255,.84); }
+    body.visual-atlas .welcome-live-route, body.visual-atlas .welcome-live-step { border-radius: 2px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .welcome-dialog-ribbon {
       position: relative; z-index: 4;
       display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px;
@@ -2506,6 +2528,11 @@
               <div class="welcome-shortcuts">示例只写入本机编辑器并渲染预览，不创建图、不改协作会话、不写项目文件。</div>
             </div>
             <div class="welcome-visual">
+              <div class="welcome-live-route" id="welcomeLiveRoute" aria-label="当前只读协作航线">
+                <div class="welcome-live-step" data-live-step="structure"><strong>结构图</strong><span id="welcomeLiveNodes">0 对象</span></div>
+                <div class="welcome-live-step" data-live-step="dialog"><strong>双向对话</strong><span id="welcomeLiveMessages">0 消息</span></div>
+                <div class="welcome-live-step" data-live-step="review"><strong>人工审阅</strong><span id="welcomeLiveProposals">闸门关闭</span></div>
+              </div>
               <span class="welcome-orbit-label top" aria-hidden="true">AI · 只读扫描</span>
               <span class="welcome-orbit-label bottom" aria-hidden="true">人 · 修改 / 确认</span>
               <span class="welcome-orbit-label left" aria-hidden="true">结构图</span>
@@ -5094,6 +5121,18 @@ function renderDialogStarTrack() {
   if (meta) meta.textContent = sourceMessages.length ? `${pending} 条待 AI · ${sourceMessages.length} 条对话` : '等待对话';
   const pulseMeta = $('#pulseDialogMeta');
   if (pulseMeta) pulseMeta.innerHTML = `对话 <b>${sourceMessages.length}</b> 条${pending ? ` · ${pending} 待 AI` : ''}`;
+  const nodes = (graph?.nodes || []).length;
+  const liveSteps = {
+    structure: { state: nodes > 0 ? 'active' : 'idle', detail: `${nodes} 对象` },
+    dialog: { state: sourceMessages.length > 0 ? 'active' : 'idle', detail: `${sourceMessages.length} 消息` },
+    review: { state: state === 'review' ? 'review' : state === 'blocked' ? 'review' : 'idle', detail: pendingProposals > 0 ? `${pendingProposals} 待审` : '闸门关闭' },
+  };
+  for (const [name, value] of Object.entries(liveSteps)) {
+    const step = document.querySelector(`[data-live-step="${name}"]`);
+    if (step) step.dataset.state = value.state;
+    const detail = step?.querySelector('span');
+    if (detail) detail.textContent = value.detail;
+  }
 }
 
 function renderFlowRail({ pendingMessages = 0, pendingProposals = 0, openAnnotations = 0 } = {}) {

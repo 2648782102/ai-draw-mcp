@@ -47,6 +47,10 @@ Status dashboards make queue pressure legible with a single radial gauge plus a 
 
 Conversation-first products preserve a visible beat of who spoke last, while review dashboards use bounded event beads to make handoffs glanceable. The first-run card, handoff rail, and collaboration pulse now borrow that cue with a bounded **dialogue star track**: the latest human and AI messages become color-coded stars, pending replies gain a soft halo, and the newest message is emphasized. Clicking a star reuses the established workbench chat view rather than turning a visual decoration into a message composer. The track is a pure DOM projection of existing `session.messages`, proposals, and annotation state; it does not publish focus/viewport, send messages, approve proposals, issue receipts, or write project files.
 
+## Live-route research note (2026-11-06 21:50 CST)
+
+Onboarding diagrams are more useful when their labels reflect the current workspace instead of only explaining an abstract loop. The first-run visual now borrows the onboarding-progress pattern from developer tools: a compact three-step **live collaboration route** reports existing graph-object count, dialogue count, and pending review / closed-gate state with bounded status lights. It shares the same derived session snapshot as the dialogue star track, never becomes a second persisted workflow model, and never grants write authority.
+
 ## Positioning statement
 
 > AI Draw MCP is a local-first MCP workspace where an AI can turn a codebase into an editable visual map, a human can correct that map in the panel, and the pair can review a concrete change proposal before any file is written.
