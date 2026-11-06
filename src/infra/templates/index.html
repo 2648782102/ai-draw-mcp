@@ -391,7 +391,7 @@
     .workspace[data-view="source"] #previewPane, .workspace[data-view="canvas"] #editorPane, .workspace[data-view="source"] #divider, .workspace[data-view="canvas"] #divider { display: none; }
     .workspace[data-view="source"] #editorPane, .workspace[data-view="canvas"] #previewPane { flex: 1 1 100% !important; }
     .canvas-chip {
-      position: absolute; left: 14px; bottom: 14px; z-index: 21; display: none;
+      position: absolute; right: 14px; top: 14px; z-index: 21; display: none;
       align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid var(--border);
       border-radius: 999px; background: rgba(9,14,25,.84); color: var(--text-muted); font-size: 10px;
       backdrop-filter: blur(10px); box-shadow: 0 6px 18px rgba(0,0,0,.25);
@@ -406,7 +406,7 @@
       backdrop-filter: blur(14px);
     }
     .workspace:not(.welcome) .canvas-dock { display: flex; }
-    .workspace[data-view="canvas"] .canvas-dock { bottom: 54px; }
+    .workspace[data-view="canvas"] .canvas-dock { bottom: 14px; }
     .canvas-dock-status {
       display: flex; align-items: center; gap: 7px; min-width: 0; padding: 0 5px 0 3px;
       border-right: 1px solid var(--border);
@@ -426,15 +426,45 @@
     .canvas-dock .zoom-readout { min-width: 40px; padding: 0 4px; color: var(--text); font-size: 10px; font-variant-numeric: tabular-nums; font-weight: 700; text-align: center; }
     .canvas-dock-divider { width: 1px; height: 20px; margin: 0 1px; background: var(--border); }
     body.theme-light .canvas-dock { background: rgba(255,255,255,.92); }
+    body.theme-light .canvas-chip { background: rgba(255,255,255,.9); }
     body.theme-light .canvas-dock-group { background: #f2f6fd; }
+    .shortcut-backdrop {
+      position: fixed; inset: 0; z-index: 1350; display: grid; place-items: center;
+      padding: 18px; background: rgba(3,7,15,.6); backdrop-filter: blur(8px);
+      opacity: 0; pointer-events: none; transition: opacity .18s ease;
+    }
+    .shortcut-backdrop.open { opacity: 1; pointer-events: auto; }
+    .shortcut-backdrop[hidden] { display: none; }
+    .shortcut-dialog {
+      width: min(470px, 100%); border: 1px solid rgba(122,162,247,.42); border-radius: 18px;
+      background: linear-gradient(150deg, rgba(21,36,58,.98), rgba(9,14,25,.98));
+      box-shadow: 0 28px 80px rgba(0,0,0,.58); transform: translateY(8px) scale(.98);
+      transition: transform .2s cubic-bezier(.2,.8,.2,1); overflow: hidden;
+    }
+    .shortcut-backdrop.open .shortcut-dialog { transform: none; }
+    .shortcut-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 17px; border-bottom: 1px solid var(--border); }
+    .shortcut-head strong { display: block; font-size: 14px; }
+    .shortcut-head span { display: block; margin-top: 3px; color: var(--text-muted); font-size: 9px; }
+    .shortcut-head button { height: 26px; padding: 0 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface2); color: var(--text-muted); font-size: 10px; cursor: pointer; }
+    .shortcut-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 12px; }
+    .shortcut-group { padding: 10px; border: 1px solid var(--border); border-radius: 11px; background: rgba(9,14,25,.42); }
+    .shortcut-group h4 { margin-bottom: 8px; color: var(--accent); font-size: 10px; }
+    .shortcut-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 4px 0; color: var(--text-muted); font-size: 9px; }
+    .shortcut-row kbd { padding: 2px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface2); color: var(--text); font: inherit; font-size: 9px; font-weight: 700; white-space: nowrap; }
+    .shortcut-foot { padding: 0 14px 14px; color: var(--text-muted); font-size: 9px; line-height: 1.6; }
+    body.theme-light .shortcut-dialog { background: linear-gradient(150deg, #ffffff, #eff5fd); }
+    body.theme-light .shortcut-group { background: #f5f8fd; }
+    body.theme-light .shortcut-row kbd { background: #fff; }
     @media (max-width: 860px) {
       .canvas-dock-status { display: none; }
       .canvas-dock { gap: 4px; }
     }
     @media (max-width: 620px) {
       .canvas-dock { left: 7px; right: 7px; bottom: 7px; overflow-x: auto; }
-      .workspace[data-view="canvas"] .canvas-dock { bottom: 46px; }
+      .workspace[data-view="canvas"] .canvas-dock { bottom: 7px; }
       .canvas-dock button { flex: 0 0 auto; }
+      .canvas-chip { right: 7px; top: 7px; max-width: calc(100% - 14px); }
+      .shortcut-groups { grid-template-columns: 1fr; }
     }
     button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible {
       outline: 2px solid rgba(122,162,247,.85); outline-offset: 2px;
@@ -1003,6 +1033,7 @@
           <span>专注模式</span><kbd>7</kbd>
           <span>协作工作台</span><kbd>C · Esc</kbd>
           <span>适应窗口 / 重置缩放</span><kbd>F / 0</kbd>
+          <span>快捷键帮助</span><kbd>H</kbd>
           <span>渲染或发送</span><kbd>⌘/Ctrl + ↵</kbd>
         </div>
       </div>
@@ -1099,8 +1130,9 @@
             <div class="canvas-dock-divider" aria-hidden="true"></div>
             <button type="button" id="btnCanvasCollab" class="primary" title="打开双向协作工作台 (C)">↔ 协作</button>
             <button type="button" id="btnCanvasCommands" title="打开命令面板 (?)">⌘</button>
+            <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
           </div>
-          <div class="canvas-chip">画布模式 · 滚轮缩放 / 拖拽平移 / F 适应窗口</div>
+          <div class="canvas-chip">滚轮缩放 · 拖拽平移 · 双击重置 · F 适应窗口</div>
         </div>
       </div>
     </div>
@@ -1112,6 +1144,38 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="shortcut-backdrop" id="shortcutBackdrop" hidden>
+  <section class="shortcut-dialog" role="dialog" aria-modal="true" aria-labelledby="shortcutTitle">
+    <div class="shortcut-head">
+      <div><strong id="shortcutTitle">画布快捷键</strong><span>本机面板操作 · 不改变会话、不批准提案、不写项目文件</span></div>
+      <button type="button" id="btnCloseShortcuts">Esc 关闭</button>
+    </div>
+    <div class="shortcut-groups">
+      <div class="shortcut-group"><h4>视图</h4>
+        <div class="shortcut-row"><span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd></div>
+        <div class="shortcut-row"><span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd></div>
+        <div class="shortcut-row"><span>协作工作台 / 专注模式</span><kbd>C / 7</kbd></div>
+      </div>
+      <div class="shortcut-group"><h4>画布</h4>
+        <div class="shortcut-row"><span>滚轮缩放 / 拖拽平移</span><kbd>鼠标</kbd></div>
+        <div class="shortcut-row"><span>适应窗口 / 重置</span><kbd>F / 0</kbd></div>
+        <div class="shortcut-row"><span>双击画布重置</span><kbd>双击</kbd></div>
+      </div>
+      <div class="shortcut-group"><h4>效率</h4>
+        <div class="shortcut-row"><span>搜索命令面板</span><kbd>?</kbd></div>
+        <div class="shortcut-row"><span>快捷键帮助</span><kbd>H</kbd></div>
+        <div class="shortcut-row"><span>关闭面板 / 帮助</span><kbd>Esc</kbd></div>
+      </div>
+      <div class="shortcut-group"><h4>编辑</h4>
+        <div class="shortcut-row"><span>渲染 Mermaid / SVG</span><kbd>⌘/Ctrl + ↵</kbd></div>
+        <div class="shortcut-row"><span>发送消息</span><kbd>⌘/Ctrl + ↵</kbd></div>
+        <div class="shortcut-row"><span>逐行 diff 后人工批准</span><kbd>鼠标</kbd></div>
+      </div>
+    </div>
+    <div class="shortcut-foot">图形、对话和批准凭据始终由人工确认；面板只展示只读上下文和本机视图偏好。</div>
+  </section>
+</div>
 
 <div class="command-backdrop" id="commandBackdrop" hidden>
   <section class="command-dialog" role="dialog" aria-modal="true" aria-labelledby="commandTitle">
@@ -1565,12 +1629,14 @@ $('#btnCanvasZoomOut').addEventListener('click', () => $('#btnZoomOut').click())
 $('#btnCanvasZoomFit').addEventListener('click', () => fitView());
 $('#btnCanvasCollab').addEventListener('click', () => openCollab());
 $('#btnCanvasCommands').addEventListener('click', () => openCommandPalette());
+$('#btnCanvasHelp').addEventListener('click', () => openShortcutDialog());
 
 // Keyboard: F=fit, 0=reset, +/- zoom
 window.addEventListener('keydown', (e) => {
   const collabShell = $('#collabShell');
   const receiptBackdrop = $('#receiptBackdrop');
   const commandBackdrop = $('#commandBackdrop');
+  const shortcutBackdrop = $('#shortcutBackdrop');
   const typing = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
   if (commandBackdrop && !commandBackdrop.hidden) {
     if (e.key === 'Escape') { e.preventDefault(); closeCommandPalette(); return; }
@@ -1586,6 +1652,16 @@ window.addEventListener('keydown', (e) => {
   if (!typing && (e.key === '?' || e.key === '？') && !e.metaKey && !e.ctrlKey && !e.altKey) {
     e.preventDefault();
     openCommandPalette();
+    return;
+  }
+  if (e.key === 'Escape' && shortcutBackdrop && !shortcutBackdrop.hidden) {
+    e.preventDefault();
+    closeShortcutDialog();
+    return;
+  }
+  if (!typing && (e.key === 'h' || e.key === 'H') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    shortcutBackdrop.hidden ? openShortcutDialog() : closeShortcutDialog();
     return;
   }
   if (e.key === 'Escape' && receiptBackdrop && !receiptBackdrop.hidden) {
@@ -2094,6 +2170,19 @@ function closeReceiptDialog() {
   activeReceipt = null;
 }
 
+function openShortcutDialog() {
+  const backdrop = $('#shortcutBackdrop');
+  backdrop.hidden = false;
+  requestAnimationFrame(() => backdrop.classList.add('open'));
+  $('#btnCloseShortcuts').focus();
+}
+
+function closeShortcutDialog() {
+  const backdrop = $('#shortcutBackdrop');
+  backdrop.classList.remove('open');
+  window.setTimeout(() => { backdrop.hidden = true; }, 180);
+}
+
 const COMMANDS = [
   { group: '工作区视图', icon: '◫', title: '分屏视图', hint: '同时看 Mermaid 源码和预览', shortcut: '1', keys: '分屏 源码 预览 split', run: () => setWorkspaceView('split') },
   { group: '工作区视图', icon: '⌘', title: '源码视图', hint: '只显示可编辑 Mermaid / SVG 源码', shortcut: '2', keys: '源码 编辑 source', run: () => setWorkspaceView('source') },
@@ -2109,6 +2198,7 @@ const COMMANDS = [
   { group: '协作流程', icon: '↔', title: '解释这张图', hint: '把只读结构说明插入意图草稿，不发送', shortcut: '', keys: '意图 模板 解释 结构', run: () => { openCollab(); setCollabTab('dialog'); insertIntentPreset(document.querySelector('[data-intent-preset="describe"]')); } },
   { group: '外观与帮助', icon: '☀', title: '切换浅色 / 深色主题', hint: '只影响本机界面，不改图主题', shortcut: '', keys: '主题 浅色 深色 theme', run: () => setUiTheme(prefs.uiTheme === 'light' ? 'dark' : 'light') },
   { group: '外观与帮助', icon: '⚙', title: '打开外观设置', hint: '主题、密度、预览背景与图表库', shortcut: '', keys: '外观 设置 快捷键 appearance', run: () => setAppearanceOpen(true) },
+  { group: '外观与帮助', icon: '?', title: '打开快捷键帮助', hint: '查看视图、画布、效率与编辑快捷键', shortcut: 'H', keys: '帮助 快捷键 help keyboard', run: () => openShortcutDialog() },
 ];
 let commandMatches = [];
 let commandActiveIndex = 0;
@@ -3835,8 +3925,12 @@ $('#btnCopyReceipt').addEventListener('click', async (event) => {
   }
 });
 $('#btnCloseReceipt').addEventListener('click', closeReceiptDialog);
+$('#btnCloseShortcuts').addEventListener('click', closeShortcutDialog);
 $('#receiptBackdrop').addEventListener('click', (event) => {
   if (event.target === $('#receiptBackdrop')) closeReceiptDialog();
+});
+$('#shortcutBackdrop').addEventListener('click', (event) => {
+  if (event.target === $('#shortcutBackdrop')) closeShortcutDialog();
 });
 $('#btnLoadExample').addEventListener('click', loadExampleDiagram);
 $('#btnOpenCollabWelcome').addEventListener('click', openCollab);

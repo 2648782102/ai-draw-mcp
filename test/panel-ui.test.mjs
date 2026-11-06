@@ -151,7 +151,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#canvasZoomLabel", (element) => element.textContent)).toBe("130%");
       await page.click("#btnCanvasZoomFit");
       expect(await page.$eval("#canvasZoomLabel", (element) => element.textContent)).toMatch(/%/);
-      expect(await page.$$eval(".canvas-dock button", (elements) => elements.length)).toBe(6);
+      expect(await page.$$eval(".canvas-dock button", (elements) => elements.length)).toBe(7);
       await page.click("#btnCanvasBackdrop");
       expect(await page.$eval("#previewWrap", (element) => element.classList.contains("dark-bg"))).toBe(true);
       expect(await page.$eval("#btnCanvasBackdrop", (element) => element.getAttribute("aria-pressed"))).toBe("true");
@@ -176,10 +176,11 @@ describe("collaboration panel UI", () => {
         shortcuts: document.querySelectorAll(".appearance-shortcuts kbd").length,
         activeTheme: document.querySelector('[data-ui-theme].active')?.dataset.uiTheme,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 7, activeTheme: "dark" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 8, activeTheme: "dark" });
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("7");
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
       await page.click('[data-ui-theme="light"]');
       expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
       await page.click('[data-density="compact"]');
@@ -196,6 +197,18 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("Escape");
       expect(await page.$eval("#appearancePopover", (element) => element.hidden)).toBe(true);
       expect(await page.$eval("#btnAppearance", (element) => element.getAttribute("aria-expanded"))).toBe("false");
+
+      await page.click("#btnCanvasHelp");
+      await page.waitForFunction(() => !document.querySelector("#shortcutBackdrop").hidden);
+      expect(await page.$eval("#shortcutTitle", (element) => element.textContent)).toContain("画布快捷键");
+      expect(await page.$$eval(".shortcut-group", (elements) => elements.length)).toBe(4);
+      expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => document.querySelector("#shortcutBackdrop").hidden);
+      await page.keyboard.press("h");
+      await page.waitForFunction(() => !document.querySelector("#shortcutBackdrop").hidden);
+      await page.click("#btnCloseShortcuts");
+      await page.waitForFunction(() => document.querySelector("#shortcutBackdrop").hidden);
 
       await page.keyboard.press("?");
       await page.waitForFunction(() => !document.querySelector("#commandBackdrop").hidden);

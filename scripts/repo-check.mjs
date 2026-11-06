@@ -144,6 +144,7 @@ const expectedTopics = [
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(await assetExists("docs/preview-panel.png"), "README is missing the refreshed preview panel screenshot");
 check(await assetExists("docs/canvas-workbench-panel.png"), "README is missing the canvas workbench screenshot");
+check(await assetExists("docs/canvas-shortcuts-panel.png"), "README is missing the canvas shortcuts screenshot");
 check(await assetExists("docs/collaboration-workbench-panel.png"), "README is missing the collaboration workbench screenshot");
 check(await assetExists("docs/collaboration-focus-panel.png"), "README is missing the collaboration focus-mode screenshot");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
@@ -754,6 +755,8 @@ for (const [label, file, needle] of [
   ["focus mode screenshot in README", readme, "collaboration-focus-panel.png"],
   ["canvas workbench screenshot", capturePanelScript, "canvas-workbench-panel.png"],
   ["canvas workbench screenshot in README", readme, "canvas-workbench-panel.png"],
+  ["canvas shortcuts screenshot", capturePanelScript, "canvas-shortcuts-panel.png"],
+  ["canvas shortcuts screenshot in README", readme, "canvas-shortcuts-panel.png"],
   ["reproducible canvas example project", capturePanelScript, "示例 · 人机协作项目结构"],
   ["intent composer card", panel, "intent-composer"],
   ["local intent draft", panel, "MESSAGE_DRAFT_KEY"],
@@ -764,6 +767,9 @@ for (const [label, file, needle] of [
   ["graph edge count", panel, "graphEdgeCount"],
   ["graph selection count", panel, "graphSelectedCount"],
   ["canvas floating toolbar", panel, "canvas-dock"],
+  ["canvas shortcut help dialog", panel, "shortcutBackdrop"],
+  ["canvas shortcut help action", panel, "btnCanvasHelp"],
+  ["canvas shortcut help command", panel, "打开快捷键帮助"],
   ["canvas zoom readout", panel, "canvasZoomLabel"],
   ["canvas diagram readout", panel, "canvasDiagramLabel"],
   ["canvas background toggle", panel, "btnCanvasBackdrop"],
@@ -806,6 +812,7 @@ for (const [label, file, needle] of [
   ["panel UI graph toolbar regression", panelUiTest, "graphToolbar"],
   ["panel UI canvas dock regression", panelUiTest, "canvas-dock"],
   ["panel UI canvas backdrop regression", panelUiTest, "btnCanvasBackdrop"],
+  ["panel UI canvas shortcuts regression", panelUiTest, "shortcutBackdrop"],
   ["panel UI proposal card regression", panelUiTest, "proposal-card.status-pending"],
   ["panel UI proposal diff regression", panelUiTest, "proposal-diff.loaded"],
   ["reproducible proposal screenshot", capturePanelScript, "seedProposalCard"],
