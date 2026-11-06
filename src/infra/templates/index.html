@@ -723,7 +723,7 @@
     .welcome-actions button { height: 32px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 11px; cursor: pointer; }
     .welcome-actions button:hover { transform: translateY(-1px); border-color: rgba(122,162,247,.6); }
     .welcome-actions button.primary { background: linear-gradient(135deg, var(--accent), var(--accent2) 62%, var(--accent3)); color: #08111f; border-color: transparent; font-weight: 800; box-shadow: 0 8px 22px rgba(122,162,247,.20); }
-    .welcome-shortcuts { margin-top: 13px; color: var(--text-muted); font-size: 9px; line-height: 1.5; }
+    .welcome-shortcuts { margin-top: 8px; color: var(--text-muted); font-size: 9px; line-height: 1.5; }
     .welcome-journey { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 13px 0 0; padding: 9px; border: 1px solid rgba(61,219,217,.24); border-radius: 11px; background: linear-gradient(120deg, rgba(61,219,217,.07), rgba(122,162,247,.04)); }
     .welcome-journey-step { position: relative; min-width: 0; padding: 6px 5px; border-radius: 8px; background: rgba(9,14,25,.30); text-align: center; }
     .welcome-journey-step + .welcome-journey-step::before { content: '›'; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); color: var(--accent3); font-size: 11px; font-weight: 800; }
@@ -751,6 +751,55 @@
     .welcome-flow-center::after { content: ''; position: absolute; inset: -13px; border: 1px solid rgba(122,162,247,.42); border-radius: 50%; animation: welcome-pulse 2.6s ease-out infinite; }
     @keyframes welcome-pulse { 0% { opacity: .8; transform: scale(.85); } 100% { opacity: 0; transform: scale(1.35); } }
     .welcome-caption { position: absolute; left: 8px; right: 8px; bottom: 14px; text-align: center; color: var(--text-muted); font-size: 8px; letter-spacing: .08em; line-height: 1.5; text-transform: uppercase; }
+    .welcome-dialog-ribbon {
+      position: relative; z-index: 4;
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px;
+      margin-top: 6px; padding: 6px 8px; border: 1px solid rgba(61,219,217,.36); border-radius: 10px;
+      background: linear-gradient(110deg, rgba(7,16,29,.92), rgba(14,24,43,.88));
+      box-shadow: 0 10px 26px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06);
+      color: var(--text-muted); font-size: 8px; backdrop-filter: blur(10px);
+    }
+    .welcome-dialog-ribbon::before {
+      content: ''; position: absolute; left: 10px; right: 10px; top: -1px; height: 1px;
+      background: linear-gradient(90deg, var(--accent3), var(--accent), var(--accent2), transparent);
+    }
+    .welcome-dialog-ribbon-head { display: grid; gap: 1px; min-width: 0; }
+    .welcome-dialog-ribbon-head strong { color: var(--text); font-size: 9px; letter-spacing: .04em; white-space: nowrap; }
+    .welcome-dialog-ribbon-head span { color: var(--accent3); font-size: 7px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+    .dialog-star-track { display: flex; align-items: center; gap: 4px; min-width: 0; }
+    .dialog-star-line { position: relative; height: 1px; flex: 1; min-width: 7px; background: linear-gradient(90deg, rgba(122,162,247,.24), rgba(61,219,217,.52)); }
+    .dialog-star-line::after { content: ''; position: absolute; right: -1px; top: -1px; width: 3px; height: 3px; border-radius: 50%; background: var(--accent3); box-shadow: 0 0 6px rgba(61,219,217,.6); }
+    .dialog-star {
+      position: relative; display: grid; place-items: center; flex: 0 0 15px; width: 15px; height: 15px;
+      padding: 0; border: 1px solid rgba(122,162,247,.48); border-radius: 50%;
+      background: rgba(122,162,247,.14); color: var(--accent); font-size: 7px; font-weight: 900;
+      cursor: pointer; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+    .dialog-star::after { content: ''; position: absolute; inset: -3px; border: 1px solid transparent; border-radius: 50%; }
+    .dialog-star[data-author="human"] { border-color: rgba(158,206,106,.58); background: rgba(158,206,106,.14); color: var(--green); }
+    .dialog-star[data-status="pending"] { border-color: rgba(240,168,104,.68); color: var(--orange); box-shadow: 0 0 0 2px rgba(240,168,104,.12); }
+    .dialog-star[data-status="pending"]::after { border-color: rgba(240,168,104,.42); animation: dialog-star-pulse 1.9s ease-out infinite; }
+    .dialog-star[data-active="true"] { transform: scale(1.14); border-color: var(--accent3); box-shadow: 0 0 12px rgba(61,219,217,.42); }
+    .dialog-star:hover { transform: translateY(-1px) scale(1.12); }
+    .dialog-star-idle { color: var(--text-muted); font-size: 8px; white-space: nowrap; }
+    .welcome-dialog-ribbon-foot { display: grid; justify-items: end; gap: 1px; min-width: 0; }
+    .welcome-dialog-ribbon-foot strong { color: var(--text); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .welcome-dialog-ribbon-foot span { color: var(--text-muted); font-size: 7px; white-space: nowrap; }
+    .welcome-dialog-ribbon[data-state="review"] { border-color: rgba(240,168,104,.44); }
+    .welcome-dialog-ribbon[data-state="blocked"] { border-color: rgba(255,122,147,.50); }
+    @keyframes dialog-star-pulse { 0% { opacity: .75; transform: scale(.82); } 100% { opacity: 0; transform: scale(1.45); } }
+    body.theme-light .welcome-dialog-ribbon, body.visual-studio .welcome-dialog-ribbon { background: rgba(255,255,255,.93); box-shadow: 0 10px 24px rgba(38,54,84,.14); }
+    body.visual-atlas .welcome-dialog-ribbon { border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    body.visual-atlas .dialog-star, body.visual-atlas .dialog-star::after { border-radius: 2px; }
+    @media (prefers-reduced-motion: reduce) {
+      .dialog-star[data-status="pending"]::after { animation: none; opacity: .4; }
+      .dialog-star, .dialog-star::after { transition: none; }
+    }
+    @media (max-width: 900px) {
+      .welcome-dialog-ribbon { gap: 5px; padding: 6px 7px; }
+      .welcome-dialog-ribbon-head span, .welcome-dialog-ribbon-foot span { display: none; }
+      .dialog-star { flex-basis: 13px; width: 13px; height: 13px; font-size: 6px; }
+    }
     body.theme-light .welcome-card { background: linear-gradient(145deg, #ffffff, #edf3fc); border-color: rgba(93,126,187,.42); }
     body.theme-light .welcome-visual { background: radial-gradient(circle at 50% 42%, rgba(122,162,247,.16), transparent 48%), linear-gradient(160deg, #f6f9fe, #eaf1fb); }
     body.theme-light .welcome-node { background: rgba(255,255,255,.96); }
@@ -766,9 +815,9 @@
     body.flow-workspace .welcome-card h2 { font-size: 26px; }
     body.flow-workspace .welcome-card p { max-width: 430px; }
     body.flow-workspace .welcome-actions { margin-top: 4px; }
-    body.flow-workspace .welcome-journey { margin-top: 17px; padding: 10px; border-color: rgba(61,219,217,.34); }
+    body.flow-workspace .welcome-journey { margin-top: 12px; padding: 9px; border-color: rgba(61,219,217,.34); }
     body.flow-workspace .welcome-journey-step { padding: 8px 5px; }
-    body.flow-workspace .welcome-visual { min-height: 354px; }
+    body.flow-workspace .welcome-visual { min-height: 330px; }
     body.flow-workspace .welcome-caption { bottom: 18px; }
     .welcome-orbit-label {
       position: absolute; z-index: 2; padding: 3px 7px; border: 1px solid var(--border);
@@ -1205,7 +1254,7 @@
     .workspace[data-view="canvas"] .canvas-chip { display: flex; }
     .workspace.welcome #minimap, .workspace.welcome .canvas-chip { display: none; }
     .collab-handoff {
-      position: absolute; left: 14px; bottom: 68px; z-index: 22; display: none;
+      position: absolute; left: 14px; bottom: 76px; z-index: 22; display: none;
       width: min(310px, calc(100% - 280px)); min-width: 220px; padding: 8px 9px;
       border: 1px solid rgba(61,219,217,.36); border-radius: 12px;
       background: linear-gradient(135deg, rgba(12,25,42,.94), rgba(9,14,25,.92));
@@ -1232,6 +1281,10 @@
     .collab-handoff-next span { overflow: hidden; flex: 1; text-overflow: ellipsis; white-space: nowrap; }
     .collab-handoff-next button { height: 22px; padding: 0 7px; border: 1px solid rgba(61,219,217,.44); border-radius: 7px; background: rgba(61,219,217,.12); color: var(--accent3); font-size: 8px; font-weight: 800; cursor: pointer; white-space: nowrap; }
     .collab-handoff-next button:hover { background: rgba(61,219,217,.20); }
+    .dialog-star-track.compact { gap: 3px; margin-bottom: 5px; padding: 3px 4px; border: 1px solid rgba(61,219,217,.20); border-radius: 7px; background: rgba(61,219,217,.045); }
+    .dialog-star-track.compact .dialog-star { flex-basis: 12px; width: 12px; height: 12px; font-size: 6px; }
+    .dialog-star-track.compact .dialog-star-idle { font-size: 7px; }
+    .dialog-star-track.compact::before { content: '↔'; margin-right: 2px; color: var(--accent3); font-size: 9px; font-weight: 900; }
     .collab-handoff[data-actor="human"] { border-color: rgba(240,168,104,.44); }
     .collab-handoff[data-actor="human"]::before { background: linear-gradient(90deg, var(--orange), var(--accent2), transparent); }
     .collab-handoff[data-actor="human"] .collab-handoff-actor[data-active="true"] strong,
@@ -1239,7 +1292,9 @@
     .collab-handoff[data-actor="human"] .collab-handoff-actor[data-active="true"] .collab-handoff-dot { border-color: var(--orange); background: var(--orange); box-shadow: 0 0 10px rgba(240,168,104,.45); }
     .collab-handoff[data-actor="human"] .collab-handoff-next button { border-color: rgba(240,168,104,.46); background: rgba(240,168,104,.12); color: var(--orange); }
     body.visual-studio .collab-handoff, body.theme-light .collab-handoff { background: rgba(255,255,255,.96); border-color: rgba(80,110,165,.34); box-shadow: 0 12px 28px rgba(38,54,84,.16); }
-    body.zen-workspace .collab-handoff { bottom: 62px; left: 12px; }
+    body.visual-studio .dialog-star-track.compact, body.theme-light .dialog-star-track.compact { background: rgba(80,110,165,.06); }
+    body.visual-atlas .dialog-star-track.compact { border-radius: 2px; }
+    body.zen-workspace .collab-handoff { bottom: 70px; left: 12px; }
     @media (max-width: 860px) { .collab-handoff { width: 245px; min-width: 0; } }
     @media (max-width: 620px) { .workspace[data-view="canvas"]:not(.welcome) .collab-handoff { display: none; } }
     .canvas-focus-ring {
@@ -1461,6 +1516,13 @@
     .collab-pulse-open { width: 100%; height: 29px; margin-top: 8px; border: 1px solid rgba(61,219,217,.44); border-radius: 8px; background: rgba(61,219,217,.12); color: var(--accent3); font-size: 10px; font-weight: 800; cursor: pointer; }
     .collab-pulse-open:hover { background: rgba(61,219,217,.20); }
     .collab-pulse-detail-foot { margin-top: 7px; color: var(--text-muted); font-size: 8px; line-height: 1.45; }
+    .collab-pulse-dialog { display: flex; align-items: center; justify-content: space-between; gap: 7px; margin-bottom: 8px; padding: 6px 7px; border: 1px solid rgba(61,219,217,.28); border-radius: 8px; background: rgba(61,219,217,.05); }
+    .collab-pulse-dialog .dialog-star-track { flex: 1; }
+    .collab-pulse-dialog .dialog-star-track.compact { margin: 0; padding: 0; border: none; background: transparent; }
+    .collab-pulse-dialog .dialog-star-track.compact::before { display: none; }
+    .collab-pulse-dialog > span { overflow: hidden; color: var(--text-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .collab-pulse-dialog > span b { color: var(--accent3); font-variant-numeric: tabular-nums; }
+    body.visual-atlas .collab-pulse-dialog { border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     body.visual-studio .collab-pulse-detail, body.theme-light .collab-pulse-detail { background: rgba(255,255,255,.97); border-color: rgba(80,110,165,.34); box-shadow: 0 14px 32px rgba(38,54,84,.16); }
     body.zen-workspace .collab-pulse-detail { left: 12px; top: 58px; }
     @media (max-width: 620px) { .collab-pulse-detail { display: none !important; } }
@@ -2436,14 +2498,19 @@
                 <div class="welcome-journey-step" data-welcome-step="proposal"><strong>提案 diff</strong><span>逐行审阅</span></div>
                 <div class="welcome-journey-step" data-welcome-step="approval"><strong>人工确认</strong><span>项目变化</span></div>
               </div>
+              <div class="welcome-dialog-ribbon" id="welcomeDialogRibbon" data-state="ready">
+                <div class="welcome-dialog-ribbon-head"><strong>双向对话星轨</strong><span>Read only · Human ↔ AI</span></div>
+                <div class="dialog-star-track" id="welcomeDialogTrack" aria-label="既有双向对话消息轨迹"></div>
+                <div class="welcome-dialog-ribbon-foot"><strong id="welcomeDialogCount">0</strong><span id="welcomeDialogMeta">等待对话</span></div>
+              </div>
               <div class="welcome-shortcuts">示例只写入本机编辑器并渲染预览，不创建图、不改协作会话、不写项目文件。</div>
             </div>
-            <div class="welcome-visual" aria-hidden="true">
-              <span class="welcome-orbit-label top">AI · 只读扫描</span>
-              <span class="welcome-orbit-label bottom">人 · 修改 / 确认</span>
-              <span class="welcome-orbit-label left">结构图</span>
-              <span class="welcome-orbit-label right">逐行 diff</span>
-              <div class="welcome-flow">
+            <div class="welcome-visual">
+              <span class="welcome-orbit-label top" aria-hidden="true">AI · 只读扫描</span>
+              <span class="welcome-orbit-label bottom" aria-hidden="true">人 · 修改 / 确认</span>
+              <span class="welcome-orbit-label left" aria-hidden="true">结构图</span>
+              <span class="welcome-orbit-label right" aria-hidden="true">逐行 diff</span>
+              <div class="welcome-flow" aria-hidden="true">
                 <span class="welcome-line line-top"></span><span class="welcome-line line-bottom"></span>
                 <span class="welcome-line line-left"></span><span class="welcome-line line-right"></span>
                 <span class="welcome-node ai">AI<small>扫描 / 生成</small></span>
@@ -2452,7 +2519,7 @@
                 <span class="welcome-node human">人<small>修改 / 确认</small></span>
                 <span class="welcome-flow-center">共同<br>上下文</span>
               </div>
-              <div class="welcome-caption">Visual context · Conversation · Reviewed change</div>
+              <div class="welcome-caption" aria-hidden="true">Visual context · Conversation · Reviewed change</div>
             </div>
           </div>
           <div id="minimap">
@@ -2507,6 +2574,7 @@
             <button type="button" id="btnFlowLensNext" title="下一个节点（]）">→</button>
           </div>
           <section class="collab-handoff" id="collabHandoff" data-actor="none" aria-label="只读人机交接航线">
+            <div class="dialog-star-track compact" id="handoffDialogTrack" aria-label="既有双向对话消息轨迹"></div>
             <div class="collab-handoff-track">
               <span class="collab-handoff-actor" data-handoff-actor="human"><span class="collab-handoff-dot" aria-hidden="true"></span><strong>人</strong></span>
               <span class="collab-handoff-line" aria-hidden="true"></span>
@@ -2539,6 +2607,7 @@
               <div class="collab-pulse-metric"><strong id="collabPulseProposals">0</strong><span>待审提案</span></div>
               <div class="collab-pulse-metric"><strong id="collabPulseAnnotations">0</strong><span>开放批注</span></div>
             </div>
+            <div class="collab-pulse-dialog"><div class="dialog-star-track compact" id="pulseDialogTrack" aria-label="既有双向对话消息轨迹"></div><span id="pulseDialogMeta">对话 <b>0</b> 条</span></div>
             <div class="collab-pulse-next"><strong>下一步</strong><span id="collabPulseNext">读取共享上下文，等待人工审阅。</span></div>
             <button type="button" class="collab-pulse-open" id="btnCollabPulseOpen">↔ 打开完整协作工作台 · C</button>
             <div class="collab-pulse-detail-foot">这里只汇总既有只读状态；批准前不会签发凭据或写项目文件。</div>
@@ -3781,6 +3850,23 @@ $('#btnCollabPulseOpen').addEventListener('click', () => {
   openCollab();
 });
 $('#btnHandoffOpen').addEventListener('click', openCollab);
+function openDialogStarTrack() {
+  openCollabFromCanvas('dialog', () => {
+    const chatTab = document.querySelector('[data-history-target="chat"]');
+    if (chatTab) setHistoryTab(chatTab);
+    const chatLog = $('#chatLog');
+    if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
+  });
+  setCollabPulseDetailOpen(false);
+  showToast('已打开既有双向对话；星轨不发送消息、不批准提案或写文件');
+}
+for (const track of document.querySelectorAll('.dialog-star-track')) {
+  track.addEventListener('click', (event) => {
+    if (!event.target.closest('[data-dialog-star]')) return;
+    event.stopPropagation();
+    openDialogStarTrack();
+  });
+}
 $('#btnCanvasCommands').addEventListener('click', () => openCommandPalette());
 $('#btnCanvasHelp').addEventListener('click', () => openShortcutDialog());
 $('#btnCanvasPrevNode').addEventListener('click', () => stepCanvasFocus(-1));
@@ -4878,6 +4964,7 @@ function resumeCollabRenders() {
   renderHealthCard();
   renderCollabPulse();
   renderFlowRail();
+  renderDialogStarTrack();
 }
 
 function deferCollabDerivedRender() {
@@ -4942,6 +5029,7 @@ function renderCollabPulse() {
   setMetric('#collabPulseAnnotations', openAnnotations);
   setMetric('#collabPulseNext', nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工决定是否批准。' : '打开工作台，继续编辑结构图或表达意图。'));
   renderCollabHandoff({ pendingMessages, pendingProposals, openAnnotations, nextAction, nextActor: diagnostics?.activity?.nextActor });
+  renderDialogStarTrack();
   renderFlowRail({ pendingMessages, pendingProposals, openAnnotations });
   if (!$('#welcomeCard')?.hidden) {
     renderWelcomeJourney({ pendingProposals, attention, hasGraph: Boolean(graph?.nodes?.length) });
@@ -4966,6 +5054,46 @@ function renderCollabHandoff({ pendingMessages, pendingProposals, openAnnotation
   const hint = nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工决定是否批准。' : '打开工作台，继续编辑结构图或表达意图。');
   $('#handoffNext').textContent = `${label} · ${hint}`;
   $('#handoffNext').title = '只读派生自 session / proposals / diagnostics；不发送消息、不批准提案、不写项目文件。';
+}
+
+function renderDialogStarTrack() {
+  const session = collabPulseSnapshot?.session;
+  const sourceMessages = Array.isArray(session?.messages) ? session.messages : collabSessionMessages;
+  const proposals = Array.isArray(collabPulseSnapshot?.proposals) ? collabPulseSnapshot.proposals : collabProposals;
+  const graph = session?.graph || collabGraph;
+  const pendingProposals = proposals.filter((proposal) => proposal.status === 'pending').length;
+  const openAnnotations = (graph?.annotations || []).filter((annotation) => !annotation.resolved).length;
+  const messages = sourceMessages.slice(-7);
+  const pending = messages.filter((message) => message.status === 'pending').length;
+  const state = pendingProposals > 0 ? 'review' : openAnnotations > 0 ? 'blocked' : 'ready';
+  const labels = { human: '人', ai: 'AI', system: '·' };
+  const tracks = [
+    { element: $('#welcomeDialogTrack'), limit: 7 },
+    { element: $('#handoffDialogTrack'), limit: 5 },
+    { element: $('#pulseDialogTrack'), limit: 5 },
+  ];
+  for (const { element, limit } of tracks) {
+    if (!element) continue;
+    const visible = messages.slice(-limit);
+    element.innerHTML = visible.length ? visible.map((message, index) => {
+      const author = Object.hasOwn(labels, message.author) ? message.author : 'system';
+      const status = message.status === 'pending' ? 'pending' : 'answered';
+      const active = index === visible.length - 1;
+      const body = String(message.body || '只读消息').trim().slice(0, 90);
+      return `<span class="dialog-star-line" aria-hidden="true"></span><button type="button" class="dialog-star" data-dialog-star="true" data-author="${author}" data-status="${status}" data-active="${active}" title="${escapeHtml(`${labels[author]} · ${body}；点击只打开既有对话视图，不发送消息或写文件`)}" aria-label="打开既有对话视图：${escapeHtml(`${labels[author]} · ${body}`)}">${labels[author]}</button>`;
+    }).join('') : '<span class="dialog-star-idle">等待第一条人机消息</span>';
+    element.dataset.messageCount = String(sourceMessages.length);
+    element.dataset.pending = String(pending);
+    element.dataset.state = state;
+  }
+  const ribbon = $('#welcomeDialogRibbon');
+  if (ribbon) ribbon.dataset.state = state;
+  const count = $('#welcomeDialogCount');
+  if (count) count.textContent = String(sourceMessages.length);
+  const meta = $('#welcomeDialogMeta');
+  if (meta) meta.textContent = sourceMessages.length ? `${pending} 条待 AI · ${sourceMessages.length} 条对话` : '等待对话';
+  const pulseMeta = $('#pulseDialogMeta');
+  if (pulseMeta) pulseMeta.innerHTML = `对话 <b>${sourceMessages.length}</b> 条${pending ? ` · ${pending} 待 AI` : ''}`;
 }
 
 function renderFlowRail({ pendingMessages = 0, pendingProposals = 0, openAnnotations = 0 } = {}) {
@@ -7217,6 +7345,7 @@ syncAppearanceControls();
 renderInspector();
 renderWelcomeJourney({ pendingProposals: 0, attention: 0, hasGraph: false });
 renderCollabHandoff({ pendingMessages: 0, pendingProposals: 0, openAnnotations: 0, nextAction: '', nextActor: 'none' });
+renderDialogStarTrack();
 renderFlowRail();
 renderCanvasDockRoute();
 renderCanvasObject();

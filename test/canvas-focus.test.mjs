@@ -77,6 +77,12 @@ describe("canvas focus interaction", () => {
       body: JSON.stringify({ nodeId: seededNode.id, body: "请解释这个对象与相邻模块的关系，先不要写文件。" }),
     });
     expect(annotationResponse.ok).toBe(true);
+    const messageResponse = await fetch(`${base}/api/collab/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-AI-Draw-Token": token },
+      body: JSON.stringify({ body: "请沿真实边检查这个对象的上下文，先不要写项目文件。", author: "human" }),
+    });
+    expect(messageResponse.ok).toBe(true);
 
     const tokenHeaders = { "Content-Type": "application/json", "X-AI-Draw-Token": token };
     const sessionBeforeHover = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
@@ -281,6 +287,33 @@ describe("canvas focus interaction", () => {
       expect(relationMap.directions.every((direction) => ["inbound", "outbound"].includes(direction))).toBe(true);
       expect(relationMap.nodeIds.every((nodeId) => nodeId.startsWith("node_"))).toBe(true);
       expect(relationMap.foot).toContain("不批准或写文件");
+      const handoffStars = await page.evaluate(() => {
+        const track = document.querySelector("#handoffDialogTrack");
+        const stars = [...track.querySelectorAll(".dialog-star")];
+        return {
+          visible: getComputedStyle(track).display !== "none",
+          stars: stars.length,
+          authors: stars.map((star) => star.dataset.author),
+          pending: stars.filter((star) => star.dataset.status === "pending").length,
+          messageCount: Number(track.dataset.messageCount),
+        };
+      });
+      expect(handoffStars.visible).toBe(true);
+      expect(handoffStars.stars).toBeGreaterThan(0);
+      expect(handoffStars.authors).toContain("human");
+      expect(handoffStars.pending).toBeGreaterThan(0);
+      expect(handoffStars.messageCount).toBeGreaterThan(0);
+      const sessionBeforeStar = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
+      await page.$eval("#handoffDialogTrack .dialog-star", (element) => element.click());
+      await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
+      expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("dialog");
+      expect(await page.$eval('[data-history-pane="chat"]', (element) => element.classList.contains("active"))).toBe(true);
+      const sessionAfterStar = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
+      expect(sessionAfterStar.messages?.length ?? 0).toBe(sessionBeforeStar.messages?.length ?? 0);
+      expect(sessionAfterStar.proposals?.length ?? 0).toBe(sessionBeforeStar.proposals?.length ?? 0);
+      expect(sessionAfterStar.graphRevision).toBe(sessionBeforeStar.graphRevision);
+      await page.$eval("#btnCloseCollab", (element) => element.click());
+      await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
       const threadBadgeHandle = await page.waitForFunction(() => {
         const badge = document.querySelector("#canvasThreadLayer .canvas-thread-badge");
         if (!badge) return false;

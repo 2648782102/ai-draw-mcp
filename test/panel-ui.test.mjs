@@ -156,6 +156,34 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#welcomeCard", (element) => Number(element.getBoundingClientRect().width))).toBeGreaterThan(800);
       expect(await page.$$eval("#welcomeJourney .welcome-journey-step", (elements) => elements.length)).toBe(4);
       expect(await page.$$eval("#welcomeJourney .welcome-journey-step.active", (elements) => elements.length)).toBe(1);
+      const welcomeDialogTrack = await page.evaluate(() => {
+        const ribbon = document.querySelector("#welcomeDialogRibbon");
+        const track = document.querySelector("#welcomeDialogTrack");
+        const stars = [...track.querySelectorAll(".dialog-star")];
+        return {
+          visible: getComputedStyle(ribbon).display !== "none",
+          gradient: getComputedStyle(ribbon).backgroundImage,
+          title: ribbon.querySelector("strong").textContent,
+          messageCount: Number(track.dataset.messageCount),
+          stars: stars.length,
+          authors: stars.map((star) => star.dataset.author),
+          pending: stars.filter((star) => star.dataset.status === "pending").length,
+          active: stars.filter((star) => star.dataset.active === "true").length,
+          count: document.querySelector("#welcomeDialogCount").textContent,
+          meta: document.querySelector("#welcomeDialogMeta").textContent,
+        };
+      });
+      expect(welcomeDialogTrack.visible).toBe(true);
+      expect(welcomeDialogTrack.gradient).toContain("linear-gradient");
+      expect(welcomeDialogTrack.title).toContain("双向对话星轨");
+      expect(welcomeDialogTrack.messageCount).toBeGreaterThan(0);
+      expect(welcomeDialogTrack.stars).toBeGreaterThan(0);
+      expect(welcomeDialogTrack.authors).toContain("human");
+      expect(welcomeDialogTrack.authors).toContain("ai");
+      expect(welcomeDialogTrack.pending).toBeGreaterThan(0);
+      expect(welcomeDialogTrack.active).toBe(1);
+      expect(welcomeDialogTrack.count).toContain(String(welcomeDialogTrack.messageCount));
+      expect(welcomeDialogTrack.meta).toContain("待 AI");
       expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("none");
 
       const diagramsBefore = await fetch(`${base}/api/diagrams`).then((response) => response.json());
@@ -194,6 +222,17 @@ describe("collaboration panel UI", () => {
       await page.click("#btnCollabPulse");
       expect(await page.$eval("#collabPulseDetail", (element) => element.classList.contains("open"))).toBe(true);
       expect(Number(await page.$eval("#collabPulseProposals", (element) => element.textContent))).toBeGreaterThan(0);
+      const pulseDialogTrack = await page.evaluate(() => {
+        const track = document.querySelector("#pulseDialogTrack");
+        return {
+          stars: track.querySelectorAll(".dialog-star").length,
+          messageCount: track.dataset.messageCount,
+          meta: document.querySelector("#pulseDialogMeta").textContent,
+        };
+      });
+      expect(pulseDialogTrack.stars).toBeGreaterThan(0);
+      expect(Number(pulseDialogTrack.messageCount)).toBeGreaterThan(0);
+      expect(pulseDialogTrack.meta).toContain("对话");
       await page.keyboard.press("Escape");
       expect(await page.$eval("#collabPulseDetail", (element) => element.classList.contains("open"))).toBe(false);
       await page.mouse.move(880, 420);

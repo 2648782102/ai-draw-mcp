@@ -43,6 +43,10 @@ Developer HUDs and code-map inspectors compress dense relationship signals into 
 
 Status dashboards make queue pressure legible with a single radial gauge plus a bounded next action. The collaboration pulse now borrows that visual grammar: a conic ring, centre attention count, state-colored arc, micro bars, and next-action chip expose pending messages, proposals, annotations, and diagnostics without opening the full workbench. It is a derived display over existing read-only session state, not a second workflow model or an approval path; it does not send messages, issue receipts, or write project files.
 
+## Dialogue-star-track research note (2026-11-06 21:45 CST)
+
+Conversation-first products preserve a visible beat of who spoke last, while review dashboards use bounded event beads to make handoffs glanceable. The first-run card, handoff rail, and collaboration pulse now borrow that cue with a bounded **dialogue star track**: the latest human and AI messages become color-coded stars, pending replies gain a soft halo, and the newest message is emphasized. Clicking a star reuses the established workbench chat view rather than turning a visual decoration into a message composer. The track is a pure DOM projection of existing `session.messages`, proposals, and annotation state; it does not publish focus/viewport, send messages, approve proposals, issue receipts, or write project files.
+
 ## Positioning statement
 
 > AI Draw MCP is a local-first MCP workspace where an AI can turn a codebase into an editable visual map, a human can correct that map in the panel, and the pair can review a concrete change proposal before any file is written.
