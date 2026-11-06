@@ -656,6 +656,14 @@
     .graph-guide-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: rgba(122,162,247,.14); color: var(--accent); font-size: 15px; flex-shrink: 0; }
     .graph-guide strong { display: block; color: var(--text); font-size: 11px; margin-bottom: 3px; }
     .graph-guide span { color: var(--text-muted); font-size: 10px; line-height: 1.5; }
+    .graph-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 7px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 9px; background: linear-gradient(90deg, rgba(122,162,247,.08), transparent), var(--surface2); }
+    .graph-toolbar-stats { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .graph-stat { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); color: var(--text-muted); font-size: 9px; white-space: nowrap; }
+    .graph-stat strong { color: var(--text); font-variant-numeric: tabular-nums; }
+    .graph-stat.dirty { border-color: rgba(240,168,104,.52); color: var(--orange); }
+    .graph-stat.dirty strong { color: var(--orange); }
+    .graph-toolbar-note { color: var(--text-muted); font-size: 9px; white-space: nowrap; }
+    .graph-toolbar-note code { color: var(--accent); font-size: 9px; }
     #chatLog { display: flex; flex-direction: column; gap: 9px; }
     .chat-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; min-height: 150px; padding: 18px; border: 1px dashed rgba(122,162,247,.28); border-radius: 11px; background: radial-gradient(circle at 50% 0%, rgba(122,162,247,.08), transparent 65%), var(--panel); color: var(--text-muted); text-align: center; }
     .chat-empty-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: rgba(122,162,247,.14); color: var(--accent); font-size: 18px; }
@@ -1142,6 +1150,15 @@
       <div class="diagnostics-list" id="sourceNavigationList"></div>
       <p class="activity-summary" id="nodeContextSummary">节点上下文 · 选中节点即可查看证据、批注、连线与相关图形差异；只读</p>
       <div class="chat-log source-evidence-list" id="nodeContextList"></div>
+      <div class="graph-toolbar" id="graphToolbar">
+        <div class="graph-toolbar-stats">
+          <span class="graph-stat">节点 <strong id="graphNodeCount">0</strong></span>
+          <span class="graph-stat">连线 <strong id="graphEdgeCount">0</strong></span>
+          <span class="graph-stat">选中 <strong id="graphSelectedCount">0</strong></span>
+          <span class="graph-stat" id="graphDirtyStat">待保存 <strong id="graphToolbarDirtyCount">0</strong></span>
+        </div>
+        <span class="graph-toolbar-note">修改后点 <code>保存图形</code> · AI 读取只读上下文</span>
+      </div>
       <div class="graph-editor" id="graphEditor"></div>
       <div class="graph-row-header"><span></span><span>名称</span><span>类型</span><span>路径</span><span>分组</span><span>X</span><span>Y</span><span></span></div>
       <div class="edge-editor">
@@ -2351,6 +2368,16 @@ function updateGraphDirtyState() {
     badge.textContent = String(count);
   }
   $('#btnSaveGraph')?.classList.toggle('has-dirty', count > 0);
+  const nodeCount = $('#graphNodeCount');
+  const edgeCount = $('#graphEdgeCount');
+  const selectedCount = $('#graphSelectedCount');
+  const toolbarCount = $('#graphToolbarDirtyCount');
+  const dirtyStat = $('#graphDirtyStat');
+  if (nodeCount) nodeCount.textContent = String(collabGraph?.nodes?.length || 0);
+  if (edgeCount) edgeCount.textContent = String(collabGraph?.edges?.length || 0);
+  if (selectedCount) selectedCount.textContent = String(selectedNodeIds.length);
+  if (toolbarCount) toolbarCount.textContent = String(count);
+  if (dirtyStat) dirtyStat.classList.toggle('dirty', count > 0);
   renderJourney();
 }
 
@@ -2421,6 +2448,12 @@ function renderSelectionSummary() {
     : '选择范围 · 未多选节点；复选框可把「这几个模块」作为只读范围告诉 AI';
   target.title = '多选范围最多 24 个节点；保存图形、导入会话或节点删除后会自动清除失锚 ID。它不签发批准凭据，也不写项目文件。';
   updateOverview();
+  updateGraphToolbarSelection();
+}
+
+function updateGraphToolbarSelection() {
+  const target = $('#graphSelectedCount');
+  if (target) target.textContent = String(selectedNodeIds.length);
 }
 
 function updateOverview() {

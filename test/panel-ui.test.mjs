@@ -98,6 +98,8 @@ describe("collaboration panel UI", () => {
       page.on("pageerror", (error) => pageErrors.push(error.message));
       await page.setViewport({ width: 1440, height: 900 });
       await page.goto(base, { waitUntil: "networkidle2" });
+      await page.evaluate(() => localStorage.clear());
+      await page.reload({ waitUntil: "networkidle2" });
 
       expect(await page.$(".brand-mark")).toBeTruthy();
       expect(await page.$("#btnRender.primary")).toBeTruthy();
@@ -303,6 +305,18 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#healthProgressLabel", (element) => element.textContent)).toMatch(/\/ 4 步/);
       expect(await page.$eval(".graph-guide", (element) => element.textContent)).toContain("先生成一张项目结构图");
       expect(await page.$eval(".graph-row-header", (element) => getComputedStyle(element).position)).toBe("sticky");
+      const graphToolbar = await page.evaluate(() => ({
+        nodes: document.querySelector("#graphNodeCount").textContent,
+        edges: document.querySelector("#graphEdgeCount").textContent,
+        selected: document.querySelector("#graphSelectedCount").textContent,
+        dirty: document.querySelector("#graphToolbarDirtyCount").textContent,
+        note: document.querySelector(".graph-toolbar-note").textContent,
+      }));
+      expect(graphToolbar.nodes).toBe("0");
+      expect(graphToolbar.edges).toBe("0");
+      expect(graphToolbar.selected).toBe("0");
+      expect(graphToolbar.dirty).toBe("0");
+      expect(graphToolbar.note).toContain("保存图形");
       const chat = await page.evaluate(() => ({
         bubbles: document.querySelectorAll("#chatLog .chat-item").length,
         authors: [...document.querySelectorAll("#chatLog .chat-item")].map((element) => element.querySelector(".chat-meta strong")?.textContent),
@@ -341,6 +355,9 @@ describe("collaboration panel UI", () => {
       expect(stableDirtyRows.firstId).toBeTruthy();
       expect(stableDirtyRows.dirtyRows).toBe(1);
       expect(stableDirtyRows.badge).toBe("1");
+      expect(await page.$eval("#graphNodeCount", (element) => element.textContent)).toBe("1");
+      expect(await page.$eval("#graphToolbarDirtyCount", (element) => element.textContent)).toBe("1");
+      expect(await page.$eval("#graphDirtyStat", (element) => element.classList.contains("dirty"))).toBe(true);
       await page.$eval("#graphEditor .node-label", (element) => {
         element.value = "人工编辑模块";
         element.dispatchEvent(new Event("input", { bubbles: true }));
@@ -365,7 +382,10 @@ describe("collaboration panel UI", () => {
       expect(await page.$$eval('[data-history-pane="activity"] .activity-item', (elements) => elements.length)).toBeGreaterThan(0);
       await page.$eval('[data-history-target="chat"]', (element) => element.click());
 
-      await page.click("#btnGraphMore");
+      await page.evaluate(() => {
+        const group = document.querySelector("#graphMoreActions");
+        if (!group.classList.contains("open")) document.querySelector("#btnGraphMore").click();
+      });
       expect(await page.$eval("#graphMoreActions", (element) => element.classList.contains("open"))).toBe(true);
       expect(await page.$(".intent-composer")).toBeTruthy();
       await page.click('[data-intent-preset="describe"]');
