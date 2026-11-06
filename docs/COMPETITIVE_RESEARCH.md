@@ -55,6 +55,10 @@ Onboarding diagrams are more useful when their labels reflect the current worksp
 
 Code-map and design-canvas tools often keep a small context popover attached to the current selection, so a person can inspect why an object matters without losing the canvas. The canvas focus label now borrows that interaction with a bounded **focus context capsule**: hover shows real edge count, open discussion count, and source evidence; clicking reuses the existing chat workbench. It is pure local DOM/CSS derived from the current read-only focus and never publishes focus/viewport, sends messages, approves proposals, issues receipts, or writes project files.
 
+## Light-field canvas research note (2026-11-06 22:25 CST)
+
+Design tools and modern code canvases increasingly use depth rather than decoration alone: layered ambient gradients, masked grids, luminous selection frames, and material-like cards make a graph feel like an editable spatial artifact. The default Aurora workspace now borrows that language with a **light-field canvas**, glass-shadow structure nodes, a chromatic first-run rail, and a glowing workflow progress line. Studio, Atlas, calm/light modes, and the original Mermaid skin remain distinct alternatives. All of these are local CSS/DOM presentation layers over the same graph: they do not add a second state model, alter exported SVG, publish focus/viewport, send messages, approve proposals, issue receipts, or write project files.
+
 ## Positioning statement
 
 > AI Draw MCP is a local-first MCP workspace where an AI can turn a codebase into an editable visual map, a human can correct that map in the panel, and the pair can review a concrete change proposal before any file is written.

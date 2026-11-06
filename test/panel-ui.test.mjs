@@ -152,6 +152,26 @@ describe("collaboration panel UI", () => {
       expect(welcome.center).toContain("共同");
       expect(welcome.width).toBeGreaterThan(520);
       expect(welcome.visualWidth).toBeGreaterThan(180);
+      const auroraSurfaces = await page.evaluate(() => {
+        const preview = document.querySelector("#previewWrap");
+        const card = document.querySelector("#welcomeCard");
+        const frame = document.querySelector("#canvasFrame");
+        const rail = document.querySelector("#flowRail");
+        return {
+          canvasLayers: getComputedStyle(preview).backgroundImage.split(/,(?![^()]*\))/).length,
+          canvasGlow: getComputedStyle(preview, "::before").backgroundImage,
+          cardTopRail: getComputedStyle(card, "::before").backgroundImage,
+          cardGlow: getComputedStyle(card, "::after").backgroundImage,
+          frameCorners: getComputedStyle(frame, "::before").width,
+          railTopRail: getComputedStyle(rail, "::before").backgroundImage,
+        };
+      });
+      expect(auroraSurfaces.canvasLayers).toBeGreaterThanOrEqual(3);
+      expect(auroraSurfaces.canvasGlow).toContain("linear-gradient");
+      expect(auroraSurfaces.cardTopRail).toContain("linear-gradient");
+      expect(auroraSurfaces.cardGlow).toContain("radial-gradient");
+      expect(auroraSurfaces.frameCorners).toBe("64px");
+      expect(auroraSurfaces.railTopRail).toContain("linear-gradient");
       expect(await page.$$eval(".welcome-orbit-label", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("AI · 只读扫描");
       expect(await page.$eval("#welcomeCard", (element) => Number(element.getBoundingClientRect().width))).toBeGreaterThan(800);
       expect(await page.$$eval("#welcomeJourney .welcome-journey-step", (elements) => elements.length)).toBe(4);
@@ -475,7 +495,22 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("v");
       expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
       expect(await page.$eval("body", (element) => element.classList.contains("visual-atlas"))).toBe(false);
-      expect(await page.$eval("#diagramRender svg .node rect", (element) => getComputedStyle(element).fill)).toBe("rgb(238, 246, 255)");
+      await page.waitForFunction(() => getComputedStyle(document.querySelector("#diagramRender svg .node rect")).fill === "rgb(242, 248, 255)");
+      expect(await page.$eval("#diagramRender svg .node rect", (element) => getComputedStyle(element).fill)).toBe("rgb(242, 248, 255)");
+      const auroraCanvasSkin = await page.evaluate(() => {
+        const shape = document.querySelector("#diagramRender svg .node rect");
+        const label = document.querySelector("#diagramRender svg .edgeLabel");
+        return {
+          fill: getComputedStyle(shape).fill,
+          shadow: getComputedStyle(shape).filter,
+          labelBorder: getComputedStyle(label).borderTopWidth,
+          labelRadius: getComputedStyle(label).borderTopLeftRadius,
+        };
+      });
+      expect(auroraCanvasSkin.fill).toBe("rgb(242, 248, 255)");
+      expect(auroraCanvasSkin.shadow).toContain("drop-shadow");
+      expect(auroraCanvasSkin.labelBorder).toBe("1px");
+      expect(auroraCanvasSkin.labelRadius).toBe("7px");
       await page.keyboard.press("i");
       expect(await page.$eval("#liveInspector", (element) => element.classList.contains("open"))).toBe(true);
       expect(await page.$eval("#liveInspector", (element) => element.getAttribute("aria-hidden"))).toBe("false");
