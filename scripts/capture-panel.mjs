@@ -114,6 +114,10 @@ try {
   await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
   await page.goto(base, { waitUntil: "networkidle2" });
   await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "networkidle2" });
+  await page.waitForSelector("#welcomeJourney");
+  await new Promise((resolve) => setTimeout(resolve, 350));
+  await page.screenshot({ path: path.join(outputDir, "welcome-panel.png") });
   await page.goto(`${base}/diagram/${scanResult.id}`, { waitUntil: "networkidle2" });
   await page.waitForSelector("#diagramRender svg");
   await page.waitForFunction(() => document.querySelector("#welcomeCard").hidden);
@@ -217,7 +221,7 @@ try {
   await page.waitForFunction(() => Number(document.querySelector("#canvasObjectConversation").dataset.openThreads) > 0, { timeout: 5000 });
   await new Promise((resolve) => setTimeout(resolve, 450));
   await page.screenshot({ path: path.join(outputDir, "zen-workspace-panel.png") });
-  console.log("✅ Captured docs/preview-panel.png, docs/studio-workspace-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png and docs/zen-workspace-panel.png");
+  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/studio-workspace-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png and docs/zen-workspace-panel.png");
 } finally {
   await browser.close();
   await preview.stop().catch(() => {});

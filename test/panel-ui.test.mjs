@@ -127,6 +127,8 @@ describe("collaboration panel UI", () => {
       expect(welcome.center).toContain("共同");
       expect(welcome.width).toBeGreaterThan(520);
       expect(welcome.visualWidth).toBeGreaterThan(180);
+      expect(await page.$$eval("#welcomeJourney .welcome-journey-step", (elements) => elements.length)).toBe(4);
+      expect(await page.$$eval("#welcomeJourney .welcome-journey-step.active", (elements) => elements.length)).toBe(1);
       expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("none");
 
       const diagramsBefore = await fetch(`${base}/api/diagrams`).then((response) => response.json());

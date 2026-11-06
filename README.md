@@ -37,6 +37,8 @@
 
 ![AI Draw MCP 新版预览面板](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/preview-panel.png)
 
+![AI Draw MCP 首用协作闭环](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/welcome-panel.png)
+
 ![AI Draw MCP Studio 视觉](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/studio-workspace-panel.png)
 
 新版界面提供两套一眼可辨的视觉系统：默认 **Aurora** 用顶部渐变光带、青紫光晕、玻璃感卡片和实时状态胶囊突出人机共享画布；**Studio** 用浅色高可读表面、克制蓝色强调和清晰分栏适配长时间审阅。顶栏分段按钮、`V` 快捷键、⚙ 外观面板或命令面板都能切换，偏好只存本机。图形出现后，左上角新增「人机协作脉搏」：只读取当前会话，汇总待审提案、等待 AI 的消息、开放批注与诊断信号，点击即可进入同一份共享上下文；右下角状态胶囊同步显示并行同步进度。可展开的「上下文速览」（`I`）只读显示当前对象、源码证据、开放讨论、图修订、审阅就绪和下一步动作；速览里的按钮只打开既有只读视图或复制上下文，不批准提案、不写项目文件。空白画布的首用卡把「AI 生成 → 共同结构图 → 人修改确认 → 提案审阅」画成可见闭环，并给出分屏、协作与流程快捷键。左下角常驻浮动操作条显示当前图形名称与缩放百分比，并提供放大/缩小、适应窗口、切换画布背景、进入协作工作台、命令面板与快捷键帮助七个动作。滚轮缩放、拖拽平移、小地图导航、双击重置、适应窗口（`F` 键）、明暗背景切换、SVG/PNG 导出等能力保持不变。
@@ -49,7 +51,7 @@
 
 ![AI Draw MCP 沉浸工作区](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/zen-workspace-panel.png)
 
-沉浸工作区截图同样由 `npm run ui:shots` 在临时示例会话中可复现生成；它只展示本机视图偏好，不代表服务绑定到公网、会话结构变化或文件被自动写入。
+首用卡新增「AI 扫描 → 人改图 → 提案 diff → 人工确认」四步闭环条，当前会话有待审提案时自动高亮对应阶段；它只读取既有只读状态，不提前创建提案或授权写入。沉浸工作区截图同样由 `npm run ui:shots` 在临时示例会话中可复现生成；它只展示本机视图偏好，不代表服务绑定到公网、会话结构变化或文件被自动写入。
 
 ![AI Draw MCP 画布工作区](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/canvas-workbench-panel.png)
 

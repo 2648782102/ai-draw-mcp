@@ -429,6 +429,15 @@
     .welcome-actions button:hover { transform: translateY(-1px); border-color: rgba(122,162,247,.6); }
     .welcome-actions button.primary { background: linear-gradient(135deg, var(--accent), var(--accent2) 62%, var(--accent3)); color: #08111f; border-color: transparent; font-weight: 800; box-shadow: 0 8px 22px rgba(122,162,247,.20); }
     .welcome-shortcuts { margin-top: 13px; color: var(--text-muted); font-size: 9px; line-height: 1.5; }
+    .welcome-journey { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 13px 0 0; padding: 9px; border: 1px solid rgba(61,219,217,.24); border-radius: 11px; background: linear-gradient(120deg, rgba(61,219,217,.07), rgba(122,162,247,.04)); }
+    .welcome-journey-step { position: relative; min-width: 0; padding: 6px 5px; border-radius: 8px; background: rgba(9,14,25,.30); text-align: center; }
+    .welcome-journey-step + .welcome-journey-step::before { content: '›'; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); color: var(--accent3); font-size: 11px; font-weight: 800; }
+    .welcome-journey-step strong { display: block; overflow: hidden; color: var(--text); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .welcome-journey-step span { display: block; margin-top: 2px; color: var(--text-muted); font-size: 8px; }
+    .welcome-journey-step.active { background: rgba(61,219,217,.12); box-shadow: inset 0 1px 0 rgba(61,219,217,.32); }
+    body.theme-light .welcome-journey-step, body.visual-studio .welcome-journey-step { background: #fff; }
+    body.visual-studio .welcome-journey { border-color: rgba(80,110,165,.28); background: rgba(55,104,216,.045); }
+    @media (max-width: 620px) { .welcome-journey { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .welcome-visual { position: relative; min-height: 316px; border-left: 1px solid var(--border); background: radial-gradient(circle at 50% 42%, rgba(122,162,247,.22), transparent 58%), radial-gradient(circle at 76% 78%, rgba(61,219,217,.12), transparent 38%), linear-gradient(160deg, rgba(11,18,32,.94), rgba(19,30,50,.94)); overflow: hidden; }
     .welcome-visual::before { content: ''; position: absolute; inset: 0; opacity: .18; background-image: linear-gradient(rgba(122,162,247,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(122,162,247,.18) 1px, transparent 1px); background-size: 22px 22px; mask-image: radial-gradient(circle at 50% 50%, #000, transparent 72%); }
     .welcome-flow { position: absolute; inset: 50% auto auto 50%; width: min(190px, calc(100% - 18px)); height: 226px; transform: translate(-50%, -50%); }
@@ -1552,6 +1561,12 @@
                 <button type="button" class="primary" id="btnLoadExample">载入示例图形</button>
                 <button type="button" id="btnOpenCollabWelcome">打开协作工作台</button>
                 <button type="button" id="btnOpenCommandsWelcome">⌘ 命令面板</button>
+              </div>
+              <div class="welcome-journey" id="welcomeJourney" aria-label="人机协作闭环">
+                <div class="welcome-journey-step active" data-welcome-step="scan"><strong>AI 扫描</strong><span>生成结构</span></div>
+                <div class="welcome-journey-step" data-welcome-step="edit"><strong>人改图</strong><span>表达意图</span></div>
+                <div class="welcome-journey-step" data-welcome-step="proposal"><strong>提案 diff</strong><span>逐行审阅</span></div>
+                <div class="welcome-journey-step" data-welcome-step="approval"><strong>人工确认</strong><span>项目变化</span></div>
               </div>
               <div class="welcome-shortcuts">示例只写入本机编辑器并渲染预览，不创建图、不改协作会话、不写项目文件。</div>
             </div>
@@ -3347,16 +3362,33 @@ function renderCollabPulse() {
   const review = collabPulseSnapshot?.reviewReadiness?.status || collabReviewReadiness?.status || (pendingProposals ? 'review' : 'ready');
   const focusNodeId = session?.focus?.nodeId || selectedNodeId;
   const focusLabel = graph?.nodes?.find((node) => node.id === focusNodeId)?.label;
+  const nextAction = diagnostics?.nextActions?.[0]?.label || diagnostics?.nextActions?.[0]?.body;
   const hint = $('#collabPulseHint');
   const count = $('#collabPulseCount');
   pulse.dataset.state = review === 'blocked' ? 'blocked' : review === 'ready' ? 'ready' : 'review';
   if (hint) {
     hint.textContent = attention > 0
       ? `${pendingProposals ? `${pendingProposals} 个提案待审 · ` : ''}${pendingMessages} 条消息 · ${openAnnotations} 条批注`
+      : nextAction ? `下一步 ${nextAction}`
       : focusLabel ? `焦点 ${focusLabel} · 点击打开共享上下文` : '点击打开共享上下文 · C';
   }
   if (count) count.textContent = attention > 0 ? String(attention) : collabGraph?.nodes?.length ? '✓' : '0';
   pulse.title = `打开双向协作工作台（C）· ${attention} 项待关注信号；批准前始终只读`;
+  if (!$('#welcomeCard')?.hidden) {
+    renderWelcomeJourney({ pendingProposals, attention, hasGraph: Boolean(graph?.nodes?.length) });
+  }
+}
+
+function renderWelcomeJourney({ pendingProposals, attention, hasGraph }) {
+  const journey = $('#welcomeJourney');
+  if (!journey) return;
+  let active = 'scan';
+  if (pendingProposals > 0) active = 'proposal';
+  else if (attention > 0) active = 'edit';
+  else if (hasGraph) active = 'edit';
+  for (const step of journey.querySelectorAll('[data-welcome-step]')) {
+    step.classList.toggle('active', step.dataset.welcomeStep === active);
+  }
 }
 
 function schedulePulseLoad() {
@@ -5325,6 +5357,7 @@ connectWs();
 syncWelcomeState();
 syncAppearanceControls();
 renderInspector();
+renderWelcomeJourney({ pendingProposals: 0, attention: 0, hasGraph: false });
 loadCollabPulse();
 
 // Restore last viewed diagram (URL path takes priority)
