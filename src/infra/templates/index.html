@@ -1433,6 +1433,11 @@
     body.visual-atlas .collab-pulse-orbit, body.visual-atlas .collab-pulse-orbit::before { border-radius: 3px; }
     body.visual-atlas .collab-pulse-bar { border-radius: 0; }
     body.zen-workspace .collab-pulse { top: 12px; left: 12px; }
+    @media (prefers-reduced-motion: reduce) {
+      .collab-pulse-orbit::after { animation: none; opacity: .35; }
+      .collab-pulse, .collab-pulse-next-chip, .flow-lens-signal-bar > span,
+      .canvas-relation-rail-track span, .canvas-dock-route-line > span { transition: none; }
+    }
     @media (max-width: 860px) { .collab-pulse { width: 214px; } }
     @media (max-width: 620px) { .workspace:not(.welcome) .collab-pulse { display: none; } }
     .collab-pulse-detail {

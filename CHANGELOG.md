@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 压力仪表与动效边界收尾（2026-11-06 21:35 CST）：`60ad5b8` 的 CI `42225889980` / #156 在 Node 20/22/24 三档全绿（jobs `127919168899` / `127919168569` / `127919168427`），metadata #39 `42225890033` success；确认按帧重开保护修复了 #155 的 Node 24 协作面板打开竞态，且径向压力环、下一步胶囊与派生仪表通过完整矩阵。新增的 `prefers-reduced-motion` 规则会停掉压力环脉冲动画并收敛所有派生进度带过渡；仍不改 MCP 工具、version 1 协议、批准凭据或项目文件。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 rerun 掩盖、未 force push、未 retag、未改写已发布 Release、未自动发 npm 包。
+
 - 协作压力仪表与面板打开稳定性（2026-11-06 21:30 CST）：左上角「人机协作脉搏」新增径向压力环、中心待关注数、按 Ready / Review / Blocked 变色的环带与「下一步」胶囊；数值仍全部派生自既有 session / proposals / annotations / diagnostics，不改写入闸门。CI `42224818394` / #155 的 Node 24 job `127915529861` 在点击画布讨论徽标后暴露协作面板偶发未打开的 30 秒超时（Node 20/22 全绿）；现在给画布→工作台入口增加显式按帧重开保护，保留失败记录、不靠 rerun 掩盖，等待下一轮三档 CI 核验。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 force push、未 retag、未改写已发布 Release、未自动发 npm 包。
 
 - 焦点镜头关系脉冲（2026-11-06 21:20 CST）：顶部 Focus Lens 从单纯文字胶囊升级为分层 HUD：新增「关系脉冲」微型计数、全图真实边占比进度带、入向数量与开放讨论 / 需重锚状态灯，并把当前焦点的直接边数写入只读 dataset。脉冲只派生自既有 `collabGraph.edges`、批注状态与 `selectedNodeId`，不新增状态机、不改 focus/viewport、批准凭据或项目文件；Aurora / Studio / Atlas、浅色主题、窄屏规则、浏览器回归、离线守卫、中英文 README、宣发与可复现截图同步覆盖。
