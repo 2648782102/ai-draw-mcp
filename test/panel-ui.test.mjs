@@ -164,6 +164,24 @@ describe("collaboration panel UI", () => {
       await page.waitForFunction(() => Number(document.querySelector("#collabPulseCount").textContent) > 0);
       expect(await page.$eval("#btnCollabPulse", (element) => getComputedStyle(element).display)).toBe("flex");
       expect(await page.$eval("#collabPulseHint", (element) => element.textContent)).toContain("提案待审");
+      const pulseSurface = await page.evaluate(() => {
+        const pulse = document.querySelector("#btnCollabPulse");
+        const style = getComputedStyle(pulse);
+        const bars = [...document.querySelectorAll(".collab-pulse-bar")];
+        return {
+          width: Math.round(pulse.getBoundingClientRect().width),
+          gradient: style.backgroundImage,
+          status: document.querySelector("#collabPulseStatus").textContent.trim(),
+          bars: bars.length,
+          litBars: bars.filter((bar) => Number.parseFloat(bar.style.getPropertyValue("--pulse-fill")) > 0).length,
+          state: pulse.dataset.state,
+        };
+      });
+      expect(pulseSurface.width).toBeGreaterThan(220);
+      expect(pulseSurface.gradient).toContain("linear-gradient");
+      expect(pulseSurface.bars).toBe(3);
+      expect(pulseSurface.litBars).toBeGreaterThan(0);
+      expect(["Ready", "Review", "Blocked"]).toContain(pulseSurface.status);
       await page.click("#btnCollabPulse");
       expect(await page.$eval("#collabPulseDetail", (element) => element.classList.contains("open"))).toBe(true);
       expect(Number(await page.$eval("#collabPulseProposals", (element) => element.textContent))).toBeGreaterThan(0);
@@ -322,6 +340,14 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("g");
       expect(await page.$eval("body", (element) => element.classList.contains("graph-skin-off"))).toBe(false);
       expect(await page.$eval("#canvasFrame", (element) => getComputedStyle(element).display)).toBe("block");
+      const ambientSurfaces = await page.evaluate(() => ({
+        lens: getComputedStyle(document.querySelector("#flowLens")).backgroundImage,
+        objectCard: getComputedStyle(document.querySelector("#canvasObjectCard")).backgroundImage,
+        chip: getComputedStyle(document.querySelector(".canvas-chip")).backgroundImage,
+      }));
+      expect(ambientSurfaces.lens).toContain("linear-gradient");
+      expect(ambientSurfaces.objectCard).toContain("linear-gradient");
+      expect(ambientSurfaces.chip).toContain("linear-gradient");
       await page.click('#appearancePopover [data-visual="studio"]');
       expect(await page.$eval("body", (element) => element.classList.contains("visual-studio"))).toBe(true);
       expect(await page.$eval("#ribbonMode", (element) => element.textContent)).toContain("Studio");
@@ -762,6 +788,8 @@ describe("collaboration panel UI", () => {
         headerHeight: document.querySelector(".header").getBoundingClientRect().height,
         themeHidden: getComputedStyle(document.querySelector("#selTheme")).display === "none",
         sidebarHidden: getComputedStyle(document.querySelector("#btnToggleSidebar")).display === "none",
+        lensTop: Math.round(document.querySelector("#flowLens").getBoundingClientRect().top),
+        chipTop: Math.round(document.querySelector(".canvas-chip").getBoundingClientRect().top),
         scrollWidth: document.body.scrollWidth,
         clientWidth: document.body.clientWidth,
       }));
@@ -769,6 +797,8 @@ describe("collaboration panel UI", () => {
         headerHeight: 50,
         themeHidden: true,
         sidebarHidden: true,
+        lensTop: 69,
+        chipTop: 107,
         scrollWidth: 560,
         clientWidth: 560,
       });

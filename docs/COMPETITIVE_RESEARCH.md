@@ -19,6 +19,10 @@ Most visual tools optimize either **AI generation** or **human editing**. Mermai
 | Mermaid Chart MCP / community diagram MCP servers | MCP-native validation/rendering, easy IDE integration, sometimes cloud diagram management | Tool descriptions and return values must be optimized for LLMs; one-call workflows reduce mistakes | AI Draw MCP is local, offline-capable for panel assets, open source without an account wall, and adds a human approval protocol |
 | AI agent diagram builders | Generate and iteratively edit diagrams from prompts, sometimes inline in chat | Iteration is the default; the first generated diagram is only a draft | AI Draw MCP extends iteration from the diagram to the underlying project through explicit approval |
 
+## Visible-state research note (2026-11-06 20:05 CST)
+
+Status-bearing surfaces in developer tools work best when the current state is visible without opening a secondary panel. The wider collaboration pulse, three derived micro bars, and layered focus/object surfaces borrow that legibility cue from Figma/tldraw-style canvases and review dashboards: a person sees message, proposal, and annotation pressure at a glance, and an AI still receives the same structured session through MCP. The bars are derived CSS projections, not a second state machine; they do not publish focus/viewport, send messages, approve proposals, issue receipts, or write project files.
+
 ## Positioning statement
 
 > AI Draw MCP is a local-first MCP workspace where an AI can turn a codebase into an editable visual map, a human can correct that map in the panel, and the pair can review a concrete change proposal before any file is written.

@@ -245,17 +245,16 @@ describe("canvas focus interaction", () => {
       expect(objectCard.conversationOpen).toBeGreaterThan(0);
       expect(objectCard.conversationSummary).toContain("开放");
       expect(objectCard.focusBadge).toContain("开放讨论");
-      const threadBadge = await page.$eval("#canvasThreadLayer .canvas-thread-badge", (element) => {
-        const rect = element.getBoundingClientRect();
+      const threadBadgeHandle = await page.waitForFunction(() => {
+        const badge = document.querySelector("#canvasThreadLayer .canvas-thread-badge");
+        if (!badge) return false;
         const group = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")]
-          .find((candidate) => candidate.id.includes(element.dataset.nodeId));
+          .find((candidate) => candidate.id.includes(badge.dataset.nodeId));
         const shapeRect = group?.querySelector("rect.basic.label-container, rect, polygon, path, ellipse, circle")?.getBoundingClientRect();
-        return {
-          state: element.dataset.state,
-          text: element.textContent,
-          aligned: Boolean(shapeRect) && Math.abs(rect.left - (shapeRect.left - 2)) < 4,
-        };
-      });
+        const aligned = Boolean(shapeRect) && Math.abs(badge.getBoundingClientRect().left - (shapeRect.left - 2)) < 4;
+        return aligned ? { state: badge.dataset.state, text: badge.textContent, aligned } : false;
+      }, { timeout: 5000 });
+      const threadBadge = await threadBadgeHandle.jsonValue();
       expect(threadBadge.state).toBe("open");
       expect(threadBadge.text).toContain("条讨论");
       expect(threadBadge.aligned).toBe(true);

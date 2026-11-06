@@ -1137,22 +1137,26 @@
     @media (max-width: 900px) { body.flow-workspace .flow-rail { display: none; } }
     .flow-lens {
       position: absolute; left: 50%; top: 14px; z-index: 23; display: none;
-      align-items: center; gap: 7px; max-width: min(460px, 54vw); padding: 6px 8px 6px 6px;
-      border: 1px solid rgba(61,219,217,.42); border-radius: 999px;
-      background: linear-gradient(120deg, rgba(12,25,42,.95), rgba(9,14,25,.93));
-      box-shadow: 0 14px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.06);
+      align-items: center; gap: 8px; max-width: min(480px, 56vw); padding: 7px 9px 7px 7px;
+      border: 1px solid rgba(61,219,217,.58); border-radius: 999px;
+      background: linear-gradient(115deg, rgba(15,34,55,.97), rgba(9,14,25,.96) 56%, rgba(28,20,52,.94));
+      box-shadow: 0 18px 42px rgba(0,0,0,.40), 0 0 24px rgba(61,219,217,.08), inset 0 1px 0 rgba(255,255,255,.08);
       backdrop-filter: blur(14px); transform: translateX(-50%); color: var(--text);
+    }
+    .flow-lens::before {
+      content: ''; position: absolute; left: 18px; right: 18px; top: -1px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent3), var(--accent2), transparent); opacity: .85;
     }
     body.flow-workspace .workspace:not(.welcome) .flow-lens { display: flex; }
     body.flow-source-open .flow-lens { opacity: 0; pointer-events: none; }
-    .flow-lens-orb { display: grid; place-items: center; width: 23px; height: 23px; flex-shrink: 0; border: 1px solid rgba(61,219,217,.52); border-radius: 50%; background: rgba(61,219,217,.12); color: var(--accent3); font-size: 10px; }
+    .flow-lens-orb { display: grid; place-items: center; width: 25px; height: 25px; flex-shrink: 0; border: 1px solid rgba(61,219,217,.64); border-radius: 50%; background: radial-gradient(circle, rgba(61,219,217,.24), rgba(61,219,217,.06)); color: var(--accent3); font-size: 11px; box-shadow: inset 0 0 10px rgba(61,219,217,.12); }
     .flow-lens-copy { min-width: 0; }
     .flow-lens-copy strong { display: block; overflow: hidden; max-width: 250px; color: var(--text); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
     .flow-lens-copy span { display: block; overflow: hidden; margin-top: 1px; max-width: 250px; color: var(--text-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
     .flow-lens-index { color: var(--accent3); font-size: 8px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .flow-lens button { height: 23px; padding: 0 7px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text-muted); font-size: 8px; cursor: pointer; white-space: nowrap; }
     .flow-lens button:hover { border-color: var(--accent3); color: var(--accent3); }
-    body.visual-studio .flow-lens { background: rgba(255,255,255,.97); box-shadow: 0 12px 28px rgba(38,54,84,.16); }
+    body.visual-studio .flow-lens { background: linear-gradient(115deg, rgba(255,255,255,.98), rgba(237,244,255,.97)); box-shadow: 0 14px 30px rgba(38,54,84,.18), inset 0 1px 0 rgba(255,255,255,.9); }
     body.visual-atlas .flow-lens { border-radius: 4px; background: rgba(10,19,21,.97); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     body.visual-atlas .flow-lens-orb, body.visual-atlas .flow-lens button { border-radius: 3px; }
     body.zen-workspace .flow-lens { display: none !important; }
@@ -1168,11 +1172,11 @@
     }
     .canvas-chip {
       position: absolute; right: 14px; top: 14px; z-index: 21; display: none;
-      align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid var(--border);
-      border-radius: 999px; background: rgba(9,14,25,.84); color: var(--text-muted); font-size: 10px;
-      backdrop-filter: blur(10px); box-shadow: 0 6px 18px rgba(0,0,0,.25);
+      align-items: center; gap: 7px; padding: 7px 11px; border: 1px solid rgba(122,162,247,.40);
+      border-radius: 999px; background: linear-gradient(120deg, rgba(10,18,34,.94), rgba(20,29,51,.91)); color: var(--text-muted); font-size: 10px;
+      backdrop-filter: blur(12px); box-shadow: 0 10px 24px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.06);
     }
-    .canvas-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .canvas-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(122,162,247,.14), 0 0 9px rgba(122,162,247,.6); }
     .workspace[data-view="canvas"] .canvas-chip { display: flex; }
     .workspace.welcome #minimap, .workspace.welcome .canvas-chip { display: none; }
     .collab-handoff {
@@ -1273,10 +1277,14 @@
     @keyframes focus-ring-pulse { 0% { opacity: .7; transform: scale(.98); } 100% { opacity: 0; transform: scale(1.06); } }
     .canvas-object-card {
       position: absolute; right: 14px; top: 64px; z-index: 22; width: 260px; display: none;
-      padding: 11px 12px; border: 1px solid rgba(122,162,247,.48); border-radius: 14px;
-      background: linear-gradient(155deg, rgba(15,24,42,.94), rgba(9,14,25,.94));
-      box-shadow: 0 16px 38px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
+      padding: 12px 13px; border: 1px solid rgba(122,162,247,.56); border-radius: 15px;
+      background: linear-gradient(155deg, rgba(17,30,52,.97), rgba(9,14,25,.96) 62%, rgba(24,19,44,.94));
+      box-shadow: 0 20px 46px rgba(0,0,0,.42), 0 0 24px rgba(122,162,247,.07), inset 0 1px 0 rgba(255,255,255,.07);
       backdrop-filter: blur(14px); color: var(--text);
+    }
+    .canvas-object-card::after {
+      content: ''; position: absolute; left: 16px; right: 16px; bottom: -1px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(187,154,247,.65), transparent); opacity: .7;
     }
     .canvas-hover-card {
       position: absolute; z-index: 26; display: none; width: 232px; pointer-events: none;
@@ -1338,33 +1346,55 @@
     .workspace:not(.welcome) .canvas-object-card { display: block; }
     .collab-pulse {
       position: absolute; left: 14px; top: 14px; z-index: 23; display: none;
-      align-items: center; gap: 8px; min-width: 198px; padding: 7px 9px;
-      border: 1px solid rgba(61,219,217,.46); border-radius: 12px;
-      background: linear-gradient(135deg, rgba(12,25,42,.94), rgba(9,14,25,.91));
-      box-shadow: 0 16px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.06);
-      backdrop-filter: blur(14px); color: var(--text); cursor: pointer; text-align: left;
+      align-items: center; gap: 10px; width: 244px; padding: 9px 10px 8px;
+      border: 1px solid rgba(61,219,217,.52); border-radius: 14px;
+      background: linear-gradient(142deg, rgba(17,34,57,.97), rgba(9,14,25,.95) 58%, rgba(16,46,57,.92));
+      box-shadow: 0 18px 40px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(61,219,217,.05);
+      backdrop-filter: blur(16px); color: var(--text); cursor: pointer; text-align: left;
       transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
     }
+    .collab-pulse::before {
+      content: ''; position: absolute; left: 10px; right: 10px; top: -1px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent3), var(--accent), var(--accent2), transparent);
+      opacity: .88; border-radius: 999px;
+    }
     .workspace:not(.welcome) .collab-pulse { display: flex; }
-    .collab-pulse:hover { transform: translateY(-2px); border-color: var(--accent3); box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 22px rgba(61,219,217,.13); }
-    .collab-pulse-orbit { position: relative; width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(61,219,217,.46); border-radius: 50%; background: radial-gradient(circle, rgba(61,219,217,.22), transparent 68%); }
+    .collab-pulse:hover { transform: translateY(-3px); border-color: var(--accent3); box-shadow: 0 24px 48px rgba(0,0,0,.46), 0 0 26px rgba(61,219,217,.16); }
+    .collab-pulse-orbit { position: relative; width: 32px; height: 32px; flex-shrink: 0; border: 1px solid rgba(61,219,217,.60); border-radius: 50%; background: radial-gradient(circle, rgba(61,219,217,.28), rgba(61,219,217,.04) 68%); box-shadow: inset 0 0 12px rgba(61,219,217,.12); }
     .collab-pulse-orbit::before, .collab-pulse-orbit::after { content: ''; position: absolute; border-radius: 50%; }
-    .collab-pulse-orbit::before { inset: 8px; background: var(--accent3); box-shadow: 0 0 10px rgba(61,219,217,.8); }
+    .collab-pulse-orbit::before { inset: 9px; background: var(--accent3); box-shadow: 0 0 12px rgba(61,219,217,.9); }
     .collab-pulse-orbit::after { inset: -4px; border: 1px solid rgba(122,162,247,.42); animation: pulse-orbit 2.4s ease-out infinite; }
     @keyframes pulse-orbit { 0% { opacity: .7; transform: scale(.8); } 100% { opacity: 0; transform: scale(1.35); } }
-    .collab-pulse-copy { min-width: 0; flex: 1; }
-    .collab-pulse-copy strong { display: block; font-size: 10px; letter-spacing: .02em; }
+    .collab-pulse-main { min-width: 0; flex: 1; }
+    .collab-pulse-top { display: flex; align-items: center; justify-content: space-between; gap: 7px; }
+    .collab-pulse-copy { min-width: 0; }
+    .collab-pulse-copy strong { display: block; font-size: 10px; letter-spacing: .03em; }
     .collab-pulse-copy span { display: block; margin-top: 2px; overflow: hidden; color: var(--text-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
-    .collab-pulse-count { min-width: 21px; height: 21px; display: grid; place-items: center; border-radius: 7px; background: rgba(61,219,217,.14); color: var(--accent3); font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .collab-pulse-status { display: inline-flex; align-items: center; gap: 4px; color: var(--accent3); font-size: 7px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+    .collab-pulse-status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent3); box-shadow: 0 0 0 3px rgba(61,219,217,.14); }
+    .collab-pulse-bars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 7px; }
+    .collab-pulse-bar { position: relative; height: 3px; overflow: hidden; border-radius: 999px; background: rgba(122,162,247,.16); }
+    .collab-pulse-bar::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--pulse-fill, 0%); border-radius: inherit; background: var(--pulse-color, var(--accent3)); transition: width .24s ease; }
+    .collab-pulse-count { min-width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid rgba(61,219,217,.28); border-radius: 8px; background: rgba(61,219,217,.14); color: var(--accent3); font-size: 10px; font-weight: 850; font-variant-numeric: tabular-nums; }
+    .collab-pulse[data-state="blocked"] { border-color: rgba(255,122,147,.72); }
+    .collab-pulse[data-state="blocked"] .collab-pulse-status { color: var(--red); }
+    .collab-pulse[data-state="blocked"] .collab-pulse-status::before { background: var(--red); box-shadow: 0 0 0 3px rgba(255,122,147,.14); }
     .collab-pulse[data-state="review"] { border-color: rgba(240,168,104,.55); }
+    .collab-pulse[data-state="review"] .collab-pulse-status { color: var(--orange); }
+    .collab-pulse[data-state="review"] .collab-pulse-status::before { background: var(--orange); box-shadow: 0 0 0 3px rgba(240,168,104,.14); }
     .collab-pulse[data-state="review"] .collab-pulse-count { background: rgba(240,168,104,.16); color: var(--orange); }
     .collab-pulse[data-state="ready"] { border-color: rgba(158,206,106,.55); }
+    .collab-pulse[data-state="ready"] .collab-pulse-status { color: var(--green); }
+    .collab-pulse[data-state="ready"] .collab-pulse-status::before { background: var(--green); box-shadow: 0 0 0 3px rgba(158,206,106,.14); }
     .collab-pulse[data-state="ready"] .collab-pulse-count { background: rgba(158,206,106,.16); color: var(--green); }
-    body.visual-studio .collab-pulse { border-color: rgba(80,110,165,.34); background: rgba(255,255,255,.96); box-shadow: 0 12px 28px rgba(38,54,84,.15); }
+    body.visual-studio .collab-pulse { border-color: rgba(80,110,165,.38); background: linear-gradient(140deg, rgba(255,255,255,.98), rgba(236,243,255,.96)); box-shadow: 0 16px 34px rgba(38,54,84,.18), inset 0 1px 0 rgba(255,255,255,.9); }
     body.visual-studio .collab-pulse-orbit { border-color: rgba(13,145,140,.42); }
-    body.theme-light .collab-pulse { background: rgba(255,255,255,.95); }
+    body.theme-light .collab-pulse { background: linear-gradient(140deg, rgba(255,255,255,.98), rgba(238,246,255,.95)); }
+    body.visual-atlas .collab-pulse { border-radius: 5px; background: linear-gradient(135deg, rgba(9,20,22,.98), rgba(7,14,16,.96)); }
+    body.visual-atlas .collab-pulse::before { opacity: .55; }
+    body.visual-atlas .collab-pulse-bar { border-radius: 0; }
     body.zen-workspace .collab-pulse { top: 12px; left: 12px; }
-    @media (max-width: 860px) { .collab-pulse { min-width: 0; width: 172px; } }
+    @media (max-width: 860px) { .collab-pulse { width: 214px; } }
     @media (max-width: 620px) { .workspace:not(.welcome) .collab-pulse { display: none; } }
     .collab-pulse-detail {
       position: absolute; left: 14px; top: 60px; z-index: 24; display: none; width: 258px;
@@ -1490,7 +1520,13 @@
       .canvas-dock { left: 7px; right: 7px; bottom: 7px; overflow-x: auto; }
       .workspace[data-view="canvas"] .canvas-dock { bottom: 7px; }
       .canvas-dock button { flex: 0 0 auto; }
-      .canvas-chip { right: 7px; top: 7px; max-width: calc(100% - 14px); }
+      .canvas-chip {
+        right: 7px; top: 46px; max-width: calc(100% - 14px);
+        padding: 4px 7px; font-size: 8px; line-height: 1.2;
+      }
+      body.zen-workspace .workspace[data-view="canvas"] .canvas-chip { top: 46px; }
+      body.flow-workspace .flow-lens { top: 8px; left: 9px; right: 9px; max-width: none; transform: none; padding: 4px 7px; }
+      .flow-lens-copy strong, .flow-lens-copy span { max-width: calc(100vw - 100px); }
       .shortcut-groups { grid-template-columns: 1fr; }
     }
     button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible {
@@ -2356,7 +2392,14 @@
           </section>
           <button type="button" class="collab-pulse" id="btnCollabPulse" data-state="ready" aria-expanded="false" aria-controls="collabPulseDetail" title="展开只读协作速览；再次点击按钮可收起" aria-label="展开只读协作速览">
             <span class="collab-pulse-orbit" aria-hidden="true"></span>
-            <span class="collab-pulse-copy"><strong>人机协作脉搏</strong><span id="collabPulseHint">点击打开共享上下文 · C</span></span>
+            <span class="collab-pulse-main">
+              <span class="collab-pulse-top"><span class="collab-pulse-copy"><strong>人机协作脉搏</strong><span id="collabPulseHint">点击打开共享上下文 · C</span></span><span class="collab-pulse-status" id="collabPulseStatus">Ready</span></span>
+              <span class="collab-pulse-bars" aria-hidden="true">
+                <span class="collab-pulse-bar" id="collabPulseMessageBar"></span>
+                <span class="collab-pulse-bar" id="collabPulseProposalBar"></span>
+                <span class="collab-pulse-bar" id="collabPulseAnnotationBar"></span>
+              </span>
+            </span>
             <span class="collab-pulse-count" id="collabPulseCount">0</span>
           </button>
           <section class="collab-pulse-detail" id="collabPulseDetail" aria-label="只读协作速览">
@@ -3030,15 +3073,34 @@ let panPointer = null;
 let viewportSyncTimer = null;
 let lastViewportPublished = null;
 let canvasOverlayFrame = 0;
+let canvasOverlayStillFrame = 0;
+let canvasOverlayStillUntil = 0;
 
 function scheduleCanvasOverlaySync() {
   if (canvasOverlayFrame) return;
   canvasOverlayFrame = requestAnimationFrame(() => {
     canvasOverlayFrame = 0;
-    positionFocusRing();
-    renderCanvasThreadBadges();
-    syncCanvasHoverCard();
+    syncCanvasOverlaysNow();
   });
+}
+
+function syncCanvasOverlaysNow() {
+  syncCanvasHoverCard();
+  positionFocusRing();
+  renderCanvasThreadBadges();
+}
+
+function holdCanvasOverlaySync(duration = 260) {
+  canvasOverlayStillUntil = Math.max(canvasOverlayStillUntil, performance.now() + duration);
+  if (canvasOverlayStillFrame) return;
+  const step = () => {
+    canvasOverlayStillFrame = 0;
+    syncCanvasOverlaysNow();
+    if (performance.now() < canvasOverlayStillUntil) {
+      canvasOverlayStillFrame = requestAnimationFrame(step);
+    }
+  };
+  canvasOverlayStillFrame = requestAnimationFrame(step);
 }
 
 function publishViewport() {
@@ -3087,9 +3149,8 @@ function applyTransform() {
   updateCanvasDock();
   scheduleMinimapUpdate();
   scheduleViewportSync();
-  scheduleCanvasOverlaySync();
-  window.setTimeout(scheduleCanvasOverlaySync, 180);
-  render.addEventListener('transitionend', scheduleCanvasOverlaySync, { once: true });
+  holdCanvasOverlaySync(420);
+  if (animate) render.addEventListener('transitionend', scheduleCanvasOverlaySync, { once: true });
 }
 
 function svgNodeForFocus() {
@@ -4685,7 +4746,9 @@ function renderCollabPulse() {
   const nextAction = typeof nextActionItem === 'string' ? nextActionItem : nextActionItem?.label || nextActionItem?.body;
   const hint = $('#collabPulseHint');
   const count = $('#collabPulseCount');
+  const status = $('#collabPulseStatus');
   pulse.dataset.state = review === 'blocked' ? 'blocked' : review === 'ready' ? 'ready' : 'review';
+  if (status) status.textContent = ({ blocked: 'Blocked', ready: 'Ready' })[pulse.dataset.state] || 'Review';
   if (hint) {
     hint.textContent = attention > 0
       ? `${pendingProposals ? `${pendingProposals} 个提案待审 · ` : ''}${pendingMessages} 条消息 · ${openAnnotations} 条批注`
@@ -4695,6 +4758,15 @@ function renderCollabPulse() {
   if (count) count.textContent = attention > 0 ? String(attention) : collabGraph?.nodes?.length ? '✓' : '0';
   pulse.title = `打开双向协作工作台（C）· ${attention} 项待关注信号；批准前始终只读`;
   const setMetric = (selector, value) => { const target = $(selector); if (target) target.textContent = String(value); };
+  const setPulseBar = (selector, value, color) => {
+    const target = $(selector);
+    if (!target) return;
+    target.style.setProperty('--pulse-fill', `${Math.max(0, Math.min(100, value * 25))}%`);
+    target.style.setProperty('--pulse-color', color);
+  };
+  setPulseBar('#collabPulseMessageBar', pendingMessages, 'var(--accent3)');
+  setPulseBar('#collabPulseProposalBar', pendingProposals, 'var(--orange)');
+  setPulseBar('#collabPulseAnnotationBar', openAnnotations, 'var(--accent2)');
   setMetric('#collabPulseMessages', pendingMessages);
   setMetric('#collabPulseProposals', pendingProposals);
   setMetric('#collabPulseAnnotations', openAnnotations);
