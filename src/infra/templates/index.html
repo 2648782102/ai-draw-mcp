@@ -238,6 +238,50 @@
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast::before { content: '✦'; margin-right: 8px; font-weight: 800; }
 
+    /* ── Collaboration journey ── */
+    .collab-journey {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;
+      flex-shrink: 0; padding: 10px 14px 0;
+    }
+    .journey-step {
+      position: relative; display: flex; align-items: center; gap: 9px; min-width: 0;
+      padding: 8px 10px; border: 1px solid var(--border); border-radius: 11px;
+      background: linear-gradient(135deg, rgba(24,36,58,.72), rgba(14,23,39,.72));
+      color: var(--text-muted); font-size: 10px; text-align: left; cursor: pointer;
+      transition: transform .18s, border-color .18s, background .18s, box-shadow .18s;
+    }
+    .journey-step + .journey-step::before {
+      content: ''; position: absolute; left: -8px; top: 50%; width: 8px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(122,162,247,.55)); pointer-events: none;
+    }
+    .journey-step:hover { transform: translateY(-1px); border-color: rgba(122,162,247,.55); }
+    .journey-step.active {
+      color: var(--text); border-color: rgba(122,162,247,.72);
+      background: linear-gradient(135deg, rgba(122,162,247,.22), rgba(187,154,247,.12));
+      box-shadow: inset 0 2px 0 var(--accent), 0 8px 20px rgba(0,0,0,.16);
+    }
+    .journey-step:focus-visible { outline-offset: 3px; }
+    .journey-icon {
+      display: grid; place-items: center; width: 26px; height: 26px; flex-shrink: 0;
+      border: 1px solid var(--border); border-radius: 9px; background: rgba(9,14,25,.48);
+      color: var(--accent); font-size: 13px; font-weight: 800;
+    }
+    .journey-step[data-journey="dialog"] .journey-icon { color: var(--green); }
+    .journey-step[data-journey="proposals"] .journey-icon { color: var(--orange); }
+    .journey-step[data-journey="review"] .journey-icon { color: var(--accent2); }
+    .journey-copy { min-width: 0; }
+    .journey-copy strong { display: block; color: var(--text); font-size: 11px; margin-bottom: 2px; }
+    .journey-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .journey-state { margin-left: auto; flex-shrink: 0; color: var(--text-muted); font-size: 11px; }
+    .journey-step[data-state="ready"] .journey-state { color: var(--green); }
+    .journey-step[data-state="busy"] .journey-state { color: var(--orange); }
+    .journey-step[data-state="blocked"] .journey-state { color: var(--red); }
+    .collab-journey[data-review="ready"] .journey-step[data-journey="review"] { border-color: rgba(158,206,106,.62); }
+    .collab-journey[data-review="blocked"] .journey-step[data-journey="review"] { border-color: rgba(240,168,104,.62); }
+    .journey-step .journey-badge { margin-left: 4px; padding: 1px 5px; border-radius: 999px; background: rgba(240,168,104,.16); color: var(--orange); font-size: 8px; font-weight: 800; }
+    .collab-shell[data-tab="dialog"] .collab-journey .journey-step[data-journey="dialog"],
+    .collab-shell[data-tab="proposals"] .collab-journey .journey-step[data-journey="proposals"] { box-shadow: inset 0 2px 0 var(--green); }
+
     /* ── Collaboration workbench ── */
     .status #btnCollaborate, .collab-actions button, .collab-header button {
       height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border);
@@ -653,6 +697,10 @@
     @media (max-width: 900px) {
       .collab-overview { overflow-x: auto; }
       .overview-stat.safety { margin-left: 0; }
+      .collab-journey { gap: 6px; padding: 8px 10px 0; }
+      .journey-step { padding: 7px 8px; }
+      .journey-copy span, .journey-state { display: none; }
+      .journey-copy strong { font-size: 10px; }
       .collab-tabs { display: flex; }
       .collab-body { grid-template-columns: 1fr; overflow: hidden; }
       .collab-section { display: none; min-height: 0; }
@@ -686,6 +734,8 @@
       .collab-shell { inset: 56px 7px 7px 7px; border-radius: 12px; }
       .collab-header { height: 50px; }
       .collab-tab { padding: 0 8px; font-size: 10px; }
+      .collab-journey { overflow-x: auto; grid-auto-flow: column; grid-auto-columns: minmax(108px, 1fr); grid-template-columns: none; padding: 7px 7px 0; }
+      .journey-step + .journey-step::before { display: none; }
       .proposal-impact .impact-grid { grid-template-columns: repeat(2, 1fr); }
       .proposal-actions { flex-direction: column; }
     }
@@ -758,6 +808,7 @@
         </div>
         <div class="appearance-shortcuts">
           <span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd>
+          <span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd>
           <span>协作工作台</span><kbd>C · Esc</kbd>
           <span>适应窗口 / 重置缩放</span><kbd>F / 0</kbd>
           <span>渲染或发送</span><kbd>⌘/Ctrl + ↵</kbd>
@@ -865,6 +916,28 @@
     <div class="health-main"><strong id="healthTitle">协作状态载入中</strong><span id="healthDetail">正在读取只读诊断、审阅就绪与下一步动作。</span></div>
     <div class="health-progress"><div class="health-progress-track"><div class="health-progress-fill" id="healthProgressFill"></div></div><span id="healthProgressLabel">0 / 4 步</span></div>
   </div>
+  <nav class="collab-journey" id="collabJourney" aria-label="双向协作流程">
+    <button class="journey-step active" type="button" data-journey="graph" data-journey-tab="graph" data-state="idle" aria-current="step" title="让 AI 扫描项目，获得可编辑的结构图">
+      <span class="journey-icon" aria-hidden="true">◇</span>
+      <span class="journey-copy"><strong>1 · 看见结构</strong><span data-journey-hint="graph">扫描项目 · 生成结构图</span></span>
+      <span class="journey-state" data-journey-state="graph">○</span>
+    </button>
+    <button class="journey-step" type="button" data-journey="dialog" data-journey-tab="dialog" data-state="idle" title="修改节点、批注并告诉 AI 你的意图">
+      <span class="journey-icon" aria-hidden="true">↔</span>
+      <span class="journey-copy"><strong>2 · 表达意图</strong><span data-journey-hint="dialog">编辑图形 · 双向对话</span></span>
+      <span class="journey-state" data-journey-state="dialog">○</span>
+    </button>
+    <button class="journey-step" type="button" data-journey="proposals" data-journey-tab="proposals" data-state="idle" title="查看 AI 生成的逐行差异与影响摘要">
+      <span class="journey-icon" aria-hidden="true">✓</span>
+      <span class="journey-copy"><strong>3 · 审阅变更</strong><span data-journey-hint="proposals">逐行 diff · 影响摘要</span><span class="journey-badge" id="journeyProposalCount" hidden>0</span></span>
+      <span class="journey-state" data-journey-state="proposals">○</span>
+    </button>
+    <button class="journey-step" type="button" data-journey="review" data-journey-tab="proposals" data-state="idle" title="人工批准只签发一次性确认号，仍需 AI 调用 apply_visual_proposal">
+      <span class="journey-icon" aria-hidden="true">⚿</span>
+      <span class="journey-copy"><strong>4 · 人工确认</strong><span data-journey-hint="review">确认号 · 安全写入</span></span>
+      <span class="journey-state" data-journey-state="review">○</span>
+    </button>
+  </nav>
   <div class="collab-tabs" role="tablist" aria-label="协作工作区">
     <button class="collab-tab active" type="button" data-tab-target="graph" role="tab" aria-selected="true" aria-controls="collabSectionGraph">◇ 项目图</button>
     <button class="collab-tab" type="button" data-tab-target="dialog" role="tab" aria-selected="false" aria-controls="collabSectionDialog">↔ 对话</button>
@@ -1185,6 +1258,11 @@ window.addEventListener('keydown', (e) => {
   if (!typing && (e.key === 'c' || e.key === 'C') && !e.metaKey && !e.ctrlKey && !e.altKey) {
     e.preventDefault();
     openCollab();
+    return;
+  }
+  if (collabShell && !collabShell.hidden && !typing && ['4', '5', '6'].includes(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    setCollabTab({ 4: 'graph', 5: 'dialog', 6: 'proposals' }[e.key]);
     return;
   }
   if (document.activeElement === $('#codeEditor')) return;
@@ -1811,6 +1889,7 @@ let collabSelectionScope = null;
 let collabSelectionWorkorder = null;
 let collabViewport = null;
 let collabReviewReadiness = null;
+let collabProposals = [];
 let graphDirtyRows = new Set();
 
 function escapeHtml(value) {
@@ -1850,7 +1929,7 @@ function renderGraphEditor() {
   renderFocus();
   renderSelectionSummary();
   target.innerHTML = collabGraph.nodes.map((node, index) => `
-    <div class="graph-row ${node.id === selectedNodeId ? 'selected' : ''} ${graphDirtyRows.has(`node:${index}`) ? 'is-dirty' : ''}" data-index="${index}" data-node-id="${escapeHtml(node.id)}" data-row-number="${String(index + 1).padStart(2, '0')}">
+    <div class="graph-row ${node.id === selectedNodeId ? 'selected' : ''} ${graphDirtyRows.has(`node:${node.id}`) ? 'is-dirty' : ''}" data-index="${index}" data-node-id="${escapeHtml(node.id)}" data-row-number="${String(index + 1).padStart(2, '0')}">
       <span class="graph-select-cell">
         <input type="radio" name="selectedNode" ${node.id === selectedNodeId ? 'checked' : ''} aria-label="焦点节点" title="设为焦点" />
         <input class="node-select" type="checkbox" ${selectedNodeIds.includes(node.id) ? 'checked' : ''} aria-label="加入选择范围" title="加入选择范围（最多 24 个）" />
@@ -1866,7 +1945,7 @@ function renderGraphEditor() {
   `).join('');
   const options = (selected) => collabGraph.nodes.map((node) => `<option value="${escapeHtml(node.id)}" ${node.id === selected ? 'selected' : ''}>${escapeHtml(node.label)}</option>`).join('');
   edgeTarget.innerHTML = collabGraph.edges.length ? collabGraph.edges.map((edge, index) => `
-    <div class="edge-row ${graphDirtyRows.has(`edge:${index}`) ? 'is-dirty' : ''}" data-index="${index}">
+    <div class="edge-row ${graphDirtyRows.has(`edge:${edge.id}`) ? 'is-dirty' : ''}" data-index="${index}" data-edge-id="${escapeHtml(edge.id)}">
       <select class="edge-from" aria-label="连线起点">${options(edge.from)}</select>
       <select class="edge-to" aria-label="连线终点">${options(edge.to)}</select>
       <input class="edge-label" value="${escapeHtml(edge.label || '')}" aria-label="连线说明" />
@@ -1877,13 +1956,13 @@ function renderGraphEditor() {
 
   for (const row of target.querySelectorAll('.graph-row')) {
     for (const field of row.querySelectorAll('input:not(.node-select):not([type="radio"])')) {
-      field.addEventListener('input', () => markGraphRowDirty(row, `node:${row.dataset.index}`));
+      field.addEventListener('input', () => markGraphRowDirty(row, `node:${row.dataset.nodeId}`));
     }
   }
   for (const row of edgeTarget.querySelectorAll('.edge-row')) {
     for (const field of row.querySelectorAll('input, select')) {
-      field.addEventListener('input', () => markGraphRowDirty(row, `edge:${row.dataset.index}`));
-      field.addEventListener('change', () => markGraphRowDirty(row, `edge:${row.dataset.index}`));
+      field.addEventListener('input', () => markGraphRowDirty(row, `edge:${row.dataset.edgeId}`));
+      field.addEventListener('change', () => markGraphRowDirty(row, `edge:${row.dataset.edgeId}`));
     }
   }
   updateGraphDirtyState();
@@ -1938,6 +2017,63 @@ function updateGraphDirtyState() {
     badge.textContent = String(count);
   }
   $('#btnSaveGraph')?.classList.toggle('has-dirty', count > 0);
+  renderJourney();
+}
+
+function setCollabTab(target) {
+  const allowed = new Set(['graph', 'dialog', 'proposals']);
+  const next = allowed.has(target) ? target : 'graph';
+  $('#collabShell').dataset.tab = next;
+  for (const tab of document.querySelectorAll('.collab-tab')) {
+    const active = tab.dataset.tabTarget === next;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
+  }
+  renderJourney();
+}
+
+function renderJourney() {
+  const journey = $('#collabJourney');
+  if (!journey) return;
+  const currentTab = $('#collabShell').dataset.tab || 'graph';
+  const proposals = Array.isArray(collabProposals) ? collabProposals : [];
+  const pending = proposals.filter((proposal) => proposal.status === 'pending').length;
+  const approved = proposals.filter((proposal) => proposal.status === 'approved').length;
+  const hasGraph = Boolean(collabGraph?.nodes?.length);
+  const messages = Array.isArray(collabGraph?.messages) ? collabGraph.messages.length : Number($('#overviewActivity')?.textContent || 0);
+  const reviewStatus = collabReviewReadiness?.status || (pending ? 'review' : 'ready');
+  const states = {
+    graph: hasGraph ? 'ready' : 'busy',
+    dialog: messages || hasGraph ? 'ready' : 'idle',
+    proposals: pending ? 'busy' : proposals.length ? 'ready' : 'idle',
+    review: approved ? 'ready' : pending ? 'busy' : reviewStatus === 'blocked' ? 'blocked' : 'idle',
+  };
+  const hints = {
+    graph: hasGraph ? `${collabGraph.nodes.length} 个节点 · rev ${Number.isFinite(collabRevision) ? collabRevision : 0}` : '等待扫描项目结构',
+    dialog: messages ? '人和 AI 已开始双向对话' : '等待人的修改或消息',
+    proposals: pending ? `${pending} 个提案待人工审阅` : proposals.length ? `${proposals.length} 个提案可复核` : '尚无变更提案',
+    review: approved ? '确认号待交给 AI 应用' : pending ? '批准前先看完整 diff' : '批准前只读',
+  };
+  const icons = { idle: '○', busy: '◷', ready: '✓', blocked: '!' };
+  for (const step of journey.querySelectorAll('.journey-step')) {
+    const name = step.dataset.journey;
+    const active = step.dataset.journeyTab === currentTab;
+    step.dataset.state = states[name];
+    step.classList.toggle('active', active);
+    if (active) step.setAttribute('aria-current', 'step');
+    else step.removeAttribute('aria-current');
+    step.tabIndex = active ? 0 : -1;
+    step.setAttribute('aria-label', `${step.querySelector('strong').textContent}：${hints[name]}`);
+    $(`[data-journey-hint="${name}"]`).textContent = hints[name];
+    $(`[data-journey-state="${name}"]`).textContent = icons[states[name]];
+  }
+  const badge = $('#journeyProposalCount');
+  if (badge) {
+    badge.hidden = pending === 0;
+    badge.textContent = String(pending);
+  }
+  journey.dataset.review = reviewStatus === 'blocked' ? 'blocked' : reviewStatus === 'ready' && !pending ? 'ready' : 'review';
 }
 
 function renderSelectionSummary() {
@@ -2267,7 +2403,7 @@ function addNode() {
   if (!collabGraph) collabGraph = { version: 1, diagramId: `panel_${Date.now()}`, nodes: [], edges: [], annotations: [] };
   const id = localId('node');
   collabGraph.nodes.push({ id, label: '新节点', kind: 'module', path: 'src/new-module', group: 'human' });
-  graphDirtyRows.add(`node:${collabGraph.nodes.length - 1}`);
+  graphDirtyRows.add(`node:${id}`);
   selectedNodeId = id;
   selectedNodeIds = [];
   renderGraphEditor();
@@ -2283,22 +2419,29 @@ function removeNode(index) {
     annotation.nodeId === node.id ? { ...annotation, anchorStatus: 'detached' } : annotation);
   if (selectedNodeId === node.id) selectedNodeId = null;
   selectedNodeIds = selectedNodeIds.filter((item) => item !== node.id);
-  graphDirtyRows = new Set([...graphDirtyRows].filter((key) => key !== `node:${index}` && !key.startsWith('edge:')));
+  graphDirtyRows.delete(`node:${node.id}`);
+  const removedEdgeIds = new Set(collabGraph.edges.filter((edge) => edge.from === node.id || edge.to === node.id).map((edge) => edge.id));
+  for (const key of [...graphDirtyRows]) {
+    if (key.startsWith('edge:') && removedEdgeIds.has(key.slice(5))) graphDirtyRows.delete(key);
+  }
   renderGraphEditor();
 }
 
 function addEdge() {
   if (!collabGraph || collabGraph.nodes.length < 2) return showToast('至少需要两个节点才能建立连线');
   const [from, to] = collabGraph.nodes.slice(-2).map((node) => node.id);
-  collabGraph.edges.push({ id: localId('edge'), from, to, label: 'relates', kind: 'relates' });
-  graphDirtyRows.add(`edge:${collabGraph.edges.length - 1}`);
+  const edge = { id: localId('edge'), from, to, label: 'relates', kind: 'relates' };
+  collabGraph.edges.push(edge);
+  graphDirtyRows.add(`edge:${edge.id}`);
   renderGraphEditor();
   $('#edgeEditor').scrollTop = $('#edgeEditor').scrollHeight;
 }
 
 function removeEdge(index) {
-  collabGraph?.edges.splice(index, 1);
-  graphDirtyRows = new Set([...graphDirtyRows].filter((key) => key !== `edge:${index}`));
+  const edge = collabGraph?.edges[index];
+  if (!edge) return;
+  collabGraph.edges.splice(index, 1);
+  graphDirtyRows.delete(`edge:${edge.id}`);
   renderGraphEditor();
 }
 
@@ -2390,6 +2533,7 @@ function renderReviewReadiness(readiness) {
   const pointHtml = points.slice(0, 8).map((point) => `<p class="signal ${point.severity === 'action' ? 'action' : ''}"><strong>${escapeHtml(point.source)}</strong> · ${escapeHtml(point.message)}</p>`).join('');
   list.innerHTML = pointHtml || '<p class="signal">暂无共享简报阻塞或决策链证据缺口；批准提案前仍须打开完整逐行 diff。</p>';
   renderHealthCard();
+  renderJourney();
 }
 
 function renderCapabilities(capabilities) {
@@ -2634,6 +2778,7 @@ function renderProposals(proposals) {
   const statusIcons = {
     draft: '◌', pending: '◷', approved: '✓', applied: '✓', rejected: '✕', failed: '!',
   };
+  collabProposals = Array.isArray(proposals) ? proposals : [];
   $('#proposalList').innerHTML = proposals.length ? [...proposals].reverse().map((proposal) => {
     const status = escapeHtml(proposal.status);
     const changes = Array.isArray(proposal.changes) ? proposal.changes : [];
@@ -2671,6 +2816,7 @@ function renderProposals(proposals) {
       ${proposal.error ? `<p class="proposal-error">${escapeHtml(proposal.error)}</p>` : ''}
     </article>`;
   }).join('') : '<div class="empty-state"><span class="empty-state-icon">✓</span><strong>等待人工确认</strong><p>AI 会先通过 get_visual_context 理解你的意图；提案出现后仍需逐行 diff、人工批准与一次性确认号。</p></div>';
+  renderJourney();
 
   for (const button of $('#proposalList').querySelectorAll('[data-approve]')) {
     button.addEventListener('click', () => decideProposal(button.dataset.approve, 'approve'));
@@ -2740,11 +2886,13 @@ async function loadCollab() {
     renderAnnotations(session.graph?.annotations || []);
     const proposals = await collabFetch('/api/collab/proposals');
     renderProposals(proposals.proposals || []);
+    renderJourney();
     const activity = await collabFetch('/api/collab/activity?limit=30');
     renderActivity(activity.timeline);
     const activityCount = activity.timeline?.total ?? activity.timeline?.returned ?? 0;
     const overviewActivity = $('#overviewActivity');
     if (overviewActivity) overviewActivity.textContent = String(activityCount);
+    renderJourney();
     const diagnostics = await collabFetch('/api/collab/diagnostics');
     collabDiagnostics = diagnostics.diagnostics;
     renderDiagnostics(diagnostics.diagnostics);
@@ -3099,20 +3247,33 @@ async function importSession(event) {
 }
 
 function openCollab() {
-  $('#collabShell').hidden = false;
+  const shell = $('#collabShell');
+  shell.hidden = false;
+  setCollabTab(shell.dataset.tab || 'graph');
   loadCollab();
 }
 $('#btnCollaborate').addEventListener('click', openCollab);
 $('#btnCollaborate').setAttribute('aria-controls', 'collabShell');
 for (const tab of document.querySelectorAll('.collab-tab')) {
-  tab.addEventListener('click', () => {
-    const target = tab.dataset.tabTarget;
-    $('#collabShell').dataset.tab = target;
-    for (const other of document.querySelectorAll('.collab-tab')) {
-      const active = other === tab;
-      other.classList.toggle('active', active);
-      other.setAttribute('aria-selected', String(active));
-    }
+  tab.addEventListener('click', () => setCollabTab(tab.dataset.tabTarget));
+  tab.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const tabs = [...document.querySelectorAll('.collab-tab')];
+    const index = tabs.indexOf(tab);
+    const next = tabs[(index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    setCollabTab(next.dataset.tabTarget);
+    next.focus();
+  });
+}
+for (const step of document.querySelectorAll('.journey-step')) {
+  step.addEventListener('click', () => setCollabTab(step.dataset.journeyTab));
+  step.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const steps = [...document.querySelectorAll('.journey-step')];
+    const index = steps.indexOf(step);
+    steps[(index + (event.key === 'ArrowRight' ? 1 : steps.length - 1)) % steps.length].focus();
   });
 }
 $('#btnCommandHint').addEventListener('click', () => {
@@ -3155,17 +3316,28 @@ $('#btnDialogMore').addEventListener('click', (event) => {
   group.classList.toggle('open');
   event.currentTarget.textContent = group.classList.contains('open') ? '收起 ⌃' : '更多 ⌄';
 });
+function setHistoryTab(tab) {
+  const target = tab.dataset.historyTarget;
+  for (const other of document.querySelectorAll('.history-tab')) {
+    const active = other === tab;
+    other.classList.toggle('active', active);
+    other.setAttribute('aria-selected', String(active));
+    other.tabIndex = active ? 0 : -1;
+  }
+  for (const pane of document.querySelectorAll('.history-pane')) {
+    pane.classList.toggle('active', pane.dataset.historyPane === target);
+  }
+}
 for (const tab of document.querySelectorAll('.history-tab')) {
-  tab.addEventListener('click', () => {
-    const target = tab.dataset.historyTarget;
-    for (const other of document.querySelectorAll('.history-tab')) {
-      const active = other === tab;
-      other.classList.toggle('active', active);
-      other.setAttribute('aria-selected', String(active));
-    }
-    for (const pane of document.querySelectorAll('.history-pane')) {
-      pane.classList.toggle('active', pane.dataset.historyPane === target);
-    }
+  tab.addEventListener('click', () => setHistoryTab(tab));
+  tab.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const tabs = [...document.querySelectorAll('.history-tab')];
+    const index = tabs.indexOf(tab);
+    const next = tabs[(index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    setHistoryTab(next);
+    next.focus();
   });
 }
 const messageInput = $('#messageInput');

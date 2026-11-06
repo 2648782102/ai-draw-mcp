@@ -132,7 +132,8 @@ describe("collaboration panel UI", () => {
         shortcuts: document.querySelectorAll(".appearance-shortcuts kbd").length,
         activeTheme: document.querySelector('[data-ui-theme].active')?.dataset.uiTheme,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 4, activeTheme: "dark" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 4, shortcuts: 5, activeTheme: "dark" });
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       await page.click('[data-ui-theme="light"]');
       expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
       await page.click('[data-density="compact"]');
@@ -158,6 +159,9 @@ describe("collaboration panel UI", () => {
         stats: document.querySelectorAll(".overview-stat").length,
         drawers: document.querySelectorAll(".signal-drawer").length,
         docks: document.querySelectorAll(".section-dock").length,
+        journeySteps: document.querySelectorAll(".journey-step").length,
+        activeJourney: document.querySelector(".journey-step.active")?.dataset.journey,
+        proposalBadge: document.querySelector("#journeyProposalCount")?.textContent,
         graphGuide: Boolean(document.querySelector(".graph-guide")),
         proposalCards: document.querySelectorAll(".proposal-card").length,
         scrollWidth: document.body.scrollWidth,
@@ -167,11 +171,42 @@ describe("collaboration panel UI", () => {
         stats: 6,
         drawers: 2,
         docks: 2,
+        journeySteps: 4,
+        activeJourney: "graph",
+        proposalBadge: "1",
         graphGuide: true,
         proposalCards: 1,
         scrollWidth: 1440,
         clientWidth: 1440,
       });
+      const journey = await page.evaluate(() => ({
+        graphState: document.querySelector('[data-journey="graph"]').dataset.state,
+        dialogState: document.querySelector('[data-journey="dialog"]').dataset.state,
+        proposalState: document.querySelector('[data-journey="proposals"]').dataset.state,
+        reviewState: document.querySelector('[data-journey="review"]').dataset.state,
+        reviewHint: document.querySelector('[data-journey-hint="review"]').textContent,
+      }));
+      expect(journey.dialogState).toBe("ready");
+      expect(journey.proposalState).toBe("busy");
+      expect(journey.reviewState).toBe("busy");
+      expect(journey.reviewHint).toContain("批准前先看完整 diff");
+      await page.click('[data-journey="proposals"]');
+      expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("proposals");
+      expect(await page.$eval('[data-journey="proposals"]', (element) => element.getAttribute("aria-current"))).toBe("step");
+      await page.keyboard.press("4");
+      expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("graph");
+      await page.click('[data-journey="dialog"]');
+      expect(await page.$eval('[data-journey="dialog"]', (element) => element.classList.contains("active"))).toBe(true);
+      await page.$eval('[data-tab-target="dialog"]', (element) => {
+        element.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+      });
+      expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("proposals");
+      await page.click('[data-journey="dialog"]');
+      await page.$eval('[data-history-target="chat"]', (element) => {
+        element.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+      });
+      expect(await page.$eval('[data-history-target="activity"]', (element) => element.getAttribute("aria-selected"))).toBe("true");
+      await page.$eval('[data-history-target="chat"]', (element) => element.click());
       const proposalCard = await page.evaluate(() => {
         const card = document.querySelector(".proposal-card.status-pending");
         const badge = card.querySelector(".proposal-badge");
@@ -241,6 +276,21 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval('[data-history-count="activity"]', (element) => Number(element.textContent))).toBeGreaterThan(0);
       await page.click("#btnAddNode");
       await page.waitForSelector("#graphEditor .graph-row.is-dirty");
+      const stableDirtyRows = await page.evaluate(() => {
+        const rows = [...document.querySelectorAll("#graphEditor .graph-row")];
+        const dirty = rows.filter((row) => row.classList.contains("is-dirty"));
+        const label = document.querySelector("#graphEditor .node-label");
+        label.value = "稳定 ID 回归";
+        label.dispatchEvent(new Event("input", { bubbles: true }));
+        return {
+          firstId: dirty[0]?.dataset.nodeId,
+          dirtyRows: document.querySelectorAll("#graphEditor .graph-row.is-dirty").length,
+          badge: document.querySelector("#graphDirtyCount").textContent,
+        };
+      });
+      expect(stableDirtyRows.firstId).toBeTruthy();
+      expect(stableDirtyRows.dirtyRows).toBe(1);
+      expect(stableDirtyRows.badge).toBe("1");
       await page.$eval("#graphEditor .node-label", (element) => {
         element.value = "人工编辑模块";
         element.dispatchEvent(new Event("input", { bubbles: true }));
