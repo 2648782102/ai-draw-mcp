@@ -11,7 +11,18 @@ const outputDir = path.join(root, "docs");
 const port = Number(process.env.CAPTURE_PORT ?? 4418);
 const base = `http://127.0.0.1:${port}`;
 const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ai-draw-capture-"));
-await fs.writeFile(path.join(tempDir, "README.md"), "# Demo\n", "utf8");
+await fs.mkdir(path.join(tempDir, "src", "infra"), { recursive: true });
+await fs.mkdir(path.join(tempDir, "src", "tools"), { recursive: true });
+await fs.mkdir(path.join(tempDir, "docs"), { recursive: true });
+await Promise.all([
+  fs.writeFile(path.join(tempDir, "README.md"), "# Demo\n\nHuman and AI share one visual context.\n", "utf8"),
+  fs.writeFile(path.join(tempDir, "package.json"), '{"name":"demo","private":true}\n', "utf8"),
+  fs.writeFile(path.join(tempDir, "src", "index.ts"), "export function start() {}\n", "utf8"),
+  fs.writeFile(path.join(tempDir, "src", "infra", "preview-server.ts"), "export class PreviewServer {}\n", "utf8"),
+  fs.writeFile(path.join(tempDir, "src", "infra", "store.ts"), "export class DiagramStore {}\n", "utf8"),
+  fs.writeFile(path.join(tempDir, "src", "tools", "scan-project.ts"), "export function scanProject() {}\n", "utf8"),
+  fs.writeFile(path.join(tempDir, "docs", "ARCHITECTURE.md"), "# Architecture\n\nVisual context stays read-only until human approval.\n", "utf8"),
+]);
 
 function resolveChrome() {
   const configured = process.env.PUPPETEER_EXECUTABLE_PATH;
@@ -32,8 +43,17 @@ process.env.OUTPUT_DIR = path.join(tempDir, "output");
 process.env.PREVIEW_PORT = String(port);
 
 const { createServer } = await import(path.join(root, "dist/server.js"));
-const { preview } = await createServer();
+const { preview, visualSync } = await createServer();
 await preview.start();
+
+const scanResult = await visualSync.sync({
+  title: "示例 · 人机协作项目结构",
+  maxDepth: 4,
+  maxFiles: 40,
+  source: "ai",
+  openPanel: false,
+  render: false,
+});
 
 async function seedProposalCard() {
   const html = await fetch(base).then((response) => response.text());
@@ -64,6 +84,15 @@ async function seedProposalCard() {
     });
     if (!chatResponse.ok) throw new Error(`Unable to seed chat message: HTTP ${chatResponse.status}`);
   }
+  const focusNode = scanResult.graph.nodes.find((node) => node.path?.includes("src")) ?? scanResult.graph.nodes[0];
+  if (focusNode) {
+    const focusResponse = await fetch(`${base}/api/collab/focus`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ nodeId: focusNode.id, confirmedBy: "human" }),
+    });
+    if (!focusResponse.ok) throw new Error(`Unable to seed selected node: HTTP ${focusResponse.status}`);
+  }
 }
 
 await seedProposalCard();
@@ -78,7 +107,20 @@ try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
   await page.goto(base, { waitUntil: "networkidle2" });
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(`${base}/diagram/${scanResult.id}`, { waitUntil: "networkidle2" });
+  await page.waitForSelector("#diagramRender svg");
+  await page.waitForFunction(() => document.querySelector("#welcomeCard").hidden);
+  await page.keyboard.press("f");
+  await new Promise((resolve) => setTimeout(resolve, 450));
   await page.screenshot({ path: path.join(outputDir, "preview-panel.png") });
+  await page.keyboard.press("3");
+  await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
+  await page.waitForSelector("#diagramRender svg");
+  await page.waitForFunction(() => getComputedStyle(document.querySelector(".canvas-dock")).display === "flex");
+  await page.keyboard.press("f");
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
   await page.keyboard.press("c");
   await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
   await page.waitForSelector("#overviewRevision");
@@ -94,7 +136,7 @@ try {
   await page.waitForFunction(() => document.querySelector("#collabShell").classList.contains("focus-mode"));
   await new Promise((resolve) => setTimeout(resolve, 250));
   await page.screenshot({ path: path.join(outputDir, "collaboration-focus-panel.png") });
-  console.log("✅ Captured docs/preview-panel.png, docs/collaboration-workbench-panel.png and docs/collaboration-focus-panel.png");
+  console.log("✅ Captured docs/preview-panel.png, docs/canvas-workbench-panel.png, docs/collaboration-workbench-panel.png and docs/collaboration-focus-panel.png");
 } finally {
   await browser.close();
   await preview.stop().catch(() => {});

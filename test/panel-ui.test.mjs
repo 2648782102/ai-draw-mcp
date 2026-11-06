@@ -129,9 +129,35 @@ describe("collaboration panel UI", () => {
       await page.click("#btnLoadExample");
       await page.waitForFunction(() => Boolean(document.querySelector("#diagramRender svg")));
       expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(true);
+      expect(await page.$eval("#workspace", (element) => element.classList.contains("welcome"))).toBe(false);
+      expect(await page.$eval("#welcomeCard", (element) => getComputedStyle(element).display)).toBe("none");
+      const exampleCode = await page.$eval("#codeEditor", (element) => element.value);
+      await page.$eval("#codeEditor", (element) => { element.value = ""; element.dispatchEvent(new Event("input", { bubbles: true })); });
+      await page.waitForFunction(() => !document.querySelector("#diagramRender svg"));
+      expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(false);
+      expect(await page.$eval("#welcomeCard", (element) => getComputedStyle(element).display)).toBe("grid");
+      expect(await page.$eval("#workspace", (element) => element.classList.contains("welcome"))).toBe(true);
+      await page.$eval("#codeEditor", (element, value) => { element.value = value; element.dispatchEvent(new Event("input", { bubbles: true })); }, exampleCode);
+      await page.waitForFunction(() => Boolean(document.querySelector("#diagramRender svg")));
+      expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(true);
+      expect(await page.$eval("#welcomeCard", (element) => getComputedStyle(element).display)).toBe("none");
       expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("block");
       expect(await page.$eval("#diagramCount", (element) => element.textContent)).toBe("0");
       expect(await page.$eval("#diagramTitle", (element) => element.textContent)).toContain("示例");
+      expect(await page.$eval(".canvas-dock", (element) => getComputedStyle(element).display)).toBe("flex");
+      expect(await page.$eval("#canvasDiagramLabel", (element) => element.textContent)).toContain("示例");
+      expect(await page.$eval("#canvasZoomLabel", (element) => element.textContent)).toBe("100%");
+      await page.click("#btnCanvasZoomIn");
+      expect(await page.$eval("#canvasZoomLabel", (element) => element.textContent)).toBe("130%");
+      await page.click("#btnCanvasZoomFit");
+      expect(await page.$eval("#canvasZoomLabel", (element) => element.textContent)).toMatch(/%/);
+      expect(await page.$$eval(".canvas-dock button", (elements) => elements.length)).toBe(6);
+      await page.click("#btnCanvasBackdrop");
+      expect(await page.$eval("#previewWrap", (element) => element.classList.contains("dark-bg"))).toBe(true);
+      expect(await page.$eval("#btnCanvasBackdrop", (element) => element.getAttribute("aria-pressed"))).toBe("true");
+      await page.click("#btnCanvasBackdrop");
+      expect(await page.$eval("#previewWrap", (element) => element.classList.contains("dark-bg"))).toBe(false);
+      expect(await page.$eval("#btnCanvasBackdrop", (element) => element.getAttribute("aria-pressed"))).toBe("false");
       const diagramsAfter = await fetch(`${base}/api/diagrams`).then((response) => response.json());
       expect(diagramsAfter.length).toBe(diagramsBefore.length);
 
@@ -171,7 +197,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#appearancePopover", (element) => element.hidden)).toBe(true);
       expect(await page.$eval("#btnAppearance", (element) => element.getAttribute("aria-expanded"))).toBe("false");
 
-      await page.click("#btnOpenCommandsWelcome");
+      await page.keyboard.press("?");
       await page.waitForFunction(() => !document.querySelector("#commandBackdrop").hidden);
       const commandPalette = await page.evaluate(() => ({
         title: document.querySelector("#commandTitle").textContent,

@@ -143,6 +143,7 @@ const expectedTopics = [
 
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
 check(await assetExists("docs/preview-panel.png"), "README is missing the refreshed preview panel screenshot");
+check(await assetExists("docs/canvas-workbench-panel.png"), "README is missing the canvas workbench screenshot");
 check(await assetExists("docs/collaboration-workbench-panel.png"), "README is missing the collaboration workbench screenshot");
 check(await assetExists("docs/collaboration-focus-panel.png"), "README is missing the collaboration focus-mode screenshot");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
@@ -751,6 +752,9 @@ for (const [label, file, needle] of [
   ["focus mode shortcut", panel, "专注模式"],
   ["focus mode screenshot", capturePanelScript, "collaboration-focus-panel.png"],
   ["focus mode screenshot in README", readme, "collaboration-focus-panel.png"],
+  ["canvas workbench screenshot", capturePanelScript, "canvas-workbench-panel.png"],
+  ["canvas workbench screenshot in README", readme, "canvas-workbench-panel.png"],
+  ["reproducible canvas example project", capturePanelScript, "示例 · 人机协作项目结构"],
   ["intent composer card", panel, "intent-composer"],
   ["local intent draft", panel, "MESSAGE_DRAFT_KEY"],
   ["intent presets", panel, "data-intent-preset"],
@@ -759,6 +763,13 @@ for (const [label, file, needle] of [
   ["graph node count", panel, "graphNodeCount"],
   ["graph edge count", panel, "graphEdgeCount"],
   ["graph selection count", panel, "graphSelectedCount"],
+  ["canvas floating toolbar", panel, "canvas-dock"],
+  ["canvas zoom readout", panel, "canvasZoomLabel"],
+  ["canvas diagram readout", panel, "canvasDiagramLabel"],
+  ["canvas background toggle", panel, "btnCanvasBackdrop"],
+  ["dotted preview canvas", panel, "radial-gradient(rgba(99, 132, 191"],
+  ["canvas collaboration action", panel, "btnCanvasCollab"],
+  ["canvas command action", panel, "btnCanvasCommands"],
   ["history tab counts", panel, "data-history-count"],
   ["conversation-first history order", panel, 'data-history-pane="chat"'],
   ["distinct source evidence cards", panel, "evidence-item"],
@@ -774,6 +785,7 @@ for (const [label, file, needle] of [
   ["panel UI message counter regression", panelUiTest, "messageCount"],
   ["panel UI view switch regression", panelUiTest, 'data-view-target="split"'],
   ["panel UI first-run regression", panelUiTest, "btnLoadExample"],
+  ["panel UI hidden welcome regression", panelUiTest, 'getComputedStyle(element).display)).toBe("none")'],
   ["panel UI appearance popover regression", panelUiTest, "appearancePopover"],
   ["panel UI diagram library regression", panelUiTest, "diagramSearch"],
   ["panel UI health card regression", panelUiTest, "collabHealth"],
@@ -792,6 +804,8 @@ for (const [label, file, needle] of [
   ["panel UI focus mode regression", panelUiTest, "focus-mode"],
   ["panel UI intent composer regression", panelUiTest, "intent-composer"],
   ["panel UI graph toolbar regression", panelUiTest, "graphToolbar"],
+  ["panel UI canvas dock regression", panelUiTest, "canvas-dock"],
+  ["panel UI canvas backdrop regression", panelUiTest, "btnCanvasBackdrop"],
   ["panel UI proposal card regression", panelUiTest, "proposal-card.status-pending"],
   ["panel UI proposal diff regression", panelUiTest, "proposal-diff.loaded"],
   ["reproducible proposal screenshot", capturePanelScript, "seedProposalCard"],

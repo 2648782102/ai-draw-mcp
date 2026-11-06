@@ -37,8 +37,13 @@
     body.theme-light .header, body.theme-light .collab-shell { background: rgba(255,255,255,.92); }
     body.theme-light .sidebar, body.theme-light .workspace, body.theme-light .pane, body.theme-light .collab-section { background: rgba(255,255,255,.86); }
     body.theme-light .collab-body { background: rgba(238,243,251,.72); }
-    body.theme-light .preview-wrap { background: #ffffff; }
-    body.theme-light .preview-wrap.dark-bg { background: radial-gradient(circle at 50% 30%, #33476b, #111c31); }
+  body.theme-light .preview-wrap { background-color: #ffffff; background-image: radial-gradient(rgba(99, 132, 191, .14) .8px, transparent .8px); }
+  body.theme-light .preview-wrap.dark-bg {
+    background-color: #111c31;
+    background-image: radial-gradient(circle at 50% 30%, #33476b, #111c31),
+                      radial-gradient(rgba(122, 162, 247, .14) .8px, transparent .8px);
+    background-size: auto, 22px 22px;
+  }
     body.theme-light .graph-editor, body.theme-light .chat-log, body.theme-light .proposal-list,
     body.theme-light .diagnostics-list, body.theme-light .empty-state { background: #f5f8fd; }
     body.theme-light #codeEditor { background: #f8fbff; color: #24334c; }
@@ -147,9 +152,16 @@
     /* Diagram preview */
     .preview-wrap {
       flex: 1; overflow: hidden; position: relative;
-      background: #ffffff;
+      background-color: #ffffff;
+      background-image: radial-gradient(rgba(99, 132, 191, .16) .8px, transparent .8px);
+      background-size: 22px 22px;
     }
-    .preview-wrap.dark-bg { background: radial-gradient(circle at 50% 30%, #15243d, #0b1220); }
+    .preview-wrap.dark-bg {
+      background-color: #0b1220;
+      background-image: radial-gradient(circle at 50% 30%, #15243d, #0b1220),
+                        radial-gradient(rgba(122, 162, 247, .14) .8px, transparent .8px);
+      background-size: auto, 22px 22px;
+    }
     .welcome-card {
       position: absolute; inset: 50% auto auto 50%; z-index: 12;
       width: min(720px, calc(100% - 48px)); transform: translate(-50%, -50%);
@@ -159,6 +171,7 @@
       box-shadow: 0 28px 80px rgba(0,0,0,.54), inset 0 1px 0 rgba(255,255,255,.06);
       text-align: left; pointer-events: auto;
     }
+    .welcome-card[hidden] { display: none; }
     .welcome-main { padding: 26px 25px 22px; }
     .welcome-kicker { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px; padding: 4px 9px; border: 1px solid rgba(122,162,247,.42); border-radius: 999px; background: rgba(122,162,247,.10); color: var(--accent); font-size: 9px; font-weight: 800; letter-spacing: .07em; }
     .welcome-kicker::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(158,206,106,.14); }
@@ -216,13 +229,14 @@
     #minimap {
       position: absolute; bottom: 14px; right: 14px; z-index: 20;
       width: 168px; height: 112px;
-      background: rgba(9, 14, 25, 0.88);
+      background: #eef3fb;
       border: 1px solid var(--border);
       border-radius: 10px; overflow: hidden;
       box-shadow: 0 8px 24px rgba(0,0,0,.45);
       backdrop-filter: blur(10px);
       cursor: crosshair;
     }
+    .preview-wrap.dark-bg #minimap { background: #0f1b2f; }
     #minimapContent {
       position: absolute; inset: 0; overflow: hidden;
     }
@@ -385,6 +399,43 @@
     .canvas-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
     .workspace[data-view="canvas"] .canvas-chip { display: flex; }
     .workspace.welcome #minimap, .workspace.welcome .canvas-chip { display: none; }
+    .canvas-dock {
+      position: absolute; left: 14px; bottom: 14px; z-index: 22; display: none;
+      align-items: center; gap: 9px; padding: 6px 7px; border: 1px solid var(--border);
+      border-radius: 13px; background: rgba(9,14,25,.9); box-shadow: 0 10px 28px rgba(0,0,0,.28);
+      backdrop-filter: blur(14px);
+    }
+    .workspace:not(.welcome) .canvas-dock { display: flex; }
+    .workspace[data-view="canvas"] .canvas-dock { bottom: 54px; }
+    .canvas-dock-status {
+      display: flex; align-items: center; gap: 7px; min-width: 0; padding: 0 5px 0 3px;
+      border-right: 1px solid var(--border);
+    }
+    .canvas-dock-status::before {
+      content: ''; width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 0 4px rgba(158,206,106,.12);
+    }
+    .canvas-dock-label { min-width: 0; }
+    .canvas-dock-label strong { display: block; overflow: hidden; max-width: 150px; color: var(--text); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-dock-label span { display: block; color: var(--text-muted); font-size: 8px; letter-spacing: .05em; text-transform: uppercase; }
+    .canvas-dock-group { display: flex; align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 9px; background: rgba(0,0,0,.14); }
+    .canvas-dock button { height: 27px; padding: 0 8px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text-muted); font-size: 10px; cursor: pointer; transition: color .15s, background .15s, border-color .15s, transform .15s; }
+    .canvas-dock button:hover { border-color: rgba(122,162,247,.45); background: rgba(122,162,247,.13); color: var(--text); transform: translateY(-1px); }
+    .canvas-dock button.primary { background: rgba(122,162,247,.16); color: var(--accent); font-weight: 700; }
+    .canvas-dock button[aria-pressed="true"] { background: rgba(122,162,247,.18); color: var(--accent); }
+    .canvas-dock .zoom-readout { min-width: 40px; padding: 0 4px; color: var(--text); font-size: 10px; font-variant-numeric: tabular-nums; font-weight: 700; text-align: center; }
+    .canvas-dock-divider { width: 1px; height: 20px; margin: 0 1px; background: var(--border); }
+    body.theme-light .canvas-dock { background: rgba(255,255,255,.92); }
+    body.theme-light .canvas-dock-group { background: #f2f6fd; }
+    @media (max-width: 860px) {
+      .canvas-dock-status { display: none; }
+      .canvas-dock { gap: 4px; }
+    }
+    @media (max-width: 620px) {
+      .canvas-dock { left: 7px; right: 7px; bottom: 7px; overflow-x: auto; }
+      .workspace[data-view="canvas"] .canvas-dock { bottom: 46px; }
+      .canvas-dock button { flex: 0 0 auto; }
+    }
     button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible {
       outline: 2px solid rgba(122,162,247,.85); outline-offset: 2px;
     }
@@ -1034,6 +1085,21 @@
             <div id="minimapContent"></div>
             <div id="minimapViewport"></div>
           </div>
+          <div class="canvas-dock" aria-label="画布快捷操作">
+            <div class="canvas-dock-status">
+              <div class="canvas-dock-label"><strong id="canvasDiagramLabel">本机预览</strong><span>Live · read-only until approval</span></div>
+            </div>
+            <div class="canvas-dock-group">
+              <button type="button" id="btnCanvasZoomOut" title="缩小">−</button>
+              <span class="zoom-readout" id="canvasZoomLabel">100%</span>
+              <button type="button" id="btnCanvasZoomIn" title="放大">＋</button>
+              <button type="button" id="btnCanvasZoomFit" title="适应窗口 (F)">⊡ 适应</button>
+            </div>
+            <button type="button" id="btnCanvasBackdrop" aria-pressed="false" title="切换画布背景">◐ 背景</button>
+            <div class="canvas-dock-divider" aria-hidden="true"></div>
+            <button type="button" id="btnCanvasCollab" class="primary" title="打开双向协作工作台 (C)">↔ 协作</button>
+            <button type="button" id="btnCanvasCommands" title="打开命令面板 (?)">⌘</button>
+          </div>
           <div class="canvas-chip">画布模式 · 滚轮缩放 / 拖拽平移 / F 适应窗口</div>
         </div>
       </div>
@@ -1393,26 +1459,53 @@ function scheduleViewportSync() {
 
 function applyTransform() {
   $('#diagramRender').style.transform = `translate(${zX}px,${zY}px) scale(${zScale})`;
-  $('#zoomLabel').textContent = `${Math.round(zScale * 100)}%`;
+  const zoomLabel = `${Math.round(zScale * 100)}%`;
+  $('#zoomLabel').textContent = zoomLabel;
+  $('#canvasZoomLabel').textContent = zoomLabel;
+  updateCanvasDock();
   scheduleMinimapUpdate();
   scheduleViewportSync();
 }
 
+function updateCanvasDock() {
+  const title = $('#diagramTitle').textContent.trim();
+  const meaningfulTitle = title && title !== '—' ? title : '本机预览';
+  $('#canvasDiagramLabel').textContent = meaningfulTitle;
+  $('#canvasDiagramLabel').title = meaningfulTitle;
+}
+
 function resetView() { zScale = 1; zX = 0; zY = 0; applyTransform(); }
+
+function naturalSvgSize(svg) {
+  const width = Number.parseFloat(svg?.getAttribute('width'));
+  const height = Number.parseFloat(svg?.getAttribute('height'));
+  if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+    return { width, height };
+  }
+  const viewBox = svg?.viewBox?.baseVal;
+  if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
+    return { width: viewBox.width, height: viewBox.height };
+  }
+  return {
+    width: 0,
+    height: 0,
+  };
+}
 
 function fitView() {
   const wrap = $('#previewWrap');
   const render = $('#diagramRender');
   const svg = render.querySelector('svg');
   if (!svg) { resetView(); return; }
-  const svgW = svg.getBoundingClientRect().width / zScale;
-  const svgH = svg.getBoundingClientRect().height / zScale;
+  const { width: svgW, height: svgH } = naturalSvgSize(svg);
   if (!svgW || !svgH) { resetView(); return; }
-  const padW = wrap.clientWidth - 40, padH = wrap.clientHeight - 40;
-  const newScale = Math.min(padW / svgW, padH / svgH, 2);
+  const canvasMode = $('#workspace').dataset.view === 'canvas';
+  const padW = wrap.clientWidth - (canvasMode ? 92 : 64);
+  const padH = wrap.clientHeight - (canvasMode ? 128 : 96);
+  const newScale = Math.min(padW / svgW, padH / svgH, 3.2);
   zScale = Math.max(0.05, newScale);
   zX = (wrap.clientWidth  - svgW * zScale) / 2;
-  zY = (wrap.clientHeight - svgH * zScale) / 2;
+  zY = (wrap.clientHeight - svgH * zScale) / 2 - (canvasMode ? 16 : 0);
   applyTransform();
 }
 
@@ -1467,6 +1560,11 @@ $('#btnZoomOut').addEventListener('click', () => {
 });
 $('#btnZoomFit').addEventListener('click',   () => fitView());
 $('#btnZoomReset').addEventListener('click', () => resetView());
+$('#btnCanvasZoomIn').addEventListener('click', () => $('#btnZoomIn').click());
+$('#btnCanvasZoomOut').addEventListener('click', () => $('#btnZoomOut').click());
+$('#btnCanvasZoomFit').addEventListener('click', () => fitView());
+$('#btnCanvasCollab').addEventListener('click', () => openCollab());
+$('#btnCanvasCommands').addEventListener('click', () => openCommandPalette());
 
 // Keyboard: F=fit, 0=reset, +/- zoom
 window.addEventListener('keydown', (e) => {
@@ -1538,8 +1636,9 @@ function getContentMetrics() {
   const svgEl = $('#diagramRender svg');
   if (!svgEl) return null;
   const pad  = 20;
-  const svgW = parseFloat(svgEl.getAttribute('width'))  || svgEl.viewBox?.baseVal?.width  || 800;
-  const svgH = parseFloat(svgEl.getAttribute('height')) || svgEl.viewBox?.baseVal?.height || 600;
+  const natural = naturalSvgSize(svgEl);
+  const svgW = natural.width || 800;
+  const svgH = natural.height || 600;
   const contentW = svgW + pad * 2;
   const contentH = svgH + pad * 2;
   const mmScale  = Math.min(MM_W / contentW, MM_H / contentH) * 0.92;
@@ -1553,9 +1652,13 @@ function refreshMinimapImage() {
   minimapContent.innerHTML = '';
   if (!svgEl) { minimapVP.style.display = 'none'; return; }
   const clone = svgEl.cloneNode(true);
-  clone.style.position     = 'absolute';
+  clone.removeAttribute('style');
+  clone.removeAttribute('width');
+  clone.removeAttribute('height');
+  clone.style.position = 'absolute';
   clone.style.pointerEvents = 'none';
   clone.style.transformOrigin = '0 0';
+  clone.style.transform = 'none';
   minimapContent.appendChild(clone);
   scheduleMinimapUpdate();
 }
@@ -1568,8 +1671,6 @@ function renderMinimapNow() {
   // Position the cloned SVG
   const cloneSvg = minimapContent.querySelector('svg');
   if (cloneSvg) {
-    cloneSvg.setAttribute('width',  String(m.svgW));
-    cloneSvg.setAttribute('height', String(m.svgH));
     cloneSvg.style.left   = `${m.offX + m.pad * m.mmScale}px`;
     cloneSvg.style.top    = `${m.offY + m.pad * m.mmScale}px`;
     cloneSvg.style.width  = `${m.svgW * m.mmScale}px`;
@@ -1649,8 +1750,9 @@ async function renderDiagram(code, keepView = false) {
     // preserve natural size in viewBox, then let CSS transform handle scaling.
     const svgEl = container.querySelector('svg');
     if (svgEl) {
-      const w = parseFloat(svgEl.getAttribute('width'))  || svgEl.viewBox?.baseVal?.width  || 0;
-      const h = parseFloat(svgEl.getAttribute('height')) || svgEl.viewBox?.baseVal?.height || 0;
+      const natural = naturalSvgSize(svgEl);
+      const w = natural.width;
+      const h = natural.height;
       if (w && h && !svgEl.getAttribute('viewBox')) {
         svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
       }
@@ -1703,11 +1805,17 @@ const EXAMPLE_MERMAID = `flowchart LR
   Approval -->|一次性确认号| Apply[AI 应用变更]
   Apply --> Graph`;
 
-function showWelcome(visible) {
+function showWelcome(visible = true) {
   const card = $('#welcomeCard');
   if (!card) return;
-  card.hidden = !visible;
-  $('#workspace').classList.toggle('welcome', visible);
+  const show = Boolean(visible) && !$('#diagramRender svg') && !$('#codeEditor').value.trim();
+  card.hidden = !show;
+  $('#workspace').classList.toggle('welcome', show);
+  updateCanvasDock();
+}
+
+function syncWelcomeState() {
+  showWelcome(!$('#diagramRender svg') && !$('#codeEditor').value.trim());
 }
 
 function loadExampleDiagram() {
@@ -1716,6 +1824,7 @@ function loadExampleDiagram() {
   $('#charCount').textContent = `${EXAMPLE_MERMAID.length} chars`;
   $('#diagramTitle').textContent = '示例 · 人机协作闭环';
   $('#statusMsg').textContent = '示例图形已载入本地编辑器';
+  syncWelcomeState();
   renderPreview();
   showToast('示例已载入；未创建图、未写项目文件');
 }
@@ -1732,6 +1841,7 @@ $('#codeEditor').addEventListener('input', () => {
   clearTimeout(renderTimer);
   const code = $('#codeEditor').value;
   $('#charCount').textContent = `${code.length} chars`;
+  if (!code.trim()) showWelcome(true);
   renderTimer = setTimeout(() => renderPreview(), 400);
 });
 
@@ -1767,6 +1877,7 @@ function setPreviewBackground(mode) {
   prefs.darkBg = dark;
   savePrefs();
   syncAppearanceControls();
+  showToast(dark ? '已切换深色点阵画布' : '已切换浅色点阵画布');
 }
 
 function setSidebarCollapsed(collapsed) {
@@ -1795,6 +1906,8 @@ function syncAppearanceControls() {
   for (const button of document.querySelectorAll('[data-sidebar]')) {
     button.classList.toggle('active', button.dataset.sidebar === (prefs.sidebarCollapsed ? 'collapsed' : 'open'));
   }
+  $('#btnCanvasBackdrop').setAttribute('aria-pressed', String(prefs.darkBg));
+  $('#btnCanvasBackdrop').classList.toggle('active', prefs.darkBg);
   $('#btnToggleSidebar').textContent = prefs.sidebarCollapsed ? '⟩' : '☰';
 }
 
@@ -1802,6 +1915,7 @@ $('#btnToggleSidebar').addEventListener('click', () => setSidebarCollapsed(!pref
 for (const button of document.querySelectorAll('[data-preview-bg]')) {
   button.addEventListener('click', () => setPreviewBackground(button.dataset.previewBg));
 }
+$('#btnCanvasBackdrop').addEventListener('click', () => setPreviewBackground(prefs.darkBg ? 'light' : 'dark'));
 for (const button of document.querySelectorAll('[data-sidebar]')) {
   button.addEventListener('click', () => setSidebarCollapsed(button.dataset.sidebar === 'collapsed'));
 }
@@ -1906,6 +2020,7 @@ $('#btnDeleteDiagram').addEventListener('click', async () => {
     showToast('已删除');
     currentId = null;
     $('#diagramTitle').textContent = '—';
+  updateCanvasDock();
     $('#codeEditor').value = '';
     $('#diagramRender').innerHTML = '';
     loadList();
@@ -2133,6 +2248,8 @@ async function loadDiagram(id) {
     const kind = data.editorKind === 'svg' ? 'svg' : 'mermaid';
     setEditorKind(kind);
     $('#diagramTitle').textContent = data.title || id;
+    updateCanvasDock();
+    syncWelcomeState();
 
     if (kind === 'mermaid' && data.mermaidCode != null) {
       $('#codeEditor').value = data.mermaidCode;
@@ -2190,6 +2307,7 @@ function connectWs() {
         if (currentId === msg.id) {
           currentId = null;
           $('#diagramTitle').textContent = '—';
+          updateCanvasDock();
           $('#codeEditor').value = '';
           $('#diagramRender').innerHTML = '';
         }
@@ -2201,6 +2319,7 @@ function connectWs() {
       if (msg.type === 'diagram_update' || msg.type === 'diagram_added') {
         currentId = msg.id;
         if (msg.title) $('#diagramTitle').textContent = msg.title;
+        updateCanvasDock();
         if (msg.mermaidCode && String(msg.mermaidCode).trim()) {
           setEditorKind('mermaid');
           $('#codeEditor').value = msg.mermaidCode;
@@ -3827,7 +3946,7 @@ $('#btnAddAnnotation').addEventListener('click', addAnnotation);
 // ── Init ──
 loadList();
 connectWs();
-showWelcome(true);
+syncWelcomeState();
 
 // Restore last viewed diagram (URL path takes priority)
 const pathMatch = location.pathname.match(/\/diagram\/(.+)/);
@@ -3836,6 +3955,7 @@ if (pathMatch) {
 } else if (prefs.lastDiagramId) {
   loadDiagram(prefs.lastDiagramId);
 }
+syncWelcomeState();
 
 $('#welcomeCard').addEventListener('click', (event) => event.stopPropagation());
 $('#diagramSearch').addEventListener('input', () => {
