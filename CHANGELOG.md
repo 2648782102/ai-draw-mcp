@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 增强图形皮肤与画框语境（2026-11-06 18:25 CST）：Flow 主画布新增「共享上下文画框」角标与只读状态，Mermaid 节点、连线、边标签、文字与焦点高亮现在会随 Aurora / Studio / Atlas 产生一眼可见的差异化外观；`G`、⚙ 外观面板与命令面板可在增强图形皮肤与 Mermaid 原色间切换，原色模式保留全部画布交互与只读语义。图形皮肤只是本机 CSS / `localStorage` 派生，不改写 Mermaid/SVG 源、存储图、会话 focus/viewport、26 个工具、version 1 协议、批准凭据或项目文件；浏览器回归、离线守卫、中英文 README、竞品调研与可复现截图同步覆盖。
+
 - Flow 首用态信息层级（2026-11-06 18:10 CST）：空白画布的首用卡在 Flow 默认布局下放大为更明确的「共同上下文航线」，四周显示「AI · 只读扫描 / 人 · 修改确认 / 结构图 / 逐行 diff」四个只读环节标签，主标题、四步闭环和本机示例动作获得更清晰的空间层级。标签只是静态说明，不调用工具、不创建会话、不批准提案、不签发凭据或写项目文件；浏览器回归、离线守卫与 `npm run ui:shots` 首用截图同步覆盖。
 
 - 画布优先布局的产品调研（2026-11-06 18:05 CST）：`docs/COMPETITIVE_RESEARCH.md` 新增「Flow 画布优先布局的产品调研」，把已核验的 Figma / tldraw / MCP Apps / Birdview / Glimpse / Archyne / Nereid / GitDiagram 来源映射到「主画布 + 按需源码 + 可见流程 + 对象焦点」的交互语言，并明确不借用账号体系、自动执行、自由形状库或隐藏写入权限。离线守卫同步检查调研标题与安全边界结论；不新增外部依赖或联网运行时行为。

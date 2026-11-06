@@ -140,6 +140,13 @@ try {
   await page.screenshot({ path: path.join(outputDir, "atlas-workspace-panel.png") });
   await page.click('.visual-switch [data-visual="aurora"]');
   await page.waitForFunction(() => document.body.classList.contains("visual-aurora"));
+  await page.click("#btnAppearance");
+  await page.waitForFunction(() => !document.querySelector("#appearancePopover").hidden);
+  await page.click('#appearancePopover [data-graph-skin="off"]');
+  await page.waitForFunction(() => document.body.classList.contains("graph-skin-off"));
+  await page.keyboard.press("g");
+  await page.waitForFunction(() => !document.body.classList.contains("graph-skin-off"));
+  await page.keyboard.press("Escape");
   await page.keyboard.press("3");
   await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
   await page.waitForSelector("#diagramRender svg");

@@ -162,6 +162,8 @@
     body.visual-atlas #codeEditor { background: #081113; color: #d9f4de; caret-color: var(--accent); }
     body.visual-atlas .preview-wrap { background-color: #0d1719; background-image: linear-gradient(rgba(142,230,168,.065) 1px, transparent 1px), linear-gradient(90deg, rgba(142,230,168,.065) 1px, transparent 1px); background-size: 28px 28px; }
     body.visual-atlas .preview-wrap.dark-bg { background-color: #060b0d; }
+    body.visual-atlas .preview-wrap:not(.dark-bg) { background-color: #0d1719; }
+    body.visual-atlas .preview-wrap:not(.dark-bg)::selection { background: rgba(142,230,168,.24); }
     body.visual-atlas .welcome-card, body.visual-atlas .canvas-object-card,
     body.visual-atlas .canvas-dock, body.visual-atlas .collab-pulse,
     body.visual-atlas .collab-handoff, body.visual-atlas .workspace-ribbon,
@@ -488,6 +490,131 @@
                         radial-gradient(circle at 58% 62%, rgba(61,219,217,.08), transparent 42%),
                         radial-gradient(rgba(122, 162, 247, .14) .8px, transparent .8px);
       background-size: auto, auto, auto, 22px 22px;
+    }
+    .canvas-frame {
+      position: absolute; z-index: 11; inset: 12px; display: none;
+      border: 1px solid rgba(61,219,217,.20); border-radius: 14px; pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.035), 0 0 40px rgba(61,219,217,.035);
+    }
+    body.flow-workspace .workspace:not(.welcome) .canvas-frame { display: block; }
+    .canvas-frame::before, .canvas-frame::after {
+      content: ''; position: absolute; width: 46px; height: 46px; pointer-events: none;
+      border-color: rgba(61,219,217,.72); border-style: solid; border-width: 0;
+    }
+    .canvas-frame::before { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; border-radius: 14px 0 0 0; }
+    .canvas-frame::after { right: -1px; bottom: -1px; border-right-width: 2px; border-bottom-width: 2px; border-radius: 0 0 14px 0; }
+    .canvas-frame-badge {
+      position: absolute; left: 18px; top: -1px; display: flex; align-items: center; gap: 6px;
+      height: 20px; padding: 0 9px; transform: translateY(-50%);
+      border: 1px solid rgba(61,219,217,.42); border-radius: 999px;
+      background: var(--glass); color: var(--accent3); font-size: 8px; font-weight: 850;
+      letter-spacing: .10em; text-transform: uppercase; white-space: nowrap;
+      backdrop-filter: blur(12px); box-shadow: 0 6px 18px rgba(0,0,0,.22);
+    }
+    .canvas-frame-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(158,206,106,.14); }
+    .canvas-frame-status {
+      position: absolute; right: 18px; bottom: 10px; color: var(--text-muted);
+      font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .canvas-frame[data-focus="active"] { border-color: rgba(187,154,247,.38); }
+    .canvas-frame[data-focus="active"] .canvas-frame-status { color: var(--accent2); }
+    body.graph-skin-off .canvas-frame { display: none !important; }
+    body.visual-studio .canvas-frame { border-color: rgba(55,104,216,.24); border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); }
+    body.visual-studio .canvas-frame::before, body.visual-studio .canvas-frame::after { border-color: rgba(55,104,216,.62); }
+    body.visual-studio .canvas-frame::before, body.visual-studio .canvas-frame::after { border-radius: 0; }
+    body.visual-studio .canvas-frame-badge { border-color: rgba(55,104,216,.38); color: var(--accent); background: rgba(255,255,255,.96); }
+    body.visual-atlas .canvas-frame { border-color: rgba(142,230,168,.28); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(142,230,168,.05); }
+    body.visual-atlas .canvas-frame::before, body.visual-atlas .canvas-frame::after { width: 20px; height: 20px; border-color: var(--accent); border-radius: 0; }
+    body.visual-atlas .canvas-frame-badge { border-radius: 3px; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    body.visual-atlas .canvas-frame-status { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    body.zen-workspace .canvas-frame, body.flow-source-open .canvas-frame { opacity: .2; }
+    @media (max-width: 900px) { .canvas-frame { inset: 8px; } .canvas-frame-status { display: none; } }
+    body.flow-workspace #diagramRender svg .node rect,
+    body.flow-workspace #diagramRender svg .node polygon,
+    body.flow-workspace #diagramRender svg .node path,
+    body.flow-workspace #diagramRender svg .node circle,
+    body.flow-workspace #diagramRender svg .node ellipse {
+      filter: drop-shadow(0 8px 14px rgba(39,69,119,.14));
+      transition: filter .18s ease, stroke-width .18s ease;
+    }
+    body.flow-workspace #diagramRender svg .nodeLabel { font-weight: 650 !important; letter-spacing: .01em; }
+    body.flow-workspace #diagramRender svg .edgePath .path { stroke-width: 2px !important; }
+    body.flow-workspace.visual-aurora #diagramRender svg .node rect,
+    body.flow-workspace.visual-aurora #diagramRender svg .node polygon,
+    body.flow-workspace.visual-aurora #diagramRender svg .node path,
+    body.flow-workspace.visual-aurora #diagramRender svg .node circle,
+    body.flow-workspace.visual-aurora #diagramRender svg .node ellipse {
+      stroke: #6f8fd8 !important; stroke-width: 1.35px !important; fill: #eef6ff !important;
+    }
+    body.flow-workspace.visual-aurora #diagramRender svg .nodeLabel { color: #17294c !important; }
+    body.flow-workspace.visual-aurora #diagramRender svg .edgeLabel { background-color: rgba(232,244,255,.92) !important; border-radius: 5px; }
+    body.flow-workspace.visual-aurora #diagramRender svg .edgeLabel .label { color: #39537d !important; font-weight: 700 !important; }
+    body.flow-workspace.visual-aurora #diagramRender svg .edgePath .path { stroke: #708fd7 !important; }
+    body.flow-workspace.visual-studio #diagramRender svg .node rect,
+    body.flow-workspace.visual-studio #diagramRender svg .node polygon,
+    body.flow-workspace.visual-studio #diagramRender svg .node path,
+    body.flow-workspace.visual-studio #diagramRender svg .node circle,
+    body.flow-workspace.visual-studio #diagramRender svg .node ellipse {
+      stroke: #5876b9 !important; stroke-width: 1.15px !important; fill: #f8fbff !important; rx: 5px;
+      filter: drop-shadow(0 4px 8px rgba(38,54,84,.10));
+    }
+    body.flow-workspace.visual-studio #diagramRender svg .nodeLabel { color: #16243d !important; font-weight: 700 !important; }
+    body.flow-workspace.visual-studio #diagramRender svg .edgePath .path { stroke: #5876b9 !important; }
+    body.flow-workspace.visual-studio #diagramRender svg .edgeLabel { background-color: rgba(255,255,255,.96) !important; border: 1px solid rgba(55,104,216,.18); border-radius: 5px; }
+    body.flow-workspace.visual-studio #diagramRender svg .edgeLabel .label { color: #334b75 !important; font-weight: 700 !important; }
+    body.flow-workspace.visual-atlas #diagramRender svg .node rect,
+    body.flow-workspace.visual-atlas #diagramRender svg .node polygon,
+    body.flow-workspace.visual-atlas #diagramRender svg .node path,
+    body.flow-workspace.visual-atlas #diagramRender svg .node circle,
+    body.flow-workspace.visual-atlas #diagramRender svg .node ellipse {
+      stroke: #8ee6a8 !important; stroke-width: 1.4px !important; fill: #0c1518 !important; rx: 2px; filter: none;
+    }
+    body.flow-workspace.visual-atlas #diagramRender svg .nodeLabel { color: #dff6e5 !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important; font-weight: 700 !important; }
+    body.flow-workspace.visual-atlas #diagramRender svg .edgePath .path { stroke: #8ee6a8 !important; stroke-dasharray: 5 3; }
+    body.flow-workspace.visual-atlas #diagramRender svg .edgeLabel { display: none !important; }
+    body.flow-workspace.visual-atlas #diagramRender svg .edgePath .path { stroke-width: 1.8px !important; }
+    body.flow-workspace #diagramRender svg .node.is-focused rect,
+    body.flow-workspace #diagramRender svg .node.is-focused polygon,
+    body.flow-workspace #diagramRender svg .node.is-focused path,
+    body.flow-workspace #diagramRender svg .node.is-focused circle,
+    body.flow-workspace #diagramRender svg .node.is-focused ellipse {
+      stroke: var(--accent2) !important; stroke-width: 2.7px !important;
+      fill: #f4edff !important; filter: drop-shadow(0 0 10px rgba(187,154,247,.46));
+    }
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-focused rect,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-focused polygon,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-focused path,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-focused circle,
+    body.flow-workspace.visual-atlas #diagramRender svg .node.is-focused ellipse { stroke: var(--accent2) !important; fill: #151021 !important; }
+    body.graph-skin-off #diagramRender svg .node rect,
+    body.graph-skin-off #diagramRender svg .node polygon,
+    body.graph-skin-off #diagramRender svg .node path,
+    body.graph-skin-off #diagramRender svg .node circle,
+    body.graph-skin-off #diagramRender svg .node ellipse,
+    body.graph-skin-off #diagramRender svg .node.is-focused rect,
+    body.graph-skin-off #diagramRender svg .node.is-focused polygon,
+    body.graph-skin-off #diagramRender svg .node.is-focused path,
+    body.graph-skin-off #diagramRender svg .node.is-focused circle,
+    body.graph-skin-off #diagramRender svg .node.is-focused ellipse,
+    body.graph-skin-off #diagramRender svg .edgePath .path,
+    body.graph-skin-off #diagramRender svg .edgeLabel,
+    body.graph-skin-off #diagramRender svg .edgeLabel .label,
+    body.graph-skin-off #diagramRender svg .nodeLabel {
+      filter: none !important; stroke: revert !important; stroke-width: revert !important;
+      fill: revert !important; color: revert !important; background-color: revert !important; border: revert !important;
+      border-radius: revert !important; font-family: revert !important; font-weight: revert !important;
+      letter-spacing: revert !important; stroke-dasharray: revert !important;
+    }
+    body.flow-workspace.graph-skin-off:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg :is(
+      .node rect, .node polygon, .node path, .node circle, .node ellipse,
+      .node.is-focused rect, .node.is-focused polygon, .node.is-focused path,
+      .node.is-focused circle, .node.is-focused ellipse,
+      .edgePath .path, .edgeLabel, .edgeLabel .label, .nodeLabel
+    ) {
+      filter: none !important; stroke: revert !important; stroke-width: revert !important;
+      fill: revert !important; color: revert !important; background-color: revert !important; border: revert !important;
+      border-radius: revert !important; font-family: revert !important; font-weight: revert !important;
+      letter-spacing: revert !important; stroke-dasharray: revert !important;
     }
     body.theme-light .preview-wrap {
       background-image: linear-gradient(115deg, rgba(122,162,247,.05), transparent 36%, transparent 64%, rgba(187,154,247,.06)),
@@ -1864,6 +1991,13 @@
           </div>
         </div>
         <div class="appearance-group">
+          <span class="appearance-label">图形皮肤</span>
+          <div class="appearance-options" role="group" aria-label="图形皮肤">
+            <button type="button" data-graph-skin="on">✦ 增强</button>
+            <button type="button" data-graph-skin="off">◌ 原色</button>
+          </div>
+        </div>
+        <div class="appearance-group">
           <span class="appearance-label">界面主题</span>
           <div class="appearance-options" role="group" aria-label="界面主题">
             <button type="button" data-ui-theme="dark">☾ 深色</button>
@@ -1908,6 +2042,7 @@
         <div class="appearance-shortcuts">
           <span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd>
           <span>Classic / Flow 布局</span><kbd>B</kbd>
+          <span>增强 / 原色图形皮肤</span><kbd>G</kbd>
           <span>循环切换 Aurora / Studio / Atlas</span><kbd>V</kbd>
           <span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd>
           <span>命令面板</span><kbd>? · Esc</kbd>
@@ -1973,6 +2108,10 @@
           <span id="diagramTitle">—</span>
         </div>
         <div class="preview-wrap" id="previewWrap">
+          <div class="canvas-frame" id="canvasFrame" data-focus="idle" aria-hidden="true">
+            <span class="canvas-frame-badge">Shared visual context</span>
+            <span class="canvas-frame-status" id="canvasFrameStatus">Read only · approval gate closed</span>
+          </div>
           <div id="diagramRender"></div>
           <div id="panOverlay"></div>
           <div class="canvas-focus-halo" id="canvasFocusHalo" data-visible="false" aria-hidden="true"></div>
@@ -2153,6 +2292,7 @@
       <div class="shortcut-group"><h4>视图</h4>
         <div class="shortcut-row"><span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd></div>
         <div class="shortcut-row"><span>切换 Classic / Flow 布局</span><kbd>B</kbd></div>
+        <div class="shortcut-row"><span>切换增强 / 原色图形皮肤</span><kbd>G</kbd></div>
         <div class="shortcut-row"><span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd></div>
         <div class="shortcut-row"><span>协作工作台 / 专注模式</span><kbd>C / 7</kbd></div>
         <div class="shortcut-row"><span>沉浸工作区</span><kbd>Z</kbd></div>
@@ -2426,6 +2566,7 @@ const PREFS_DEFAULT = {
   density: 'comfortable',
   visualSystem: 'aurora',
   layoutSystem: 'flow',
+  graphSkin: 'on',
   flowSourceOpen: false,
   inspectorOpen: false,
   lastDiagramId: null,
@@ -2465,11 +2606,13 @@ function applyPrefs() {
   document.body.classList.toggle('zen-workspace', prefs.zenWorkspace === true);
   applyLayoutSystem(prefs.layoutSystem, false);
   applyVisualSystem(prefs.visualSystem, false);
+  document.body.classList.toggle('graph-skin-off', prefs.graphSkin === 'off');
   setInspectorOpen(Boolean(prefs.inspectorOpen), false);
   $('#collabShell').classList.toggle('focus-mode', prefs.focusMode === true);
   $('#btnFocusMode').setAttribute('aria-pressed', String(prefs.focusMode === true));
   $('#btnFocusMode').textContent = prefs.focusMode ? '◉ 退出专注' : '◎ 专注';
   setWorkspaceView(prefs.viewMode || 'split', false);
+  syncGraphSkin();
 }
 
 function setFocusMode(enabled) {
@@ -2495,6 +2638,7 @@ function applyVisualSystem(system, persist = true) {
   if (persist) {
     savePrefs();
     syncAppearanceControls();
+    syncGraphSkin();
     if (!$('#appearancePopover')?.hidden) {
       const labels = { aurora: '已切换 Aurora · 沉浸式渐变光效', studio: '已切换 Studio · 清爽高可读视觉', atlas: '已切换 Atlas · 工程蓝图式高对比网格' };
       showToast(labels[next]);
@@ -2506,6 +2650,41 @@ function cycleVisualSystem() {
   const order = ['aurora', 'studio', 'atlas'];
   const next = order[(order.indexOf(prefs.visualSystem) + 1) % order.length];
   applyVisualSystem(next);
+}
+
+function applyGraphSkin(skin, persist = true) {
+  const next = skin === 'off' ? 'off' : 'on';
+  prefs.graphSkin = next;
+  document.body.classList.toggle('graph-skin-off', next === 'off');
+  syncGraphSkin();
+  if (persist) {
+    savePrefs();
+    syncAppearanceControls();
+    showToast(next === 'on' ? '已启用增强图形皮肤 · 节点与连线随视觉系统呈现' : '已切回 Mermaid 原色图形 · 保留全部交互');
+  }
+}
+
+function toggleGraphSkin() {
+  applyGraphSkin(prefs.graphSkin === 'on' ? 'off' : 'on');
+}
+
+function syncGraphSkin() {
+  const frame = $('#canvasFrame');
+  if (!frame) return;
+  const focusGroup = svgNodeForFocus();
+  const focused = Boolean(focusGroup);
+  frame.dataset.focus = focused ? 'active' : 'idle';
+  const status = $('#canvasFrameStatus');
+  if (status) {
+    status.textContent = prefs.graphSkin === 'off'
+      ? 'Original Mermaid theme'
+      : focused
+        ? `Focus · ${$('#canvasObjectLabel')?.textContent.trim() || 'object'} · read only`
+        : 'Read only · approval gate closed';
+  }
+  for (const group of focusNodeGroups()) {
+    group.classList.toggle('is-focused', group === focusGroup);
+  }
 }
 
 function applyLayoutSystem(system, persist = true) {
@@ -2539,6 +2718,7 @@ function applyFlowSourceOpen(open, persist = true) {
     button.textContent = next ? '⌘ 收起源码' : '⌘ 源码';
   }
   if (persist) savePrefs();
+  syncGraphSkin();
 }
 
 function toggleFlowSource() {
@@ -2665,6 +2845,7 @@ function setWorkspaceView(view, persist = true) {
     savePrefs();
   }
   positionFocusRing();
+  syncGraphSkin();
 }
 
 loadPrefs();
@@ -2811,6 +2992,7 @@ function positionFocusRing() {
   const halo = $('#canvasFocusHalo');
   const label = $('#canvasFocusLabel');
   const group = svgNodeForFocus();
+  syncGraphSkin();
   const shape = group?.querySelector('rect.basic.label-container, rect, polygon, path, ellipse, circle');
   if (!ring || !shape) {
     if (ring) {
@@ -3067,6 +3249,11 @@ window.addEventListener('keydown', (e) => {
     toggleLayoutSystem();
     return;
   }
+  if (!typing && (e.key === 'g' || e.key === 'G') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    toggleGraphSkin();
+    return;
+  }
   if (!typing && (e.key === 'e' || e.key === 'E') && !e.metaKey && !e.ctrlKey && !e.altKey) {
     e.preventDefault();
     toggleFlowSource();
@@ -3267,6 +3454,7 @@ async function renderDiagram(code, keepView = false) {
     if (!keepView) fitView();
     positionFocusRing();
     refreshMinimapImage();
+    syncGraphSkin();
   } catch (e) {
     $('#statusErr').textContent = `Error: ${e.message?.slice(0, 120) ?? e}`;
     $('#statusErr').className = 'err';
@@ -3293,6 +3481,7 @@ function renderSvgPreview(raw, keepView = false) {
     if (!keepView) fitView();
     positionFocusRing();
     refreshMinimapImage();
+    syncGraphSkin();
   } catch (e) {
     $('#statusErr').textContent = `SVG parse: ${e.message?.slice(0, 120) ?? e}`;
     $('#statusErr').className = 'err';
@@ -3404,6 +3593,9 @@ function syncAppearanceControls() {
   for (const button of document.querySelectorAll('[data-layout-system]')) {
     button.classList.toggle('active', button.dataset.layoutSystem === prefs.layoutSystem);
   }
+  for (const button of document.querySelectorAll('[data-graph-skin]')) {
+    button.classList.toggle('active', button.dataset.graphSkin === prefs.graphSkin);
+  }
   for (const button of document.querySelectorAll('[data-ui-theme]')) {
     button.classList.toggle('active', button.dataset.uiTheme === prefs.uiTheme);
   }
@@ -3433,6 +3625,9 @@ for (const button of document.querySelectorAll('[data-visual]')) {
 }
 for (const button of document.querySelectorAll('[data-layout-system]')) {
   button.addEventListener('click', () => applyLayoutSystem(button.dataset.layoutSystem));
+}
+for (const button of document.querySelectorAll('[data-graph-skin]')) {
+  button.addEventListener('click', () => applyGraphSkin(button.dataset.graphSkin));
 }
 $('#btnFlowSource').addEventListener('click', toggleFlowSource);
 $('#btnFlowCollab').addEventListener('click', openCollab);
@@ -3691,6 +3886,7 @@ const COMMANDS = [
   { group: '工作区视图', icon: '◌', title: '切换沉浸工作区', hint: '让顶栏、图表库与状态栏退场，只留下当前图', shortcut: 'Z', keys: '沉浸 全屏 低干扰 zen workspace', run: () => setZenWorkspace(!prefs.zenWorkspace) },
   { group: '工作区视图', icon: '✦', title: '循环切换视觉系统', hint: '在 Aurora、Studio 与工程蓝图 Atlas 之间依次切换', shortcut: 'V', keys: '视觉 aurora studio atlas 外观 主题', run: () => cycleVisualSystem() },
   { group: '工作区视图', icon: '◇', title: '切换 Classic / Flow 布局', hint: '在经典分栏与画布优先的 Flow 工作台之间切换', shortcut: 'B', keys: '布局 classic flow 画布 分栏 workspace', run: () => toggleLayoutSystem() },
+  { group: '工作区视图', icon: '✦', title: '切换增强 / 原色图形皮肤', hint: '让节点、连线与标签随视觉系统呈现，或回到 Mermaid 原色', shortcut: 'G', keys: '图形 皮肤 原色 增强 graph skin mermaid', run: () => toggleGraphSkin() },
   { group: '工作区视图', icon: '⌘', title: '展开 / 收起 Flow 源码抽屉', hint: '显示或隐藏画布旁边的本机源码编辑器', shortcut: 'E', keys: '源码 抽屉 flow source editor', run: () => toggleFlowSource() },
   { group: '工作区视图', icon: '◧', title: '切换上下文速览', hint: '展开或收起实时只读对象上下文', shortcut: 'I', keys: '速览 上下文 inspector 侧栏', run: () => setInspectorOpen(!prefs.inspectorOpen) },
   { group: '外观与帮助', icon: '◈', title: '切换视觉氛围', hint: '在鲜明品牌渐变与静谧低干扰配色间切换', shortcut: '', keys: '氛围 鲜明 静谧 ambient theme', run: () => setAmbient(prefs.ambient === 'calm' ? 'vivid' : 'calm') },
@@ -4701,6 +4897,7 @@ function renderCanvasObject() {
   $('#canvasObjectCard').title = node
     ? `${node.label} · ${node.path || '无路径'} · 只读焦点`
     : '项目结构图加载后可切换节点';
+  syncGraphSkin();
   positionFocusRing();
   renderCanvasThreadBadges();
 }

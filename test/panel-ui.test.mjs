@@ -111,6 +111,8 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(false);
       expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
       expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(true);
+      expect(await page.$eval("#canvasFrame", (element) => element.dataset.focus)).toBe("idle");
+      expect(await page.$eval("body", (element) => element.classList.contains("graph-skin-off"))).toBe(false);
       expect(await page.$eval("#flowRail", (element) => getComputedStyle(element).display)).toBe("grid");
       expect(await page.$eval("#flowRail", (element) => element.querySelectorAll(".flow-step").length)).toBe(4);
       expect(await page.$eval("#flowRailMeta", (element) => element.textContent)).toMatch(/待审/);
@@ -265,8 +267,9 @@ describe("collaboration panel UI", () => {
         activeAmbient: document.querySelector('[data-ambient].active')?.dataset.ambient,
         activeZen: document.querySelector('[data-zen].active')?.dataset.zen,
         activeLayout: document.querySelector('[data-layout-system].active')?.dataset.layoutSystem,
+        activeGraphSkin: document.querySelector('[data-graph-skin].active')?.dataset.graphSkin,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 8, shortcuts: 13, visualSystems: 6, activeVisual: "aurora", activeTheme: "dark", activeAmbient: "calm", activeZen: "off", activeLayout: "flow" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 9, shortcuts: 14, visualSystems: 6, activeVisual: "aurora", activeTheme: "dark", activeAmbient: "calm", activeZen: "off", activeLayout: "flow", activeGraphSkin: "on" });
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("V");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
@@ -275,11 +278,18 @@ describe("collaboration panel UI", () => {
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("[ / ]");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("B");
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("G");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("E");
       await page.click('#appearancePopover [data-layout-system="classic"]');
       expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(false);
       await page.click('#appearancePopover [data-layout-system="flow"]');
       expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(true);
+      await page.click('#appearancePopover [data-graph-skin="off"]');
+      expect(await page.$eval("body", (element) => element.classList.contains("graph-skin-off"))).toBe(true);
+      expect(await page.$eval("#canvasFrame", (element) => getComputedStyle(element).display)).toBe("none");
+      await page.keyboard.press("g");
+      expect(await page.$eval("body", (element) => element.classList.contains("graph-skin-off"))).toBe(false);
+      expect(await page.$eval("#canvasFrame", (element) => getComputedStyle(element).display)).toBe("block");
       await page.click('#appearancePopover [data-visual="studio"]');
       expect(await page.$eval("body", (element) => element.classList.contains("visual-studio"))).toBe(true);
       expect(await page.$eval("#ribbonMode", (element) => element.textContent)).toContain("Studio");
@@ -289,11 +299,13 @@ describe("collaboration panel UI", () => {
       await page.click('.visual-switch [data-visual="atlas"]');
       expect(await page.$eval("body", (element) => element.classList.contains("visual-atlas"))).toBe(true);
       expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(false);
+      expect(await page.$eval("#diagramRender svg .node rect", (element) => getComputedStyle(element).fill)).toBe("rgb(12, 21, 24)");
       expect(await page.$eval("#ribbonMode", (element) => element.textContent)).toContain("Atlas");
       expect(await page.$eval("#headerContextTitle", (element) => getComputedStyle(element.closest(".context-banner")).borderRadius)).toBe("3px");
       await page.keyboard.press("v");
       expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
       expect(await page.$eval("body", (element) => element.classList.contains("visual-atlas"))).toBe(false);
+      expect(await page.$eval("#diagramRender svg .node rect", (element) => getComputedStyle(element).fill)).toBe("rgb(238, 246, 255)");
       await page.keyboard.press("i");
       expect(await page.$eval("#liveInspector", (element) => element.classList.contains("open"))).toBe(true);
       expect(await page.$eval("#liveInspector", (element) => element.getAttribute("aria-hidden"))).toBe("false");
@@ -334,6 +346,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#shortcutTitle", (element) => element.textContent)).toContain("画布快捷键");
       expect(await page.$$eval(".shortcut-group", (elements) => elements.length)).toBe(4);
       expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
+      expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("G");
       expect(await page.$$eval(".shortcut-row kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("Z");
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.querySelector("#shortcutBackdrop").hidden);
