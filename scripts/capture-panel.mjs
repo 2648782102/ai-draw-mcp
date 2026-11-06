@@ -250,7 +250,28 @@ try {
   await new Promise((resolve) => setTimeout(resolve, 450));
   await page.screenshot({ path: path.join(outputDir, "zen-workspace-panel.png") });
   await page.evaluate(() => document.querySelector("#toast").classList.remove("show"));
-  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/flow-workspace-panel.png, docs/studio-workspace-panel.png, docs/atlas-workspace-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png and docs/zen-workspace-panel.png");
+  await page.setViewport({ width: 560, height: 820, deviceScaleFactor: 1 });
+  await page.keyboard.press("z");
+  await page.waitForFunction(() => !document.body.classList.contains("zen-workspace"));
+  await page.keyboard.press("3");
+  await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
+  await page.keyboard.press("f");
+  const touchTarget = await page.evaluate(() => {
+    const groups = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")];
+    const target = groups.find((group) => (group.textContent || "").includes("index.ts"));
+    if (!target) return null;
+    const rect = target.querySelector("rect.basic.label-container, rect, polygon, path, ellipse, circle").getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  });
+  if (!touchTarget) throw new Error("Touch focus target node not found in rendered graph");
+  await page.mouse.click(touchTarget.x, touchTarget.y);
+  await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "true", { timeout: 5000 });
+  await page.waitForFunction(() => document.querySelector("#canvasHoverHint").textContent === "轻点先速览", { timeout: 5000 });
+  await page.evaluate(() => document.querySelector("#toast").classList.remove("show"));
+  await new Promise((resolve) => setTimeout(resolve, 350));
+  await page.screenshot({ path: path.join(outputDir, "compact-glance-panel.png") });
+  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/flow-workspace-panel.png, docs/studio-workspace-panel.png, docs/atlas-workspace-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png, docs/zen-workspace-panel.png and docs/compact-glance-panel.png");
 } finally {
   await browser.close();
   await preview.stop().catch(() => {});

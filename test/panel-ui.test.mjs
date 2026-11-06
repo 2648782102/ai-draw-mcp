@@ -751,6 +751,13 @@ describe("collaboration panel UI", () => {
       });
       await page.setViewport({ width: 560, height: 820 });
       await page.waitForFunction(() => document.querySelector(".header").getBoundingClientRect().height === 50, { timeout: 5000 });
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
+      await page.waitForFunction(() => !document.body.classList.contains("zen-workspace"));
+      await page.evaluate(() => {
+        document.body.classList.remove("flow-source-open");
+        document.querySelector("#workspace").dataset.view = "canvas";
+      });
       const compact = await page.evaluate(() => ({
         headerHeight: document.querySelector(".header").getBoundingClientRect().height,
         themeHidden: getComputedStyle(document.querySelector("#selTheme")).display === "none",
@@ -764,6 +771,29 @@ describe("collaboration panel UI", () => {
         sidebarHidden: true,
         scrollWidth: 560,
         clientWidth: 560,
+      });
+      const compactGlance = await page.evaluate(() => {
+        const card = document.querySelector("#canvasHoverCard");
+        card.dataset.visible = "true";
+        card.dataset.nodeId = "preview-node";
+        document.querySelector("#canvasHoverFocus").textContent = "再点一次聚焦";
+        document.querySelector("#canvasHoverHint").textContent = "轻点先速览";
+        document.querySelector("#canvasHoverFocusKey").textContent = "再点一次";
+        const style = getComputedStyle(card);
+        const rect = card.getBoundingClientRect();
+        return {
+          display: style.display,
+          bottom: style.bottom,
+          fits: rect.left >= 0 && rect.right <= window.innerWidth,
+          hint: document.querySelector("#canvasHoverHint").textContent,
+          focusKey: document.querySelector("#canvasHoverFocusKey").textContent,
+        };
+      });
+      expect(compactGlance).toMatchObject({ display: "block", bottom: "60px", fits: true, hint: "轻点先速览", focusKey: "再点一次" });
+      await page.evaluate(() => {
+        const card = document.querySelector("#canvasHoverCard");
+        card.dataset.visible = "false";
+        card.dataset.nodeId = "";
       });
       expect(pageErrors).toEqual([]);
     } finally {

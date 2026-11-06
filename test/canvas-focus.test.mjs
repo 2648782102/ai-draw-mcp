@@ -142,6 +142,7 @@ describe("canvas focus interaction", () => {
       expect(hover.label).toBe(target.label);
       expect(hover.path).toContain("src/index.ts");
       expect(hover.focus).toContain("Enter 聚焦");
+      expect(hover.note).toContain("悬停只预览");
       expect(hover.focusHint).toContain("Enter");
       expect(Number(hover.related)).toBeGreaterThan(0);
       expect(Number(hover.evidence)).toBeGreaterThanOrEqual(0);
