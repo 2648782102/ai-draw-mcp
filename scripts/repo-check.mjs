@@ -741,6 +741,15 @@ check(governance.includes("42136060410"), "GOVERNANCE.md is missing the #83 CI e
 check(governance.includes("42136310033"), "GOVERNANCE.md is missing the #84 CI evidence");
 check(governance.includes("42136720779"), "GOVERNANCE.md is missing the #85 CI evidence");
 check(governance.includes("42136060175"), "GOVERNANCE.md is missing the #12 metadata workflow evidence");
+check(governance.includes("42137519829"), "GOVERNANCE.md is missing the #86 CI evidence");
+check(governance.includes("42137519789"), "GOVERNANCE.md is missing the #13 metadata workflow evidence");
+check(governance.includes("259790d"), "GOVERNANCE.md is missing the actionable stale FAQ evidence");
+check(changelog.includes("42137519829"), "CHANGELOG.md is missing the #86 CI evidence");
+check(changelog.includes("42137519789"), "CHANGELOG.md is missing the #13 metadata workflow evidence");
+check(changelog.includes("不要沿用旧候选路径起草 changes"), "CHANGELOG.md is missing the actionable stale FAQ evidence");
+check(launchKit.includes("42137519829"), "LAUNCH_KIT.md is missing the #86 CI evidence");
+check(launchKit.includes("42137519789"), "LAUNCH_KIT.md is missing the #13 metadata workflow evidence");
+check(launchKit.includes("清空选择范围 → 重新勾选"), "LAUNCH_KIT.md is missing the actionable stale FAQ evidence");
 check(governance.includes("127626633187"), "GOVERNANCE.md is missing the #85 Node 20 CI job evidence");
 check(governance.includes("127626632935"), "GOVERNANCE.md is missing the #85 Node 22 CI job evidence");
 check(governance.includes("127626633150"), "GOVERNANCE.md is missing the #85 Node 24 CI job evidence");
