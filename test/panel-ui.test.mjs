@@ -243,6 +243,8 @@ describe("collaboration panel UI", () => {
       await page.$eval('[data-history-target="diffs"]', (element) => element.click());
       await page.waitForFunction(() => document.querySelector('[data-history-pane="diffs"]').classList.contains("active"));
       expect(await page.$eval('[data-history-target="diffs"]', (element) => element.classList.contains("active"))).toBe(true);
+      expect(await page.$eval('[data-history-target="diffs"]', (element) => element.getAttribute("aria-selected"))).toBe("true");
+      expect(await page.$eval('[data-history-pane="diffs"]', (element) => element.getAttribute("role"))).toBe("tabpanel");
       expect(await page.$eval('[data-history-pane="diffs"] .history-empty', (element) => element.textContent)).toContain("暂无图形修订");
       await page.$eval('[data-history-target="annotations"]', (element) => element.click());
       expect(await page.$eval('[data-history-pane="annotations"] .history-empty', (element) => element.textContent)).toContain("还没有图形批注");
@@ -268,6 +270,8 @@ describe("collaboration panel UI", () => {
       await page.click('[data-tab-target="dialog"]');
       const mobile = await page.evaluate(() => ({
         activeTab: document.querySelector("#collabShell").dataset.tab,
+        selectedTab: document.querySelector('[data-tab-target="dialog"]').getAttribute("aria-selected"),
+        panelRole: document.querySelector("#collabSectionDialog").getAttribute("role"),
         visibleSections: [...document.querySelectorAll(".collab-section")]
           .filter((section) => getComputedStyle(section).display !== "none").length,
         scrollWidth: document.body.scrollWidth,
@@ -275,9 +279,26 @@ describe("collaboration panel UI", () => {
       }));
       expect(mobile).toMatchObject({
         activeTab: "dialog",
+        selectedTab: "true",
+        panelRole: "tabpanel",
         visibleSections: 1,
         scrollWidth: 820,
         clientWidth: 820,
+      });
+      await page.setViewport({ width: 560, height: 820 });
+      const compact = await page.evaluate(() => ({
+        headerHeight: document.querySelector(".header").getBoundingClientRect().height,
+        themeHidden: getComputedStyle(document.querySelector("#selTheme")).display === "none",
+        sidebarHidden: getComputedStyle(document.querySelector("#btnToggleSidebar")).display === "none",
+        scrollWidth: document.body.scrollWidth,
+        clientWidth: document.body.clientWidth,
+      }));
+      expect(compact).toMatchObject({
+        headerHeight: 50,
+        themeHidden: true,
+        sidebarHidden: true,
+        scrollWidth: 560,
+        clientWidth: 560,
       });
       expect(pageErrors).toEqual([]);
     } finally {

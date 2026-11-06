@@ -656,7 +656,31 @@
       .brand-wrap { min-width: 0; }
       .brand-sub, .collab-kicker, .shortcut-hint { display: none; }
       .toolbar { gap: 2px; }
+      .toolbar #selTheme, .toolbar #btnToggleSidebar { display: none; }
+      .appearance-popover { right: 10px; top: 48px; width: min(268px, calc(100vw - 20px)); }
+      .collab-header { padding: 0 12px; }
+      .collab-header strong { font-size: 12px; }
+      .collab-header > div:first-child { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .collab-overview { padding-left: 10px; padding-right: 10px; }
+      .collab-body { padding: 7px; gap: 7px; }
+      .collab-section { padding: 10px; }
+      .history-tabs { overflow-x: auto; }
+      .history-tab { flex: 0 0 auto; min-width: 62px; }
+      .proposal-metrics { grid-template-columns: 1fr; }
       .toolbar #btnExportSvg, .toolbar #btnExportPng, .toolbar #btnCopyId, .toolbar #btnDeleteDiagram { display: none; }
+    }
+    @media (max-width: 620px) {
+      .header { height: 50px; }
+      .main { height: calc(100vh - 50px); padding: 7px; gap: 7px; }
+      .sidebar:not(.collapsed) { position: absolute; z-index: 650; left: 7px; top: 57px; bottom: 7px; width: min(228px, calc(100vw - 14px)) !important; box-shadow: var(--shadow); }
+      .view-switch button { padding: 0 6px; font-size: 9px; }
+      .toolbar { padding: 2px; }
+      .toolbar button { padding: 0 7px; }
+      .collab-shell { inset: 56px 7px 7px 7px; border-radius: 12px; }
+      .collab-header { height: 50px; }
+      .collab-tab { padding: 0 8px; font-size: 10px; }
+      .proposal-impact .impact-grid { grid-template-columns: repeat(2, 1fr); }
+      .proposal-actions { flex-direction: column; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
@@ -835,12 +859,12 @@
     <div class="health-progress"><div class="health-progress-track"><div class="health-progress-fill" id="healthProgressFill"></div></div><span id="healthProgressLabel">0 / 4 步</span></div>
   </div>
   <div class="collab-tabs" role="tablist" aria-label="协作工作区">
-    <button class="collab-tab active" type="button" data-tab-target="graph" role="tab">◇ 项目图</button>
-    <button class="collab-tab" type="button" data-tab-target="dialog" role="tab">↔ 对话</button>
-    <button class="collab-tab" type="button" data-tab-target="proposals" role="tab">✓ 提案</button>
+    <button class="collab-tab active" type="button" data-tab-target="graph" role="tab" aria-selected="true" aria-controls="collabSectionGraph">◇ 项目图</button>
+    <button class="collab-tab" type="button" data-tab-target="dialog" role="tab" aria-selected="false" aria-controls="collabSectionDialog">↔ 对话</button>
+    <button class="collab-tab" type="button" data-tab-target="proposals" role="tab" aria-selected="false" aria-controls="collabSectionProposals">✓ 提案</button>
   </div>
   <div class="collab-body">
-    <section class="collab-section">
+    <section class="collab-section" id="collabSectionGraph" role="tabpanel" aria-label="项目图">
       <h3><span class="section-icon" aria-hidden="true">◇</span>项目图 · 节点编辑</h3>
       <div class="section-scroll">
       <p class="collab-help">可编辑节点名称/类型/路径/分组与连线起点/终点/说明/类型；选中节点后批注会绑定到它。保存后 AI 可通过 get_visual_context 读取。</p>
@@ -882,19 +906,19 @@
       </div>
       </div>
     </section>
-    <section class="collab-section">
+    <section class="collab-section" id="collabSectionDialog" role="tabpanel" aria-label="对话与批注">
       <h3><span class="section-icon" aria-hidden="true">↔</span>对话与批注</h3>
       <div class="section-scroll">
       <div class="history-tabs" role="tablist" aria-label="对话历史视图">
-        <button class="history-tab active" type="button" data-history-target="chat" role="tab">对话 <span class="history-tab-count" data-history-count="chat">0</span></button>
-        <button class="history-tab" type="button" data-history-target="activity" role="tab">活动 <span class="history-tab-count" data-history-count="activity">0</span></button>
-        <button class="history-tab" type="button" data-history-target="annotations" role="tab">批注 <span class="history-tab-count" data-history-count="annotations">0</span></button>
-        <button class="history-tab" type="button" data-history-target="diffs" role="tab">差异 <span class="history-tab-count" data-history-count="diffs">0</span></button>
+        <button class="history-tab active" type="button" data-history-target="chat" role="tab" aria-selected="true" aria-controls="historyPaneChat">对话 <span class="history-tab-count" data-history-count="chat">0</span></button>
+        <button class="history-tab" type="button" data-history-target="activity" role="tab" aria-selected="false" aria-controls="historyPaneActivity">活动 <span class="history-tab-count" data-history-count="activity">0</span></button>
+        <button class="history-tab" type="button" data-history-target="annotations" role="tab" aria-selected="false" aria-controls="historyPaneAnnotations">批注 <span class="history-tab-count" data-history-count="annotations">0</span></button>
+        <button class="history-tab" type="button" data-history-target="diffs" role="tab" aria-selected="false" aria-controls="historyPaneDiffs">差异 <span class="history-tab-count" data-history-count="diffs">0</span></button>
       </div>
-      <div class="history-pane active" data-history-pane="chat"><div class="chat-log" id="chatLog"></div></div>
-      <div class="history-pane" data-history-pane="activity"><p class="activity-summary" id="activitySummary">活动时间线加载中…</p><div class="chat-log activity-list" id="activityList"></div></div>
-      <div class="history-pane" data-history-pane="annotations"><div class="chat-log" id="annotationList"></div></div>
-      <div class="history-pane" data-history-pane="diffs"><p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p><div class="chat-log graph-diff-list" id="graphDiffList"></div></div>
+      <div class="history-pane active" id="historyPaneChat" data-history-pane="chat" role="tabpanel" aria-label="对话"><div class="chat-log" id="chatLog"></div></div>
+      <div class="history-pane" id="historyPaneActivity" data-history-pane="activity" role="tabpanel" aria-label="活动"><p class="activity-summary" id="activitySummary">活动时间线加载中…</p><div class="chat-log activity-list" id="activityList"></div></div>
+      <div class="history-pane" id="historyPaneAnnotations" data-history-pane="annotations" role="tabpanel" aria-label="批注"><div class="chat-log" id="annotationList"></div></div>
+      <div class="history-pane" id="historyPaneDiffs" data-history-pane="diffs" role="tabpanel" aria-label="差异"><p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p><div class="chat-log graph-diff-list" id="graphDiffList"></div></div>
       <details class="signal-drawer" open>
         <summary>关键上下文</summary>
         <div class="drawer-body">
@@ -941,7 +965,7 @@
       <input id="annotationInput" placeholder="批注内容；先选中左侧节点即可绑定" />
       </div>
     </section>
-    <section class="collab-section">
+    <section class="collab-section" id="collabSectionProposals" role="tabpanel" aria-label="变更提案">
       <h3><span class="section-icon" aria-hidden="true">✓</span>变更提案 · 人工确认</h3>
       <p class="collab-help">AI 生成提案后，先查看逐行差异；你点击“批准”并把一次性确认号发给 AI，项目文件才会改变。</p>
       <div class="proposal-list" id="proposalList"></div>
@@ -3031,12 +3055,15 @@ function openCollab() {
   loadCollab();
 }
 $('#btnCollaborate').addEventListener('click', openCollab);
+$('#btnCollaborate').setAttribute('aria-controls', 'collabShell');
 for (const tab of document.querySelectorAll('.collab-tab')) {
   tab.addEventListener('click', () => {
     const target = tab.dataset.tabTarget;
     $('#collabShell').dataset.tab = target;
     for (const other of document.querySelectorAll('.collab-tab')) {
-      other.classList.toggle('active', other === tab);
+      const active = other === tab;
+      other.classList.toggle('active', active);
+      other.setAttribute('aria-selected', String(active));
     }
   });
 }
@@ -3083,7 +3110,11 @@ $('#btnDialogMore').addEventListener('click', (event) => {
 for (const tab of document.querySelectorAll('.history-tab')) {
   tab.addEventListener('click', () => {
     const target = tab.dataset.historyTarget;
-    for (const other of document.querySelectorAll('.history-tab')) other.classList.toggle('active', other === tab);
+    for (const other of document.querySelectorAll('.history-tab')) {
+      const active = other === tab;
+      other.classList.toggle('active', active);
+      other.setAttribute('aria-selected', String(active));
+    }
     for (const pane of document.querySelectorAll('.history-pane')) {
       pane.classList.toggle('active', pane.dataset.historyPane === target);
     }
