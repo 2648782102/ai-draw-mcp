@@ -1519,34 +1519,51 @@
     }
     .canvas-dock {
       position: absolute; left: 14px; bottom: 14px; z-index: 22; display: none;
-      align-items: center; gap: 9px; padding: 6px 7px; border: 1px solid var(--border);
-      border-radius: 14px; background: linear-gradient(135deg, rgba(15,24,42,.93), rgba(9,14,25,.93));
-      box-shadow: 0 14px 34px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.04);
-      backdrop-filter: blur(14px);
+      align-items: center; gap: 9px; padding: 8px 8px 7px; border: 1px solid rgba(122,162,247,.46);
+      border-radius: 15px; background: linear-gradient(135deg, rgba(15,32,56,.96), rgba(9,14,25,.95) 58%, rgba(22,19,44,.93));
+      box-shadow: 0 16px 38px rgba(0,0,0,.38), 0 0 22px rgba(122,162,247,.08), inset 0 1px 0 rgba(255,255,255,.07);
+      backdrop-filter: blur(15px);
+    }
+    .canvas-dock::before {
+      content: ''; position: absolute; left: 12px; right: 12px; top: -1px; height: 2px;
+      background: linear-gradient(90deg, var(--accent3), var(--accent), var(--accent2), transparent); opacity: .8;
     }
     .workspace:not(.welcome) .canvas-dock { display: flex; }
     .workspace[data-view="canvas"] .canvas-dock { bottom: 14px; }
     .canvas-dock-status {
-      display: flex; align-items: center; gap: 7px; min-width: 0; padding: 0 5px 0 3px;
+      display: grid; gap: 4px; width: 205px; padding: 2px 9px 2px 4px;
       border-right: 1px solid var(--border);
-    }
-    .canvas-dock-status::before {
-      content: ''; width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%;
-      background: var(--green); box-shadow: 0 0 0 4px rgba(158,206,106,.12);
     }
     .canvas-dock-label { min-width: 0; }
     .canvas-dock-label strong { display: block; overflow: hidden; max-width: 150px; color: var(--text); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
     .canvas-dock-label span { display: block; color: var(--text-muted); font-size: 8px; letter-spacing: .05em; text-transform: uppercase; }
-    .canvas-dock-group { display: flex; align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 9px; background: rgba(0,0,0,.14); }
+    .canvas-dock-route { display: grid; grid-template-columns: auto minmax(16px, 1fr) auto minmax(16px, 1fr) auto; align-items: center; gap: 4px; min-width: 0; }
+    .canvas-dock-route-step { display: flex; align-items: center; gap: 3px; min-width: 0; color: var(--text-muted); font-size: 7px; font-weight: 800; white-space: nowrap; }
+    .canvas-dock-route-step i { display: grid; place-items: center; width: 14px; height: 14px; flex: 0 0 14px; border: 1px solid rgba(122,162,247,.34); border-radius: 50%; background: rgba(122,162,247,.10); color: var(--accent); font-size: 7px; font-style: normal; }
+    .canvas-dock-route-step[data-route-step="focus"] i { border-color: rgba(61,219,217,.62); background: rgba(61,219,217,.16); color: var(--accent3); box-shadow: 0 0 8px rgba(61,219,217,.18); }
+    .canvas-dock-route-step[data-route-step="gate"] i { border-color: rgba(158,206,106,.42); color: var(--green); }
+    .canvas-dock-route-step strong { display: inline; overflow: hidden; max-width: 52px; margin: 0; color: var(--text); font-size: 7px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-dock-route-line { position: relative; height: 2px; overflow: hidden; border-radius: 999px; background: rgba(122,162,247,.18); }
+    .canvas-dock-route-line > span { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent3), var(--accent2)); transition: width .24s ease; }
+    .canvas-dock-route-line:last-of-type > span { width: 100%; background: rgba(158,206,106,.32); }
+    .canvas-dock-route-meta { display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 7px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .canvas-dock-route-meta::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(158,206,106,.12); }
+    .canvas-dock[data-route-state="focused"] .canvas-dock-route-meta::before { background: var(--accent3); box-shadow: 0 0 0 3px rgba(61,219,217,.14), 0 0 8px rgba(61,219,217,.42); }
+    .canvas-dock-group { display: flex; align-items: center; gap: 2px; padding: 2px 4px 2px 2px; border: 1px solid var(--border); border-radius: 9px; background: rgba(0,0,0,.14); }
+    .canvas-dock-group[data-group]::before { content: attr(data-group); margin: 0 2px 0 3px; color: var(--text-muted); font-size: 6px; font-weight: 900; letter-spacing: .08em; white-space: nowrap; opacity: .75; }
+    .canvas-dock-group[data-group="VIEW"]::before { color: var(--accent3); }
+    .canvas-dock-group[data-group="SHARED"]::before { color: var(--accent2); }
     .canvas-dock button { height: 27px; padding: 0 8px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text-muted); font-size: 10px; cursor: pointer; transition: color .15s, background .15s, border-color .15s, transform .15s; }
     .canvas-dock button:hover { border-color: rgba(122,162,247,.45); background: rgba(122,162,247,.13); color: var(--text); transform: translateY(-1px); }
     .canvas-dock button.primary { background: rgba(122,162,247,.16); color: var(--accent); font-weight: 700; }
     .canvas-dock button[aria-pressed="true"] { background: rgba(122,162,247,.18); color: var(--accent); }
     .canvas-dock .zoom-readout { min-width: 40px; padding: 0 4px; color: var(--text); font-size: 10px; font-variant-numeric: tabular-nums; font-weight: 700; text-align: center; }
-    .canvas-dock-divider { width: 1px; height: 20px; margin: 0 1px; background: var(--border); }
+    .canvas-dock-divider { display: none; }
     body.theme-light .canvas-dock { background: rgba(255,255,255,.92); }
     body.theme-light .canvas-chip { background: rgba(255,255,255,.9); }
     body.theme-light .canvas-dock-group { background: #f2f6fd; }
+    body.visual-atlas .canvas-dock { border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    body.visual-atlas .canvas-dock-group, body.visual-atlas .canvas-dock-group::before { border-radius: 2px; }
     .shortcut-backdrop {
       position: fixed; inset: 0; z-index: 1350; display: grid; place-items: center;
       padding: 18px; background: rgba(3,7,15,.6); backdrop-filter: blur(8px);
@@ -1582,6 +1599,7 @@
       .canvas-dock { left: 7px; right: 7px; bottom: 7px; overflow-x: auto; }
       .workspace[data-view="canvas"] .canvas-dock { bottom: 7px; }
       .canvas-dock button { flex: 0 0 auto; }
+      .canvas-dock-group[data-group]::before { display: none; }
       .canvas-chip {
         right: 7px; top: 46px; max-width: calc(100% - 14px);
         padding: 4px 7px; font-size: 8px; line-height: 1.2;
@@ -2415,11 +2433,19 @@
             <span id="ribbonSync" role="status">就绪</span>
             <button type="button" id="btnRibbonInspector" title="展开只读上下文速览（I）">◧ 速览</button>
           </div>
-          <div class="canvas-dock" aria-label="画布快捷操作">
+          <div class="canvas-dock" id="canvasDock" aria-label="画布快捷操作" data-route-state="empty">
             <div class="canvas-dock-status">
               <div class="canvas-dock-label"><strong id="canvasDiagramLabel">本机预览</strong><span>Live · read-only until approval</span></div>
+              <div class="canvas-dock-route" id="canvasDockRoute" aria-label="只读焦点航线">
+                <span class="canvas-dock-route-step" data-route-step="graph"><i aria-hidden="true">1</i>结构</span>
+                <span class="canvas-dock-route-line"><span id="canvasDockRouteGraph"></span></span>
+                <span class="canvas-dock-route-step" data-route-step="focus"><i aria-hidden="true">2</i><strong id="canvasDockRouteFocus">等待焦点</strong></span>
+                <span class="canvas-dock-route-line"><span></span></span>
+                <span class="canvas-dock-route-step" data-route-step="gate"><i aria-hidden="true">3</i>闸门</span>
+              </div>
+              <div class="canvas-dock-route-meta"><span id="canvasDockRouteMeta">0 / 0 对象 · 闸门关闭</span></div>
             </div>
-            <div class="canvas-dock-group">
+            <div class="canvas-dock-group" data-group="VIEW">
               <button type="button" id="btnCanvasZoomOut" title="缩小">−</button>
               <span class="zoom-readout" id="canvasZoomLabel">100%</span>
               <button type="button" id="btnCanvasZoomIn" title="放大">＋</button>
@@ -2427,9 +2453,11 @@
             </div>
             <button type="button" id="btnCanvasBackdrop" aria-pressed="false" title="切换画布背景">◐ 背景</button>
             <div class="canvas-dock-divider" aria-hidden="true"></div>
-            <button type="button" id="btnCanvasCollab" class="primary" title="打开双向协作工作台 (C)">↔ 协作</button>
-            <button type="button" id="btnCanvasCommands" title="打开命令面板 (?)">⌘</button>
-            <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
+            <div class="canvas-dock-group" data-group="SHARED">
+              <button type="button" id="btnCanvasCollab" class="primary" title="打开双向协作工作台 (C)">↔ 协作</button>
+              <button type="button" id="btnCanvasCommands" title="打开命令面板 (?)">⌘</button>
+              <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
+            </div>
           </div>
           <div class="canvas-chip">滚轮缩放 · 拖拽平移 · 单击节点聚焦 · 双击重置 · F 适应窗口</div>
           <div class="flow-lens" id="flowLens" aria-label="Flow 当前画布焦点" data-flow-lens-state="empty">
@@ -5358,6 +5386,26 @@ function renderCanvasRelationMap() {
     : '');
 }
 
+function renderCanvasDockRoute() {
+  const dock = $('#canvasDock');
+  if (!dock) return;
+  const nodes = collabGraph?.nodes || [];
+  const current = Math.max(0, nodes.findIndex((node) => node.id === selectedNodeId));
+  const node = nodes[current];
+  const progress = nodes.length ? Math.max(8, Math.round((current + 1) / nodes.length * 100)) : 0;
+  dock.dataset.routeState = node ? 'focused' : 'empty';
+  dock.dataset.routeIndex = String(current + 1);
+  dock.dataset.routeTotal = String(nodes.length);
+  $('#canvasDockRouteGraph').style.width = `${progress}%`;
+  $('#canvasDockRouteFocus').textContent = node?.label || '等待焦点';
+  $('#canvasDockRouteMeta').textContent = nodes.length
+    ? `${current + 1} / ${nodes.length} 对象 · 闸门关闭 · 只读焦点`
+    : '0 / 0 对象 · 闸门关闭';
+  dock.title = node
+    ? `焦点航线 · ${node.label} · ${current + 1} / ${nodes.length} · 批准前只读`
+    : '焦点航线 · 等待项目结构图 · 批准前只读';
+}
+
 function stepRelatedCanvasFocus() {
   const relatedIds = relatedCanvasNodeIds();
   if (!relatedIds.length) return showToast('当前对象没有直接关联节点；仍可点选其他对象');
@@ -5492,8 +5540,12 @@ $('#canvasThreadLayer').addEventListener('click', (event) => {
 $('#canvasRelationNodes').addEventListener('click', (event) => {
   const button = event.target.closest('button[data-node-id]');
   if (!button) return;
-  setCanvasFocusNode(button.dataset.nodeId);
-  showToast('已沿真实连线同步既有只读焦点 · 不批准或写文件');
+  const nodeId = button.dataset.nodeId;
+  window.requestAnimationFrame(() => {
+    if (!collabGraph?.nodes.some((node) => node.id === nodeId)) return;
+    setCanvasFocusNode(nodeId);
+    showToast('已沿真实连线同步既有只读焦点 · 不批准或写文件');
+  });
 });
 
 function syncFocusLabelConversation() {
@@ -5529,6 +5581,7 @@ function renderCanvasObject() {
   }
   renderCanvasConversation();
   renderCanvasRelationMap();
+  renderCanvasDockRoute();
   renderCanvasContextStrip();
   renderInspector();
   $('#canvasObjectCard').title = node
@@ -7086,6 +7139,7 @@ renderInspector();
 renderWelcomeJourney({ pendingProposals: 0, attention: 0, hasGraph: false });
 renderCollabHandoff({ pendingMessages: 0, pendingProposals: 0, openAnnotations: 0, nextAction: '', nextActor: 'none' });
 renderFlowRail();
+renderCanvasDockRoute();
 loadCollabPulse();
 
 // Restore last viewed diagram (URL path takes priority)

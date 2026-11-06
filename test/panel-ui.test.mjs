@@ -222,6 +222,25 @@ describe("collaboration panel UI", () => {
       await page.click("#btnCanvasZoomFit");
       expect(await page.$eval("#canvasZoomLabel", (element) => element.textContent)).toMatch(/%/);
       expect(await page.$$eval(".canvas-dock button", (elements) => elements.length)).toBe(7);
+      const dockRoute = await page.evaluate(() => {
+        const dock = document.querySelector("#canvasDock");
+        return {
+          gradient: getComputedStyle(dock).backgroundImage,
+          groups: [...document.querySelectorAll(".canvas-dock-group[data-group]")].map((element) => element.dataset.group),
+          steps: document.querySelectorAll(".canvas-dock-route-step").length,
+          progress: document.querySelector("#canvasDockRouteGraph").style.width,
+          state: dock.dataset.routeState,
+          meta: document.querySelector("#canvasDockRouteMeta").textContent,
+          focusLabel: document.querySelector("#canvasDockRouteFocus").textContent,
+        };
+      });
+      expect(dockRoute.gradient).toContain("linear-gradient");
+      expect(dockRoute.groups).toEqual(["VIEW", "SHARED"]);
+      expect(dockRoute.steps).toBe(3);
+      expect(dockRoute.progress).toMatch(/^\d+%$/);
+      expect(["empty", "focused"]).toContain(dockRoute.state);
+      expect(dockRoute.meta).toContain("闸门关闭");
+      expect(dockRoute.focusLabel.length).toBeGreaterThan(0);
       await page.click("#btnCanvasBackdrop");
       expect(await page.$eval("#previewWrap", (element) => element.classList.contains("dark-bg"))).toBe(true);
       expect(await page.$eval("#btnCanvasBackdrop", (element) => element.getAttribute("aria-pressed"))).toBe("true");

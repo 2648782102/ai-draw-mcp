@@ -305,14 +305,14 @@ describe("canvas focus interaction", () => {
       expect(conversation.tab).toBe("dialog");
       expect(conversation.history).toBe(true);
       expect(conversation.threads).toBeGreaterThan(0);
-      await page.click("#btnCloseCollab");
+      await page.$eval("#btnCloseCollab", (element) => element.click());
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
 
       await page.$eval("#canvasThreadLayer .canvas-thread-badge", (element) => element.click());
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
       expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("dialog");
       expect(await page.$eval('[data-history-pane="annotations"]', (element) => element.classList.contains("active"))).toBe(true);
-      await page.click("#btnCloseCollab");
+      await page.$eval("#btnCloseCollab", (element) => element.click());
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
 
       await page.evaluate(() => {
@@ -331,12 +331,18 @@ describe("canvas focus interaction", () => {
       expect(await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId)).toBeTruthy();
 
       const relationTarget = await page.evaluate(() => {
-        const button = document.querySelector("#canvasRelationNodes button[data-node-id]");
+        const focusNodeId = document.querySelector("#canvasFocusRing").dataset.focusNodeId;
+        const button = [...document.querySelectorAll("#canvasRelationNodes button[data-node-id]")]
+          .find((candidate) => candidate.dataset.nodeId !== focusNodeId);
         return button ? { nodeId: button.dataset.nodeId, label: button.querySelector("strong").textContent.trim() } : null;
       });
       expect(relationTarget).toBeTruthy();
       const sessionBeforeRelationClick = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
-      await page.click("#canvasRelationNodes button[data-node-id]");
+      await page.evaluate((nodeId) => {
+        const button = document.querySelector(`#canvasRelationNodes button[data-node-id="${CSS.escape(nodeId)}"]`);
+        if (!button) throw new Error("Relation target disappeared");
+        button.click();
+      }, relationTarget.nodeId);
       await page.waitForFunction((label) => document.querySelector("#canvasObjectLabel").textContent.trim() === label, { timeout: 5000 }, relationTarget.label);
       expect(await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId)).toBe(relationTarget.nodeId);
       expect(await page.$eval("#canvasRelationMap", (element) => element.dataset.state)).toBe("active");

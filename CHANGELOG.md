@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 画布焦点航线控制台（2026-11-06 21:10 CST）：底部浮动操作条升级为带渐变顶边与 `VIEW` / `SHARED` 分组的操作台，状态区显示「结构 → 焦点 → 闸门」只读航线、焦点进度带、当前对象名、`n / N` 序号与「闸门关闭」文案；窄屏自动收起分组标签，避免横向拥挤。航线完全派生自既有 `collabGraph.nodes` / `selectedNodeId`，不改 focus、viewport、批准凭据或项目文件，也不新增 MCP 工具或 version 1 协议；Aurora / Studio / Atlas / 浅色主题、浏览器回归、离线守卫、中英文 README、宣发与可复现截图同步覆盖。
+
+- 关系轨道 CI 证据（2026-11-06 21:05 CST）：`1786c28` 的 CI `42221965847` / #153 在 Node 20/22/24 三档全绿（jobs `127905972830` / `127905973009` / `127905972980`），metadata #37 `42221965852` success；确认入向 / 出向关系轨道、真实边方向计数、只读焦点复用、有限相邻对象短条与三套视觉系统通过完整矩阵。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 rerun 掩盖、未 force push、未 retag、未改写已发布 Release、未自动发 npm 包。
+
 - 对象关系轨道（2026-11-06 20:55 CST）：右侧对象卡把原本单行的「直接关联」升级为可见的入向 / 出向关系轨道：两条方向进度带实时显示真实边数，下方有限短条列出相邻对象与边标签，点击短条沿已有连线切换并同步既有只读 focus。轨道完全派生自 `collabGraph.edges` 与当前焦点，不新增第二套状态、不改图数据 / 导出 SVG / MCP 工具 / version 1 协议，也不发送消息、创建 / 批准提案、签发凭据或写项目文件；Aurora / Studio / Atlas、浅色主题和窄屏均有专门样式，浏览器回归、离线守卫、中英文 README、宣发与可复现截图同步覆盖。
 
 - 关系路径 CI 证据（2026-11-06 20:50 CST）：`ba5573a` 的 CI `42219993142` / #152 在 Node 20/22/24 三档全绿（jobs `127899359633` / `127899359423` / `127899359687`），metadata #36 `42219993237` success；确认紫色焦点真实边、独立青色悬停路径、「◆」计数标记、三套视觉系统与原色皮肤规则通过完整矩阵。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 rerun 掩盖、未 force push、未 retag、未改写已发布 Release、未自动发 npm 包。

@@ -151,6 +151,7 @@ try {
   await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
   await page.waitForSelector("#diagramRender svg");
   await page.waitForFunction(() => getComputedStyle(document.querySelector(".canvas-dock")).display === "flex");
+  await page.waitForFunction(() => document.querySelectorAll("#canvasDock .canvas-dock-route-step").length === 3);
   await page.keyboard.press("f");
   await page.click("#btnCollaborate");
   await page.waitForSelector("#graphEditor .graph-row");
