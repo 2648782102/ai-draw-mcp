@@ -70,6 +70,8 @@ describe("collaboration panel UI", () => {
       expect(await page.$(".brand-mark")).toBeTruthy();
       expect(await page.$("#btnRender.primary")).toBeTruthy();
       expect(await page.$('.view-switch button[data-view-target="split"].active')).toBeTruthy();
+      expect(await page.$eval("#diagramSearch", (element) => element.placeholder)).toContain("搜索图表");
+      expect(await page.$eval(".sidebar-empty", (element) => element.textContent)).toContain("还没有图表");
       expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(false);
       expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("none");
 
@@ -78,6 +80,7 @@ describe("collaboration panel UI", () => {
       await page.waitForFunction(() => Boolean(document.querySelector("#diagramRender svg")));
       expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(true);
       expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("block");
+      expect(await page.$eval("#diagramCount", (element) => element.textContent)).toBe("0");
       expect(await page.$eval("#diagramTitle", (element) => element.textContent)).toContain("示例");
       const diagramsAfter = await fetch(`${base}/api/diagrams`).then((response) => response.json());
       expect(diagramsAfter.length).toBe(diagramsBefore.length);
