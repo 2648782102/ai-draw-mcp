@@ -174,6 +174,7 @@ try {
   if (!targetNode) throw new Error("Focus target node not found in rendered graph");
   await page.mouse.click(targetNode.x, targetNode.y);
   await page.waitForFunction(() => document.querySelector("#canvasObjectLabel").textContent.trim() === "index.ts", { timeout: 5000 });
+  await page.waitForFunction(() => Number(document.querySelector("#flowLens").dataset.focusEdges) > 0, { timeout: 5000 });
   await page.waitForFunction(() => Number(document.querySelector("#canvasObjectConversation").dataset.openThreads) > 0, { timeout: 5000 });
   await page.waitForSelector("#canvasThreadLayer .canvas-thread-badge");
   await page.waitForFunction(() => {

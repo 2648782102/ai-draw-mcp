@@ -289,6 +289,21 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#flowLens", (element) => getComputedStyle(element).display)).toBe("flex");
       expect(await page.$eval("#flowLensLabel", (element) => element.textContent)).toContain("等待项目结构图");
       expect(await page.$eval("#flowLensIndex", (element) => element.textContent)).toMatch(/\/ \d+/);
+      const lensSignal = await page.evaluate(() => {
+        const lens = document.querySelector("#flowLens");
+        return {
+          visible: getComputedStyle(document.querySelector("#flowLensSignal")).display !== "none",
+          width: document.querySelector("#flowLensSignalBar").style.width,
+          count: document.querySelector("#flowLensSignalCount").textContent,
+          state: document.querySelector("#flowLensSignalState").textContent,
+          focusEdges: lens.dataset.focusEdges,
+        };
+      });
+      expect(lensSignal.visible).toBe(true);
+      expect(lensSignal.width).toMatch(/^\d+%$/);
+      expect(lensSignal.count).toMatch(/\d+ 边/);
+      expect(lensSignal.state.length).toBeGreaterThan(0);
+      expect(lensSignal.focusEdges).toMatch(/^\d+$/);
       await page.click("#btnFlowLensNext");
       expect(await page.$eval("#flowLensIndex", (element) => element.textContent)).toMatch(/\/ \d+/);
 

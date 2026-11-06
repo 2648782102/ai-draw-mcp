@@ -35,6 +35,10 @@ Code-map products and dependency inspectors typically separate incoming referenc
 
 Canvas tools such as Figma, tldraw, and Mermaid editors keep high-frequency actions grouped near the canvas while keeping a small status surface for current context. The bottom dock now borrows that combination: `VIEW` and `SHARED` groups clarify action scope, and a structure → focus → gate route makes the read-only boundary continuously visible without opening a modal. The route is a derived projection of graph-object order and the established focus, not a workflow state machine or a write gate; it does not publish viewport changes, issue receipts, or write project files.
 
+## Focus-HUD research note (2026-11-06 21:20 CST)
+
+Developer HUDs and code-map inspectors compress dense relationship signals into a persistent, glanceable strip instead of hiding them behind a details panel. The Focus Lens now borrows that pattern with a relation pulse: adjacent-edge count, a bounded graph-wide ratio bar, inbound count, and discussion-state light stay beside the focused object. It remains a derived CSS/DOM projection of existing edges, annotations, and focus; it does not create a second state model, publish viewport changes, send messages, approve proposals, issue receipts, or write project files.
+
 ## Positioning statement
 
 > AI Draw MCP is a local-first MCP workspace where an AI can turn a codebase into an editable visual map, a human can correct that map in the panel, and the pair can review a concrete change proposal before any file is written.

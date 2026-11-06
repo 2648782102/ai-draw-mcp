@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 焦点镜头关系脉冲（2026-11-06 21:20 CST）：顶部 Focus Lens 从单纯文字胶囊升级为分层 HUD：新增「关系脉冲」微型计数、全图真实边占比进度带、入向数量与开放讨论 / 需重锚状态灯，并把当前焦点的直接边数写入只读 dataset。脉冲只派生自既有 `collabGraph.edges`、批注状态与 `selectedNodeId`，不新增状态机、不改 focus/viewport、批准凭据或项目文件；Aurora / Studio / Atlas、浅色主题、窄屏规则、浏览器回归、离线守卫、中英文 README、宣发与可复现截图同步覆盖。
+
+- 焦点航线 CI 证据（2026-11-06 21:15 CST）：`aa4161d` 的 CI `42223805073` / #154 在 Node 20/22/24 三档全绿（jobs `127912081820` / `127912081935` / `127912081463`），metadata #38 `42223804669` success；确认底部 dock 的结构 → 焦点 → 闸门航线、分组操作、关系轨道点击按帧同步与窄屏适配通过完整矩阵。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 rerun 掩盖、未 force push、未 retag、未改写已发布 Release、未自动发 npm 包。
+
 - 画布焦点航线控制台（2026-11-06 21:10 CST）：底部浮动操作条升级为带渐变顶边与 `VIEW` / `SHARED` 分组的操作台，状态区显示「结构 → 焦点 → 闸门」只读航线、焦点进度带、当前对象名、`n / N` 序号与「闸门关闭」文案；窄屏自动收起分组标签，避免横向拥挤。航线完全派生自既有 `collabGraph.nodes` / `selectedNodeId`，不改 focus、viewport、批准凭据或项目文件，也不新增 MCP 工具或 version 1 协议；Aurora / Studio / Atlas / 浅色主题、浏览器回归、离线守卫、中英文 README、宣发与可复现截图同步覆盖。
 
 - 关系轨道 CI 证据（2026-11-06 21:05 CST）：`1786c28` 的 CI `42221965847` / #153 在 Node 20/22/24 三档全绿（jobs `127905972830` / `127905973009` / `127905972980`），metadata #37 `42221965852` success；确认入向 / 出向关系轨道、真实边方向计数、只读焦点复用、有限相邻对象短条与三套视觉系统通过完整矩阵。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 rerun 掩盖、未 force push、未 retag、未改写已发布 Release、未自动发 npm 包。
