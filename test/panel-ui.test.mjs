@@ -121,6 +121,8 @@ describe("collaboration panel UI", () => {
       });
       expect(await page.$eval("#collabHealth", (element) => element.className)).toContain("health-card");
       expect(await page.$eval("#healthProgressLabel", (element) => element.textContent)).toMatch(/\/ 4 步/);
+      expect(await page.$eval(".graph-guide", (element) => element.textContent)).toContain("先生成一张项目结构图");
+      expect(await page.$eval(".graph-row-header", (element) => getComputedStyle(element).position)).toBe("sticky");
 
       await page.click("#btnGraphMore");
       expect(await page.$eval("#graphMoreActions", (element) => element.classList.contains("open"))).toBe(true);

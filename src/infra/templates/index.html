@@ -424,13 +424,17 @@
     .collab-backdrop { position: absolute; inset: 0; z-index: 1001; pointer-events: none; }
     .collab-shell { z-index: 1002; }
     .graph-row {
-      display: grid; grid-template-columns: 34px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 5px;
-      border-bottom: 1px solid var(--border); align-items: center;
+      position: relative; display: grid; grid-template-columns: 46px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 5px 5px 5px 25px;
+      margin-bottom: 4px; border: 1px solid var(--border); border-radius: 7px; background: rgba(24,36,58,.45); align-items: center;
     }
-    .graph-row-header { display: grid; grid-template-columns: 34px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 2px 5px; color: var(--text-muted); font-size: 9px; }
+    .graph-row-header { position: sticky; top: -8px; z-index: 2; display: grid; grid-template-columns: 46px 1fr .8fr 1.1fr .8fr .5fr .5fr 24px; gap: 4px; padding: 5px 5px 5px 25px; color: var(--text-muted); font-size: 9px; background: var(--panel); border-bottom: 1px solid var(--border); font-weight: 650; letter-spacing: .04em; }
+    .graph-row:hover { border-color: rgba(122,162,247,.5); background: rgba(122,162,247,.07); }
+    .graph-row::before { content: attr(data-row-number); position: absolute; left: 7px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 9px; font-variant-numeric: tabular-nums; }
+    .graph-row::after { content: ''; position: absolute; left: 0; top: 7px; bottom: 7px; width: 2px; border-radius: 2px; background: transparent; }
+    .graph-row.selected::after { background: linear-gradient(var(--accent), var(--accent2)); }
     .graph-select-cell { display: flex; align-items: center; gap: 2px; }
     .graph-select-cell input { width: 11px; margin: 0; accent-color: var(--accent, #58a6ff); }
-    .graph-row.selected { background: rgba(122, 162, 247, .14); border-radius: 6px; }
+    .graph-row.selected { background: rgba(122, 162, 247, .14); border-color: rgba(122,162,247,.55); }
     .graph-row input, .graph-row select, .edge-row input, .edge-row select {
       min-width: 0; background: var(--surface2); color: var(--text); border: 1px solid var(--border);
       border-radius: 3px; padding: 4px; font-size: 10px; box-sizing: border-box;
@@ -445,6 +449,10 @@
     .edge-editor { margin-top: 8px; border-top: 1px solid var(--border); }
     .edge-editor h4 { font-size: 10px; color: var(--text-muted); margin: 8px 0 4px; }
     .graph-empty { color: var(--text-muted); font-size: 10px; padding: 8px 0; }
+    .graph-guide { display: flex; align-items: center; gap: 10px; margin: 7px 0; padding: 12px; border: 1px dashed rgba(122,162,247,.3); border-radius: 10px; background: rgba(122,162,247,.05); }
+    .graph-guide-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: rgba(122,162,247,.14); color: var(--accent); font-size: 15px; flex-shrink: 0; }
+    .graph-guide strong { display: block; color: var(--text); font-size: 11px; margin-bottom: 3px; }
+    .graph-guide span { color: var(--text-muted); font-size: 10px; line-height: 1.5; }
     .chat-item { padding: 8px 9px; margin-bottom: 7px; border-radius: 8px; background: var(--surface2); font-size: 11px; line-height: 1.5; border: 1px solid transparent; }
     .chat-item .meta { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 3px; }
     .chat-item.human { border-left: 2px solid var(--green); }
@@ -1598,7 +1606,7 @@ function renderGraphEditor() {
   const target = $('#graphEditor');
   const edgeTarget = $('#edgeEditor');
   if (!collabGraph) {
-    target.innerHTML = '<div class="collab-help">暂无项目结构图。让 AI 调用 scan_project，或刷新协作会话。</div>';
+    target.innerHTML = '<div class="graph-guide"><span class="graph-guide-icon">◇</span><span><strong>先生成一张项目结构图</strong><span>让 AI 调用 scan_project，或点击「重新扫描项目」；节点出现后可在这里编辑并多选。</span></span></div>';
     edgeTarget.innerHTML = '<div class="graph-empty">暂无连线。</div>';
     selectedNodeIds = [];
     renderSelectionSummary();
@@ -1610,7 +1618,7 @@ function renderGraphEditor() {
   renderFocus();
   renderSelectionSummary();
   target.innerHTML = collabGraph.nodes.map((node, index) => `
-    <div class="graph-row ${node.id === selectedNodeId ? 'selected' : ''}" data-index="${index}" data-node-id="${escapeHtml(node.id)}">
+    <div class="graph-row ${node.id === selectedNodeId ? 'selected' : ''}" data-index="${index}" data-node-id="${escapeHtml(node.id)}" data-row-number="${String(index + 1).padStart(2, '0')}">
       <span class="graph-select-cell">
         <input type="radio" name="selectedNode" ${node.id === selectedNodeId ? 'checked' : ''} aria-label="焦点节点" title="设为焦点" />
         <input class="node-select" type="checkbox" ${selectedNodeIds.includes(node.id) ? 'checked' : ''} aria-label="加入选择范围" title="加入选择范围（最多 24 个）" />
