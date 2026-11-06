@@ -753,6 +753,9 @@ for (const [label, file, needle] of [
   ["canvas handoff read-only copy", panel, "不发送消息、不批准提案、不写项目文件"],
   ["canvas handoff browser regression", panelUiTest, "btnHandoffOpen"],
   ["canvas handoff changelog", changelog, "交接航线"],
+  ["collaboration journey progress rail", panel, "--journey-progress"],
+  ["collaboration journey progress regression", panelUiTest, "progressState"],
+  ["collaboration journey progress changelog", changelog, "连续进度轨道"],
   ["panel sync browser regression", panelUiTest, "sync-meter"],
   ["Chinese collaboration pulse docs", readme, "人机协作脉搏"],
   ["English collaboration pulse docs", englishQuickstart, "collaboration pulse"],
@@ -1119,6 +1122,8 @@ check(metadataWorkflow.includes("env.GH_ADMIN_TOKEN != ''"), "metadata workflow 
 check(governance.includes("read-only drift check on every master/main push"), "governance docs do not describe automatic metadata drift checks");
 check(governance.includes("42185011140"), "governance docs do not record the green approval-gate CI run");
 check(launchKit.includes("42185011140"), "launch kit does not record the green approval-gate CI run");
+check(governance.includes("42187638417"), "governance docs do not record the green unified-refresh CI run");
+check(launchKit.includes("42187638417"), "launch kit does not record the green unified-refresh CI run");
 check(launchKit.includes("push a metadata-relevant file to apply"), "launch kit does not describe automatic metadata convergence");
 check(packageJson.scripts?.["docs:assets"] === "node scripts/generate-doc-assets.mjs", "docs:assets script is missing");
 check(packageJson.scripts?.["docs:assets:check"] === "node scripts/generate-doc-assets.mjs --check", "docs:assets:check script is missing");

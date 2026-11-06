@@ -338,11 +338,15 @@ describe("collaboration panel UI", () => {
         proposalState: document.querySelector('[data-journey="proposals"]').dataset.state,
         reviewState: document.querySelector('[data-journey="review"]').dataset.state,
         reviewHint: document.querySelector('[data-journey-hint="review"]').textContent,
+        progress: document.querySelector("#collabJourney").style.getPropertyValue("--journey-progress"),
+        progressState: document.querySelector("#collabJourney").dataset.journeyProgress,
       }));
       expect(journey.dialogState).toBe("ready");
       expect(journey.proposalState).toBe("busy");
       expect(journey.reviewState).toBe("busy");
       expect(journey.reviewHint).toContain("批准前先看完整 diff");
+      expect(Number.parseInt(journey.progress, 10)).toBeGreaterThan(0);
+      expect(["active", "blocked"]).toContain(journey.progressState);
       await page.click('[data-journey="proposals"]');
       expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("proposals");
       expect(await page.$eval('[data-journey="proposals"]', (element) => element.getAttribute("aria-current"))).toBe("step");

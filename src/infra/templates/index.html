@@ -574,7 +574,18 @@
     .collab-journey {
       display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;
       flex-shrink: 0; padding: 10px 14px 0;
+      --journey-progress: 0%;
     }
+    .collab-journey::after {
+      content: ''; grid-column: 1 / -1; height: 3px; margin: -2px 4px 0; border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent3) 0 var(--journey-progress), var(--border) var(--journey-progress) 100%);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+    }
+    .collab-journey[data-journey-progress="blocked"]::after { background: linear-gradient(90deg, var(--orange) 0 var(--journey-progress), var(--border) var(--journey-progress) 100%); }
+    .journey-step[data-state="ready"] { border-color: rgba(158,206,106,.48); }
+    .journey-step[data-state="busy"] { border-color: rgba(240,168,104,.52); }
+    .journey-step[data-state="ready"] .journey-icon { border-color: rgba(158,206,106,.48); color: var(--green); }
+    .journey-step[data-state="busy"] .journey-icon { border-color: rgba(240,168,104,.55); color: var(--orange); }
     .journey-step {
       position: relative; display: flex; align-items: center; gap: 9px; min-width: 0;
       padding: 8px 10px; border: 1px solid var(--border); border-radius: 11px;
@@ -3823,6 +3834,9 @@ function renderJourney() {
     review: approved ? '确认号待交给 AI 应用' : pending ? '批准前先看完整 diff' : '批准前只读',
   };
   const icons = { idle: '○', busy: '◷', ready: '✓', blocked: '!' };
+  const orderedStates = ['graph', 'dialog', 'proposals', 'review'].map((name) => states[name]);
+  const completedStates = orderedStates.filter((state) => state === 'ready').length;
+  const journeyProgress = reviewStatus === 'blocked' ? 50 : Math.round((completedStates / orderedStates.length) * 100);
   for (const step of journey.querySelectorAll('.journey-step')) {
     const name = step.dataset.journey;
     const active = step.dataset.journeyTab === currentTab;
@@ -3835,6 +3849,9 @@ function renderJourney() {
     $(`[data-journey-hint="${name}"]`).textContent = hints[name];
     $(`[data-journey-state="${name}"]`).textContent = icons[states[name]];
   }
+  journey.style.setProperty('--journey-progress', `${journeyProgress}%`);
+  journey.dataset.journeyProgress = reviewStatus === 'blocked' ? 'blocked' : 'active';
+  journey.title = `协作进度 ${journeyProgress}% · ${completedStates} / ${orderedStates.length} 步已完成；批准前仍保持只读`;
   const badge = $('#journeyProposalCount');
   if (badge) {
     badge.hidden = pending === 0;
