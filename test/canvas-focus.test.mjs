@@ -126,6 +126,7 @@ describe("canvas focus interaction", () => {
           evidence: document.querySelector("#canvasHoverEvidence").textContent,
           open: document.querySelector("#canvasHoverOpen").textContent,
           note: document.querySelector(".canvas-hover-note").textContent,
+          trace: document.querySelector("#canvasHoverTrace").textContent,
           visible: card.dataset.visible,
           nodeId: card.dataset.nodeId,
           selectedNodeId: document.querySelector("#canvasFocusRing").dataset.focusNodeId,
@@ -134,6 +135,7 @@ describe("canvas focus interaction", () => {
           nearShape: Boolean(shapeRect) && Math.abs(cardRect.left + cardRect.width / 2 - (shapeRect.left + shapeRect.width / 2)) < 160,
           hoveredNodes: document.querySelectorAll("#diagramRender svg .node.is-hovered").length,
           relatedNodes: document.querySelectorAll("#diagramRender svg .node.is-related").length,
+          highlightedEdges: document.querySelectorAll("#diagramRender svg .flowchart-link.is-hover-path").length,
         };
       }, target.label);
       expect(hover.visible).toBe("true");
@@ -145,12 +147,14 @@ describe("canvas focus interaction", () => {
       expect(Number(hover.evidence)).toBeGreaterThanOrEqual(0);
       expect(Number(hover.open)).toBeGreaterThan(0);
       expect(hover.note).toContain("不批准或写文件");
+      expect(hover.trace).toMatch(/已点亮 \d+ 条真实关系|当前无直接关系路径/);
       expect(hover.nodeId).toMatch(/^node_/);
       expect(hover.selectedNodeId).toBe(focusRingBeforeHover);
       expect(hover.inCanvas).toBe(true);
       expect(hover.nearShape).toBe(true);
       expect(hover.hoveredNodes).toBe(1);
       expect(hover.relatedNodes).toBe(Number(hover.related));
+      expect(hover.highlightedEdges).toBeGreaterThan(0);
       const sessionAfterHover = await fetch(`${base}/api/collab/session`, { headers: tokenHeaders }).then((response) => response.json());
       expect(sessionAfterHover.focus ?? null).toEqual(sessionBeforeHover.focus ?? null);
       expect(sessionAfterHover.graphRevision).toBe(sessionBeforeHover.graphRevision);
@@ -172,6 +176,7 @@ describe("canvas focus interaction", () => {
       await page.keyboard.press("p");
       expect(await page.$eval("#canvasHoverCard", (element) => element.dataset.visible)).toBe("false");
       expect(await page.$$eval("#diagramRender svg .node.is-related", (elements) => elements.length)).toBe(0);
+      expect(await page.$$eval("#diagramRender svg .flowchart-link.is-hover-path", (elements) => elements.length)).toBe(0);
       await page.mouse.move(target.x + 2, target.y + 2);
       expect(await page.$eval("#canvasHoverCard", (element) => element.dataset.visible)).toBe("false");
       await page.keyboard.press("p");
@@ -182,6 +187,7 @@ describe("canvas focus interaction", () => {
       const previewAfter = await page.$eval("#canvasHoverCard", (element) => ({ nodeId: element.dataset.nodeId, label: document.querySelector("#canvasHoverLabel").textContent }));
       expect(previewAfter.nodeId).not.toBe(previewBefore.nodeId);
       expect(previewAfter.label).not.toBe(previewBefore.label);
+      expect(await page.$$eval("#diagramRender svg .flowchart-link.is-hover-path", (elements) => elements.length)).toBeGreaterThan(0);
       expect(await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId)).toBe(focusRingBeforeHover);
       await page.keyboard.press("Enter");
       await page.waitForFunction((nodeId) => document.querySelector("#canvasFocusRing").dataset.focusNodeId === nodeId, { timeout: 5000 }, previewAfter.nodeId);
@@ -299,7 +305,7 @@ describe("canvas focus interaction", () => {
       expect(await page.$eval("#canvasObjectLabel", (element) => element.textContent)).toBe(beforeDrag);
       await page.click("#btnCanvasZoomIn");
       await page.waitForFunction(() => Number(document.querySelector("#canvasZoomLabel").textContent.replace("%", "")) > 90);
-      expect(await page.evaluate(() => {
+      await page.waitForFunction(() => {
         const ring = document.querySelector("#canvasFocusRing");
         const group = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")]
           .find((element) => ring.dataset.focusNodeId && element.id.includes(ring.dataset.focusNodeId));
@@ -307,7 +313,7 @@ describe("canvas focus interaction", () => {
         const shapeRect = shape?.getBoundingClientRect();
         const ringRect = ring.getBoundingClientRect();
         return Boolean(shapeRect) && Math.abs(ringRect.width - (shapeRect.width + 10)) < 2;
-      })).toBe(true);
+      }, { timeout: 5000 });
       expect(pageErrors).toEqual([]);
     } finally {
       await browser.close();

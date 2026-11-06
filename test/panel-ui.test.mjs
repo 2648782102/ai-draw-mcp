@@ -297,6 +297,21 @@ describe("collaboration panel UI", () => {
       });
       expect(toastPlacement).toEqual({ bottom: "100px", centered: true, belowRail: true });
       await page.evaluate(() => document.querySelector("#toast").classList.remove("show"));
+      await page.click('#appearancePopover [data-zen="on"]');
+      await page.waitForFunction(() => document.body.classList.contains("zen-workspace"));
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(true);
+      await page.waitForFunction(() => getComputedStyle(document.querySelector("#toast")).bottom === "64px", { timeout: 5000 });
+      const zenToastPlacement = await page.evaluate(() => {
+        const toast = document.querySelector("#toast");
+        toast.classList.add("show");
+        const rect = toast.getBoundingClientRect();
+        const style = getComputedStyle(toast);
+        return { bottom: style.bottom, centered: Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) < 2, belowRail: rect.top >= document.querySelector("#flowRail").getBoundingClientRect().bottom };
+      });
+      expect(zenToastPlacement).toEqual({ bottom: "64px", centered: true, belowRail: true });
+      await page.evaluate(() => document.querySelector("#toast").classList.remove("show"));
+      await page.click('#appearancePopover [data-zen="off"]');
+      await page.waitForFunction(() => !document.body.classList.contains("zen-workspace"));
       await page.click('#appearancePopover [data-layout-system="classic"]');
       expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(false);
       await page.click('#appearancePopover [data-layout-system="flow"]');
