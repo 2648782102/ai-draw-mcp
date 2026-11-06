@@ -109,6 +109,8 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(false);
       expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
       expect(await page.$eval("#btnRibbonInspector", (element) => element.getAttribute("aria-pressed"))).toBe("false");
+      expect(await page.$eval("#workspaceRibbon .sync-meter", (element) => getComputedStyle(element).display)).not.toBe("none");
+      expect(await page.$eval("#btnRender", (element) => getComputedStyle(element).backgroundImage)).toContain("linear-gradient");
       const welcome = await page.evaluate(() => ({
         kicker: document.querySelector(".welcome-kicker").textContent,
         title: document.querySelector("#welcomeCard h2").textContent,
@@ -130,6 +132,12 @@ describe("collaboration panel UI", () => {
       const diagramsBefore = await fetch(`${base}/api/diagrams`).then((response) => response.json());
       await page.click("#btnLoadExample");
       await page.waitForFunction(() => Boolean(document.querySelector("#diagramRender svg")));
+      await page.waitForFunction(() => Number(document.querySelector("#collabPulseCount").textContent) > 0);
+      expect(await page.$eval("#btnCollabPulse", (element) => getComputedStyle(element).display)).toBe("flex");
+      expect(await page.$eval("#collabPulseHint", (element) => element.textContent)).toContain("提案待审");
+      await page.mouse.move(880, 420);
+      expect(await page.$eval("body", (element) => element.dataset.pointer)).toBe("active");
+      expect(await page.$eval("body", (element) => getComputedStyle(element).getPropertyValue("--pointer-x").trim())).toMatch(/px$/);
       expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(true);
       expect(await page.$eval("#workspace", (element) => element.classList.contains("welcome"))).toBe(false);
       expect(await page.$eval("#welcomeCard", (element) => getComputedStyle(element).display)).toBe("none");
@@ -273,6 +281,8 @@ describe("collaboration panel UI", () => {
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
       await page.waitForSelector("#overviewRevision");
       await page.waitForSelector(".proposal-card.status-pending");
+      await page.waitForFunction(() => ["fresh", "idle"].includes(document.querySelector("#workspaceRibbon").dataset.sync));
+      expect(await page.$eval("body", (element) => typeof window.loadCollab === "function" || Boolean(document.querySelector("#collabMeta").textContent.includes("revision")))).toBe(true);
       const desktop = await page.evaluate(() => ({
         stats: document.querySelectorAll(".overview-stat").length,
         drawers: document.querySelectorAll(".signal-drawer").length,
@@ -446,6 +456,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#graphDirtyCount", (element) => element.textContent)).toBe("1");
       await page.click("#btnSaveGraph");
       await page.waitForFunction(() => document.querySelector("#graphDirtyHint").hidden);
+      await page.waitForFunction(() => document.querySelector('[data-history-pane="diffs"] .graph-diff-list details')?.textContent.includes("人工编辑模块"), { timeout: 5000 });
       expect(await page.$eval("#btnSaveGraph", (element) => element.classList.contains("has-dirty"))).toBe(false);
       expect(await page.$eval("#graphDirtyCount", (element) => element.hidden)).toBe(true);
       expect(await page.$$eval(".history-tab", (elements) => elements.length)).toBe(4);

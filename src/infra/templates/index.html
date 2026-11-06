@@ -176,6 +176,24 @@
     .workspace-ribbon button { height: 20px; padding: 0 7px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text); font-size: 8px; cursor: pointer; }
     .workspace-ribbon button:hover { border-color: var(--accent3); }
     body.visual-aurora .workspace-ribbon { border-color: rgba(61,219,217,.40); }
+    .workspace-ribbon[data-sync="loading"] .ribbon-orb { background: var(--orange); animation: ribbon-pulse .9s ease-in-out infinite; }
+    .workspace-ribbon[data-sync="error"] .ribbon-orb { background: var(--red); box-shadow: 0 0 0 3px rgba(255,122,147,.14); }
+    .workspace-ribbon[data-sync="fresh"] .ribbon-orb { background: var(--green); }
+    @keyframes ribbon-pulse { 0%, 100% { opacity: .55; transform: scale(.82); } 50% { opacity: 1; transform: scale(1.15); } }
+    .sync-meter { width: 34px; height: 3px; border-radius: 999px; background: rgba(122,162,247,.20); overflow: hidden; }
+    .sync-meter span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent3)); transition: width .2s ease; }
+    .workspace-ribbon[data-sync="loading"] .sync-meter span { width: 68%; animation: sync-sweep 1s ease-in-out infinite; }
+    .workspace-ribbon[data-sync="fresh"] .sync-meter span { width: 100%; }
+    .workspace-ribbon[data-sync="error"] .sync-meter span { width: 100%; background: var(--red); }
+    @keyframes sync-sweep { 0% { transform: translateX(-55%); } 100% { transform: translateX(55%); } }
+    body.visual-aurora { --pointer-x: 50vw; --pointer-y: 50vh; }
+    body.visual-aurora .preview-wrap::after {
+      content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+      background: radial-gradient(260px circle at var(--pointer-x) var(--pointer-y), rgba(61,219,217,.055), transparent 70%);
+      opacity: 0; transition: opacity .3s ease;
+    }
+    body.visual-aurora[data-pointer="active"] .preview-wrap::after { opacity: 1; }
+    body.visual-studio .preview-wrap::after, body.zen-workspace .preview-wrap::after { display: none; }
     .live-inspector {
       position: fixed; right: 18px; top: 68px; bottom: 50px; z-index: 480; width: 280px;
       display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 14px;
@@ -269,6 +287,19 @@
     }
     .toolbar button:hover { background: rgba(122, 162, 247, .18); border-color: rgba(122, 162, 247, .55); transform: translateY(-1px); }
     .toolbar .btn-icon { width: 28px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .toolbar button.primary {
+      position: relative; overflow: hidden; border-color: transparent;
+      background: linear-gradient(135deg, var(--accent), var(--accent2) 58%, var(--accent3));
+      color: #07111e; font-weight: 800; letter-spacing: .01em;
+      box-shadow: 0 7px 20px rgba(122,162,247,.25), inset 0 1px 0 rgba(255,255,255,.28);
+    }
+    .toolbar button.primary::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(100deg, transparent 25%, rgba(255,255,255,.32) 50%, transparent 75%);
+      transform: translateX(-120%);
+    }
+    .toolbar button.primary:hover::after { animation: button-sheen .65s ease-out; }
+    @keyframes button-sheen { to { transform: translateX(120%); } }
 
     /* ── Main Layout ── */
     .main { display: flex; height: calc(100vh - var(--header-height)); padding: var(--main-padding); gap: var(--main-gap); transition: height .22s ease, padding .22s ease; }
@@ -312,6 +343,7 @@
     /* ── Editor + Preview split ── */
     .workspace { flex: 1; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--glass); box-shadow: 0 8px 26px rgba(0,0,0,.22); transition: border-radius .22s ease, border-color .22s ease; }
     body.visual-aurora .workspace { border-color: rgba(122,162,247,.38); box-shadow: 0 12px 40px rgba(0,0,0,.32), 0 0 0 1px rgba(61,219,217,.05); }
+    .workspace { position: relative; }
     body.visual-aurora .workspace::before {
       content: ''; position: absolute; inset: 0 0 auto; height: 1px; z-index: 3; pointer-events: none;
       background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent3), transparent);
@@ -595,11 +627,11 @@
       border-color: rgba(122,162,247,.55); font-weight: 700;
     }
     .status #btnCollaborate:hover { transform: translateY(-1px); border-color: var(--accent); }
-    .toolbar button.primary, .collab-actions button.primary, .status #btnCollaborate {
+    .collab-actions button.primary, .status #btnCollaborate {
       background: linear-gradient(135deg, rgba(122,162,247,.92), rgba(187,154,247,.88) 62%, rgba(61,219,217,.82));
       border-color: transparent; color: #08111f; font-weight: 750;
     }
-    .toolbar button.primary:hover, .collab-actions button.primary:hover {
+    .collab-actions button.primary:hover {
       background: linear-gradient(135deg, #8fb2ff, #c7a9ff);
       border-color: transparent; box-shadow: 0 6px 18px rgba(122,162,247,.24);
     }
@@ -700,6 +732,36 @@
     body.visual-aurora .canvas-context-chip[data-ready="true"] { box-shadow: inset 0 0 12px rgba(61,219,217,.08); }
     body.visual-studio .canvas-object-card { border-radius: 8px; }
     .workspace:not(.welcome) .canvas-object-card { display: block; }
+    .collab-pulse {
+      position: absolute; left: 14px; top: 14px; z-index: 23; display: none;
+      align-items: center; gap: 8px; min-width: 198px; padding: 7px 9px;
+      border: 1px solid rgba(61,219,217,.46); border-radius: 12px;
+      background: linear-gradient(135deg, rgba(12,25,42,.94), rgba(9,14,25,.91));
+      box-shadow: 0 16px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.06);
+      backdrop-filter: blur(14px); color: var(--text); cursor: pointer; text-align: left;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .workspace:not(.welcome) .collab-pulse { display: flex; }
+    .collab-pulse:hover { transform: translateY(-2px); border-color: var(--accent3); box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 22px rgba(61,219,217,.13); }
+    .collab-pulse-orbit { position: relative; width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(61,219,217,.46); border-radius: 50%; background: radial-gradient(circle, rgba(61,219,217,.22), transparent 68%); }
+    .collab-pulse-orbit::before, .collab-pulse-orbit::after { content: ''; position: absolute; border-radius: 50%; }
+    .collab-pulse-orbit::before { inset: 8px; background: var(--accent3); box-shadow: 0 0 10px rgba(61,219,217,.8); }
+    .collab-pulse-orbit::after { inset: -4px; border: 1px solid rgba(122,162,247,.42); animation: pulse-orbit 2.4s ease-out infinite; }
+    @keyframes pulse-orbit { 0% { opacity: .7; transform: scale(.8); } 100% { opacity: 0; transform: scale(1.35); } }
+    .collab-pulse-copy { min-width: 0; flex: 1; }
+    .collab-pulse-copy strong { display: block; font-size: 10px; letter-spacing: .02em; }
+    .collab-pulse-copy span { display: block; margin-top: 2px; overflow: hidden; color: var(--text-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .collab-pulse-count { min-width: 21px; height: 21px; display: grid; place-items: center; border-radius: 7px; background: rgba(61,219,217,.14); color: var(--accent3); font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .collab-pulse[data-state="review"] { border-color: rgba(240,168,104,.55); }
+    .collab-pulse[data-state="review"] .collab-pulse-count { background: rgba(240,168,104,.16); color: var(--orange); }
+    .collab-pulse[data-state="ready"] { border-color: rgba(158,206,106,.55); }
+    .collab-pulse[data-state="ready"] .collab-pulse-count { background: rgba(158,206,106,.16); color: var(--green); }
+    body.visual-studio .collab-pulse { border-color: rgba(80,110,165,.34); background: rgba(255,255,255,.96); box-shadow: 0 12px 28px rgba(38,54,84,.15); }
+    body.visual-studio .collab-pulse-orbit { border-color: rgba(13,145,140,.42); }
+    body.theme-light .collab-pulse { background: rgba(255,255,255,.95); }
+    body.zen-workspace .collab-pulse { top: 12px; left: 12px; }
+    @media (max-width: 860px) { .collab-pulse { min-width: 0; width: 172px; } }
+    @media (max-width: 620px) { .workspace:not(.welcome) .collab-pulse { display: none; } }
     .canvas-object-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
     .canvas-object-kicker { color: var(--accent); font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
     .canvas-object-index { color: var(--text-muted); font-size: 9px; font-variant-numeric: tabular-nums; }
@@ -871,7 +933,7 @@
     *::-webkit-scrollbar-thumb { background: rgba(122,162,247,.25); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
     *::-webkit-scrollbar-thumb:hover { background: rgba(122,162,247,.45); background-clip: content-box; }
     .collab-shell {
-      position: fixed; inset: 68px 18px 18px 18px; z-index: 500;
+      position: fixed; inset: 68px 18px 18px 18px; z-index: 500; isolation: isolate;
       background: rgba(9, 14, 25, .94); border: 1px solid var(--border); border-radius: 16px;
       box-shadow: var(--shadow); backdrop-filter: blur(20px); display: flex; flex-direction: column;
       overflow: hidden;
@@ -960,7 +1022,7 @@
     body.visual-studio .collab-section { border-color: rgba(80,110,165,.24); border-radius: 8px; }
     .collab-section > .section-scroll { flex: 1 1 auto; min-height: 0; }
     .collab-section > .section-dock {
-      position: sticky; bottom: -14px; margin: 10px -14px -14px; padding: 10px 14px 14px;
+      position: sticky; bottom: -14px; z-index: 10; margin: 10px -14px -14px; padding: 10px 14px 14px;
       border-top: 1px solid var(--border); background: linear-gradient(180deg, rgba(17,26,44,.72), rgba(17,26,44,.96));
       backdrop-filter: blur(10px);
     }
@@ -1514,6 +1576,8 @@
             <span class="ribbon-orb" aria-hidden="true"></span>
             <strong id="ribbonFocus">等待焦点</strong>
             <span id="ribbonMode">Aurora · 只读上下文</span>
+            <span class="sync-meter" aria-hidden="true"><span></span></span>
+            <span id="ribbonSync" role="status">就绪</span>
             <button type="button" id="btnRibbonInspector" title="展开只读上下文速览（I）">◧ 速览</button>
           </div>
           <div class="canvas-dock" aria-label="画布快捷操作">
@@ -1533,6 +1597,11 @@
             <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
           </div>
           <div class="canvas-chip">滚轮缩放 · 拖拽平移 · 单击节点聚焦 · 双击重置 · F 适应窗口</div>
+          <button type="button" class="collab-pulse" id="btnCollabPulse" data-state="ready" title="打开双向协作工作台（C）" aria-label="打开双向协作工作台">
+            <span class="collab-pulse-orbit" aria-hidden="true"></span>
+            <span class="collab-pulse-copy"><strong>人机协作脉搏</strong><span id="collabPulseHint">点击打开共享上下文 · C</span></span>
+            <span class="collab-pulse-count" id="collabPulseCount">0</span>
+          </button>
           <aside class="canvas-object-card" id="canvasObjectCard" aria-label="当前画布对象">
             <div class="canvas-object-head"><span class="canvas-object-kicker">Focus · read only</span><span class="canvas-object-index" id="canvasObjectIndex">0 / 0</span></div>
             <strong id="canvasObjectLabel">等待项目结构图</strong>
@@ -1981,6 +2050,7 @@ function inspectorMetrics() {
 }
 
 function renderInspector() {
+  if (collabRendersSuspended) { deferCollabDerivedRender(); return; }
   if (!$('#liveInspector')) return;
   const { node, evidence, conversations, readinessLabel } = inspectorMetrics();
   const focusLabel = node?.label || '等待项目结构图';
@@ -2225,6 +2295,26 @@ function fitView() {
 const previewWrap = $('#previewWrap');
 const panOverlay  = $('#panOverlay');
 
+if (window.matchMedia('(pointer: fine)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  let pointerFrame = 0;
+  previewWrap.addEventListener('pointermove', (event) => {
+    if (!document.body.classList.contains('visual-aurora')) return;
+    const rect = previewWrap.getBoundingClientRect();
+    const x = `${Math.round(event.clientX - rect.left)}px`;
+    const y = `${Math.round(event.clientY - rect.top)}px`;
+    document.body.dataset.pointer = 'active';
+    if (pointerFrame) return;
+    pointerFrame = requestAnimationFrame(() => {
+      document.body.style.setProperty('--pointer-x', x);
+      document.body.style.setProperty('--pointer-y', y);
+      pointerFrame = 0;
+    });
+  }, { passive: true });
+  previewWrap.addEventListener('pointerleave', () => {
+    document.body.dataset.pointer = 'idle';
+  }, { passive: true });
+}
+
 previewWrap.addEventListener('wheel', (e) => {
   e.preventDefault();
   const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
@@ -2294,6 +2384,7 @@ $('#btnCanvasZoomIn').addEventListener('click', () => $('#btnZoomIn').click());
 $('#btnCanvasZoomOut').addEventListener('click', () => $('#btnZoomOut').click());
 $('#btnCanvasZoomFit').addEventListener('click', () => fitView());
 $('#btnCanvasCollab').addEventListener('click', () => openCollab());
+$('#btnCollabPulse').addEventListener('click', () => openCollab());
 $('#btnCanvasCommands').addEventListener('click', () => openCommandPalette());
 $('#btnCanvasHelp').addEventListener('click', () => openShortcutDialog());
 $('#btnCanvasPrevNode').addEventListener('click', () => stepCanvasFocus(-1));
@@ -2896,7 +2987,7 @@ function openReceiptDialog(receipt) {
 function closeReceiptDialog() {
   const backdrop = $('#receiptBackdrop');
   backdrop.classList.remove('open');
-  window.setTimeout(() => { backdrop.hidden = true; }, 180);
+  window.setTimeout(() => { backdrop.hidden = true; resumeDeferredCollabLoad(); }, 180);
   activeReceipt = null;
 }
 
@@ -3164,7 +3255,11 @@ function connectWs() {
 
       if (['graph_updated', 'chat_message', 'proposal_created', 'proposal_updated', 'session_updated'].includes(msg.type)
           && !$('#collabShell').hidden) {
-        await loadCollab();
+        if (collabInteractionDepth > 0 || !$('#receiptBackdrop')?.hidden) collabLoadDeferred = true;
+        else scheduleCollabLoad();
+        window.clearTimeout(collabPulseTimer);
+      } else if (['graph_updated', 'chat_message', 'proposal_created', 'proposal_updated', 'session_updated'].includes(msg.type)) {
+        schedulePulseLoad();
       }
     } catch {}
   };
@@ -3177,6 +3272,7 @@ let selectedNodeId = null;
 let selectedNodeIds = [];
 let collabSessionId = null;
 let collabWorkspaceRoot = null;
+let collabSessionMessages = [];
 let collabDiagnostics = null;
 let collabGraphDiffs = [];
 let collabGraphHistory = { version: 1, undo: 0, redo: 0, limit: 12 };
@@ -3191,6 +3287,121 @@ let collabViewport = null;
 let collabReviewReadiness = null;
 let collabProposals = [];
 let graphDirtyRows = new Set();
+let collabLoadToken = 0;
+let collabLoadPending = null;
+let collabLoadTimer = null;
+let collabRendersSuspended = false;
+let collabRenderDirty = false;
+let collabFreshTimer = null;
+let collabAuthoritativeRevision = 0;
+let collabSaveInFlight = false;
+let collabPulseSnapshot = null;
+let collabPulseTimer = null;
+let collabInteractionDepth = 0;
+let collabLoadDeferred = false;
+
+function setCollabSyncState(state, detail = '') {
+  const ribbon = $('#workspaceRibbon');
+  if (ribbon) ribbon.dataset.sync = state;
+  const label = $('#ribbonSync');
+  if (label) label.textContent = detail || ({ loading: '同步中', fresh: '已同步', error: '同步异常' })[state] || '就绪';
+  window.clearTimeout(collabFreshTimer);
+  if (state === 'fresh') {
+    collabFreshTimer = window.setTimeout(() => {
+      if (ribbon && ribbon.dataset.sync === 'fresh') ribbon.dataset.sync = 'idle';
+      if (label) label.textContent = '就绪';
+    }, 2400);
+  }
+}
+
+function suspendCollabRenders() { collabRendersSuspended = true; collabRenderDirty = false; }
+
+function resumeCollabRenders() {
+  collabRendersSuspended = false;
+  if (!collabRenderDirty) return;
+  collabRenderDirty = false;
+  renderJourney();
+  renderCanvasContextStrip();
+  renderInspector();
+  renderHealthCard();
+  renderCollabPulse();
+}
+
+function deferCollabDerivedRender() {
+  if (collabRendersSuspended) collabRenderDirty = true;
+}
+
+function renderCollabPulse() {
+  const pulse = $('#btnCollabPulse');
+  if (!pulse) return;
+  const session = collabPulseSnapshot?.session;
+  const messages = Array.isArray(session?.messages) ? session.messages : collabSessionMessages;
+  const proposals = Array.isArray(collabPulseSnapshot?.proposals) ? collabPulseSnapshot.proposals : collabProposals;
+  const diagnostics = collabPulseSnapshot?.diagnostics ?? collabDiagnostics;
+  const graph = session?.graph || collabGraph;
+  const pendingMessages = messages.filter((message) => message.status === 'pending').length;
+  const pendingProposals = proposals.filter((proposal) => proposal.status === 'pending').length;
+  const openAnnotations = (graph?.annotations || []).filter((annotation) => !annotation.resolved).length;
+  const signals = Array.isArray(diagnostics?.signals) ? diagnostics.signals.length : 0;
+  const attention = pendingMessages + pendingProposals + openAnnotations + signals;
+  const review = collabPulseSnapshot?.reviewReadiness?.status || collabReviewReadiness?.status || (pendingProposals ? 'review' : 'ready');
+  const focusNodeId = session?.focus?.nodeId || selectedNodeId;
+  const focusLabel = graph?.nodes?.find((node) => node.id === focusNodeId)?.label;
+  const hint = $('#collabPulseHint');
+  const count = $('#collabPulseCount');
+  pulse.dataset.state = review === 'blocked' ? 'blocked' : review === 'ready' ? 'ready' : 'review';
+  if (hint) {
+    hint.textContent = attention > 0
+      ? `${pendingProposals ? `${pendingProposals} 个提案待审 · ` : ''}${pendingMessages} 条消息 · ${openAnnotations} 条批注`
+      : focusLabel ? `焦点 ${focusLabel} · 点击打开共享上下文` : '点击打开共享上下文 · C';
+  }
+  if (count) count.textContent = attention > 0 ? String(attention) : collabGraph?.nodes?.length ? '✓' : '0';
+  pulse.title = `打开双向协作工作台（C）· ${attention} 项待关注信号；批准前始终只读`;
+}
+
+function schedulePulseLoad() {
+  window.clearTimeout(collabPulseTimer);
+  collabPulseTimer = window.setTimeout(() => { loadCollabPulse(); }, 120);
+}
+
+async function loadCollabPulse() {
+  const [session, proposals, diagnostics, reviewReadiness] = await Promise.all([
+    collabFetch('/api/collab/session').catch(() => null),
+    collabFetch('/api/collab/proposals').catch(() => ({ proposals: [] })),
+    collabFetch('/api/collab/diagnostics').catch(() => ({ diagnostics: null })),
+    collabFetch('/api/collab/review-readiness').catch(() => null),
+  ]);
+  if (!session) return;
+  collabAuthoritativeRevision = Math.max(collabAuthoritativeRevision, session.graphRevision);
+  collabPulseSnapshot = {
+    session,
+    proposals: Array.isArray(proposals?.proposals) ? proposals.proposals : [],
+    diagnostics: diagnostics?.diagnostics || null,
+    reviewReadiness,
+  };
+  renderCollabPulse();
+}
+
+function scheduleCollabLoad() {
+  window.clearTimeout(collabLoadTimer);
+  collabLoadTimer = window.setTimeout(() => {
+    if (collabInteractionDepth > 0 || !$('#receiptBackdrop')?.hidden || !$('#commandBackdrop')?.hidden
+        || !$('#shortcutBackdrop')?.hidden) { collabLoadDeferred = true; return; }
+    loadCollab();
+  }, 90);
+}
+
+function resumeDeferredCollabLoad() {
+  if (collabLoadDeferred && collabInteractionDepth === 0) {
+    collabLoadDeferred = false;
+    scheduleCollabLoad();
+  }
+}
+
+function finishCollabInteraction() {
+  collabInteractionDepth = Math.max(0, collabInteractionDepth - 1);
+  resumeDeferredCollabLoad();
+}
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -3348,6 +3559,7 @@ function setCollabTab(target) {
 }
 
 function renderJourney() {
+  if (collabRendersSuspended) { deferCollabDerivedRender(); return; }
   const journey = $('#collabJourney');
   if (!journey) return;
   const currentTab = $('#collabShell').dataset.tab || 'graph';
@@ -3355,7 +3567,8 @@ function renderJourney() {
   const pending = proposals.filter((proposal) => proposal.status === 'pending').length;
   const approved = proposals.filter((proposal) => proposal.status === 'approved').length;
   const hasGraph = Boolean(collabGraph?.nodes?.length);
-  const messages = Array.isArray(collabGraph?.messages) ? collabGraph.messages.length : Number($('#overviewActivity')?.textContent || 0);
+  const messages = (Array.isArray(collabSessionMessages) ? collabSessionMessages.length : 0)
+    + (Array.isArray(collabGraph?.annotations) ? collabGraph.annotations.length : 0);
   const reviewStatus = collabReviewReadiness?.status || (pending ? 'review' : 'ready');
   const states = {
     graph: hasGraph ? 'ready' : 'busy',
@@ -3420,6 +3633,7 @@ function updateOverview() {
 }
 
 function renderHealthCard() {
+  if (collabRendersSuspended) { deferCollabDerivedRender(); return; }
   const card = $('#collabHealth');
   if (!card) return;
   const signals = Array.isArray(collabDiagnostics?.signals) ? collabDiagnostics.signals : [];
@@ -3575,6 +3789,7 @@ function renderCanvasConversation() {
 }
 
 function renderCanvasContextStrip() {
+  if (collabRendersSuspended) { deferCollabDerivedRender(); return; }
   const nodes = collabGraph?.nodes || [];
   const node = nodes.find((item) => item.id === selectedNodeId);
   const evidence = node?.sourceEvidence?.filter((item) => item.path && Number.isFinite(item.line)) || [];
@@ -3712,20 +3927,27 @@ async function renderNodeContext() {
   }
   try {
     const context = await collabFetch(`/api/collab/node-context?nodeId=${encodeURIComponent(nodeId)}&diffLimit=5`);
-    summary.textContent = `节点上下文 · ${context.node.label} · ${context.node.sourceEvidence.length} 条证据 / ${context.annotationThreads.length} 条批注（${context.staleThreadCount} 失锚）/ ${context.edges.length} 条连线 · 只读，不授权写入`;
-    const lines = [
-      ...context.node.sourceEvidence.map((item) => `${item.kind} · ${item.path}:${item.line} · ${item.excerpt}`),
-      ...context.annotationThreads.map((thread) => `批注 · ${thread.anchorStatus} · ${thread.nextActor} · ${thread.root.body}`),
-      ...context.edges.map((edge) => `连线 · ${edge.direction} · ${edge.otherNodePath || edge.otherNodeLabel}${edge.label ? ` · ${edge.label}` : ''}`),
-      ...(context.graphDiffs || []).flatMap((diff) => diff.items.map((item) => `图形差异 · rev ${diff.toRevision} · ${item.entity}:${item.change} ${item.label || item.id}`)),
-    ];
-    target.innerHTML = lines.length
-      ? lines.slice(0, 20).map((line) => `<div class="evidence-item">${escapeHtml(line)}</div>`).join('')
-      : '<div class="collab-help">该节点暂无额外证据、批注、连线或图形差异。</div>';
+    renderNodeContextResult(context);
   } catch (error) {
     summary.textContent = `节点上下文不可用：${error.message}`;
     target.innerHTML = '<div class="collab-help">请重新扫描项目或另选节点。</div>';
   }
+}
+
+function renderNodeContextResult(context) {
+  const summary = $('#nodeContextSummary');
+  const target = $('#nodeContextList');
+  if (!summary || !target || !context?.node) return;
+  summary.textContent = `节点上下文 · ${context.node.label} · ${context.node.sourceEvidence.length} 条证据 / ${context.annotationThreads.length} 条批注（${context.staleThreadCount} 失锚）/ ${context.edges.length} 条连线 · 只读，不授权写入`;
+  const lines = [
+    ...context.node.sourceEvidence.map((item) => `${item.kind} · ${item.path}:${item.line} · ${item.excerpt}`),
+    ...context.annotationThreads.map((thread) => `批注 · ${thread.anchorStatus} · ${thread.nextActor} · ${thread.root.body}`),
+    ...context.edges.map((edge) => `连线 · ${edge.direction} · ${edge.otherNodePath || edge.otherNodeLabel}${edge.label ? ` · ${edge.label}` : ''}`),
+    ...(context.graphDiffs || []).flatMap((diff) => diff.items.map((item) => `图形差异 · rev ${diff.toRevision} · ${item.entity}:${item.change} ${item.label || item.id}`)),
+  ];
+  target.innerHTML = lines.length
+    ? lines.slice(0, 20).map((line) => `<div class="evidence-item">${escapeHtml(line)}</div>`).join('')
+    : '<div class="collab-help">该节点暂无额外证据、批注、连线或图形差异。</div>';
 }
 
 async function restoreGraphHistory(direction) {
@@ -4335,10 +4557,18 @@ function renderProposals(proposals) {
   renderJourney();
 
   for (const button of $('#proposalList').querySelectorAll('[data-approve]')) {
-    button.addEventListener('click', () => decideProposal(button.dataset.approve, 'approve'));
+    button.addEventListener('click', () => {
+      collabInteractionDepth += 1;
+      const id = button.dataset.approve;
+      decideProposal(id, 'approve').finally(finishCollabInteraction);
+    });
   }
   for (const button of $('#proposalList').querySelectorAll('[data-reject]')) {
-    button.addEventListener('click', () => decideProposal(button.dataset.reject, 'reject'));
+    button.addEventListener('click', () => {
+      collabInteractionDepth += 1;
+      const id = button.dataset.reject;
+      decideProposal(id, 'reject').finally(finishCollabInteraction);
+    });
   }
   for (const details of $('#proposalList').querySelectorAll('[data-diff]')) {
     details.addEventListener('toggle', async () => {
@@ -4395,73 +4625,155 @@ async function loadProposalImpact(target) {
   }
 }
 
-async function loadCollab() {
+function renderCollabBundle(bundle, nodeContext) {
+  suspendCollabRenders();
   try {
-    const session = await collabFetch('/api/collab/session');
+    const session = bundle.session;
+    const rows = [...$('#graphEditor').querySelectorAll('.graph-row')];
+    const draftByNodeId = new Map(rows.map((row) => [row.dataset.nodeId, {
+      label: row.querySelector('.node-label')?.value,
+      kind: row.querySelector('.node-kind')?.value,
+      path: row.querySelector('.node-path')?.value,
+      group: row.querySelector('.node-group')?.value,
+      x: row.querySelector('.node-x')?.value,
+      y: row.querySelector('.node-y')?.value,
+    }]));
+    if (!collabSaveInFlight) graphDirtyRows = new Set();
+    for (const node of session.graph?.nodes || []) {
+      const draft = draftByNodeId.get(node.id);
+      if (!draft) continue;
+      if (draft.label !== undefined) node.label = draft.label.trim() || node.label;
+      if (draft.kind !== undefined) node.kind = draft.kind.trim() || node.kind;
+      if (draft.path !== undefined) {
+        if (draft.path.trim()) node.path = draft.path.trim();
+        else delete node.path;
+      }
+      if (draft.group !== undefined) {
+        if (draft.group.trim()) node.group = draft.group.trim();
+        else delete node.group;
+      }
+      if (draft.x !== undefined) {
+        if (draft.x.trim() && Number.isFinite(Number(draft.x))) node.x = Number(draft.x);
+        else delete node.x;
+      }
+      if (draft.y !== undefined) {
+        if (draft.y.trim() && Number.isFinite(Number(draft.y))) node.y = Number(draft.y);
+        else delete node.y;
+      }
+    }
+    collabAuthoritativeRevision = Math.max(collabAuthoritativeRevision, session.graphRevision);
     collabRevision = session.graphRevision;
     collabGraph = session.graph || null;
     collabSessionId = session.id;
     collabWorkspaceRoot = session.workspaceRoot;
+    collabSessionMessages = Array.isArray(session.messages) ? session.messages : [];
     $('#collabMeta').textContent = `session ${session.id} · revision ${session.graphRevision} · ${session.workspaceRoot}`;
-    updateOverview();
     collabViewport = session.viewport || null;
     selectedNodeIds = Array.isArray(session.selection?.nodeIds) ? session.selection.nodeIds.slice(0, 24) : [];
+    selectedNodeId = session.focus?.nodeId && collabGraph?.nodes.some((node) => node.id === session.focus.nodeId)
+      ? session.focus.nodeId
+      : collabGraph?.nodes?.[0]?.id || null;
     renderViewport(collabViewport);
-    renderGraphEditor();
-    if (session.focus?.nodeId && collabGraph?.nodes.some((node) => node.id === session.focus.nodeId)) {
-      selectedNodeId = session.focus.nodeId;
-      renderGraphEditor();
-      renderFocus(session.focus);
-      renderNodeContext();
-    } else {
-      restoreFocus();
-    }
-    renderChat(session.messages || []);
+    if (!collabSaveInFlight) renderGraphEditor();
+    else updateGraphDirtyState();
+    renderSelectionSummary();
+    renderFocus(session.focus || null);
+    renderChat(collabSessionMessages);
     renderAnnotations(session.graph?.annotations || []);
-    const proposals = await collabFetch('/api/collab/proposals');
-    renderProposals(proposals.proposals || []);
-    renderJourney();
-    const activity = await collabFetch('/api/collab/activity?limit=30');
-    renderActivity(activity.timeline);
-    const activityCount = activity.timeline?.total ?? activity.timeline?.returned ?? 0;
+    renderProposals(bundle.proposals.proposals || []);
+    renderActivity(bundle.activity.timeline);
+    const activityCount = bundle.activity.timeline?.total ?? bundle.activity.timeline?.returned ?? 0;
     const overviewActivity = $('#overviewActivity');
     if (overviewActivity) overviewActivity.textContent = String(activityCount);
-    renderJourney();
-    const diagnostics = await collabFetch('/api/collab/diagnostics');
-    collabDiagnostics = diagnostics.diagnostics;
-    renderDiagnostics(diagnostics.diagnostics);
-    const reviewReadiness = await collabFetch('/api/collab/review-readiness');
-    renderReviewReadiness(reviewReadiness);
-    renderCanvasContextStrip();
-    const graphDiffs = await collabFetch('/api/collab/graph/diffs?limit=5');
-    collabGraphDiffs = graphDiffs.diffs || [];
-    renderGraphDiffs(graphDiffs.diffs);
-    const graphHistory = await collabFetch('/api/collab/graph/history');
-    collabGraphHistory = graphHistory.history || { version: 1, undo: 0, redo: 0, limit: 12 };
+    updateOverview();
+    collabDiagnostics = bundle.diagnostics.diagnostics;
+    renderDiagnostics(collabDiagnostics);
+    renderReviewReadiness(bundle.reviewReadiness);
+    collabGraphDiffs = bundle.graphDiffs.diffs || [];
+    renderGraphDiffs(collabGraphDiffs);
+    collabGraphHistory = bundle.graphHistory.history || { version: 1, undo: 0, redo: 0, limit: 12 };
     renderGraphHistory();
-    const sourceEvidence = await collabFetch('/api/collab/source-evidence');
-    collabSourceEvidence = sourceEvidence.items || [];
+    collabSourceEvidence = bundle.sourceEvidence.items || [];
     renderSourceEvidence();
-    const nodeScope = selectedNodeId || collabDiagnostics?.focus?.nodeId;
+    collabSourceNavigation = bundle.sourceNavigation;
+    renderSourceNavigation(collabSourceNavigation);
+    collabSharedBrief = bundle.sharedBrief;
+    renderSharedBrief(collabSharedBrief);
+    renderViewport(collabSharedBrief.viewport || collabViewport);
+    collabDecisionTrail = bundle.decisionTrail;
+    renderDecisionTrail(collabDecisionTrail);
+    collabCapabilities = bundle.capabilities;
+    renderCapabilities(collabCapabilities);
+    collabSelectionScope = bundle.selectionScope;
+    renderSelectionScope(collabSelectionScope);
+    collabSelectionWorkorder = bundle.selectionWorkorder;
+    renderSelectionWorkorder(collabSelectionWorkorder);
+    if (nodeContext) renderNodeContextResult(nodeContext);
+    renderCanvasObject();
+    collabPulseSnapshot = null;
+    renderCollabPulse();
+  } finally {
+    resumeCollabRenders();
+  }
+}
+
+async function loadCollab() {
+  const loadToken = ++collabLoadToken;
+  setCollabSyncState('loading', '同步中');
+  const previousPending = collabLoadPending;
+  const task = (async () => {
+    if (previousPending) await previousPending;
+    if (loadToken !== collabLoadToken) return;
+    const settled = await Promise.allSettled([
+      collabFetch('/api/collab/session').catch((error) => ({ error })),
+      collabFetch('/api/collab/proposals').catch(() => ({ proposals: [] })),
+      collabFetch('/api/collab/activity?limit=30').catch(() => ({ timeline: { events: [], total: 0 } })),
+      collabFetch('/api/collab/diagnostics').catch(() => ({ diagnostics: null })),
+      collabFetch('/api/collab/review-readiness').catch(() => ({ status: 'review', reviewPoints: [], brief: { blockers: [] }, decisionTrail: { gaps: [] } })),
+      collabFetch('/api/collab/graph/diffs?limit=5').catch(() => ({ diffs: [] })),
+      collabFetch('/api/collab/graph/history').catch(() => ({ history: { version: 1, undo: 0, redo: 0, limit: 12 } })),
+      collabFetch('/api/collab/source-evidence').catch(() => ({ items: [] })),
+      collabFetch('/api/collab/brief').catch(() => ({ intent: { blockers: [], nextActions: [] }, status: {}, graphRevision: 0 })),
+      collabFetch('/api/collab/decision-trail?eventLimit=30&lineLimit=6').catch(() => ({ events: [], gaps: [], counts: {} })),
+      collabFetch('/api/collab/capabilities').catch(() => null),
+      collabFetch('/api/collab/selection-scope').catch(() => null),
+      collabFetch('/api/collab/selection-workorder?itemLimit=8').catch(() => null),
+    ]);
+    if (loadToken !== collabLoadToken) return;
+    let [session, proposals, activity, diagnostics, reviewReadiness, graphDiffs, graphHistory,
+      sourceEvidence, sharedBrief, decisionTrail, capabilities, selectionScope, selectionWorkorder] =
+      settled.map((entry) => entry.value);
+    if (session?.error) throw session.error;
+    if (session.graphRevision < collabAuthoritativeRevision) {
+      session = await collabFetch('/api/collab/session');
+      if (loadToken !== collabLoadToken) return;
+    }
+    const nodeScope = session.focus?.nodeId || selectedNodeId || diagnostics.diagnostics?.focus?.nodeId;
     const navigationQuery = nodeScope ? `?nodeId=${encodeURIComponent(nodeScope)}&limit=30` : '?limit=30';
-    const sourceNavigation = await collabFetch(`/api/collab/source-navigation${navigationQuery}`);
-    collabSourceNavigation = sourceNavigation;
-    renderSourceNavigation(sourceNavigation);
-    const sharedBrief = await collabFetch('/api/collab/brief');
-    collabSharedBrief = sharedBrief;
-    renderSharedBrief(sharedBrief);
-    renderViewport(sharedBrief.viewport || collabViewport);
-    const decisionTrail = await collabFetch('/api/collab/decision-trail?eventLimit=30&lineLimit=6');
-    collabDecisionTrail = decisionTrail;
-    renderDecisionTrail(decisionTrail);
-    renderCanvasContextStrip();
-    const capabilities = await collabFetch('/api/collab/capabilities');
-    collabCapabilities = capabilities;
-    renderCapabilities(capabilities);
-    await loadSelectionScope();
-    await renderNodeContext();
+    const nodeContextQuery = nodeScope ? `?nodeId=${encodeURIComponent(nodeScope)}&diffLimit=5` : '';
+    const diffs = await collabFetch('/api/collab/graph/diffs?limit=5').catch(() => graphDiffs);
+    if (loadToken !== collabLoadToken) return;
+    graphDiffs = diffs;
+    const [sourceNavigation, nodeContext] = await Promise.all([
+      collabFetch(`/api/collab/source-navigation${navigationQuery}`).catch(() => ({ items: [], returnedItems: 0, totalEvidence: 0 })),
+      nodeContextQuery ? collabFetch(`/api/collab/node-context${nodeContextQuery}`).catch(() => null) : Promise.resolve(null),
+    ]);
+    if (loadToken !== collabLoadToken) return;
+    renderCollabBundle({ session, proposals, activity, diagnostics, reviewReadiness, graphDiffs, graphHistory,
+      sourceEvidence, sharedBrief, decisionTrail, capabilities, selectionScope, selectionWorkorder,
+      sourceNavigation }, nodeContext);
+    setCollabSyncState('fresh', `已同步 · ${settled.length + 2} 项`);
+  })();
+  collabLoadPending = task;
+  try {
+    await task;
   } catch (error) {
-    $('#collabMeta').textContent = `同步失败：${error.message}`;
+    if (loadToken === collabLoadToken) {
+      $('#collabMeta').textContent = `同步失败：${error.message}`;
+      setCollabSyncState('error', '同步异常');
+    }
+  } finally {
+    if (collabLoadPending === task) collabLoadPending = null;
   }
 }
 
@@ -4599,6 +4911,7 @@ async function copyCapabilities() {
 
 async function saveGraph() {
   if (!collabGraph) return showToast('没有可保存的图形');
+  collabSaveInFlight = true;
   const rows = [...$('#graphEditor').querySelectorAll('.graph-row')];
   rows.forEach((row, index) => {
     const node = collabGraph.nodes[index];
@@ -4638,14 +4951,23 @@ async function saveGraph() {
       body: JSON.stringify(collabGraph),
     });
     collabRevision = result.graphRevision;
+    collabAuthoritativeRevision = Math.max(collabAuthoritativeRevision, result.graphRevision);
+    const latestDiffs = await collabFetch('/api/collab/graph/diffs?limit=5');
+    const latestDiff = Array.isArray(latestDiffs.diffs) ? latestDiffs.diffs.at(-1) : null;
+    if (latestDiff?.toRevision === collabRevision) {
+      collabGraphDiffs = latestDiffs.diffs;
+      renderGraphDiffs(collabGraphDiffs);
+    }
     const selection = await publishSelection(selectedNodeIds);
     selectedNodeIds = Array.isArray(selection?.nodeIds) ? selection.nodeIds : [];
     graphDirtyRows = new Set();
     updateGraphDirtyState();
     showToast(`图形已保存 · revision ${collabRevision}`);
-    await loadCollab();
+    scheduleCollabLoad();
   } catch (error) {
     showToast(`保存失败：${error.message}`);
+  } finally {
+    collabSaveInFlight = false;
   }
 }
 
@@ -5003,6 +5325,7 @@ connectWs();
 syncWelcomeState();
 syncAppearanceControls();
 renderInspector();
+loadCollabPulse();
 
 // Restore last viewed diagram (URL path takes priority)
 const pathMatch = location.pathname.match(/\/diagram\/(.+)/);
