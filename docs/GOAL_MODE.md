@@ -12,7 +12,7 @@ You do not need to provide a long feature list. Give the agent five things:
 4. Evidence and acceptance criteria: tests, CI, public links, changelog, and a final audit.
 5. Optional credentials or decisions: only if an action genuinely requires them. Otherwise the agent should continue locally and record the blocked external drift.
 
-For this repository, the product vision is a local-first **human ↔ AI visual collaboration workspace**: an AI scans a project into an editable graph, a human edits and annotates the graph, both sides discuss intent through read-only context projections, and only a human-approved proposal with a one-time receipt may write project files.
+For this repository, the product vision is an MCP-native AI context tool: an AI calls tools directly to express a codebase as structured visual context; a thin local panel lets a person make lightweight corrections and review approved changes; only a human-reviewed diff, explicit approval, and a one-time receipt may write project files.
 
 ## Goal-mode contract used here
 
@@ -48,7 +48,7 @@ If the maintainer is asleep or offline, the agent should make reasonable low-ris
 ```text
 请使用目标模式维护开源项目 <仓库路径 / GitHub 地址>，直到 <日期 时间 时区>。
 
-产品愿景：<一句话说明人和 AI 分别怎么使用，最重要的体验闭环是什么>。
+产品愿景：AI Draw MCP 是给 AI 直接调用的 MCP 上下文工具；图形与只读投影帮助 AI 表达理解，人的薄面板只做轻量纠错、diff 审阅与人工授权，不扩展成聊天或协作产品。
 你可以自主选择高价值增量：功能、交互、安全、测试、示例、文档、README/About/topics、Release、Issue、宣发与同类产品调研；每轮先验证，再提交并正常推送到 <分支>，不要 force push、改写历史、移动标签、删除数据或提交凭据。
 
 安全边界：<列出不可绕过的人类批准、项目写入规则、外部账号/发布权限与危险操作>。

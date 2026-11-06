@@ -133,7 +133,7 @@ describe("collaboration panel UI", () => {
       expect(handoff.actor).toBe("human");
       expect(Number(handoff.messages)).toBeGreaterThan(0);
       expect(handoff.proposals).toBe("1");
-      expect(handoff.next).toContain("下一棒 · 人");
+      expect(handoff.next).toContain("上下文 · 待人纠错");
       expect(handoff.active).toBe(1);
       expect(await page.$eval("#btnRender", (element) => getComputedStyle(element).backgroundImage)).toContain("linear-gradient");
       const welcome = await page.evaluate(() => ({
@@ -145,11 +145,11 @@ describe("collaboration panel UI", () => {
         width: Math.round(document.querySelector("#welcomeCard").getBoundingClientRect().width),
         visualWidth: Math.round(document.querySelector(".welcome-visual").getBoundingClientRect().width),
       }));
-      expect(welcome.kicker).toContain("HUMAN ↔ AI");
-      expect(welcome.title).toContain("从一张图开始");
+      expect(welcome.kicker).toContain("MCP-NATIVE AI TOOL");
+      expect(welcome.title).toContain("让 AI 用结构图表达项目理解");
       expect(welcome.features).toContain("4 / 5 / 6");
       expect(welcome.nodes.length).toBe(4);
-      expect(welcome.center).toContain("共同");
+      expect(welcome.center).toContain("机器");
       expect(welcome.width).toBeGreaterThan(520);
       expect(welcome.visualWidth).toBeGreaterThan(180);
       const auroraSurfaces = await page.evaluate(() => {
@@ -172,7 +172,7 @@ describe("collaboration panel UI", () => {
       expect(auroraSurfaces.cardGlow).toContain("radial-gradient");
       expect(auroraSurfaces.frameCorners).toBe("64px");
       expect(auroraSurfaces.railTopRail).toContain("linear-gradient");
-      expect(await page.$$eval(".welcome-orbit-label", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("AI · 只读扫描");
+      expect(await page.$$eval(".welcome-orbit-label", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("AI · 工具调用");
       expect(await page.$eval("#welcomeCard", (element) => Number(element.getBoundingClientRect().width))).toBeGreaterThan(800);
       expect(await page.$$eval("#welcomeJourney .welcome-journey-step", (elements) => elements.length)).toBe(4);
       expect(await page.$$eval("#welcomeJourney .welcome-journey-step.active", (elements) => elements.length)).toBe(1);
@@ -195,7 +195,7 @@ describe("collaboration panel UI", () => {
       });
       expect(welcomeDialogTrack.visible).toBe(true);
       expect(welcomeDialogTrack.gradient).toContain("linear-gradient");
-      expect(welcomeDialogTrack.title).toContain("双向对话星轨");
+      expect(welcomeDialogTrack.title).toContain("上下文信号");
       expect(welcomeDialogTrack.messageCount).toBeGreaterThan(0);
       expect(welcomeDialogTrack.stars).toBeGreaterThan(0);
       expect(welcomeDialogTrack.authors).toContain("human");
@@ -203,7 +203,7 @@ describe("collaboration panel UI", () => {
       expect(welcomeDialogTrack.pending).toBeGreaterThan(0);
       expect(welcomeDialogTrack.active).toBe(1);
       expect(welcomeDialogTrack.count).toContain(String(welcomeDialogTrack.messageCount));
-      expect(welcomeDialogTrack.meta).toContain("待 AI");
+      expect(welcomeDialogTrack.meta).toContain("上下文信号");
       const welcomeLiveRoute = await page.evaluate(() => ({
         steps: [...document.querySelectorAll("#welcomeLiveRoute .welcome-live-step")].map((step) => ({
           name: step.dataset.liveStep,
@@ -264,7 +264,7 @@ describe("collaboration panel UI", () => {
       });
       expect(pulseDialogTrack.stars).toBeGreaterThan(0);
       expect(Number(pulseDialogTrack.messageCount)).toBeGreaterThan(0);
-      expect(pulseDialogTrack.meta).toContain("对话");
+      expect(pulseDialogTrack.meta).toContain("上下文");
       await page.keyboard.press("Escape");
       expect(await page.$eval("#collabPulseDetail", (element) => element.classList.contains("open"))).toBe(false);
       await page.mouse.move(880, 420);
@@ -335,7 +335,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#editorPane", (element) => getComputedStyle(element).display)).toBe("none");
       expect(await page.$eval(".canvas-chip", (element) => getComputedStyle(element).display)).toBe("flex");
       expect(await page.$eval("#collabHandoff", (element) => getComputedStyle(element).display)).toBe("block");
-      expect(await page.$eval("#btnHandoffOpen", (element) => `${element.getAttribute("aria-label")} ${element.textContent}`)).toContain("工作台");
+      expect(await page.$eval("#btnHandoffOpen", (element) => `${element.getAttribute("aria-label")} ${element.textContent}`)).toContain("审阅台");
       await page.keyboard.press("1");
       expect(await page.$eval("#workspace", (element) => element.dataset.view)).toBe("split");
 
@@ -573,7 +573,7 @@ describe("collaboration panel UI", () => {
       }));
       expect(commandPalette.title).toContain("搜索面板命令");
       expect(Number.parseInt(commandPalette.count, 10)).toBeGreaterThan(10);
-      expect(commandPalette.items).toContain("打开协作工作台");
+      expect(commandPalette.items).toContain("打开上下文审阅台");
       expect(commandPalette.items).toContain("查看变更提案");
       expect(commandPalette.items).toContain("显示 / 隐藏节点悬停速览");
       expect(commandPalette.active).toContain("分屏视图");
@@ -802,7 +802,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval('[data-history-pane="diffs"] #graphDiffSummary', (element) => element.textContent)).toContain("图形修订差异");
       expect(await page.$eval('[data-history-pane="diffs"] .graph-diff-list details', (element) => element.textContent)).toContain("人工编辑模块");
       await page.$eval('[data-history-target="annotations"]', (element) => element.click());
-      expect(await page.$eval('[data-history-pane="annotations"] .history-empty', (element) => element.textContent)).toContain("还没有图形批注");
+      expect(await page.$eval('[data-history-pane="annotations"] .history-empty', (element) => element.textContent)).toContain("还没有批注信号");
       await page.$eval('[data-history-target="activity"]', (element) => element.click());
       expect(await page.$$eval('[data-history-pane="activity"] .activity-item', (elements) => elements.length)).toBeGreaterThan(0);
       await page.$eval('[data-history-target="chat"]', (element) => element.click());

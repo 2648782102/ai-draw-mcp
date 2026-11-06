@@ -2292,9 +2292,8 @@
     .annotation-reply.human { border-left: 2px solid var(--green); }
     .annotation-reply .meta { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 2px; }
     .annotation-empty { color: var(--text-muted); font-size: 9px; padding: 3px 0; }
-    .annotation-reply-row { display: flex; gap: 4px; margin-top: 6px; }
+    .annotation-reply-readonly { margin-top: 6px; color: var(--text-muted); font-size: 9px; line-height: 1.45; }
     .annotation-anchor-note { color: var(--orange); font-size: 9px; margin-top: 4px; }
-    .annotation-reply-row input { min-width: 0; flex: 1; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); font-size: 10px; }
     #annotationList { flex: 0 0 220px; max-height: 220px; }
     .proposal-facts { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 7px; }
     .proposal-facts code { font-size: 9px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); color: var(--text-muted); }
@@ -2429,7 +2428,7 @@
 <div class="header">
   <div class="brand-wrap">
     <span class="brand-mark" aria-hidden="true">AI</span>
-    <span><span class="brand">AI Draw MCP</span><span class="brand-sub">Human ↔ AI visual workspace</span></span>
+    <span><span class="brand">AI Draw MCP</span><span class="brand-sub">MCP-native AI context tool</span></span>
   </div>
   <div class="context-banner" aria-label="当前图形上下文">
     <strong id="headerContextTitle">等待图形</strong>
@@ -2546,12 +2545,12 @@
           <span>增强 / 原色图形皮肤</span><kbd>G</kbd>
           <span>显示 / 隐藏节点悬停速览</span><kbd>P</kbd>
           <span>循环切换 Aurora / Studio / Atlas</span><kbd>V</kbd>
-          <span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd>
+          <span>项目图 / 上下文 / 提案</span><kbd>4 / 5 / 6</kbd>
           <span>命令面板</span><kbd>? · Esc</kbd>
           <span>Flow 源码抽屉</span><kbd>E</kbd>
           <span>专注模式</span><kbd>7</kbd>
           <span>沉浸工作区</span><kbd>Z</kbd>
-          <span>协作工作台</span><kbd>C · Esc</kbd>
+          <span>上下文审阅台</span><kbd>C · Esc</kbd>
           <span>适应窗口 / 重置缩放</span><kbd>F / 0</kbd>
           <span>上一个 / 下一个节点</span><kbd>[ / ]</kbd>
           <span>快捷键帮助</span><kbd>H</kbd>
@@ -2561,7 +2560,7 @@
     </div>
   </div>
   <div class="status">
-    <button id="btnCollaborate" title="打开双向协作工作台（C）">💬 协作</button>
+    <button id="btnCollaborate" title="打开上下文审阅台（C）">⌁ 审阅台</button>
     <span class="dot" id="wsStatus"></span>
     <span id="wsLabel">Connecting...</span>
   </div>
@@ -2576,15 +2575,15 @@
   </aside>
 
   <div class="workspace" id="workspace" data-view="split">
-    <div class="flow-rail" id="flowRail" aria-label="人机协作流程导航" style="--flow-progress: 0%" data-progress-label="0 / 4 READY · 0%">
-      <div class="flow-rail-kicker"><strong>FLOW WORKSPACE</strong><span id="flowRailMeta">0 待审 · 0 消息 · 0 批注</span><span class="flow-rail-safety">LOCAL · 批准前只读</span></div>
-      <div class="flow-rail-steps" aria-label="协作阶段">
-        <button type="button" class="flow-step" data-flow-stage="scan" data-state="idle"><span class="flow-step-icon">◇</span><span class="flow-step-copy"><strong>AI 生成图</strong><small>扫描项目结构</small></span><span class="flow-step-state">○</span></button>
-        <button type="button" class="flow-step" data-flow-stage="edit" data-state="idle"><span class="flow-step-icon">✎</span><span class="flow-step-copy"><strong>人改图 / 批注</strong><small>表达视觉意图</small></span><span class="flow-step-state">○</span></button>
-        <button type="button" class="flow-step" data-flow-stage="context" data-state="idle"><span class="flow-step-icon">↔</span><span class="flow-step-copy"><strong>共享上下文</strong><small>AI 读取只读意图</small></span><span class="flow-step-state">○</span></button>
+    <div class="flow-rail" id="flowRail" aria-label="AI 上下文工具状态" style="--flow-progress: 0%" data-progress-label="0 / 4 READY · 0%">
+      <div class="flow-rail-kicker"><strong>MCP CONTEXT TOOL</strong><span id="flowRailMeta">0 待审 · 0 上下文信号 · 0 批注</span><span class="flow-rail-safety">LOCAL · 批准前只读</span></div>
+      <div class="flow-rail-steps" aria-label="工具上下文阶段">
+        <button type="button" class="flow-step" data-flow-stage="scan" data-state="idle"><span class="flow-step-icon">◇</span><span class="flow-step-copy"><strong>AI 生成结构</strong><small>MCP 扫描项目</small></span><span class="flow-step-state">○</span></button>
+        <button type="button" class="flow-step" data-flow-stage="edit" data-state="idle"><span class="flow-step-icon">✎</span><span class="flow-step-copy"><strong>人轻量纠错</strong><small>改图 / 批注信号</small></span><span class="flow-step-state">○</span></button>
+        <button type="button" class="flow-step" data-flow-stage="context" data-state="idle"><span class="flow-step-icon">⌁</span><span class="flow-step-copy"><strong>AI 读取上下文</strong><small>机器可读投影</small></span><span class="flow-step-state">○</span></button>
         <button type="button" class="flow-step" data-flow-stage="review" data-state="idle"><span class="flow-step-icon">✓</span><span class="flow-step-copy"><strong>人工批准</strong><small>逐行 diff 后确认</small></span><span class="flow-step-state">○</span></button>
       </div>
-      <div class="flow-rail-actions"><button type="button" id="btnFlowSource" aria-pressed="false" title="展开或收起本机源码抽屉（E）">⌘ 源码</button><button type="button" id="btnFlowCollab" class="primary" title="打开双向协作工作台（C）">↔ 协作</button></div>
+      <div class="flow-rail-actions"><button type="button" id="btnFlowSource" aria-pressed="false" title="展开或收起本机源码抽屉（E）">⌘ 源码</button><button type="button" id="btnFlowCollab" class="primary" title="打开上下文审阅台（C）">⌁ 审阅台</button></div>
     </div>
     <div class="panes">
       <div class="pane" id="editorPane">
@@ -2619,7 +2618,7 @@
           <div class="canvas-focus-halo" id="canvasFocusHalo" data-visible="false" aria-hidden="true"></div>
           <div class="canvas-focus-ring" id="canvasFocusRing" data-focus-node-id="" aria-hidden="true"></div>
           <div class="canvas-focus-ripple" id="canvasFocusRipple" data-active="false" data-triggered-by="" aria-hidden="true"></div>
-          <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" data-has-context="false" title="悬停查看当前对象只读上下文；点击打开既有对话工作台" aria-hidden="true"></div>
+          <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" data-has-context="false" title="悬停查看当前对象只读上下文；点击打开上下文审阅台" aria-hidden="true"></div>
           <div class="canvas-focus-context" id="canvasFocusContext" data-visible="false" aria-hidden="true">
             <div class="canvas-focus-context-head">焦点上下文 · 只读<span>悬停胶囊展开</span></div>
             <strong id="canvasFocusContextLabel">等待项目结构图</strong>
@@ -2629,7 +2628,7 @@
               <span class="canvas-focus-context-metric"><b id="canvasFocusContextThreads">0</b><span>开放讨论</span></span>
               <span class="canvas-focus-context-metric"><b id="canvasFocusContextEvidence">0</b><span>源码证据</span></span>
             </div>
-            <div class="canvas-focus-context-foot">点击「当前焦点」胶囊只打开既有对话工作台；不发布焦点、不批准提案、不写项目文件。</div>
+            <div class="canvas-focus-context-foot">点击「当前焦点」胶囊只打开上下文审阅台；不发布焦点、不批准提案、不写项目文件。</div>
           </div>
           <div class="canvas-hover-card" id="canvasHoverCard" data-visible="false" data-node-id="" aria-hidden="true">
             <div class="canvas-hover-head"><span class="canvas-hover-kicker">Object glance · read only</span><span class="canvas-hover-focus" id="canvasHoverFocus">悬停</span></div>
@@ -2645,53 +2644,53 @@
           <div class="canvas-thread-layer" id="canvasThreadLayer" aria-label="图形节点上的只读讨论标记"></div>
           <div class="welcome-card" id="welcomeCard">
             <div class="welcome-main">
-              <span class="welcome-kicker">LOCAL-FIRST · HUMAN ↔ AI</span>
+              <span class="welcome-kicker">LOCAL-FIRST · MCP-NATIVE AI TOOL</span>
               <div class="welcome-icon" aria-hidden="true">◇</div>
-              <h2>从一张图开始，把项目说清楚</h2>
-              <p>AI 生成项目结构，人直接改图、对话和批注；每次文件变化都先经过逐行 diff 与人工确认。人和 AI 始终看的是同一份上下文。</p>
+              <h2>让 AI 用结构图表达项目理解</h2>
+              <p>AI 通过 MCP 工具生成机器可读的上下文；人只在需要时轻量纠错、补充节点信号或审阅 diff。面板不是聊天应用，项目写入仍须人工批准与一次性确认号。</p>
               <div class="welcome-features">
                 <div class="welcome-feature"><strong>1 / 2 / 3</strong><span>分屏 · 源码 · 画布</span></div>
-                <div class="welcome-feature"><strong>4 / 5 / 6</strong><span>结构 · 对话 · 提案</span></div>
-                <div class="welcome-feature"><strong>C / Esc</strong><span>进入 / 离开协作</span></div>
+                <div class="welcome-feature"><strong>4 / 5 / 6</strong><span>结构 · 上下文 · 提案</span></div>
+                <div class="welcome-feature"><strong>C / Esc</strong><span>进入 / 离开审阅台</span></div>
               </div>
               <div class="welcome-actions">
                 <button type="button" class="primary" id="btnLoadExample">载入示例图形</button>
-                <button type="button" id="btnOpenCollabWelcome">打开协作工作台</button>
+                <button type="button" id="btnOpenCollabWelcome">打开上下文审阅台</button>
                 <button type="button" id="btnOpenCommandsWelcome">⌘ 命令面板</button>
               </div>
-              <div class="welcome-journey" id="welcomeJourney" aria-label="人机协作闭环">
+              <div class="welcome-journey" id="welcomeJourney" aria-label="AI 上下文工具链">
                 <div class="welcome-journey-step active" data-welcome-step="scan"><strong>AI 扫描</strong><span>生成结构</span></div>
-                <div class="welcome-journey-step" data-welcome-step="edit"><strong>人改图</strong><span>表达意图</span></div>
+                <div class="welcome-journey-step" data-welcome-step="edit"><strong>人纠错</strong><span>轻量信号</span></div>
                 <div class="welcome-journey-step" data-welcome-step="proposal"><strong>提案 diff</strong><span>逐行审阅</span></div>
-                <div class="welcome-journey-step" data-welcome-step="approval"><strong>人工确认</strong><span>项目变化</span></div>
+                <div class="welcome-journey-step" data-welcome-step="approval"><strong>人工确认</strong><span>写入闸门</span></div>
               </div>
               <div class="welcome-dialog-ribbon" id="welcomeDialogRibbon" data-state="ready">
-                <div class="welcome-dialog-ribbon-head"><strong>双向对话星轨</strong><span>Read only · Human ↔ AI</span></div>
-                <div class="dialog-star-track" id="welcomeDialogTrack" aria-label="既有双向对话消息轨迹"></div>
-                <div class="welcome-dialog-ribbon-foot"><strong id="welcomeDialogCount">0</strong><span id="welcomeDialogMeta">等待对话</span></div>
+                <div class="welcome-dialog-ribbon-head"><strong>上下文信号</strong><span>Read only · AI-consumable</span></div>
+                <div class="dialog-star-track" id="welcomeDialogTrack" aria-label="既有上下文信号轨迹"></div>
+                <div class="welcome-dialog-ribbon-foot"><strong id="welcomeDialogCount">0</strong><span id="welcomeDialogMeta">等待上下文信号</span></div>
               </div>
               <div class="welcome-shortcuts">示例只写入本机编辑器并渲染预览，不创建图、不改协作会话、不写项目文件。</div>
             </div>
             <div class="welcome-visual">
-              <div class="welcome-live-route" id="welcomeLiveRoute" aria-label="当前只读协作航线">
-                <div class="welcome-live-step" data-live-step="structure"><strong>结构图</strong><span id="welcomeLiveNodes">0 对象</span></div>
-                <div class="welcome-live-step" data-live-step="dialog"><strong>双向对话</strong><span id="welcomeLiveMessages">0 消息</span></div>
-                <div class="welcome-live-step" data-live-step="review"><strong>人工审阅</strong><span id="welcomeLiveProposals">闸门关闭</span></div>
+              <div class="welcome-live-route" id="welcomeLiveRoute" aria-label="当前 AI 上下文状态">
+                <div class="welcome-live-step" data-live-step="structure"><strong>结构对象</strong><span id="welcomeLiveNodes">0 对象</span></div>
+                <div class="welcome-live-step" data-live-step="dialog"><strong>上下文信号</strong><span id="welcomeLiveMessages">0 信号</span></div>
+                <div class="welcome-live-step" data-live-step="review"><strong>写入闸门</strong><span id="welcomeLiveProposals">闸门关闭</span></div>
               </div>
-              <span class="welcome-orbit-label top" aria-hidden="true">AI · 只读扫描</span>
-              <span class="welcome-orbit-label bottom" aria-hidden="true">人 · 修改 / 确认</span>
-              <span class="welcome-orbit-label left" aria-hidden="true">结构图</span>
+              <span class="welcome-orbit-label top" aria-hidden="true">AI · 工具调用</span>
+              <span class="welcome-orbit-label bottom" aria-hidden="true">人 · 纠错 / 批准</span>
+              <span class="welcome-orbit-label left" aria-hidden="true">结构化上下文</span>
               <span class="welcome-orbit-label right" aria-hidden="true">逐行 diff</span>
               <div class="welcome-flow" aria-hidden="true">
                 <span class="welcome-line line-top"></span><span class="welcome-line line-bottom"></span>
                 <span class="welcome-line line-left"></span><span class="welcome-line line-right"></span>
-                <span class="welcome-node ai">AI<small>扫描 / 生成</small></span>
-                <span class="welcome-node graph">结构图<small>节点 · 连线</small></span>
+                <span class="welcome-node ai">AI<small>MCP 工具</small></span>
+                <span class="welcome-node graph">结构化上下文<small>图 · 证据 · 选择</small></span>
                 <span class="welcome-node review">提案<small>diff · 批准</small></span>
-                <span class="welcome-node human">人<small>修改 / 确认</small></span>
-                <span class="welcome-flow-center">共同<br>上下文</span>
+                <span class="welcome-node human">人<small>纠错 / 决定</small></span>
+                <span class="welcome-flow-center">机器<br>可读</span>
               </div>
-              <div class="welcome-caption" aria-hidden="true">Visual context · Conversation · Reviewed change</div>
+              <div class="welcome-caption" aria-hidden="true">MCP tools · Structured context · Human-gated change</div>
             </div>
           </div>
           <div id="minimap">
@@ -2727,7 +2726,7 @@
             <button type="button" id="btnCanvasBackdrop" aria-pressed="false" title="切换画布背景">◐ 背景</button>
             <div class="canvas-dock-divider" aria-hidden="true"></div>
             <div class="canvas-dock-group" data-group="SHARED">
-              <button type="button" id="btnCanvasCollab" class="primary" title="打开双向协作工作台 (C)">↔ 协作</button>
+              <button type="button" id="btnCanvasCollab" class="primary" title="打开上下文审阅台 (C)">⌁ 审阅台</button>
               <button type="button" id="btnCanvasCommands" title="打开命令面板 (?)">⌘</button>
               <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
             </div>
@@ -2746,7 +2745,7 @@
             <button type="button" id="btnFlowLensNext" title="下一个节点（]）">→</button>
           </div>
           <section class="collab-handoff" id="collabHandoff" data-actor="none" aria-label="只读人机交接航线">
-            <div class="dialog-star-track compact" id="handoffDialogTrack" aria-label="既有双向对话消息轨迹"></div>
+            <div class="dialog-star-track compact" id="handoffDialogTrack" aria-label="既有上下文信号轨迹"></div>
             <div class="collab-handoff-track">
               <span class="collab-handoff-actor" data-handoff-actor="human"><span class="collab-handoff-dot" aria-hidden="true"></span><strong>人</strong></span>
               <span class="collab-handoff-line" aria-hidden="true"></span>
@@ -2757,12 +2756,12 @@
               <span>待审<strong id="handoffProposals">0</strong></span>
               <span>批注<strong id="handoffAnnotations">0</strong></span>
             </div>
-            <div class="collab-handoff-next"><span id="handoffNext">读取共享上下文，等待下一步。</span><button type="button" id="btnHandoffOpen" aria-label="打开完整协作工作台">↔ 工作台 · C</button></div>
+            <div class="collab-handoff-next"><span id="handoffNext">读取结构化上下文，等待 AI 工具调用。</span><button type="button" id="btnHandoffOpen" aria-label="打开上下文审阅台">⌁ 审阅台 · C</button></div>
           </section>
           <button type="button" class="collab-pulse" id="btnCollabPulse" data-state="ready" aria-expanded="false" aria-controls="collabPulseDetail" title="展开只读协作速览；再次点击按钮可收起" aria-label="展开只读协作速览">
             <span class="collab-pulse-orbit" id="collabPulseOrbit" aria-hidden="true"><span class="collab-pulse-orbit-ring-label" id="collabPulseOrbitLabel">0</span></span>
             <span class="collab-pulse-main">
-              <span class="collab-pulse-top"><span class="collab-pulse-copy"><strong>人机协作脉搏</strong><span id="collabPulseHint">点击打开共享上下文 · C</span></span><span class="collab-pulse-status" id="collabPulseStatus">Ready</span></span>
+              <span class="collab-pulse-top"><span class="collab-pulse-copy"><strong>上下文信号仪表</strong><span id="collabPulseHint">点击查看结构化上下文 · C</span></span><span class="collab-pulse-status" id="collabPulseStatus">Ready</span></span>
               <span class="collab-pulse-bars" aria-hidden="true">
                 <span class="collab-pulse-bar" id="collabPulseMessageBar"></span>
                 <span class="collab-pulse-bar" id="collabPulseProposalBar"></span>
@@ -2779,9 +2778,9 @@
               <div class="collab-pulse-metric"><strong id="collabPulseProposals">0</strong><span>待审提案</span></div>
               <div class="collab-pulse-metric"><strong id="collabPulseAnnotations">0</strong><span>开放批注</span></div>
             </div>
-            <div class="collab-pulse-dialog"><div class="dialog-star-track compact" id="pulseDialogTrack" aria-label="既有双向对话消息轨迹"></div><span id="pulseDialogMeta">对话 <b>0</b> 条</span></div>
+            <div class="collab-pulse-dialog"><div class="dialog-star-track compact" id="pulseDialogTrack" aria-label="既有上下文信号轨迹"></div><span id="pulseDialogMeta">上下文 <b>0</b> 条</span></div>
             <div class="collab-pulse-next"><strong>下一步</strong><span id="collabPulseNext">读取共享上下文，等待人工审阅。</span></div>
-            <button type="button" class="collab-pulse-open" id="btnCollabPulseOpen">↔ 打开完整协作工作台 · C</button>
+            <button type="button" class="collab-pulse-open" id="btnCollabPulseOpen">⌁ 打开上下文审阅台 · C</button>
             <div class="collab-pulse-detail-foot">这里只汇总既有只读状态；批准前不会签发凭据或写项目文件。</div>
           </section>
           <aside class="canvas-object-card" id="canvasObjectCard" aria-label="当前画布对象">
@@ -2804,8 +2803,8 @@
               <div class="canvas-relation-foot">点击相邻对象同步既有只读焦点 · 不批准或写文件</div>
             </div>
             <div class="canvas-object-conversation" id="canvasObjectConversation" data-state="clear">
-              <span id="canvasConversationSummary">对话 · 暂无绑定批注</span>
-              <button type="button" id="btnCanvasOpenConversation" title="进入对话工作台查看当前对象">↔ 对话</button>
+              <span id="canvasConversationSummary">上下文 · 暂无绑定批注</span>
+              <button type="button" id="btnCanvasOpenConversation" title="进入上下文审阅台查看当前对象">⌁ 上下文</button>
             </div>
             <div class="canvas-context-strip" id="canvasContextStrip" aria-label="当前对象只读上下文">
               <button type="button" class="canvas-context-chip" id="btnCanvasEvidence" data-ready="false"><strong id="canvasEvidenceCount">—</strong><span>源码证据</span></button>
@@ -2839,7 +2838,7 @@
     <div class="inspector-banner"><strong id="inspectorFocus">等待项目结构图</strong><span id="inspectorPath">选中节点后作为 AI 的只读上下文；速览不会批准提案或写文件。</span></div>
     <div class="inspector-metrics">
       <div class="inspector-metric"><strong id="inspectorEvidence">0</strong><span>源码证据</span></div>
-      <div class="inspector-metric"><strong id="inspectorThreads">0</strong><span>开放对话</span></div>
+      <div class="inspector-metric"><strong id="inspectorThreads">0</strong><span>开放信号</span></div>
       <div class="inspector-metric"><strong id="inspectorRevision">—</strong><span>图形修订</span></div>
       <div class="inspector-metric"><strong id="inspectorReadiness">—</strong><span>审阅就绪</span></div>
     </div>
@@ -2862,8 +2861,8 @@
         <div class="shortcut-row"><span>切换 Classic / Flow 布局</span><kbd>B</kbd></div>
         <div class="shortcut-row"><span>切换增强 / 原色图形皮肤</span><kbd>G</kbd></div>
         <div class="shortcut-row"><span>显示 / 隐藏节点悬停速览</span><kbd>P</kbd></div>
-        <div class="shortcut-row"><span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd></div>
-        <div class="shortcut-row"><span>协作工作台 / 专注模式</span><kbd>C / 7</kbd></div>
+        <div class="shortcut-row"><span>项目图 / 上下文 / 提案</span><kbd>4 / 5 / 6</kbd></div>
+        <div class="shortcut-row"><span>上下文审阅台 / 专注模式</span><kbd>C / 7</kbd></div>
         <div class="shortcut-row"><span>沉浸工作区</span><kbd>Z</kbd></div>
       </div>
       <div class="shortcut-group"><h4>画布</h4>
@@ -2886,11 +2885,11 @@
       </div>
       <div class="shortcut-group"><h4>编辑</h4>
         <div class="shortcut-row"><span>渲染 Mermaid / SVG</span><kbd>⌘/Ctrl + ↵</kbd></div>
-        <div class="shortcut-row"><span>发送消息</span><kbd>⌘/Ctrl + ↵</kbd></div>
+        <div class="shortcut-row"><span>复制上下文给 AI</span><kbd>⌘/Ctrl + ↵</kbd></div>
         <div class="shortcut-row"><span>逐行 diff 后人工批准</span><kbd>鼠标</kbd></div>
       </div>
     </div>
-    <div class="shortcut-foot">图形、对话和批准凭据始终由人工确认；面板只展示只读上下文和本机视图偏好。</div>
+    <div class="shortcut-foot">图形与上下文信号供 AI 读取；批准凭据始终由人工确认，面板只展示只读上下文和本机视图偏好。</div>
   </section>
 </div>
 
@@ -2929,7 +2928,7 @@
 <div class="collab-shell" id="collabShell" data-tab="graph" hidden>
   <div class="collab-header">
     <div>
-      <strong>双向协作工作台</strong><span class="focus-badge">专注模式 · 概览已隐藏</span>
+      <strong>上下文审阅台</strong><span class="focus-badge">专注模式 · 概览已隐藏</span>
       <span class="collab-kicker">LOCAL · READ-ONLY UNTIL APPROVAL</span>
       <span id="collabMeta">等待同步…</span>
       <span class="shortcut-hint">Esc 关闭 · C 打开</span>
@@ -2961,7 +2960,7 @@
     </button>
     <button class="journey-step" type="button" data-journey="dialog" data-journey-tab="dialog" data-state="idle" title="修改节点、批注并告诉 AI 你的意图">
       <span class="journey-icon" aria-hidden="true">↔</span>
-      <span class="journey-copy"><strong>2 · 表达意图</strong><span data-journey-hint="dialog">编辑图形 · 双向对话</span><span class="journey-cta">打开双向对话 →</span></span>
+      <span class="journey-copy"><strong>2 · 补充上下文</strong><span data-journey-hint="dialog">轻量纠错 · 上下文信号</span><span class="journey-cta">打开上下文视图 →</span></span>
       <span class="journey-state" data-journey-state="dialog">○</span>
     </button>
     <button class="journey-step" type="button" data-journey="proposals" data-journey-tab="proposals" data-state="idle" title="查看 AI 生成的逐行差异与影响摘要">
@@ -2975,9 +2974,9 @@
       <span class="journey-state" data-journey-state="review">○</span>
     </button>
   </nav>
-  <div class="collab-tabs" role="tablist" aria-label="协作工作区">
+  <div class="collab-tabs" role="tablist" aria-label="上下文审阅区">
     <button class="collab-tab active" type="button" data-tab-target="graph" role="tab" aria-selected="true" aria-controls="collabSectionGraph">◇ 项目图</button>
-    <button class="collab-tab" type="button" data-tab-target="dialog" role="tab" aria-selected="false" aria-controls="collabSectionDialog">↔ 对话</button>
+    <button class="collab-tab" type="button" data-tab-target="dialog" role="tab" aria-selected="false" aria-controls="collabSectionDialog">⌁ 上下文</button>
     <button class="collab-tab" type="button" data-tab-target="proposals" role="tab" aria-selected="false" aria-controls="collabSectionProposals">✓ 提案</button>
   </div>
   <div class="collab-body">
@@ -3033,16 +3032,16 @@
       </div>
       </div>
     </section>
-    <section class="collab-section" id="collabSectionDialog" role="tabpanel" aria-label="对话与批注">
-      <h3><span class="section-icon" aria-hidden="true">↔</span>对话与批注</h3>
+    <section class="collab-section" id="collabSectionDialog" role="tabpanel" aria-label="上下文信号与批注">
+      <h3><span class="section-icon" aria-hidden="true">⌁</span>上下文信号与批注</h3>
       <div class="section-scroll">
-      <div class="history-tabs" role="tablist" aria-label="对话历史视图">
-        <button class="history-tab active" type="button" data-history-target="chat" role="tab" aria-selected="true" aria-controls="historyPaneChat">对话 <span class="history-tab-count" data-history-count="chat">0</span></button>
+      <div class="history-tabs" role="tablist" aria-label="上下文历史视图">
+        <button class="history-tab active" type="button" data-history-target="chat" role="tab" aria-selected="true" aria-controls="historyPaneChat">信号 <span class="history-tab-count" data-history-count="chat">0</span></button>
         <button class="history-tab" type="button" data-history-target="activity" role="tab" aria-selected="false" aria-controls="historyPaneActivity">活动 <span class="history-tab-count" data-history-count="activity">0</span></button>
         <button class="history-tab" type="button" data-history-target="annotations" role="tab" aria-selected="false" aria-controls="historyPaneAnnotations">批注 <span class="history-tab-count" data-history-count="annotations">0</span></button>
         <button class="history-tab" type="button" data-history-target="diffs" role="tab" aria-selected="false" aria-controls="historyPaneDiffs">差异 <span class="history-tab-count" data-history-count="diffs">0</span></button>
       </div>
-      <div class="history-pane active" id="historyPaneChat" data-history-pane="chat" role="tabpanel" aria-label="对话"><div class="chat-log" id="chatLog"></div></div>
+      <div class="history-pane active" id="historyPaneChat" data-history-pane="chat" role="tabpanel" aria-label="上下文信号"><div class="chat-log" id="chatLog"></div></div>
       <div class="history-pane" id="historyPaneActivity" data-history-pane="activity" role="tabpanel" aria-label="活动"><p class="activity-summary" id="activitySummary">活动时间线加载中…</p><div class="chat-log activity-list" id="activityList"></div></div>
       <div class="history-pane" id="historyPaneAnnotations" data-history-pane="annotations" role="tabpanel" aria-label="批注"><div class="chat-log" id="annotationList"></div></div>
       <div class="history-pane" id="historyPaneDiffs" data-history-pane="diffs" role="tabpanel" aria-label="差异"><p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p><div class="chat-log graph-diff-list" id="graphDiffList"></div></div>
@@ -3072,9 +3071,9 @@
       </details>
       </div>
       <div class="section-dock">
-      <div class="dock-label"><span>发消息给 AI · ⌘/Ctrl + Enter</span><span id="messageCount">0 / 2000</span></div>
+      <div class="dock-label"><span>纠错上下文 · ⌘/Ctrl + Enter 复制</span><span id="messageCount">0 / 2000</span></div>
       <div class="intent-composer">
-        <div class="intent-head"><strong>意图草稿 <span class="badge-mode">只读上下文</span></strong><span class="intent-state" id="intentState">本机草稿 · 尚未发送</span></div>
+        <div class="intent-head"><strong>纠错草稿 <span class="badge-mode">只复制 · 不发送</span></strong><span class="intent-state" id="intentState">本机草稿 · 尚未复制</span></div>
         <div class="intent-presets" aria-label="快捷意图">
           <button class="intent-preset" type="button" data-intent-preset="describe">解释这张图</button>
           <button class="intent-preset" type="button" data-intent-preset="scope">只看选中模块</button>
@@ -3082,14 +3081,14 @@
           <button class="intent-preset" type="button" data-intent-preset="diff">生成待审提案</button>
         </div>
         <div class="input-row">
-          <textarea id="messageInput" maxlength="2000" placeholder="告诉 AI 你想怎样修改项目…"></textarea>
+          <textarea id="messageInput" maxlength="2000" placeholder="留下一句轻量纠错或补充说明，复制给 AI 读取…"></textarea>
           <span class="input-count" id="messageInputCount">0 / 2000</span>
         </div>
-        <div class="intent-foot"><span class="draft-note">◇ 草稿只存本机 · 不授权写入</span><span><code>get_visual_context</code> 后再预检 / 提案</span></div>
+        <div class="intent-foot"><span class="draft-note">◇ 复制后交给 AI · 不写入会话 · 不授权写入</span><span><code>get_visual_context</code> 后再预检 / 提案</span></div>
       </div>
       <div class="collab-actions">
-        <button id="btnSendMessage" class="primary">发送消息</button>
-        <button id="btnAddAnnotation">添加图形批注</button>
+        <button id="btnSendMessage" class="primary">复制给 AI</button>
+        <button id="btnAddAnnotation">添加批注信号</button>
         <button id="btnCopyAiContext" class="subtle" title="复制只读提示，不写入会话、不签发凭据">复制给 AI 的上下文</button>
         <button id="btnCopySharedBrief" class="subtle" title="复制紧凑只读 BRIEF_JSON，不写入会话、不签发凭据">复制共享简报</button>
       </div>
@@ -3099,7 +3098,7 @@
         <button id="btnCopyCapabilities" class="subtle" title="复制只读 CAPABILITIES_JSON，不调用工具、不写入会话、不签发凭据">复制能力清单</button>
         <button id="btnDialogMore" class="dock-toggle" type="button">更多 ⌄</button>
       </div>
-      <input id="annotationInput" placeholder="批注内容；先选中左侧节点即可绑定" />
+      <input id="annotationInput" placeholder="一句轻量纠错；先选中左侧节点即可绑定" />
       </div>
     </section>
     <section class="collab-section" id="collabSectionProposals" role="tabpanel" aria-label="变更提案">
@@ -3326,7 +3325,7 @@ function toggleFlowSource() {
 function openFlowStage(stage) {
   if (stage === 'scan' || stage === 'edit') {
     setWorkspaceView('canvas');
-    showToast(stage === 'scan' ? '画布已聚焦 · 让 AI 调用 scan_project 生成结构图' : '画布已聚焦 · 点击节点或进入协作工作台表达意图');
+    showToast(stage === 'scan' ? '画布已聚焦 · 让 AI 调用 scan_project 生成结构图' : '画布已聚焦 · 点击节点或进入上下文审阅台补充纠错信号');
     return;
   }
   openCollab();
@@ -3394,7 +3393,7 @@ function renderInspector() {
   setText('#inspectorRevision', Number.isFinite(collabRevision) ? String(collabRevision) : '—');
   setText('#inspectorReadiness', readinessLabel);
   const actions = [
-    { label: '↔ 查看对象对话', enabled: Boolean(node), run: 'openFocusConversation()' },
+    { label: '⌁ 查看对象上下文', enabled: Boolean(node), run: 'openFocusConversation()' },
     { label: '◇ 查看只读证据', enabled: evidence.length > 0, run: 'openContextDrawer("evidence")' },
     { label: '⧉ 复制焦点上下文', enabled: Boolean(node), run: 'copyCanvasFocusContext()' },
     { label: '↗ 跳到关联对象', enabled: Boolean(node) && relatedCanvasNodeIds(node?.id).length > 0, run: 'stepRelatedCanvasFocus()' },
@@ -4050,7 +4049,7 @@ canvasFocusLabel.addEventListener('click', (event) => {
     if (chatTab) setHistoryTab(chatTab);
   });
   $('#canvasFocusContext').dataset.visible = 'false';
-  showToast('已打开既有双向对话；只读焦点胶囊不改变会话或写入闸门');
+  showToast('已打开上下文视图；只读焦点胶囊不改变会话或写入闸门');
 });
 function openDialogStarTrack() {
   openCollabFromCanvas('dialog', () => {
@@ -4060,7 +4059,7 @@ function openDialogStarTrack() {
     if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
   });
   setCollabPulseDetailOpen(false);
-  showToast('已打开既有双向对话；星轨不发送消息、不批准提案或写文件');
+  showToast('已打开上下文视图；信号轨迹不发送消息、不批准提案或写文件');
 }
 for (const track of document.querySelectorAll('.dialog-star-track')) {
   track.addEventListener('click', (event) => {
@@ -4423,7 +4422,7 @@ function loadExampleDiagram() {
   setEditorKind('mermaid');
   $('#codeEditor').value = EXAMPLE_MERMAID;
   $('#charCount').textContent = `${EXAMPLE_MERMAID.length} chars`;
-  $('#diagramTitle').textContent = '示例 · 人机协作闭环';
+  $('#diagramTitle').textContent = '示例 · AI 结构化上下文';
   $('#statusMsg').textContent = '示例图形已载入本地编辑器';
   syncWelcomeState();
   renderPreview();
@@ -4812,17 +4811,17 @@ const COMMANDS = [
   { group: '工作区视图', icon: '⌘', title: '展开 / 收起 Flow 源码抽屉', hint: '显示或隐藏画布旁边的本机源码编辑器', shortcut: 'E', keys: '源码 抽屉 flow source editor', run: () => toggleFlowSource() },
   { group: '工作区视图', icon: '◧', title: '切换上下文速览', hint: '展开或收起实时只读对象上下文', shortcut: 'I', keys: '速览 上下文 inspector 侧栏', run: () => setInspectorOpen(!prefs.inspectorOpen) },
   { group: '外观与帮助', icon: '◈', title: '切换视觉氛围', hint: '在鲜明品牌渐变与静谧低干扰配色间切换', shortcut: '', keys: '氛围 鲜明 静谧 ambient theme', run: () => setAmbient(prefs.ambient === 'calm' ? 'vivid' : 'calm') },
-  { group: '协作流程', icon: '↔', title: '打开协作工作台', hint: '进入人 / AI 双向协作面板', shortcut: 'C', keys: '协作 对话 workbench', run: () => openCollab() },
+  { group: '上下文工具', icon: '⌁', title: '打开上下文审阅台', hint: '查看 AI 上下文与轻量纠错入口', shortcut: 'C', keys: '上下文 审阅 workbench', run: () => openCollab() },
   { group: '协作流程', icon: '✎', title: '查看项目结构图', hint: '打开 Flow 工作台并展开源码抽屉，再进入项目图', shortcut: '', keys: 'flow 项目图 结构 graph scan', run: () => { applyLayoutSystem('flow'); applyFlowSourceOpen(true); openCollab(); setCollabTab('graph'); } },
   { group: '协作流程', icon: '◇', title: '查看项目结构图', hint: '切到节点编辑与扫描流程', shortcut: '4', keys: '项目图 结构 graph scan', run: () => { openCollab(); setCollabTab('graph'); } },
-  { group: '协作流程', icon: '↔', title: '查看双向对话', hint: '切到消息、批注与活动时间线', shortcut: '5', keys: '对话 消息 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
+  { group: '上下文工具', icon: '⌁', title: '查看上下文信号', hint: '切到消息、批注与活动时间线', shortcut: '5', keys: '上下文 消息 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
   { group: '协作流程', icon: '✓', title: '查看变更提案', hint: '切到逐行 diff 与人工批准', shortcut: '6', keys: '提案 diff 批准 proposal', run: () => { openCollab(); setCollabTab('proposals'); } },
   { group: '协作流程', icon: '◇', title: '载入示例图形', hint: '只写入本机编辑器并渲染预览', shortcut: '', keys: '示例 demo mermaid', run: () => loadExampleDiagram() },
   { group: '协作流程', icon: '↔', title: '解释这张图', hint: '把只读结构说明插入意图草稿，不发送', shortcut: '', keys: '意图 模板 解释 结构', run: () => { openCollab(); setCollabTab('dialog'); insertIntentPreset(document.querySelector('[data-intent-preset="describe"]')); } },
   { group: '协作流程', icon: '→', title: '切换下一个节点', hint: '把只读焦点移到下一个项目结构节点', shortcut: ']', keys: '节点 焦点 next object', run: () => stepCanvasFocus(1) },
   { group: '协作流程', icon: '↗', title: '跳到关联对象', hint: '沿真实连线切换当前只读焦点', shortcut: '', keys: '关联 相邻 边 edge 对象', run: () => stepRelatedCanvasFocus() },
   { group: '协作流程', icon: '⧉', title: '复制焦点上下文', hint: '复制当前节点的只读上下文提示给 AI', shortcut: '', keys: '复制 焦点 上下文 context', run: () => copyCanvasFocusContext() },
-  { group: '协作流程', icon: '↔', title: '查看当前对象对话', hint: '定位到焦点节点绑定的批注与下一棒', shortcut: '', keys: '对话 批注 下一棒 对象', run: () => openFocusConversation() },
+  { group: '上下文工具', icon: '⌁', title: '查看当前对象上下文', hint: '定位到焦点节点绑定的批注信号', shortcut: '', keys: '上下文 批注 对象', run: () => openFocusConversation() },
   { group: '协作流程', icon: '◇', title: '查看当前对象证据', hint: '打开只读源码证据与源码跳转投影', shortcut: '', keys: '证据 源码 file:line 对象', run: () => openContextDrawer('evidence') },
   { group: '协作流程', icon: '◎', title: '查看审阅就绪', hint: '打开只读就绪诊断；不替代完整 diff', shortcut: '', keys: '审阅 就绪 review readiness', run: () => openContextDrawer('review') },
   { group: '外观与帮助', icon: '☀', title: '切换浅色 / 深色主题', hint: '只影响本机界面，不改图主题', shortcut: '', keys: '主题 浅色 深色 theme', run: () => setUiTheme(prefs.uiTheme === 'light' ? 'dark' : 'light') },
@@ -5217,7 +5216,7 @@ function renderCollabPulse() {
   }
   if (orbitLabel) orbitLabel.textContent = attention > 0 ? String(attention) : '✓';
   if (nextChip) nextChip.textContent = nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工确认。' : '打开工作台，继续编辑结构图或表达意图。');
-  pulse.title = `打开双向协作工作台（C）· ${attention} 项待关注信号；批准前始终只读`;
+  pulse.title = `打开上下文审阅台（C）· ${attention} 项只读上下文信号；批准前始终只读`;
   const setMetric = (selector, value) => { const target = $(selector); if (target) target.textContent = String(value); };
   const setPulseBar = (selector, value, color) => {
     const target = $(selector);
@@ -5254,7 +5253,7 @@ function renderCollabHandoff({ pendingMessages, pendingProposals, openAnnotation
   setHandoffMetric('#handoffMessages', pendingMessages);
   setHandoffMetric('#handoffProposals', pendingProposals);
   setHandoffMetric('#handoffAnnotations', openAnnotations);
-  const label = actor === 'human' ? '下一棒 · 人' : actor === 'ai' ? '下一棒 · AI' : '下一棒 · 就绪';
+  const label = actor === 'human' ? '上下文 · 待人纠错' : actor === 'ai' ? '上下文 · 待 AI 读取' : '上下文 · 就绪';
   const hint = nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工决定是否批准。' : '打开工作台，继续编辑结构图或表达意图。');
   $('#handoffNext').textContent = `${label} · ${hint}`;
   $('#handoffNext').title = '只读派生自 session / proposals / diagnostics；不发送消息、不批准提案、不写项目文件。';
@@ -5284,7 +5283,7 @@ function renderDialogStarTrack() {
       const status = message.status === 'pending' ? 'pending' : 'answered';
       const active = index === visible.length - 1;
       const body = String(message.body || '只读消息').trim().slice(0, 90);
-      return `<span class="dialog-star-line" aria-hidden="true"></span><button type="button" class="dialog-star" data-dialog-star="true" data-author="${author}" data-status="${status}" data-active="${active}" title="${escapeHtml(`${labels[author]} · ${body}；点击只打开既有对话视图，不发送消息或写文件`)}" aria-label="打开既有对话视图：${escapeHtml(`${labels[author]} · ${body}`)}">${labels[author]}</button>`;
+      return `<span class="dialog-star-line" aria-hidden="true"></span><button type="button" class="dialog-star" data-dialog-star="true" data-author="${author}" data-status="${status}" data-active="${active}" title="${escapeHtml(`${labels[author]} · ${body}；点击只打开既有上下文视图，不发送消息或写文件`)}" aria-label="打开既有上下文视图：${escapeHtml(`${labels[author]} · ${body}`)}">${labels[author]}</button>`;
     }).join('') : '<span class="dialog-star-idle">等待第一条人机消息</span>';
     element.dataset.messageCount = String(sourceMessages.length);
     element.dataset.pending = String(pending);
@@ -5295,9 +5294,9 @@ function renderDialogStarTrack() {
   const count = $('#welcomeDialogCount');
   if (count) count.textContent = String(sourceMessages.length);
   const meta = $('#welcomeDialogMeta');
-  if (meta) meta.textContent = sourceMessages.length ? `${pending} 条待 AI · ${sourceMessages.length} 条对话` : '等待对话';
+  if (meta) meta.textContent = sourceMessages.length ? `${pending} 条待读取 · ${sourceMessages.length} 条上下文信号` : '等待上下文信号';
   const pulseMeta = $('#pulseDialogMeta');
-  if (pulseMeta) pulseMeta.innerHTML = `对话 <b>${sourceMessages.length}</b> 条${pending ? ` · ${pending} 待 AI` : ''}`;
+  if (pulseMeta) pulseMeta.innerHTML = `上下文 <b>${sourceMessages.length}</b> 条${pending ? ` · ${pending} 待 AI` : ''}`;
   const nodes = (graph?.nodes || []).length;
   const liveSteps = {
     structure: { state: nodes > 0 ? 'active' : 'idle', detail: `${nodes} 对象` },
@@ -5350,7 +5349,7 @@ function renderFlowRail({ pendingMessages = 0, pendingProposals = 0, openAnnotat
   }
   rail.style.setProperty('--flow-progress', `${progress}%`);
   rail.dataset.progressLabel = `${completed} / 4 READY · ${progress}%`;
-  $('#flowRailMeta').textContent = `${proposals} 待审 · ${messages} 消息 · ${annotations} 批注`;
+  $('#flowRailMeta').textContent = `${proposals} 待审 · ${messages} 上下文信号 · ${annotations} 批注`;
 }
 
 function renderWelcomeJourney({ pendingProposals, attention, hasGraph }) {
@@ -5584,7 +5583,7 @@ function renderJourney() {
   };
   const hints = {
     graph: hasGraph ? `${collabGraph.nodes.length} 个节点 · rev ${Number.isFinite(collabRevision) ? collabRevision : 0}` : '等待扫描项目结构',
-    dialog: messages ? '人和 AI 已开始双向对话' : '等待人的修改或消息',
+    dialog: messages ? '已有可供 AI 读取的上下文信号' : '等待人的轻量纠错或证据',
     proposals: pending ? `${pending} 个提案待人工审阅` : proposals.length ? `${proposals.length} 个提案可复核` : '尚无变更提案',
     review: approved ? '确认号待交给 AI 应用' : pending ? '批准前先看完整 diff' : '批准前只读',
   };
@@ -5834,7 +5833,7 @@ async function copyCanvasFocusContext() {
   } catch {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
-    showToast('剪贴板不可用，已把只读焦点提示放入消息框（尚未发送）');
+    showToast('剪贴板不可用，已把只读焦点提示放入纠错草稿框（尚未复制）');
   }
 }
 
@@ -5860,10 +5859,10 @@ function renderCanvasConversation() {
   card.dataset.state = state.blocked ? 'blocked' : state.open ? 'pending' : 'clear';
   card.dataset.openThreads = String(state.open);
   card.dataset.blockedThreads = String(state.blocked);
-  if (!state.total) summary.textContent = '对话 · 暂无绑定批注';
-  else if (state.blocked) summary.innerHTML = `对话 · <strong>${state.blocked}</strong> 条批注需重锚`;
-  else if (state.open) summary.innerHTML = `对话 · <strong>${state.open}</strong> 条开放 · ${state.nextActor || '等待人回复'}`;
-  else summary.textContent = '对话 · 批注已全部解决';
+  if (!state.total) summary.textContent = '上下文 · 暂无绑定批注';
+  else if (state.blocked) summary.innerHTML = `上下文 · <strong>${state.blocked}</strong> 条批注需重锚`;
+  else if (state.open) summary.innerHTML = `上下文 · <strong>${state.open}</strong> 条开放信号`;
+  else summary.textContent = '上下文 · 批注已全部解决';
   button.disabled = !state.total;
 }
 
@@ -5930,7 +5929,7 @@ function openCollabFromCanvas(tab, afterOpen) {
 
 function openFocusConversation() {
   const state = focusConversationState();
-  if (!state.total) return showToast('当前对象还没有绑定批注；可先在项目图栏添加图形批注');
+  if (!state.total) return showToast('当前对象还没有绑定批注信号；可先在项目图栏添加轻量纠错');
   openCollabFromCanvas('dialog', () => {
     const annotationsTab = document.querySelector('[data-history-target="annotations"]');
     if (annotationsTab) setHistoryTab(annotationsTab);
@@ -6248,7 +6247,7 @@ async function copySelectionScope() {
     const scope = collabSelectionScope;
     $('#messageInput').value = scope ? `请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。\n${scope.copyText}` : '请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。';
     $('#messageInput').focus();
-    showToast('剪贴板不可用，已把选择范围提示放入消息框（尚未发送）');
+    showToast('剪贴板不可用，已把选择范围提示放入纠错草稿框（尚未复制）');
   }
 }
 
@@ -6270,7 +6269,7 @@ async function copySelectionWorkorder() {
       ? `请调用 get_selection_workorder 读取当前预提案工作单；这是只读清单，不授权写入。\n${workorder.copyText}`
       : '请调用 get_selection_workorder 读取当前预提案工作单；这是只读清单，不授权写入。';
     $('#messageInput').focus();
-    showToast('剪贴板不可用，已把工作单提示放入消息框（尚未发送）');
+    showToast('剪贴板不可用，已把工作单提示放入纠错草稿框（尚未复制）');
   }
 }
 
@@ -6374,7 +6373,7 @@ function renderChat(messages) {
         <div class="chat-body">${escapeHtml(message.body)}</div>
       </div>
     </article>`;
-  }).join('') : '<div class="chat-empty"><span class="chat-empty-icon">↔</span><strong>对话从这里开始</strong><p>告诉 AI 你想怎样修改项目；消息会作为只读意图进入上下文，项目写入仍需批准后的一次性确认号。</p></div>';
+  }).join('') : '<div class="chat-empty"><span class="chat-empty-icon">⌁</span><strong>还没有上下文信号</strong><p>历史消息与批注只作为 AI 可读取的只读上下文；面板不提供聊天发送，项目写入仍需批准后的一次性确认号。</p></div>';
   $('#chatLog').scrollTop = $('#chatLog').scrollHeight;
   updateHistoryCount('chat', items.length, items.some((message) => message.status === 'pending'));
 }
@@ -6395,7 +6394,7 @@ function renderActivity(timeline) {
   if (!target) return;
   const items = Array.isArray(timeline?.items) ? timeline.items : [];
   $('#activitySummary').textContent = timeline
-    ? `活动时间线 · ${timeline.returned}/${timeline.total} 个派生事件 · 下一棒 ${escapeHtml(activityActorLabel(timeline.nextActor))}`
+    ? `活动时间线 · ${timeline.returned}/${timeline.total} 个派生事件 · 最新上下文 ${escapeHtml(activityActorLabel(timeline.nextActor))}`
     : '活动时间线不可用';
   target.innerHTML = items.length ? [...items].reverse().map((item) => `
     <div class="activity-item ${escapeHtml(item.actor)}">
@@ -6590,12 +6589,9 @@ function renderAnnotations(annotations) {
       ${annotation.anchorStatus === 'detached' ? '<div class="annotation-anchor-note">原节点已删除；请确认讨论是否仍适用于当前图。</div>' : ''}
       ${annotation.anchorStatus === 'outdated' ? `<div class="annotation-anchor-note">节点标签或路径已变化（原：${escapeHtml(annotation.nodeLabel || annotation.nodePath || '未记录')}）；确认重锚后 AI 才能把它当作当前意图。</div>` : ''}
       <div class="annotation-replies">${renderAnnotationReplies(annotation.replies)}</div>
-      <div class="annotation-reply-row">
-        <input class="annotation-reply-input" placeholder="回复这条批注，AI 会读取…" aria-label="回复批注" />
-        <button data-annotation-reply="${escapeHtml(annotation.id)}">回复</button>
-      </div>
+      <div class="annotation-reply-readonly">线程回复由 AI 工具写入；面板只展示既有只读上下文信号。</div>
     </article>
-  `).join('') : historyEmpty('⌖', '还没有图形批注', '在左侧项目图选中节点，再用 <code>添加图形批注</code> 把想法绑定到对象；AI 会把它作为只读讨论上下文。');
+  `).join('') : historyEmpty('⌖', '还没有批注信号', '在左侧项目图选中节点，再用 <code>添加批注信号</code> 绑定一句轻量纠错；AI 会把它作为只读上下文。');
   renderCanvasConversation();
   renderCanvasContextStrip();
   syncFocusLabelConversation();
@@ -6605,14 +6601,6 @@ function renderAnnotations(annotations) {
   }
   for (const button of target.querySelectorAll('[data-annotation-anchor]')) {
     button.addEventListener('click', () => reanchorAnnotation(button.dataset.annotationAnchor));
-  }
-  for (const button of target.querySelectorAll('[data-annotation-reply]')) {
-    button.addEventListener('click', () => sendAnnotationReply(button.dataset.annotationReply));
-  }
-  for (const input of target.querySelectorAll('.annotation-reply-input')) {
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') sendAnnotationReply(input.closest('.annotation-thread')?.dataset.annotationId);
-    });
   }
   updateHistoryCount('annotations', annotations.length, annotations.some((annotation) => !annotation.resolved));
 }
@@ -6647,24 +6635,6 @@ async function setAnnotationStatus(id, status) {
     refreshCollabSafely();
   } catch (error) {
     showToast(`更新批注状态失败：${error.message}`);
-  }
-}
-
-async function sendAnnotationReply(id) {
-  const thread = id ? $('#annotationList').querySelector(`[data-annotation-id="${CSS.escape(id)}"]`) : null;
-  const input = thread?.querySelector('.annotation-reply-input');
-  const body = input?.value.trim();
-  if (!id || !body) return showToast('请输入回复内容');
-  input.value = '';
-  try {
-    await collabFetch(`/api/collab/annotations/${encodeURIComponent(id)}/reply`, {
-      method: 'POST',
-      body: JSON.stringify({ body, author: 'human' }),
-    });
-    showToast('回复已加入节点批注线程');
-    refreshCollabSafely();
-  } catch (error) {
-    showToast(`回复失败：${error.message}`);
   }
 }
 
@@ -7067,7 +7037,7 @@ async function copyAiContext() {
   } catch {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
-    showToast('剪贴板不可用，已把提示放入消息框（尚未发送）');
+    showToast('剪贴板不可用，已把提示放入纠错草稿框（尚未复制）');
   }
 }
 
@@ -7089,7 +7059,7 @@ async function copySharedBrief() {
   } catch {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
-    showToast('剪贴板不可用，已把简报放入消息框（尚未发送）');
+    showToast('剪贴板不可用，已把简报放入纠错草稿框（尚未复制）');
   }
 }
 
@@ -7111,7 +7081,7 @@ async function copyDecisionTrail() {
   } catch {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
-    showToast('剪贴板不可用，已把决策链放入消息框（尚未发送）');
+    showToast('剪贴板不可用，已把决策链放入纠错草稿框（尚未复制）');
   }
 }
 
@@ -7134,7 +7104,7 @@ async function copySourceNavigation() {
   } catch {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
-    showToast('剪贴板不可用，已把源码跳转清单放入消息框（尚未发送）');
+    showToast('剪贴板不可用，已把源码跳转清单放入纠错草稿框（尚未复制）');
   }
 }
 
@@ -7157,7 +7127,7 @@ async function copyCapabilities() {
   } catch {
     $('#messageInput').value = prompt;
     $('#messageInput').focus();
-    showToast('剪贴板不可用，已把能力清单放入消息框（尚未发送）');
+    showToast('剪贴板不可用，已把能力清单放入纠错草稿框（尚未复制）');
   }
 }
 
@@ -7233,23 +7203,25 @@ async function sendMessage() {
   button.classList.add('busy');
   button.setAttribute('aria-busy', 'true');
   state.className = 'intent-state busy';
-  state.textContent = '正在发送到本机会话…';
+  state.textContent = '正在生成可复制的纠错上下文…';
   try {
-    await collabFetch('/api/collab/messages', {
-      method: 'POST',
-      body: JSON.stringify({ body, author: 'human', diagramId: currentId || undefined }),
-    });
+    const prompt = [
+      '请先用 get_visual_context 读取当前结构化上下文；下面是一句人工轻量纠错，仅供解释或后续只读预检：',
+      body,
+      '',
+      '这段文本不写入会话、不批准提案、不签发凭据，也不授权项目写入。',
+    ].join('\n');
+    await navigator.clipboard.writeText(prompt);
     input.value = '';
     updateMessageCount();
     clearMessageDraft();
     state.className = 'intent-state sent';
-    state.textContent = '✓ 已发送 · 等待 AI 读取';
-    showToast('消息已发送，等待 AI 读取');
-    refreshCollabSafely();
+    state.textContent = '✓ 已复制 · 粘贴给 AI 后由工具读取';
+    showToast('纠错上下文已复制；没有写入会话或项目文件');
   } catch (error) {
     state.className = 'intent-state error';
-    state.textContent = '发送失败 · 草稿已保留';
-    showToast(`发送失败：${error.message}`);
+    state.textContent = '复制失败 · 草稿已保留，可手动选中复制';
+    showToast(`剪贴板不可用；草稿已保留，尚未写入会话：${error.message}`);
   } finally {
     button.disabled = false;
     button.classList.remove('busy');
@@ -7270,7 +7242,7 @@ function updateMessageCount() {
   $('#btnSendMessage').classList.toggle('has-draft', count > 0);
   const state = $('#intentState');
   if (state && !state.classList.contains('busy') && !state.classList.contains('error') && !state.classList.contains('sent')) {
-    state.textContent = count ? '本机草稿 · 尚未发送' : '等待输入意图';
+    state.textContent = count ? '本机草稿 · 尚未复制' : '等待轻量纠错';
   }
   try {
     if (count) localStorage.setItem(MESSAGE_DRAFT_KEY, input.value);
@@ -7279,7 +7251,7 @@ function updateMessageCount() {
 }
 
 const INTENT_PRESETS = {
-  describe: '请先用 get_visual_context 读取当前图和对话，再用中文解释这张项目结构图；只描述，不创建提案或写项目文件。',
+  describe: '请先用 get_visual_context 读取当前图与上下文信号，再用中文解释这张项目结构图；只描述，不创建提案或写项目文件。',
   scope: '请先看我当前选中的节点范围与焦点，只围绕这些模块解释关系；选择范围是只读上下文，不授权写入。',
   preflight: '请先读取当前意图与图形差异，对候选改动做 preflight_visual_proposal；先不要创建提案，也不要写项目文件。',
   diff: '请根据当前意图和图形修订生成待审变更提案，先展示完整逐行 diff 与影响摘要；我批准并给确认号前不要写项目文件。',
@@ -7328,7 +7300,7 @@ async function rescanProject() {
 async function addAnnotation() {
   const input = $('#annotationInput');
   const body = input.value.trim();
-  if (!body) return showToast('请输入批注内容');
+  if (!body) return showToast('请输入一句轻量纠错');
   input.value = '';
   try {
     const nodeId = selectedNodeId || undefined;
@@ -7336,10 +7308,10 @@ async function addAnnotation() {
       method: 'POST',
       body: JSON.stringify({ body, nodeId }),
     });
-    showToast(nodeId ? '批注已绑定到选中节点' : '批注已加入图形');
+    showToast(nodeId ? '批注信号已绑定到选中节点' : '批注信号已加入图形');
     refreshCollabSafely();
   } catch (error) {
-    showToast(`批注失败：${error.message}`);
+    showToast(`批注信号失败：${error.message}`);
   }
 }
 
@@ -7542,7 +7514,7 @@ try {
   const savedDraft = localStorage.getItem(MESSAGE_DRAFT_KEY);
   if (savedDraft) {
     messageInput.value = savedDraft.slice(0, 2000);
-    $('#intentState').textContent = '已恢复本机草稿 · 尚未发送';
+    $('#intentState').textContent = '已恢复本机草稿 · 尚未复制';
   }
 } catch {}
 messageInput.addEventListener('input', updateMessageCount);

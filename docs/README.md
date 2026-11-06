@@ -1,6 +1,6 @@
 # Documentation Map
 
-AI Draw MCP is a local-first MCP server and browser panel for **human ↔ AI visual collaboration**. The shortest description is: an AI scans a project into an editable graph, a human edits that graph and discusses intent, and an approved proposal turns the visual conversation into reviewed project changes.
+AI Draw MCP is an MCP-native context tool for AI coding agents. An AI calls stdio tools directly to turn a codebase into structured visual context; a local browser panel lets a person make lightweight corrections, inspect evidence, review a full line diff, and explicitly authorize a project write. The panel is a thin assistive surface, not a chat or collaboration application.
 
 Start with the [main README](../README.md) for installation and the product overview.
 

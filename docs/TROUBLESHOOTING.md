@@ -93,7 +93,7 @@ They are isolated changes with a full verification order in [`DEPENDENCY_MAINTEN
 
 ### Can I use only the diagram tools?
 
-Yes. The 11 legacy Mermaid/SVG tools work without the collaboration loop. Use `scan_project` and `get_visual_context` only when you want the human ↔ AI visual workspace.
+Yes. The 11 legacy Mermaid/SVG tools work without the panel context loop. Use `scan_project` and `get_visual_context` when an AI needs structured project context and optional human corrections.
 
 ### Where is the collaboration state stored?
 

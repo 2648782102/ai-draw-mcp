@@ -7,7 +7,7 @@ Versioned copy for GitHub, releases, and community posts. Keep claims tied to wh
 Description:
 
 ```text
-Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.
+MCP-native AI context tool: visualize a codebase as structured, machine-readable context, then collect lightweight human corrections and approval-gated changes.
 ```
 
 Homepage:

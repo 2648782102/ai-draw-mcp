@@ -6,13 +6,15 @@
 
 ## 项目是什么
 
-`ai-draw-mcp` 是本机优先的 MCP Server，给 IDE 里的 AI 提供绘图能力，并给人一个可编辑、可批注、可对话、可批准变更提案的可视化面板。
+`ai-draw-mcp` 是本机优先、**给 IDE 里的 AI 直接调用的 MCP 上下文工具**。MCP stdio 与 26 个工具是产品主入口；`VisualGraph`、只读投影、源码证据、焦点/选择、批注/消息与逐行 diff 都是 AI 可精确消费的上下文信号。本地浏览器面板是薄辅助层，只用于让人查看 AI 的理解、轻量纠错、审阅 diff 与人工批准；不得把它做成聊天、协作或「下一棒」强主体应用，详见 [ADR 0020](docs/ADR/0020-mcp-tool-is-the-primary-product.md)。
 
-0.3 起，核心不只是「AI 画一张图」，而是闭环：
+AI 主循环：
 
 ```text
-AI 扫描项目 → 生成结构图 → 人改图/批注/对话 → AI 读取上下文 → AI 生成提案 → 人批准并给确认号 → AI 凭凭据安全写入 → 再扫描
+AI 调用 MCP 工具 → 生成/更新结构化上下文 → 人可选轻量纠错或审阅 → AI 读取 version 1 投影 → AI 预检并创建提案 → 人批准并给确认号 → AI 凭凭据安全写入 → 再扫描
 ```
+
+消息与批注保留为兼容的只读上下文信号，不新增对话状态机，也不要求人走完某套协作流程。
 
 安全底线：**AI 不得绕过提案、人工批准与一次性确认号直接修改项目文件**。所有项目写入都经过 `src/domain/path-safety.ts` 和 `SessionStore.applyProposal()`。
 
@@ -60,7 +62,7 @@ src/
 │   ├── preview-server.ts     Express REST + WebSocket + 协作 API
 │   ├── ide-opener.ts         在 IDE 中打开 Simple Browser
 │   ├── logger.ts             stderr logger
-│   └── templates/index.html  预览面板 + 双向协作工作台
+│   └── templates/index.html  薄辅助面板：查看/纠错/审阅/批准
 └── tools/
     ├── _shared.ts            ToolContext、渲染管道、响应格式
     ├── render-*.ts           7 个绘图工具
@@ -159,9 +161,9 @@ ROADMAP.md                   产品路线图与非目标
 
 `POST /api/collab/focus` 只接受 `confirmedBy: "human"` 的本机面板选择，服务端写入 version 1 `SessionFocus`；节点删除后清除焦点，图修订会刷新仍存在节点的标签/路径/分组。`get_visual_context.focus`、诊断和 bundle 只读暴露它，bundle 导入会严格校验结构并丢弃失锚焦点。焦点不产生消息、不进入时间线、不签发凭据，也不解决线程或创建提案。
 
-面板「复制给 AI 的上下文」按钮只从已加载数据生成一段提示文本，不调用写端点、不发送消息、不修改会话；剪贴板失败时文本只进入未发送的输入框。
+面板「复制给 AI 的上下文」按钮只从已加载数据生成一段提示文本，不调用写端点、不发送消息、不修改会话；剪贴板失败时文本只进入本机纠错草稿框，等待人工复制。
 
-面板「复制共享简报」按钮只复制 `GET /api/collab/brief` 返回的 `BRIEF_JSON`，不调用写端点、不发送消息、不修改会话、不签发凭据；剪贴板失败时文本只进入未发送的输入框。
+面板「复制共享简报」按钮只复制 `GET /api/collab/brief` 返回的 `BRIEF_JSON`，不调用写端点、不发送消息、不修改会话、不签发凭据；剪贴板失败时文本只进入本机纠错草稿框，等待人工复制。
 
 节点批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`。节点标签或路径变化后线程标记为 `outdated`，节点删除后标记为 `detached`；`staleThreads` 与活动时间线 `annotation_anchor` 事件会提示 AI 不要把旧讨论当成当前意图。`outdated` 线程必须由人在面板点击「确认重锚」或调用 `/api/collab/annotations/:id/anchor`（`confirmedBy: "human"`）才能恢复；`detached` 线程保留原 `nodeId` 供审计，不得自动重锚。
 

@@ -1,7 +1,7 @@
 {
   "name": "ai-draw-mcp",
   "version": "0.3.4",
-  "description": "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.",
+  "description": "MCP-native AI context tool: visualize a codebase as structured, machine-readable context, then collect lightweight human corrections and approval-gated changes.",
   "type": "module",
   "bin": {
     "ai-draw-mcp": "dist/index.js"

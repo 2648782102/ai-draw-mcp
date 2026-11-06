@@ -97,6 +97,7 @@ const selectionDomain = await read("src/domain/selection.ts");
 const getSelectionScopeTool = await read("src/tools/get-selection-scope.ts");
 const selectionTest = await read("test/selection.test.mjs");
 const selectionWorkorderAdr = await read("docs/ADR/0019-selection-workorder-is-read-only-preflight.md");
+const mcpToolAdr = await read("docs/ADR/0020-mcp-tool-is-the-primary-product.md");
 const selectionWorkorderDomain = await read("src/domain/selection-workorder.ts");
 const getSelectionWorkorderTool = await read("src/tools/get-selection-workorder.ts");
 const selectionWorkorderTest = await read("test/selection-workorder.test.mjs");
@@ -126,7 +127,7 @@ const contributing = await read("CONTRIBUTING.md");
 const pullRequestTemplate = await read(".github/PULL_REQUEST_TEMPLATE.md");
 const featureRequestTemplate = await read(".github/ISSUE_TEMPLATE/feature_request.yml");
 
-const expectedDescription = "Human ↔ AI visual collaboration workspace for MCP: scan a project, edit the diagram, discuss intent, and apply approved code changes.";
+const expectedDescription = "MCP-native AI context tool: visualize a codebase as structured, machine-readable context, then collect lightweight human corrections and approval-gated changes.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
 const expectedTopics = [
   "mcp",
@@ -689,7 +690,7 @@ for (const [label, file, needle] of [
   ["workorder freshness panel", panel, "workorder.freshness?.status"],
   ["workorder stale panel emphasis", panel, "signal stale"],
   ["modern brand header", panel, "brand-mark"],
-  ["visual workspace subtitle", panel, "Human ↔ AI visual workspace"],
+  ["MCP tool subtitle", panel, "MCP-native AI context tool"],
   ["collaboration safety kicker", panel, "LOCAL · READ-ONLY UNTIL APPROVAL"],
   ["collaboration section icons", panel, "section-icon"],
   ["proposal empty state", panel, "empty-state"],
@@ -765,7 +766,7 @@ for (const [label, file, needle] of [
   ["Flow canvas-first product research", research, "Flow 画布优先布局的产品调研"],
   ["Flow product research boundary", research, "不把进度条当批准"],
   ["Flow welcome orbit labels", panel, "welcome-orbit-label"],
-  ["Flow welcome orbit regression", panelUiTest, "AI · 只读扫描"],
+  ["Flow welcome orbit regression", panelUiTest, "AI · 工具调用"],
   ["Flow canvas frame", panel, "canvasFrame"],
   ["Flow graph skin preference", panel, "graphSkin: 'on'"],
   ["Flow graph skin switch", panel, "data-graph-skin"],
@@ -812,7 +813,7 @@ for (const [label, file, needle] of [
   ["visible pulse metrics", panel, "setPulseBar('#collabPulseMessageBar', pendingMessages"],
   ["visible pulse browser regression", panelUiTest, "pulseSurface"],
   ["visible layered surfaces regression", panelUiTest, "ambientSurfaces"],
-  ["visible status layer Chinese README", readme, "三条微型计数条"],
+  ["visible status layer Chinese README", readme, "上下文信号仪表"],
   ["visible status layer English README", englishQuickstart, "three micro bars"],
   ["visible status layer launch copy", launchKit, "可见状态层增量"],
   ["visible status layer research", research, "Visible-state research note"],
@@ -845,7 +846,7 @@ for (const [label, file, needle] of [
   ["dock route renderer", panel, "renderCanvasDockRoute()"],
   ["dock route grouped actions", panel, 'data-group="SHARED"'],
   ["dock route browser regression", panelUiTest, "dockRoute"],
-  ["dock route Chinese README", readme, "结构 → 焦点 → 闸门"],
+  ["dock route Chinese README", readme, "底部操作条"],
   ["dock route English README", englishQuickstart, "structure → focus → gate"],
   ["dock route changelog", changelog, "画布焦点航线控制台"],
   ["dock route launch copy", launchKit, "画布焦点航线控制台增量"],
@@ -867,7 +868,7 @@ for (const [label, file, needle] of [
   ["radial pulse CSS", panel, "collab-pulse-orbit-ring-label"],
   ["radial pulse renderer", panel, "--pulse-ring"],
   ["radial pulse browser regression", panelUiTest, "orbitBackground"],
-  ["radial pulse Chinese README", readme, "径向压力环"],
+  ["radial pulse Chinese README", readme, "只读派生自既有会话"],
   ["radial pulse English README", englishQuickstart, "radial pressure ring"],
   ["radial pulse changelog", changelog, "径向压力环"],
   ["radial pulse launch copy", launchKit, "协作压力仪表增量"],
@@ -896,7 +897,7 @@ for (const [label, file, needle] of [
   ["canvas object hover research boundary", research, "悬停不改变选中态"],
   ["canvas object hover keyboard boundary", research, "悬停与方向键不发布 focus/viewport"],
   ["canvas object hover outline boundary", research, "只是本机 CSS 类"],
-  ["canvas object hover Chinese README", readme, "对象悬停速览"],
+  ["canvas object hover Chinese README", readme, "对象速览"],
   ["canvas object hover English README", englishQuickstart, "object glance"],
   ["Flow bottom-centered toast", panel, "body.flow-workspace:not(.zen-workspace) .toast"],
   ["Flow immersive toast override", panel, "body.flow-workspace.zen-workspace .toast"],
@@ -953,22 +954,38 @@ for (const [label, file, needle] of [
   ["canvas handoff rail", panel, "collabHandoff"],
   ["canvas handoff renderer", panel, "renderCollabHandoff"],
   ["canvas handoff read-only copy", panel, "不发送消息、不批准提案、不写项目文件"],
+  ["no visible chat send action", panel, "复制给 AI</button>"],
+  ["no visible reply composer", panel, "线程回复由 AI 工具写入"],
   ["canvas handoff browser regression", panelUiTest, "btnHandoffOpen"],
   ["canvas handoff changelog", changelog, "交接航线"],
   ["dialog star track CSS", panel, ".welcome-dialog-ribbon"],
   ["dialog star track renderer", panel, "renderDialogStarTrack()"],
-  ["dialog star track read-only copy", panel, "点击只打开既有对话视图，不发送消息或写文件"],
+  ["dialog star track read-only copy", panel, "点击只打开既有上下文视图，不发送消息或写文件"],
   ["dialog star track click handler", panel, "openDialogStarTrack"],
   ["dialog star track browser regression", panelUiTest, "welcomeDialogTrack"],
   ["dialog star track canvas browser regression", canvasFocusTest, "handoffStars"],
   ["dialog star track reduced motion CSS", panel, '.dialog-star[data-status="pending"]::after { animation: none;'],
-  ["dialog star track Chinese README", readme, "双向对话星轨"],
-  ["dialog star track English README", englishQuickstart, "dialogue star track"],
+  ["dialog star track Chinese README", readme, "上下文信号"],
+  ["dialog star track English README", englishQuickstart, "context-signal counts"],
+  ["AI-first thin panel Chinese README", readme, "上下文信号"],
+  ["AI-first thin panel English README", englishQuickstart, "no chat composer"],
+  ["AI-first product definition", readme, "MCP stdio 直接调用 26 个工具"],
+  ["AI-first English definition", englishQuickstart, "MCP-native context tool"],
+  ["AI-first agents definition", agents, "给 IDE 里的 AI 直接调用的 MCP 上下文工具"],
+  ["AI-first roadmap principle", roadmap, "AI-callable tool surface is the product"],
+  ["AI-first non-goal", roadmap, "general-purpose human/AI chat"],
+  ["AI-first architecture", architecture, "由 AI 直接调用的 MCP 上下文工具"],
+  ["AI-first ADR index", adrIndex, "0020-mcp-tool-is-the-primary-product.md"],
+  ["AI-first ADR boundary", mcpToolAdr, "a separate conversation state machine"],
+  ["AI-first goal mode", goalMode, "MCP-native AI context tool"],
+  ["panel assistant framing", panel, "让 AI 用结构图表达项目理解"],
+  ["panel context framing", panel, "MCP CONTEXT TOOL"],
   ["dialog live route CSS", panel, ".welcome-live-route"],
   ["dialog live route renderer", panel, "welcomeLiveRoute"],
   ["dialog live route browser regression", panelUiTest, "welcomeLiveRoute"],
-  ["dialog live route Chinese README", readme, "实时协作航线"],
-  ["dialog live route English README", englishQuickstart, "live collaboration route"],
+  ["dialog live route Chinese README", readme, "Aurora 光场"],
+  ["dialog live route English README", englishQuickstart, "thin assistive surface"],
+  ["AI-first non-chat Chinese README", readme, "不构成聊天发送"],
   ["dialog live route changelog", changelog, "实时协作航线"],
   ["dialog live route launch copy", launchKit, "实时协作航线增量"],
   ["dialog live route research", research, "Live-route research note"],
@@ -987,7 +1004,7 @@ for (const [label, file, needle] of [
   ["aurora welcome top rail", panel, "body.visual-aurora .welcome-card::before"],
   ["aurora atmosphere browser regression", panelUiTest, "auroraSurfaces"],
   ["aurora glass node browser regression", panelUiTest, "auroraCanvasSkin"],
-  ["aurora atmosphere Chinese README", readme, "Aurora 光场画布"],
+  ["aurora atmosphere Chinese README", readme, "Aurora 光场"],
   ["aurora atmosphere English README", englishQuickstart, "Aurora light-field canvas"],
   ["aurora atmosphere changelog", changelog, "Aurora 光场画布"],
   ["aurora atmosphere launch copy", launchKit, "Aurora 光场画布增量"],
@@ -1015,8 +1032,9 @@ for (const [label, file, needle] of [
   ["canvas thread badge browser regression", canvasFocusTest, "canvas-thread-badge"],
   ["canvas thread badge changelog", changelog, "节点级讨论标记"],
   ["panel sync browser regression", panelUiTest, "sync-meter"],
-  ["Chinese collaboration pulse docs", readme, "人机协作脉搏"],
-  ["English collaboration pulse docs", englishQuickstart, "collaboration pulse"],
+  ["Chinese collaboration pulse docs", readme, "上下文信号仪表"],
+  ["English collaboration pulse docs", englishQuickstart, "context-signal counts"],
+  ["AI-first review desk Chinese README", readme, "上下文审阅台"],
   ["collaboration pulse changelog", changelog, "人机协作脉搏"],
   ["live context ribbon", panel, "workspace-ribbon"],
   ["live context renderer", panel, "renderInspector"],
@@ -1240,7 +1258,7 @@ check(readme.includes("list_change_templates"), "README.md does not document cha
 check(agents.includes("change-templates.ts"), "AGENTS.md does not list the change template module");
 check(agents.includes("list_change_templates"), "AGENTS.md does not document change templates");
 check(changeTemplateDomain.includes("does not create a proposal"), "change template guidance does not state its read-only boundary");
-check(packageJson.description?.includes("visual collaboration"), "package.json description is missing the product positioning");
+check(packageJson.description?.includes("MCP-native AI context tool"), "package.json description is missing the AI-first product positioning");
 check(agents.includes("anchorStatus"), "AGENTS.md does not document stale annotation anchors");
 check(architecture.includes("annotationThreads.nextActor"), "ARCHITECTURE.md does not document annotation thread handoff");
 check(architecture.includes("anchorStatus"), "ARCHITECTURE.md does not document stale annotation anchors");
@@ -1367,7 +1385,7 @@ check(research.includes("目标模式与维护证据的产品调研"), "COMPETIT
 check(research.includes("132f90e"), "COMPETITIVE_RESEARCH.md is missing the post-release maintenance commit evidence");
 check(dependencyMaintenance.includes("08:03 CST audit snapshot"), "DEPENDENCY_MAINTENANCE.md is missing the audit snapshot");
 check(dependencyMaintenance.includes("not applied"), "DEPENDENCY_MAINTENANCE.md does not record the no-auto-upgrade decision");
-check(releaseWorkflow.includes("Human ↔ AI visual collaboration"), "release workflow is missing the published Release title");
+check(releaseWorkflow.includes("MCP-native AI context tool"), "release workflow is missing the AI-first Release title");
 check(agents.includes("release.yml"), "AGENTS.md does not document the versioned tag Release workflow");
 check(getCapabilitiesTool.includes("SERVER_VERSION, type ToolContext"), "get-capabilities.ts bypasses the shared infra boundary");
 check(!getCapabilitiesTool.includes('from "../infra/version.js"'), "get-capabilities.ts imports infra directly");

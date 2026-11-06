@@ -2,7 +2,10 @@
 
 This roadmap is a product-direction document, not a support contract. It exists so contributors, AI coding agents, and early users can understand what belongs in the core and what should remain an integration.
 
-Product principle: **the visual workspace is the shared language between humans and AI**. Rendering a diagram is useful; closing the loop from a visual edit to a reviewed, reversible project change is the product.
+Product principle: **the AI-callable tool surface is the product**. Structured, machine-readable context comes first; the local panel is a thin assistive layer for inspecting, correcting, and approving that context. See [ADR 0020](docs/ADR/0020-mcp-tool-is-the-primary-product.md).
+
+- Keep the panel lightweight: no chat-first composer, social presence, turn-taking dashboard, or hosted collaboration workflow.
+- Treat messages, annotations, focus, selection, diffs, and timelines as bounded AI context signals rather than a strong-subject conversation state.
 
 ## Now — 0.3.x: trustworthy closed loop
 
@@ -73,6 +76,7 @@ Product principle: **the visual workspace is the shared language between humans 
 - A hosted multi-user SaaS or an account wall for local use.
 - A general-purpose whiteboard competing with Miro, FigJam, Excalidraw, or tldraw on freehand canvas features.
 - A cloud diagram library that owns the source of truth instead of the developer's repository.
+- A general-purpose human/AI chat or collaboration application; the browser panel is only a local correction, review, and approval helper.
 - Autonomous project writes that bypass human review, diffs, and one-time approval.
 - Binary file edits, deletion operations, or broad filesystem permissions.
 

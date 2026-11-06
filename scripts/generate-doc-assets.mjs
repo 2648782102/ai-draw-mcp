@@ -22,15 +22,15 @@ const defs = `<defs>
 </defs>`;
 
 const loopDiagram = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
-<title id="title">AI Draw MCP 双向协作闭环</title>
-<desc id="desc">AI 扫描项目生成结构图，人类修改图形并批注，AI 读取上下文创建提案，人类批准后应用变更，再次扫描保持图与代码一致。</desc>
+<title id="title">AI Draw MCP 结构化上下文工具链</title>
+<desc id="desc">AI 通过 MCP 工具扫描项目并生成结构化上下文，人做轻量纠错或审阅提案，AI 读取上下文并凭人工凭据安全写入，再次扫描保持图与代码一致。</desc>
 ${defs}
 <rect width="1200" height="520" fill="url(#bg)"/>
-${label(600, 54, "AI Draw MCP · 人与 AI 的双向可视化闭环", 26, "#ffffff", "700")}
+${label(600, 54, "AI Draw MCP · AI 可调用的结构化上下文工具链", 26, "#ffffff", "700")}
 ${label(600, 84, "本地优先 · MCP stdio · 一次性人工批准 · 失败自动回滚", 14, "#93a4c3", "400")}
 ${rect(60, 135, 200, 92, "#162842")}${label(160, 170, "AI", 20, "#7aa2f7")}${label(160, 198, "scan_project", 14, "#d8e2f5")}
 ${rect(310, 135, 200, 92, "#162842")}${label(410, 170, "项目结构图", 18, "#ffffff")}${label(410, 198, "VisualGraph", 13, "#93a4c3", "400")}
-${rect(560, 135, 200, 92, "#213252")}${label(660, 170, "人类", 20, "#9ece6a")}${label(660, 198, "改节点 / 批注线程", 13, "#d8e2f5")}
+${rect(560, 135, 200, 92, "#213252")}${label(660, 170, "人 · 薄辅助层", 18, "#9ece6a")}${label(660, 198, "纠错 / 上下文信号", 13, "#d8e2f5")}
 ${rect(810, 135, 200, 92, "#162842")}${label(910, 170, "AI", 20, "#7aa2f7")}${label(910, 198, "get_visual_context", 13, "#d8e2f5")}
 ${rect(310, 330, 200, 92, "#2b2350")}${label(410, 365, "变更提案", 18, "#bb9af7")}${label(410, 393, "逐行 diff + 影响摘要", 12, "#d8e2f5")}
 ${rect(560, 330, 200, 92, "#203b32")}${label(660, 365, "人类批准", 18, "#9ece6a")}${label(660, 393, "一次性确认号", 13, "#d8e2f5")}
@@ -38,20 +38,20 @@ ${rect(810, 330, 200, 92, "#162842")}${label(910, 365, "AI", 20, "#7aa2f7")}${la
 ${arrow(260, 181, 310, 181)}${arrow(510, 181, 560, 181)}${arrow(760, 181, 810, 181)}
 ${arrow(910, 227, 910, 285)}${arrow(810, 330, 760, 330)}${arrow(560, 330, 510, 330)}${arrow(310, 330, 260, 330)}
 ${arrow(160, 330, 160, 227)}
-${label(1010, 180, "读取意图与活动时间线", 14, "#93a4c3", "400", "start")}
+${label(1010, 180, "读取机器可读上下文投影", 14, "#93a4c3", "400", "start")}
 ${label(1010, 370, "SHA-256 内容哈希", 14, "#93a4c3", "400", "start")}
 ${label(1010, 395, "路径安全 / 原子写入 / 回滚", 13, "#93a4c3", "400", "start")}
 ${label(600, 478, "解决批注线程 ≠ 批准变更 · 时间线只是只读派生视图 · 项目写入始终需要人类确认号", 13, "#f0a868", "500")}
 </svg>`;
 
 const workbenchDiagram = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
-<title id="title">协作工作台概念预览</title>
+<title id="title">上下文审阅台概念预览</title>
 <desc id="desc">三栏工作台：项目图节点编辑、活动时间线与节点批注线程、变更提案与人工批准。</desc>
 ${defs}
 <rect width="1200" height="620" fill="url(#bg)"/>
 <rect x="24" y="24" width="1152" height="572" rx="16" fill="#111a2c" stroke="#2b3a55" stroke-width="1.5"/>
 <rect x="24" y="24" width="1152" height="48" rx="16" fill="#18243a"/>
-${label(48, 54, "双向协作工作台", 17, "#ffffff", "700", "start")}
+${label(48, 54, "上下文审阅台", 17, "#ffffff", "700", "start")}
 ${label(260, 54, "session · revision · workspace", 12, "#93a4c3", "400", "start")}
 ${label(1148, 54, "💬 协作", 13, "#d8e2f5", "600", "end")}
 <rect x="40" y="88" width="360" height="492" rx="10" fill="#0e1727" stroke="#2b3a55"/>
@@ -67,7 +67,7 @@ ${label(58, 345, "选中节点后批注会绑定到它", 12, "#93a4c3", "400", "
 ${label(58, 380, "图形修订通过 WebSocket 同步", 12, "#93a4c3", "400", "start")}
 <rect x="416" y="88" width="360" height="492" rx="10" fill="#0e1727" stroke="#2b3a55"/>
 <rect x="416" y="88" width="360" height="34" rx="10" fill="#17243a"/>
-${label(434, 110, "时间线 · 对话 · 批注线程", 13, "#ffffff", "600", "start")}
+${label(434, 110, "时间线 · 上下文信号 · 批注", 13, "#ffffff", "600", "start")}
 ${label(434, 144, "活动时间线 · 12 个派生事件 · 下一棒 AI", 11, "#f0a868", "500", "start")}
 ${rect(434, 158, 324, 42, "#17243a")}${label(452, 184, "批注 → 回复 → 提案 → 批准 → 应用", 12, "#d8e2f5", "500", "start")}
 ${rect(434, 212, 324, 42, "#17243a")}${label(452, 238, "消息 / 线程状态 / 提案生命周期", 11, "#93a4c3", "400", "start")}
