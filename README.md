@@ -74,6 +74,7 @@
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构、状态模型、活动时间线、REST/WebSocket 协议、安全边界 |
 | [docs/README.md](docs/README.md) | 文档地图：按读者与用途查找全部资料 |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | 首用自检、常见故障与 FAQ（含一次性确认号失效） |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md#多选后重新扫描工作单显示-stale-怎么办what-does-a-stale-selection-workorder-mean) | 30 秒 FAQ：重新扫描后的 stale 多选工作单该怎么处理 |
 | [ROADMAP.md](ROADMAP.md) | 产品方向、阶段目标与明确的非目标 |
 | [docs/COMPETITIVE_RESEARCH.md](docs/COMPETITIVE_RESEARCH.md) | Mermaid/白板/MCP 同类产品调研与定位 |
 | [docs/DEPENDENCY_MAINTENANCE.md](docs/DEPENDENCY_MAINTENANCE.md) | 依赖升级与 CI 维护策略 |
