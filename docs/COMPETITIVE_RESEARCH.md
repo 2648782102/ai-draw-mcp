@@ -39,6 +39,10 @@ Canvas tools such as Figma, tldraw, and Mermaid editors keep high-frequency acti
 
 Developer HUDs and code-map inspectors compress dense relationship signals into a persistent, glanceable strip instead of hiding them behind a details panel. The Focus Lens now borrows that pattern with a relation pulse: adjacent-edge count, a bounded graph-wide ratio bar, inbound count, and discussion-state light stay beside the focused object. It remains a derived CSS/DOM projection of existing edges, annotations, and focus; it does not create a second state model, publish viewport changes, send messages, approve proposals, issue receipts, or write project files.
 
+## Pressure-gauge research note (2026-11-06 21:30 CST)
+
+Status dashboards make queue pressure legible with a single radial gauge plus a bounded next action. The collaboration pulse now borrows that visual grammar: a conic ring, centre attention count, state-colored arc, micro bars, and next-action chip expose pending messages, proposals, annotations, and diagnostics without opening the full workbench. It is a derived display over existing read-only session state, not a second workflow model or an approval path; it does not send messages, issue receipts, or write project files.
+
 ## Positioning statement
 
 > AI Draw MCP is a local-first MCP workspace where an AI can turn a codebase into an editable visual map, a human can correct that map in the panel, and the pair can review a concrete change proposal before any file is written.

@@ -168,6 +168,7 @@ describe("collaboration panel UI", () => {
         const pulse = document.querySelector("#btnCollabPulse");
         const style = getComputedStyle(pulse);
         const bars = [...document.querySelectorAll(".collab-pulse-bar")];
+        const orbit = document.querySelector("#collabPulseOrbit");
         return {
           width: Math.round(pulse.getBoundingClientRect().width),
           gradient: style.backgroundImage,
@@ -175,6 +176,10 @@ describe("collaboration panel UI", () => {
           bars: bars.length,
           litBars: bars.filter((bar) => Number.parseFloat(bar.style.getPropertyValue("--pulse-fill")) > 0).length,
           state: pulse.dataset.state,
+          orbitBackground: getComputedStyle(orbit).backgroundImage,
+          orbitLabel: document.querySelector("#collabPulseOrbitLabel").textContent,
+          attention: Number(pulse.dataset.attention),
+          nextChip: document.querySelector("#collabPulseNextChip").textContent,
         };
       });
       expect(pulseSurface.width).toBeGreaterThan(220);
@@ -182,6 +187,10 @@ describe("collaboration panel UI", () => {
       expect(pulseSurface.bars).toBe(3);
       expect(pulseSurface.litBars).toBeGreaterThan(0);
       expect(["Ready", "Review", "Blocked"]).toContain(pulseSurface.status);
+      expect(pulseSurface.orbitBackground).toContain("conic-gradient");
+      expect(pulseSurface.orbitLabel.length).toBeGreaterThan(0);
+      expect(pulseSurface.attention).toBeGreaterThan(0);
+      expect(pulseSurface.nextChip.length).toBeGreaterThan(0);
       await page.click("#btnCollabPulse");
       expect(await page.$eval("#collabPulseDetail", (element) => element.classList.contains("open"))).toBe(true);
       expect(Number(await page.$eval("#collabPulseProposals", (element) => element.textContent))).toBeGreaterThan(0);
