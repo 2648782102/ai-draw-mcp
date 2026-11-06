@@ -141,6 +141,10 @@ describe("collaboration session", () => {
         readOnly: true,
         selectedCount: 2,
         selectionLimit: 24,
+        freshness: {
+          status: "current",
+          selectionStale: false,
+        },
       });
       expect(selectionWorkorder.safety).toMatchObject({
         grantsWriteAuthority: false,
@@ -149,6 +153,31 @@ describe("collaboration session", () => {
       });
       expect(selectionWorkorder.safePaths.some((item) => item.path === ".")).toBe(false);
       expect(JSON.stringify(selectionWorkorder)).not.toContain("approvalGrant");
+      const savedSelection = sessions.getSelection();
+      const graphAfterSelection = {
+        ...expandedGraph,
+        nodes: expandedGraph.nodes.map((node) => node.id === "new_module"
+          ? { ...node, label: "shared reviewed" }
+          : node),
+      };
+      const graphAfterSelectionResponse = await fetch(`${base}/api/collab/graph`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(graphAfterSelection),
+      });
+      expect(graphAfterSelectionResponse.ok).toBe(true);
+      expect(sessions.getSelection()).toEqual(savedSelection);
+      const staleWorkorder = await fetch(`${base}/api/collab/selection-workorder`, { headers })
+        .then((response) => response.json());
+      expect(staleWorkorder.freshness).toMatchObject({
+        status: "stale",
+        selectionStale: true,
+        selectedAtRevision: expandedSnapshot.graphRevision,
+        graphRevision: expandedSnapshot.graphRevision + 1,
+      });
+      expect(staleWorkorder.gaps.join(" ")).toContain("selection is stale");
+      expect(staleWorkorder.copyText).toContain("Selection freshness: stale");
+      expect(JSON.stringify(staleWorkorder)).not.toContain("approvalGrant");
       const unauthorizedSelection = await fetch(`${base}/api/collab/selection`, {
         method: "POST",
         headers,
@@ -168,9 +197,10 @@ describe("collaboration session", () => {
       });
       expect(unauthenticatedSelection.status).toBe(401);
       const selectionState = sessions.getSnapshot();
-      expect(selectionState.graphRevision).toBe(expandedSnapshot.graphRevision);
-      expect(selectionState.messages).toEqual(expandedSnapshot.messages);
-      expect(selectionState.graphDiffs).toEqual(expandedSnapshot.graphDiffs);
+      expect(selectionState.graphRevision).toBe(expandedSnapshot.graphRevision + 1);
+      expect(selectionState.selection).toEqual(savedSelection);
+      expect(selectionState.messages.length).toBeGreaterThan(expandedSnapshot.messages.length);
+      expect(selectionState.graphDiffs.length).toBeGreaterThan(expandedSnapshot.graphDiffs.length);
 
       const viewportBefore = sessions.getSnapshot();
       const viewportResponse = await fetch(`${base}/api/collab/viewport`, {
@@ -275,8 +305,8 @@ describe("collaboration session", () => {
       expect(graphAfterAnnotation.annotations.length).toBe(2);
       expect(graphAfterAnnotation.annotations[1].nodeId).toBe("new_module");
       expect(graphAfterAnnotation.annotations[1].anchorStatus).toBe("anchored");
-      expect(graphAfterAnnotation.annotations[1].nodeLabel).toBe("shared");
-      expect(sessions.getMessages().some((message) => message.body.includes("@ shared"))).toBe(true);
+      expect(graphAfterAnnotation.annotations[1].nodeLabel).toBe("shared reviewed");
+      expect(sessions.getMessages().some((message) => message.body.includes("@ shared reviewed"))).toBe(true);
 
       const threadReply = await fetch(`${base}/api/collab/annotations/${graphAfterAnnotation.annotations[1].id}/reply`, {
         method: "POST",
@@ -609,6 +639,11 @@ describe("collaboration session", () => {
         selectedCount: 0,
         source: "none",
         selectionRevision: null,
+        freshness: {
+          status: "none",
+          selectionStale: false,
+          selectedAtRevision: null,
+        },
         safePaths: [],
       });
       expect(restoredWorkorder.gaps.join(" ")).toContain("No active human selection");

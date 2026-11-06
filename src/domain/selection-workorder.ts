@@ -34,9 +34,22 @@ export function buildSelectionWorkorder(
   const safePaths = [...new Set(scope.nodes
     .map((node) => node.path)
     .filter((path): path is string => typeof path === "string" && path !== "." && !path.endsWith("/")))];
+  const selectionStale = scope.selectionRevision !== null && scope.selectionRevision !== snapshot.graphRevision;
+  const freshness = {
+    status: scope.selectionRevision === null ? "none" as const : selectionStale ? "stale" as const : "current" as const,
+    selectionStale,
+    graphRevision: snapshot.graphRevision,
+    selectedAtRevision: scope.selectionRevision,
+    hint: scope.selectionRevision === null
+      ? "No active human selection; the workorder is a read-only empty checklist."
+      : selectionStale
+        ? "The graph changed after this selection was made; ask the human to review and reselect the intended scope."
+        : "The selection revision matches the current graph revision; still confirm intent before drafting changes.",
+  };
   const gaps: string[] = [];
 
   if (scope.selectedCount === 0) gaps.push("No active human selection; ask the human to select nodes in the panel before drafting a scoped change.");
+  if (selectionStale) gaps.push("The selection is stale because the graph revision changed; ask the human to reselect the intended nodes before reusing this workorder.");
   if (pendingMessages.length === 0 && activeSelectedThreads.length === 0) {
     gaps.push("No pending human message or active annotation thread is anchored to the selected scope; confirm the requested change before proposing content.");
   }
@@ -102,6 +115,7 @@ export function buildSelectionWorkorder(
       ];
   const copyText = [
     `Selection workorder · session ${snapshot.id} · graphRevision ${snapshot.graphRevision} · selectionRevision ${scope.selectionRevision ?? "none"} · read-only`,
+    `Selection freshness: ${freshness.status}${selectionStale ? " · reselect before drafting" : ""}`,
     `Selected nodes: ${scope.selectedCount}/${scope.limit} · internal edges ${scope.edges.length}/${scope.totalEdges} · safe evidence ${scope.evidence.length}/${scope.totalEvidence}`,
     `Review readiness: ${readiness.status} · blockers ${readiness.brief.blockers.length} · gaps ${readiness.decisionTrail.gaps.length}`,
     ...scope.nodes.slice(0, itemLimit).map((node) => `- Node: ${node.label} (${node.nodeId})${node.path ? ` · ${node.path}` : ""}`),
@@ -119,6 +133,7 @@ export function buildSelectionWorkorder(
     source: scope.source,
     selectedCount: scope.selectedCount,
     selectionLimit: scope.limit,
+    freshness,
     reviewReadiness: {
       status: readiness.status,
       blockers: readiness.brief.blockers.length,
@@ -143,6 +158,7 @@ export function buildSelectionWorkorder(
     copyText,
     guidance: [
       "SELECTION_WORKORDER_JSON is a derived, read-only pre-proposal checklist for a bounded human selection.",
+      "freshness is descriptive only; a stale selection is never silently refreshed, cleared, or treated as a write grant.",
       "Candidate paths are not permissions and contain no proposed content; preflight and a human-reviewed full line diff remain mandatory.",
       "Stale annotation threads, readiness blockers, and evidence gaps must be resolved with the human before they become current intent.",
       "Only apply_visual_proposal with a valid one-time human receipt may write project files.",

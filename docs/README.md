@@ -62,7 +62,7 @@ Capability discovery is documented in [ADR 0017](ADR/0017-capability-catalogue-i
 
 Human multi-node selection is documented in [ADR 0018](ADR/0018-human-selection-is-read-only-scope.md): `SELECTION_SCOPE_JSON` gives agents a bounded map of "these modules" while keeping selection out of portable bundles and outside the approval path.
 
-Selection workorders are documented in [ADR 0019](ADR/0019-selection-workorder-is-read-only-preflight.md): `SELECTION_WORKORDER_JSON` turns the same bounded scope into a pure pre-proposal checklist of candidate paths, intent, evidence, readiness gaps, and next actions, while preflight, a full line diff, human approval, and a one-time receipt remain separate gates.
+Selection workorders are documented in [ADR 0019](ADR/0019-selection-workorder-is-read-only-preflight.md): `SELECTION_WORKORDER_JSON` turns the same bounded scope into a pure pre-proposal checklist of candidate paths, intent, evidence, readiness gaps, descriptive selection freshness, and next actions. A stale selection only asks for human re-selection; preflight, a full line diff, human approval, and a one-time receipt remain separate gates.
 
 Design rule: keep public product copy versioned in the repository. `scripts/github-maintenance.mjs` and `scripts/repo-check.mjs` help prevent GitHub metadata, launch copy, README links, and changelog from drifting apart.
 

@@ -1397,7 +1397,9 @@ function renderSelectionWorkorder(workorder) {
     return;
   }
   const status = workorder.reviewReadiness?.status || 'unknown';
-  summary.textContent = `预提案工作单 · rev ${workorder.graphRevision} · ${workorder.selectedCount}/${workorder.selectionLimit} 个节点 · ${workorder.safePaths.length} 条候选路径 · ${workorder.gaps.length} 个缺口 · 审阅 ${status} · 只读`;
+  const freshness = workorder.freshness?.status || 'unknown';
+  const staleHint = workorder.freshness?.selectionStale ? ' · 图已变化，请重新选择' : '';
+  summary.textContent = `预提案工作单 · rev ${workorder.graphRevision} · ${workorder.selectedCount}/${workorder.selectionLimit} 个节点 · 新鲜度 ${freshness}${staleHint} · ${workorder.safePaths.length} 条候选路径 · ${workorder.gaps.length} 个缺口 · 审阅 ${status} · 只读`;
   const pathsHtml = workorder.safePaths.length
     ? `<p class="signal">候选路径 · ${workorder.safePaths.slice(0, 4).map((item) => escapeHtml(item.path)).join('、')}${workorder.safePaths.length > 4 ? ` 等 ${workorder.safePaths.length} 条` : ''}</p>`
     : '<p class="signal">没有安全相对路径可作为候选；请让 AI 先与人确认目标文件。</p>';
@@ -1405,7 +1407,8 @@ function renderSelectionWorkorder(workorder) {
     ? workorder.gaps.slice(0, 3).map((gap) => `<p class="signal">缺口 · ${escapeHtml(gap)}</p>`).join('')
     : '<p class="signal">暂无明确缺口；仍需读取完整会话并人工确认变更内容。</p>';
   const nextHtml = `<p class="next-action">${escapeHtml(workorder.safety?.excludesProjectChangeContent ? '工作单不含候选文件内容或逐行 diff；继续前须 preflight_visual_proposal、人工审阅与一次性确认号。' : '安全标记缺失，请勿继续。')}</p>`;
-  list.innerHTML = `${pathsHtml}${gapsHtml}${nextHtml}`;
+  const freshnessHtml = `<p class="signal">${escapeHtml(workorder.freshness?.hint || '选择新鲜度未知；请刷新面板并让人确认当前范围。')}</p>`;
+  list.innerHTML = `${freshnessHtml}${pathsHtml}${gapsHtml}${nextHtml}`;
 }
 
 async function copySelectionScope() {

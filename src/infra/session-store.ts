@@ -150,13 +150,12 @@ function refreshFocus(
 function refreshSelection(
   selection: SessionSelection | undefined,
   graph: VisualGraph | undefined,
-  graphRevision: number,
 ): SessionSelection | undefined {
-  if (!selection || !graph) return undefined;
+  if (!selection || !graph) return selection;
   const available = new Set(graph.nodes.map((node) => node.id));
   const nodeIds = selection.nodeIds.filter((id) => available.has(id));
-  if (!nodeIds.length) return undefined;
-  return { ...selection, nodeIds, graphRevision };
+  if (!nodeIds.length) return { ...selection, nodeIds };
+  return nodeIds.length === selection.nodeIds.length ? selection : { ...selection, nodeIds };
 }
 
 function validateGraph(graph: VisualGraph): void {
@@ -424,7 +423,7 @@ export class SessionStore {
     draft.activeDiagramId = activeDiagramId;
     draft.graphRevision = nextRevision;
     draft.focus = refreshFocus(draft.focus, graph, nextRevision);
-    draft.selection = refreshSelection(draft.selection, graph, nextRevision);
+    draft.selection = refreshSelection(draft.selection, graph);
     if (graphDiff.items.length > 0) {
       draft.graphDiffs = trimList([...(draft.graphDiffs ?? []), graphDiff], MAX_GRAPH_DIFFS);
     }

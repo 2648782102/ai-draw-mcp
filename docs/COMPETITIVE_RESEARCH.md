@@ -143,7 +143,7 @@ Keep these two boundaries explicit: `resolved` is a conversation state, never pr
 | GitHub Copilot CLI 权限文档 | MCP 调用服从 session permission rules，外部只读操作也可能要求批准 | 工作流的下一步必须明确告诉 agent 去读完整会话、与人确认，再显式起草 changes | `ready`、候选路径和 `gaps` 都不是批准或运行时权限 |
 | Overture / Birdview / Houston / Glimpse | 执行计划、变更范围、审批清单和本地双向画布正成为 AI coding 可视化产品的核心语言 | 将 `SELECTION_SCOPE_JSON` 收束为 `SELECTION_WORKORDER_JSON`，让「这几个模块」可被人快速核对 | 不复制同类产品的自动执行/浏览器控制能力；服务端仍不启动进程、不打开 IDE、不写项目文件 |
 
-结论：0.3.4 只交付「选择 → 只读预提案工作单」这一段。工作单把候选相对路径、范围内意图、证据、审阅状态、缺口和下一步收束成有界清单，却刻意不含 `ProjectChange` 内容；后续 `preflight_visual_proposal`、完整逐行 diff、人工批准与一次性确认号仍是彼此独立的闸门。未来若做「工作单到模板草稿」，也应保持纯派生、可读、无写入内容或写入权限；MCP Apps 化、LSP 或点击式 IDE 跳转仍属于可选客户端适配层。
+结论：0.3.4 只交付「选择 → 只读预提案工作单」这一段。工作单把候选相对路径、范围内意图、证据、审阅状态、缺口和下一步收束成有界清单，却刻意不含 `ProjectChange` 内容；后续 `preflight_visual_proposal`、完整逐行 diff、人工批准与一次性确认号仍是彼此独立的闸门。交付后的维护增量补了一个纯派生 `freshness`：比较 `selectionRevision` 与 `graphRevision`，在图变化后只提示人重新选择，不自动刷新/清空选择、不持久化状态、不签发凭据；这直接回应交互式审批产品中「旧选择是否仍代表当前意图」的可用性风险，同时不把 UI 选择变成执行权限。未来若做「工作单到模板草稿」，也应保持纯派生、可读、无写入内容或写入权限；MCP Apps 化、LSP 或点击式 IDE 跳转仍属于可选客户端适配层。
 
 ### 对 0.4 / 0.5 的建议与优先级
 

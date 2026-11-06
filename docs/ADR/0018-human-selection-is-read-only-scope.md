@@ -5,7 +5,7 @@
 
 ## Decision
 
-The local panel can publish a version 1 `SessionSelection` through `POST /api/collab/selection`. It stores at most 24 unique node IDs, a graph revision, a timestamp, and `source: "human"`. The endpoint requires the injected `PANEL_TOKEN` and `confirmedBy: "human"`; the store rejects unknown nodes, duplicate IDs, oversized selections, unknown properties, non-human sources, and non-finite revisions. Selection is refreshed on graph saves and cleared on bundle import; stale node IDs never become current intent.
+The local panel can publish a version 1 `SessionSelection` through `POST /api/collab/selection`. It stores at most 24 unique node IDs, a graph revision, a timestamp, and `source: "human"`. The endpoint requires the injected `PANEL_TOKEN` and `confirmedBy: "human"`; the store rejects unknown nodes, duplicate IDs, oversized selections, unknown properties, non-human sources, and non-finite revisions. Selection loses detached node IDs on graph saves and is cleared on bundle import; its original `graphRevision` is never silently rewritten, so `SELECTION_WORKORDER_JSON.freshness` can tell agents and humans that the graph changed after the human made the choice. A stale selection must be reviewed and reselected through the panel before it becomes current intent.
 
 `get_selection_scope` and `GET /api/collab/selection-scope` return version 1 `SELECTION_SCOPE_JSON`: a bounded projection of selected nodes, edges whose endpoints are both selected, safe workspace-relative `file:line` evidence, focus membership, viewport, copy text, guidance, and fixed safety flags. `CONTEXT_JSON.selectionScope`, `BRIEF_JSON.selection`, `WORKFLOW_JSON.selection`, diagnostics, and the panel show compact versions of the same derived state. Neither the selection nor its projection resolves annotation threads, writes messages, changes graph revisions, creates proposals, issues approval receipts, or grants project-write authority.
 
@@ -17,13 +17,14 @@ Single-node `SessionFocus` answers "which object is the human pointing at?", but
 
 The bound is deliberate. A selection is context, not a batch write command: 24 IDs keeps HTTP payloads, context prompts, and visual highlighting predictable. The projection only includes internal edges and already-collected scanner evidence; it never re-reads project files, opens an editor, or expands proposal path permissions. Path filtering excludes absolute paths, traversal, protected directories, and `.env`-like names before any `path` or `file:line` text reaches an agent.
 
-Deriving all agent-facing views from the same `SessionSnapshot` avoids a second source of truth. `buildSelectionScope()` filters stale IDs against the current graph, so renamed or deleted nodes cannot silently become part of a current request. Bundles remain reproducible by clearing selection on import, while focus and graph diffs retain their existing portable contracts.
+Deriving all agent-facing views from the same `SessionSnapshot` avoids a second source of truth. `buildSelectionScope()` filters detached IDs against the current graph, so renamed or deleted nodes cannot silently become part of a current request. Bundles remain reproducible by clearing selection on import, while focus and graph diffs retain their existing portable contracts.
 
 ## Alternatives
 
 - **Reuse focus as an array of node IDs:** rejected because `SessionFocus` is a versioned single-node contract persisted in bundles; changing it would break compatibility and blur the distinction between one object and a range.
 - **Add selection to messages or annotation metadata:** rejected because conversation text is not a reliable authority and would duplicate state across timelines and bundles.
 - **Persist selection in portable bundles:** rejected because selection is ephemeral human attention tied to a live panel; importing it could point at another workspace's node IDs.
+- **Auto-rebase selection to each new graph revision:** rejected because changing only a label, path, or unrelated node should not silently imply that the human reaffirmed their original intent; freshness makes the drift visible instead.
 - **Allow arbitrary selection size:** rejected because unbounded context and DOM highlighting increase prompt size, memory, and accidental scope expansion.
 - **Treat selection as approval for a batch change:** rejected because only a full line diff, human approval, and a one-time receipt can lead to a project write.
 

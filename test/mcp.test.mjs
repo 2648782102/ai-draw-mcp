@@ -232,6 +232,11 @@ describe("MCP server", () => {
         readOnly: true,
         selectedCount: 0,
         selectionLimit: 24,
+        freshness: {
+          status: "none",
+          selectionStale: false,
+          selectedAtRevision: null,
+        },
       });
       expect(workorder.safety).toMatchObject({
         grantsWriteAuthority: false,
@@ -240,6 +245,7 @@ describe("MCP server", () => {
       });
       expect(Array.isArray(workorder.gaps)).toBe(true);
       expect(workorder.gaps.join(" ")).toContain("No active human selection");
+      expect(text).toContain("Selection freshness none");
       expect(text).not.toContain("approvalGrant");
       expect(text).not.toContain("PROPOSAL_JSON:");
     });

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `SELECTION_WORKORDER_JSON` 增加纯派生 `freshness`：比较 `selectionRevision` 与当前 `graphRevision`，给出 `current` / `stale` / `none` 描述、复制文本与缺口提示，帮助人和 AI 在图变化后重新确认范围。该字段只提示，不刷新/清空选择、不改会话、不含凭据，也不授权写入；图保存只移除失锚节点 ID，不静默改写人类原选择修订。面板、MCP 文本、ADR、工作流示例、纯函数/HTTP/MCP 测试与离线检查同步覆盖。
+
+### Maintenance
+
+- 回写 `v0.3.4` 的公开发布证据：CI `42131331089`、Release `42131352599`、GitHub Release 页面与发布时间；保留 `v0.3.2` / `v0.3.3` / `v0.3.4` 已发布事实，不改写标签或 Release。About/topics 漂移仍明确记录，npm 发布仍等待人工批准。
+
 ## [0.3.4] - 2026-11-06
 
 ### Added

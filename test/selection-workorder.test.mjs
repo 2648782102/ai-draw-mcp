@@ -69,6 +69,12 @@ describe("read-only selection workorder", () => {
       source: "human",
       selectedCount: 2,
       selectionLimit: 24,
+      freshness: {
+        status: "current",
+        selectionStale: false,
+        graphRevision: 4,
+        selectedAtRevision: 4,
+      },
     });
     expect(workorder.nodes.map((node) => node.nodeId)).toEqual(["readme", "service"]);
     expect(workorder.safePaths.map((item) => item.path)).toEqual(["README.md", "src/service.ts"]);
@@ -82,6 +88,7 @@ describe("read-only selection workorder", () => {
       projectWritesRequireHumanApproval: true,
     });
     expect(workorder.copyText).toContain("Selection workorder");
+    expect(workorder.copyText).toContain("Selection freshness: current");
     expect(serialized).not.toContain("approvalGrant");
     expect(serialized).not.toContain("/private/workspace");
     expect(serialized).not.toContain("/absolute/secret.ts");
@@ -92,6 +99,7 @@ describe("read-only selection workorder", () => {
   it("reports gaps for missing selection, unsafe-only nodes, and blocked readiness", () => {
     const empty = buildSelectionWorkorder(snapshot);
     expect(empty.selectedCount).toBe(0);
+    expect(empty.freshness).toMatchObject({ status: "none", selectionStale: false, selectedAtRevision: null });
     expect(empty.gaps.join(" ")).toContain("No active human selection");
     expect(empty.safePaths).toEqual([]);
 
@@ -127,5 +135,22 @@ describe("read-only selection workorder", () => {
     expect(workorder.gaps.join(" ")).toContain("pending proposal");
     expect(workorder.nextActions.join(" ")).toContain("preflight_visual_proposal");
     expect(JSON.stringify(workorder)).not.toContain("proposal_pending");
+  });
+
+  it("warns when a graph revision makes the selection stale without mutating it", () => {
+    const selection = buildSelection(["readme", "service"], graph, 4, "2026-11-06T00:11:00.000Z");
+    const revised = { ...snapshot, graphRevision: 5, selection };
+    const workorder = buildSelectionWorkorder(revised);
+    expect(workorder.freshness).toMatchObject({
+      status: "stale",
+      selectionStale: true,
+      graphRevision: 5,
+      selectedAtRevision: 4,
+    });
+    expect(workorder.gaps.join(" ")).toContain("selection is stale");
+    expect(workorder.copyText).toContain("Selection freshness: stale");
+    expect(revised.selection).toEqual(selection);
+    expect(workorder.nodes.map((node) => node.nodeId)).toEqual(["readme", "service"]);
+    expect(workorder.safety.grantsWriteAuthority).toBe(false);
   });
 });

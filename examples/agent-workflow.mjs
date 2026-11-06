@@ -110,10 +110,16 @@ try {
   if (workorder.safety?.excludesProjectChangeContent !== true || workorder.safePaths.length > workorder.selectedCount) {
     throw new Error("Selection workorder unexpectedly exposed change content or unbounded paths");
   }
+  if (!["current", "stale", "none"].includes(workorder.freshness?.status) || typeof workorder.freshness?.selectionStale !== "boolean") {
+    throw new Error("Selection workorder unexpectedly lost its freshness contract");
+  }
+  if (workorder.freshness?.status === "stale" && !workorder.gaps.join(" ").includes("selection is stale")) {
+    throw new Error("A stale selection workorder unexpectedly omitted its reselect gap");
+  }
   if (workorderText.includes("approvalGrant") || workorderText.includes(process.cwd())) {
     throw new Error("Selection workorder unexpectedly exposed a credential or absolute workspace path");
   }
-  console.log(`    Selection workorder: ${workorder.selectedCount} nodes / ${workorder.safePaths.length} candidate paths / ${workorder.gaps.length} gaps · read-only`);
+  console.log(`    Selection workorder: ${workorder.selectedCount} nodes / ${workorder.safePaths.length} candidate paths / ${workorder.gaps.length} gaps / freshness ${workorder.freshness.status} · read-only`);
 
   const workflowText = textOf(await client.callTool({ name: "get_agent_workflow", arguments: {} }));
   const workflow = jsonAfter(workflowText, "WORKFLOW_JSON:");

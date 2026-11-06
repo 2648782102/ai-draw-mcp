@@ -178,6 +178,13 @@ export interface SelectionWorkorder {
   source: "human" | "none";
   selectedCount: number;
   selectionLimit: number;
+  freshness: {
+    status: "current" | "stale" | "none";
+    selectionStale: boolean;
+    graphRevision: number;
+    selectedAtRevision: number | null;
+    hint: string;
+  };
   reviewReadiness: {
     status: "ready" | "review" | "blocked";
     blockers: number;

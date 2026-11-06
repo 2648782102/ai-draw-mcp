@@ -57,4 +57,4 @@ export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS
 
 提案应用器只接受 UTF-8 文本文件的 `create`/`update`/`mkdir`，禁止删除、路径逃逸、`.git`、`node_modules`、`dist`、`.env*` 和锁文件。任何放宽边界的改动都需要在 PR 中说明威胁模型和测试。
 
-只读投影（如 `SELECTION_SCOPE_JSON` 与 `SELECTION_WORKORDER_JSON`）不得携带项目文件内容、逐行 diff、可用批准凭据或工作区绝对路径；候选路径不是写入许可。新增工具或 JSON 契约时，需同步更新 `SERVER_TOOL_COUNT`、能力清单、AGENTS、架构、安全、测试、示例和离线检查。
+只读投影（如 `SELECTION_SCOPE_JSON` 与 `SELECTION_WORKORDER_JSON`）不得携带项目文件内容、逐行 diff、可用批准凭据或工作区绝对路径；候选路径不是写入许可。`freshness` 等派生状态只可用于提示，不得悄悄刷新/清空选择或绕过人工确认。新增工具或 JSON 契约时，需同步更新 `SERVER_TOOL_COUNT`、能力清单、AGENTS、架构、安全、测试、示例和离线检查。

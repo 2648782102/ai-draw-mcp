@@ -650,6 +650,23 @@ for (const [label, file, needle] of [
   ["workorder panel", panel, 'id="selectionWorkorderList"'],
   ["workorder panel copy button", panel, 'id="btnCopySelectionWorkorder"'],
   ["workorder pure contract test", selectionWorkorderTest, "read-only selection workorder"],
+  ["workorder freshness type", types, "status: \"current\" | \"stale\" | \"none\""],
+  ["workorder freshness domain", selectionWorkorderDomain, "selectionStale"],
+  ["workorder freshness guidance", selectionWorkorderDomain, "freshness is descriptive only"],
+  ["workorder freshness tool text", getSelectionWorkorderTool, "Selection freshness"],
+  ["workorder freshness panel", panel, "workorder.freshness?.status"],
+  ["workorder freshness pure test", selectionWorkorderTest, "status: \"stale\""],
+  ["workorder freshness MCP test", mcpTest, "Selection freshness none"],
+  ["workorder freshness HTTP test", collaborationTest, "selectionStale: false"],
+  ["stale selection workorder HTTP test", collaborationTest, "status: \"stale\""],
+  ["workorder freshness workflow example", agentWorkflowExample, "freshness contract"],
+  ["workorder freshness ADR", selectionWorkorderAdr, "Silently refresh a stale selection"],
+  ["workorder freshness architecture", architecture, "纯派生 `freshness`"],
+  ["workorder freshness security", security, "stale 只提示让人重新选择"],
+  ["workorder freshness troubleshooting", troubleshooting, "freshness.status: \"stale\""],
+  ["workorder freshness changelog", changelog, "纯派生 `freshness`"],
+  ["selection revision is not auto-rebased", selectionAdr, "Auto-rebase selection to each new graph revision"],
+  ["selection refresh preserves revision", sessionStore, "return nodeIds.length === selection.nodeIds.length ? selection"],
   ["workorder MCP test", mcpTest, "get_selection_workorder"],
   ["workorder HTTP test", collaborationTest, "/api/collab/selection-workorder"],
   ["workorder bundle exclusion test", collaborationTest, 'manifest.contents.selection'],
@@ -715,7 +732,7 @@ check(readme.includes("当前版本 `0.3.4` 共 26 个工具"), "README.md does 
 check(readme.includes("| `get_source_navigation` |"), "README.md tool table is missing get_source_navigation");
 check(readme.includes("| `get_capabilities` |"), "README.md tool table is missing get_capabilities");
 check(launchKit.includes("Published release notes — 0.3.3"), "docs/LAUNCH_KIT.md is missing the published 0.3.3 release notes");
-check(launchKit.includes("Release notes — 0.3.4"), "docs/LAUNCH_KIT.md release notes are not aligned to 0.3.4");
+check(launchKit.includes("Published release notes — 0.3.4"), "docs/LAUNCH_KIT.md published release notes are not aligned to 0.3.4");
 check(launchKit.includes("SELECTION_WORKORDER_JSON"), "docs/LAUNCH_KIT.md is missing the 0.3.4 workorder launch copy");
 check(releaseWorkflow.includes("workflow_dispatch:"), "release workflow does not support manual tag verification");
 check(releaseWorkflow.includes("contents: write"), "release workflow cannot create a GitHub Release");
@@ -733,9 +750,17 @@ check(governance.includes("releases/tag/v0.3.2"), "GOVERNANCE.md is missing the 
 check(governance.includes("42127902178"), "GOVERNANCE.md is missing the 0.3.3 CI evidence");
 check(governance.includes("42128152064"), "GOVERNANCE.md is missing the 0.3.3 Release evidence");
 check(governance.includes("releases/tag/v0.3.3"), "GOVERNANCE.md is missing the published 0.3.3 Release URL");
+check(governance.includes("42131331089"), "GOVERNANCE.md is missing the 0.3.4 CI evidence");
+check(governance.includes("42131352599"), "GOVERNANCE.md is missing the 0.3.4 Release evidence");
+check(governance.includes("2026-11-05T23:43:07Z"), "GOVERNANCE.md is missing the published 0.3.4 timestamp");
+check(governance.includes("releases/tag/v0.3.4"), "GOVERNANCE.md is missing the published 0.3.4 Release URL");
 check(launchKit.includes("tag workflow now creates"), "LAUNCH_KIT.md does not document automatic Release creation");
 check(launchKit.includes("releases/tag/v0.3.2"), "LAUNCH_KIT.md is missing the published 0.3.2 Release URL");
 check(launchKit.includes("releases/tag/v0.3.3"), "LAUNCH_KIT.md is missing the published 0.3.3 Release URL");
+check(launchKit.includes("Verified outcome for `v0.3.4`"), "LAUNCH_KIT.md is missing verified 0.3.4 Release evidence");
+check(launchKit.includes("Published release notes — 0.3.4"), "LAUNCH_KIT.md does not mark 0.3.4 release notes as published");
+check(launchKit.includes("releases/tag/v0.3.4"), "LAUNCH_KIT.md is missing the published 0.3.4 Release URL");
+check(launchKit.includes("42131352599"), "LAUNCH_KIT.md is missing the 0.3.4 Release run evidence");
 check(releaseWorkflow.includes("Human ↔ AI visual collaboration"), "release workflow is missing the published Release title");
 check(agents.includes("release.yml"), "AGENTS.md does not document the versioned tag Release workflow");
 check(getCapabilitiesTool.includes("SERVER_VERSION, type ToolContext"), "get-capabilities.ts bypasses the shared infra boundary");

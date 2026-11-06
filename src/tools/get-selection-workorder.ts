@@ -20,11 +20,13 @@ export function registerGetSelectionWorkorder(server: McpServer, ctx: ToolContex
             text: [
               `🧾 Selection workorder · ${workorder.selectedCount}/${workorder.selectionLimit} nodes · ${workorder.source} · ${workorder.reviewReadiness.status} · read-only`,
               `Session ${workorder.sessionId} · graphRevision ${workorder.graphRevision} · selectionRevision ${workorder.selectionRevision ?? "none"}`,
+              `Selection freshness ${workorder.freshness.status} · selectionStale ${workorder.freshness.selectionStale} · read-only hint`,
               `Candidate paths ${workorder.safePaths.length} · internal edges ${workorder.internalEdges.length} · intent ${workorder.intent.length} · gaps ${workorder.gaps.length}`,
               ``,
               jsonLine({
                 version: "1",
                 selectedCount: String(workorder.selectedCount),
+                selectionStale: String(workorder.freshness.selectionStale),
                 reviewReadiness: workorder.reviewReadiness.status,
                 gaps: String(workorder.gaps.length),
                 readOnly: "true",
@@ -34,6 +36,7 @@ export function registerGetSelectionWorkorder(server: McpServer, ctx: ToolContex
               JSON.stringify(workorder, null, 2),
               ``,
               "SELECTION_WORKORDER_JSON is a read-only pre-proposal checklist. It contains no candidate file content and grants no project-write authority.",
+              "A stale selection is only a descriptive freshness hint; ask the human to review and reselect rather than auto-refreshing or treating it as permission.",
             ].join("\n"),
           }],
         };

@@ -48,7 +48,7 @@
 - **有界图形撤销 / 重做** — 12 步视觉状态历史，人类确认后恢复节点/连线/批注为一次新图形修订；不回退项目文件、提案状态或一次性批准凭据
 - **只读源码证据** — 扫描时为源码/文档节点记录少量 `file:line` 定义、导入或标题线索，AI 与面板可引用代码位置；证据不自动改代码、不扩大提案路径，也不签发批准凭据
 - **有界多选范围** — 面板复选框最多选择 24 个节点；`get_selection_scope` 与 `SELECTION_SCOPE_JSON` 把「这几个模块」投影成节点、内部连线和安全相对 `file:line` 证据。选择范围只表达意图，不签发凭据、不改变图修订或授权项目写入，详见 [ADR 0018](docs/ADR/0018-human-selection-is-read-only-scope.md)
-- **只读预提案工作单** — `get_selection_workorder` 与 `SELECTION_WORKORDER_JSON` 把选中范围、候选路径、范围内意图、证据、审阅缺口和下一步收束成可复制清单；不含文件内容/逐行 diff/提案/凭据，仍需预检、人工审阅完整 diff 与一次性确认号，详见 [ADR 0019](docs/ADR/0019-selection-workorder-is-read-only-preflight.md)
+- **只读预提案工作单** — `get_selection_workorder` 与 `SELECTION_WORKORDER_JSON` 把选中范围、候选路径、范围内意图、证据、审阅缺口和下一步收束成可复制清单；纯派生 `freshness` 在图修订变化后提示重新选择，但不自动刷新/清空选择。不含文件内容/逐行 diff/提案/凭据，仍需预检、人工审阅完整 diff 与一次性确认号，详见 [ADR 0019](docs/ADR/0019-selection-workorder-is-read-only-preflight.md)
 - **可复制源码跳转** — `get_source_navigation` 与面板「复制源码跳转」返回 version 1 `SOURCE_NAVIGATION_JSON`：有界、工作区相对 `file:line`、`vscode://` / `cursor://` URI 文本和 `code --goto` 提示；只复制，不打开文件、启动 IDE、执行命令或授权项目写入，详见 [ADR 0016](docs/ADR/0016-source-navigation-is-copyable-context.md)
 - **单节点上下文** — `get_node_context` 把焦点节点的源码证据、批注线程、入/出连线、相关图形差异与焦点聚合成 version 1 只读投影；面板显示同一视图，AI 不必从完整会话里手工拼装
 - **共享简报** — `get_shared_brief` 与面板「复制共享简报」使用同一份 version 1 `BRIEF_JSON`：紧凑列出焦点、就绪阻塞、待处理意图、失锚讨论、最近图形修订、源码证据和下一步；不含批准凭据，也不授权写入
@@ -347,9 +347,9 @@ AI 会自动选择合适的工具，生成图表并推送到面板。
 | `open_preview` | 在 IDE 中打开预览面板，可 deep-link 到指定图 |
 | `scan_project` | 只读扫描工作区，生成/刷新项目结构图；稳定路径 ID 保留人工布局、批注与焦点，返回 `PRESERVATION_JSON`；`render: false` 可供无头状态检查 |
 | `get_capabilities` | 一次读取 `CAPABILITIES_JSON`：全部工具、JSON 契约、工作流/审阅就绪、下一步安全动作与唯一项目写入边界；只读，不调用其他工具、不签发凭据 |
-| `get_selection_workorder` | 读取 `SELECTION_WORKORDER_JSON`：把有界选择范围收束为只读预提案工作单；不含文件内容/逐行 diff/提案/凭据，不授权写入 |
+| `get_selection_workorder` | 读取 `SELECTION_WORKORDER_JSON`：把有界选择范围收束为只读预提案工作单，含选择新鲜度提示；不含文件内容/逐行 diff/提案/凭据，不授权写入 |
 | `get_selection_scope` | 读取 `SELECTION_SCOPE_JSON`：有界多选节点、范围内内部连线、安全相对 `file:line` 证据与焦点包含状态；只读，不改选择、不授权写入 |
-| `get_selection_workorder` | 读取 `SELECTION_WORKORDER_JSON`：有界选中范围、安全相对候选路径、范围内意图、`file:line` 证据、审阅缺口与下一步；只读，不含文件内容/逐行 diff/提案/凭据 |
+| `get_selection_workorder` | 读取 `SELECTION_WORKORDER_JSON`：有界选中范围、安全相对候选路径、范围内意图、`file:line` 证据、选择新鲜度、审阅缺口与下一步；只读，不含文件内容/逐行 diff/提案/凭据 |
 | `get_visual_context` | 读取图形修订、批注线程、对话、意图摘要与 `activityTimeline`，供 AI 修改代码前理解上下文 |
 | `get_agent_workflow` | 读取当前会话的八步 `WORKFLOW_JSON`、前后条件、就绪阻塞与写入边界；只读，不签发凭据或授权写入 |
 | `get_shared_brief` | 读取紧凑 `BRIEF_JSON` 交接视图：状态、焦点、阻塞、有效/失锚意图、最近修订、证据与下一步；只读，不含批准凭据 |

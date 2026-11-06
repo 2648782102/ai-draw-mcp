@@ -37,6 +37,8 @@ Verified outcome for `v0.3.2`: Release [v0.3.2 — Human ↔ AI visual collabora
 
 Verified outcome for `v0.3.3`: Release [v0.3.3 — Human ↔ AI visual collaboration](https://github.com/2648782102/ai-draw-mcp/releases/tag/v0.3.3) is published, CI run [42127902178](https://github.com/2648782102/ai-draw-mcp/actions/runs/42127902178) and Release run [42128152064](https://github.com/2648782102/ai-draw-mcp/actions/runs/42128152064) are green. The release was created from the matching `CHANGELOG.md` section; `v0.3.2` remains published and unchanged. The published title uses the workflow's stable generic name, and neither the Release nor its tag is rewritten. About/topics still require the administration-capable secret described above.
 
+Verified outcome for `v0.3.4`: Release [v0.3.4 — Human ↔ AI visual collaboration](https://github.com/2648782102/ai-draw-mcp/releases/tag/v0.3.4) is published at `2026-11-05T23:43:07Z`; CI run [42131331089](https://github.com/2648782102/ai-draw-mcp/actions/runs/42131331089) and Release run [42131352599](https://github.com/2648782102/ai-draw-mcp/actions/runs/42131352599) are green on `3551b2b`. The release was created from the matching `CHANGELOG.md` section; `v0.3.2` and `v0.3.3` remain published and unchanged, and no existing tag is moved or rewritten. Full verification evidence is in [`GOVERNANCE.md`](GOVERNANCE.md); npm publishing still awaits human approval. About/topics still require the administration-capable secret described above.
+
 **Maintain GitHub metadata** runs its read-only drift check on every master/main push and on manual dispatch. Set repository secret `GH_TOKEN` to a fine-grained token with `Administration: read and write` and push a metadata-relevant file to apply the versioned copy automatically; a manual `dry_run=false` dispatch also applies it, while `dry_run=true` only reports drift. Without the secret, the check may report drift but does not make CI red. The default `GITHUB_TOKEN` cannot change repository description or topics because those endpoints require repository administration permissions.
 
 ## Published release notes — 0.3.3
@@ -72,14 +74,16 @@ Highlights:
 Quickstart: https://github.com/2648782102/ai-draw-mcp#readme
 ```
 
-## Release notes — 0.3.4
+## Published release notes — 0.3.4
 
 Title: `v0.3.4 — Human ↔ AI visual collaboration`
+
+Status: verified published at `2026-11-05T23:43:07Z` from tag `v0.3.4` / commit `3551b2b`, with green CI run `#79` and Release run `#4`. The tag workflow used the matching `CHANGELOG.md` section; no earlier Release or tag was rewritten.
 
 Highlights in the current release:
 
 - 26 MCP tools and 19 ADRs, with a new `get_selection_workorder` tool and `GET /api/collab/selection-workorder`.
-- `SELECTION_WORKORDER_JSON`: a bounded, read-only pre-proposal checklist derived from human multi-node selection, in-scope intent, safe relative candidate paths, `file:line` evidence, review-readiness gaps, and next actions. It contains no `ProjectChange` content, line diff, proposal, approval grant, absolute workspace path, or new persisted state; `preflight_visual_proposal`, a human-reviewed full line diff, and a one-time receipt remain mandatory. See [ADR 0019](docs/ADR/0019-selection-workorder-is-read-only-preflight.md).
+- `SELECTION_WORKORDER_JSON`: a bounded, read-only pre-proposal checklist derived from human multi-node selection, in-scope intent, safe relative candidate paths, `file:line` evidence, review-readiness gaps, descriptive selection freshness, and next actions. It contains no `ProjectChange` content, line diff, proposal, approval grant, absolute workspace path, or new persisted state; `preflight_visual_proposal`, a human-reviewed full line diff, and a one-time receipt remain mandatory. See [ADR 0019](docs/ADR/0019-selection-workorder-is-read-only-preflight.md).
 - The panel displays the same derived workorder and can copy it into a prompt that tells an AI to read the full session, resolve gaps with the human, then explicitly draft changes rather than treating selected paths as write permissions.
 - Full local verification: 23 test files / 78 tests, a reproducible read-only workflow example, offline repository checks, and an `ai-draw-mcp-0.3.4.tgz` dry-run package of 275 files.
 
