@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 命令面板稳定性 CI 证据（2026-11-06 17:40 CST）：`c25f43a` 的 CI `42196201085` / #140 在 Node 20/22/24 三档 success（jobs `127819940490` / `127819940574` / `127819940275`），确认 `openCommandPalette()` 重置活动索引后，Node 20 慢速 runner 不再把历史命令当作默认选项。`d8a0c78` 的 #139 只作为偶发失败记录保留，未改写历史、未 force push、未移动标签。
+
+- Flow 画布优先工作台（2026-11-06 17:45 CST）：默认主壳从左右半屏编辑器改为「图形主舞台 + 窄图标图表库 + 四步人机协作流程带 + 可收起源码抽屉」。流程带把「AI 生成图 → 人改图 / 批注 → 共享上下文 → 人工批准」从既有 graph / messages / proposals / graphDiffs / review-readiness 派生为只读状态与进度；点击阶段只切换本机画布或打开已有协作工作台。`B` 在 Classic / Flow 间切换、`E` 展开 / 收起源码抽屉，⚙ 外观面板、快捷键帮助、命令面板和 `npm run ui:shots` 同步覆盖。新增 `docs/flow-workspace-panel.png` 可复现截图与浏览器回归；浏览器偏好仍只写 localStorage，不改 26 个 MCP 工具、version 1 协议、焦点/视口语义、批准凭据或项目写入闸门。
+
 - 命令面板活动项稳定性修复（2026-11-06 17:35 CST）：`openCommandPalette()` 每次打开时显式重置活动索引为 `0`，避免前一次搜索/键盘选择残留让 Node 20 慢速 CI 把默认选中项误判为历史命令；浏览器回归新增「搜索框为空 + 首项 active」断言。命令面板仍只操作本机视图或复制只读上下文，不调用写端点、不批准提案、不签发凭据或写项目文件。
 
 - 阶段卡交互 CI 证据（2026-11-06 17:30 CST）：`ebd088b` 的 CI `42194826679` / #138 在 Node 20/22/24 三档 success（jobs `127815339753` / `127815339185` / `127815339504`）；`2d88120` 的 CI `42194010429` / #137 与 metadata #23 `42194010386` 也完成绿色只读检查。本地 `npm run check` 全过：25 个测试文件 / 81 个测试、276 文件 dry-run、九张可复现截图、doctor、examples 与离线守卫。公开 GitHub About/topics 仍因缺少管理型 `GH_TOKEN` 保持漂移，未 retag、未改写已发布 Release、未自动发 npm 包。

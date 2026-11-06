@@ -116,7 +116,7 @@ ROADMAP.md                   产品路线图与非目标
 - `VisualGraph` 与 `SessionSnapshot` 都是 `version: 1`，改协议时必须考虑向后兼容与迁移。
 - 预览服务默认绑定 `PREVIEW_HOST = 127.0.0.1`，不要改回监听所有网卡。
 - 面板 HTML 注入随机 `PANEL_TOKEN`；`/api/collab/*` 的非 GET 写操作必须带 `X-AI-Draw-Token`。
-- 面板外观偏好（界面主题、`ambient` 氛围、密度、预览背景、沉浸工作区）只写浏览器 localStorage，只影响本机 CSS/布局；不得把它当作 `focus` / `viewport`、批准凭据或项目写入授权。沉浸工作区隐藏界面 chrome 时仍要保留可见退出入口与「批准前只读」边界。
+- 面板外观偏好（Classic / Flow 布局、界面主题、`ambient` 氛围、密度、预览背景、沉浸工作区）只写浏览器 localStorage，只影响本机 CSS/布局；不得把它当作 `focus` / `viewport`、批准凭据或项目写入授权。默认 Flow 工作台的流程带与源码抽屉只展示既有只读状态或切换本机视图；沉浸工作区隐藏界面 chrome 时仍要保留可见退出入口与「批准前只读」边界。
 
 ---
 

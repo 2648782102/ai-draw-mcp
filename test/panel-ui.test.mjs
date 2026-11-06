@@ -110,6 +110,10 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval(".sidebar-empty", (element) => element.textContent)).toContain("还没有图表");
       expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(false);
       expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(true);
+      expect(await page.$eval("#flowRail", (element) => getComputedStyle(element).display)).toBe("grid");
+      expect(await page.$eval("#flowRail", (element) => element.querySelectorAll(".flow-step").length)).toBe(4);
+      expect(await page.$eval("#flowRailMeta", (element) => element.textContent)).toMatch(/待审/);
       expect(await page.$eval("#btnRibbonInspector", (element) => element.getAttribute("aria-pressed"))).toBe("false");
       expect(await page.$eval("#workspaceRibbon .sync-meter", (element) => getComputedStyle(element).display)).not.toBe("none");
       await page.waitForFunction(() => document.querySelector("#collabHandoff")?.dataset.actor === "human");
@@ -213,6 +217,34 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("1");
       expect(await page.$eval("#workspace", (element) => element.dataset.view)).toBe("split");
 
+      await page.click("#btnFlowSource");
+      await page.waitForFunction(() => document.body.classList.contains("flow-source-open"));
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-source-open"))).toBe(true);
+      expect(await page.$eval("#btnFlowSource", (element) => element.getAttribute("aria-pressed"))).toBe("true");
+      expect(await page.$eval("#btnFlowSource", (element) => element.textContent)).toContain("收起");
+      expect(await page.$eval("#editorPane", (element) => Number(element.getBoundingClientRect().width))).toBeGreaterThan(200);
+      await page.click("#btnFlowSource");
+      await page.waitForFunction(() => !document.body.classList.contains("flow-source-open"));
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-source-open"))).toBe(false);
+      expect(await page.$eval("#btnFlowSource", (element) => element.textContent)).toContain("源码");
+      await page.keyboard.press("b");
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(false);
+      expect(await page.$eval("#flowRail", (element) => getComputedStyle(element).display)).toBe("none");
+      await page.keyboard.press("b");
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(true);
+      await page.keyboard.press("e");
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-source-open"))).toBe(true);
+      await page.keyboard.press("e");
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-source-open"))).toBe(false);
+      await page.click('[data-flow-stage="review"]');
+      await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
+      expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("proposals");
+      await page.click('[data-journey="graph"]');
+      expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("graph");
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
+      expect(await page.$eval("#flowRail", (element) => element.dataset.progressLabel)).toMatch(/\/ 4 READY/);
+
       await page.click("#btnAppearance");
       const appearanceOpen = await page.evaluate(() => ({
         visible: !document.querySelector("#appearancePopover").hidden,
@@ -224,8 +256,9 @@ describe("collaboration panel UI", () => {
         activeTheme: document.querySelector('[data-ui-theme].active')?.dataset.uiTheme,
         activeAmbient: document.querySelector('[data-ambient].active')?.dataset.ambient,
         activeZen: document.querySelector('[data-zen].active')?.dataset.zen,
+        activeLayout: document.querySelector('[data-layout-system].active')?.dataset.layoutSystem,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 7, shortcuts: 11, visualSystems: 6, activeVisual: "aurora", activeTheme: "dark", activeAmbient: "calm", activeZen: "off" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 8, shortcuts: 13, visualSystems: 6, activeVisual: "aurora", activeTheme: "dark", activeAmbient: "calm", activeZen: "off", activeLayout: "flow" });
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("V");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
@@ -233,6 +266,12 @@ describe("collaboration panel UI", () => {
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("Z");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("[ / ]");
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("B");
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("E");
+      await page.click('#appearancePopover [data-layout-system="classic"]');
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(false);
+      await page.click('#appearancePopover [data-layout-system="flow"]');
+      expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(true);
       await page.click('#appearancePopover [data-visual="studio"]');
       expect(await page.$eval("body", (element) => element.classList.contains("visual-studio"))).toBe(true);
       expect(await page.$eval("#ribbonMode", (element) => element.textContent)).toContain("Studio");

@@ -629,6 +629,8 @@
       opacity: 0; transform: translateY(-8px); transition: all .25s;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
+    .toast:not(.show) { pointer-events: none; }
+    body.flow-workspace .toast.show { pointer-events: none; }
     .toast::before { content: '✦'; margin-right: 8px; font-weight: 800; }
     body.zen-workspace .toast { top: 14px; left: 18px; right: auto; }
 
@@ -797,6 +799,119 @@
     body.theme-light .appearance-shortcuts { background: #f5f8fd; }
     .workspace[data-view="source"] #previewPane, .workspace[data-view="canvas"] #editorPane, .workspace[data-view="source"] #divider, .workspace[data-view="canvas"] #divider { display: none; }
     .workspace[data-view="source"] #editorPane, .workspace[data-view="canvas"] #previewPane { flex: 1 1 100% !important; }
+    .flow-rail {
+      position: relative; z-index: 26; display: none; grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center; gap: 12px; height: 58px; flex-shrink: 0; padding: 0 14px;
+      border-bottom: 1px solid var(--border); background: linear-gradient(100deg, rgba(122,162,247,.10), rgba(61,219,217,.045) 48%, transparent 78%), var(--surface);
+    }
+    body.flow-workspace .flow-rail { display: grid; }
+    .flow-rail::after {
+      content: ''; position: absolute; left: 0; bottom: -1px; height: 2px; width: var(--flow-progress, 0%);
+      background: linear-gradient(90deg, var(--accent), var(--accent3), var(--green)); transition: width .22s ease;
+    }
+    .flow-rail-kicker { display: flex; flex-direction: column; gap: 2px; min-width: 132px; }
+    .flow-rail-kicker strong { color: var(--text); font-size: 10px; letter-spacing: .08em; }
+    .flow-rail-kicker span { overflow: hidden; color: var(--text-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .flow-rail-kicker .flow-rail-safety { color: var(--accent3); font-weight: 800; letter-spacing: .04em; }
+    .flow-rail-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; min-width: 0; }
+    .flow-step {
+      position: relative; display: flex; align-items: center; gap: 7px; min-width: 0; height: 38px; padding: 0 8px;
+      border: 1px solid var(--border); border-radius: 10px; background: rgba(9,14,25,.34);
+      color: var(--text-muted); text-align: left; cursor: pointer; transition: transform .16s, border-color .16s, background .16s;
+    }
+    .flow-step:hover { transform: translateY(-1px); border-color: rgba(122,162,247,.62); }
+    .flow-step + .flow-step::before { content: '›'; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); color: var(--accent3); font-size: 12px; font-weight: 800; }
+    .flow-step-icon { display: grid; place-items: center; width: 23px; height: 23px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 7px; background: rgba(122,162,247,.08); color: var(--accent); font-size: 11px; font-weight: 800; }
+    .flow-step-copy { min-width: 0; flex: 1; }
+    .flow-step-copy strong { display: block; overflow: hidden; color: var(--text); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .flow-step-copy small { display: block; overflow: hidden; margin-top: 1px; color: var(--text-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .flow-step-state { display: grid; place-items: center; width: 18px; height: 18px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 9px; font-weight: 800; }
+    .flow-step[data-state="ready"] { border-color: rgba(158,206,106,.48); background: rgba(158,206,106,.08); }
+    .flow-step[data-state="ready"] .flow-step-icon, .flow-step[data-state="ready"] .flow-step-state { border-color: rgba(158,206,106,.50); color: var(--green); }
+    .flow-step[data-state="busy"] { border-color: rgba(240,168,104,.52); background: rgba(240,168,104,.08); }
+    .flow-step[data-state="busy"] .flow-step-icon, .flow-step[data-state="busy"] .flow-step-state { border-color: rgba(240,168,104,.55); color: var(--orange); }
+    .flow-step[data-state="blocked"] { border-color: rgba(255,122,147,.58); background: rgba(255,122,147,.07); }
+    .flow-step[data-state="blocked"] .flow-step-icon, .flow-step[data-state="blocked"] .flow-step-state { border-color: rgba(255,122,147,.62); color: var(--red); }
+    .flow-rail-actions { display: flex; align-items: center; gap: 6px; }
+    .flow-rail-actions button { height: 29px; padding: 0 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); color: var(--text); font-size: 9px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .flow-rail-actions button:hover { border-color: var(--accent3); color: var(--accent3); }
+    .flow-rail-actions button[aria-pressed="true"] { border-color: var(--accent3); background: rgba(61,219,217,.13); color: var(--accent3); }
+    .flow-rail-actions .primary { border-color: rgba(122,162,247,.46); background: linear-gradient(135deg, rgba(122,162,247,.24), rgba(187,154,247,.18)); color: var(--text); }
+    body.visual-studio .flow-rail { background: rgba(255,255,255,.96); }
+    body.visual-studio .flow-step { background: #fff; }
+    body.visual-atlas .flow-rail { background: #101c1f; border-bottom-color: rgba(142,230,168,.28); }
+    body.visual-atlas .flow-rail-kicker strong, body.visual-atlas .flow-step-copy strong { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .06em; text-transform: uppercase; }
+    body.visual-atlas .flow-step, body.visual-atlas .flow-rail-actions button { border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    body.visual-atlas .flow-rail::after { background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent2)); }
+    body.zen-workspace .flow-rail { display: none !important; }
+    body.flow-workspace .main { padding: 10px; gap: 10px; }
+    body.flow-workspace .sidebar:not(.collapsed) { width: 92px !important; border-radius: 18px; background: var(--glass); box-shadow: 0 18px 46px rgba(0,0,0,.28); }
+    body.flow-workspace .sidebar.collapsed { width: 0 !important; }
+    body.flow-workspace .sidebar-head { justify-content: center; padding: 12px 6px 8px; }
+    body.flow-workspace .sidebar-head > span:first-child { display: none; }
+    body.flow-workspace .sidebar-count { padding: 2px 5px; }
+    body.flow-workspace .sidebar-search { padding: 0 8px 8px; }
+    body.flow-workspace .sidebar-search input { padding: 0 3px; text-align: center; }
+    body.flow-workspace .sidebar-search input::placeholder { color: transparent; }
+    body.flow-workspace .sidebar-list { padding: 8px 6px; }
+    body.flow-workspace .sidebar-item { padding: 8px 5px; margin-bottom: 7px; border-radius: 12px; text-align: center; }
+    body.flow-workspace .sidebar-item .name { justify-content: center; gap: 0; font-size: 0; }
+    body.flow-workspace .sidebar-item .diagram-icon { width: 26px; height: 26px; border-radius: 9px; font-size: 12px; }
+    body.flow-workspace .sidebar-item .meta, body.flow-workspace .sidebar-item .badge, body.flow-workspace .sidebar-resize { display: none; }
+    body.flow-workspace .sidebar-empty { margin: 8px 2px; padding: 8px 3px; font-size: 8px; }
+    body.flow-workspace .workspace { border-radius: 18px; border-color: rgba(122,162,247,.42); box-shadow: 0 20px 56px rgba(0,0,0,.34); }
+    body.flow-workspace.visual-aurora .workspace { border-color: rgba(61,219,217,.38); box-shadow: 0 22px 64px rgba(0,0,0,.44), 0 0 0 1px rgba(61,219,217,.06); }
+    body.flow-workspace.visual-studio .workspace { border-color: rgba(80,110,165,.34); }
+    body.flow-workspace.visual-atlas .workspace { border-radius: 6px; }
+    body.flow-workspace .panes { position: relative; }
+    body.flow-workspace .divider { display: none; }
+    body.flow-workspace .workspace:not([data-view="source"]) #previewPane > .pane-header { height: 0; min-height: 0; padding: 0; overflow: hidden; opacity: 0; border: 0; }
+    body.flow-workspace .workspace[data-view="split"] #previewPane { flex: 1 1 100% !important; }
+    body.flow-workspace .workspace[data-view="split"] #editorPane {
+      position: absolute; z-index: 28; top: 16px; bottom: 16px; left: 16px; width: min(360px, 38vw);
+      flex: 0 0 auto !important; overflow: hidden; border: 1px solid rgba(122,162,247,.48);
+      border-radius: 15px; background: var(--glass); box-shadow: 0 24px 64px rgba(0,0,0,.46);
+      backdrop-filter: blur(18px); transform: translateX(calc(-100% - 24px)); opacity: 0; pointer-events: none;
+      transition: transform .22s ease, opacity .22s ease;
+    }
+    body.flow-workspace.flow-source-open .workspace[data-view="split"] #editorPane { transform: none; opacity: 1; pointer-events: auto; }
+    body.flow-workspace .workspace[data-view="split"] #editorPane > .pane-header { background: transparent; border-bottom-color: var(--border); }
+    body.flow-workspace .workspace[data-view="split"] #codeEditor { background: rgba(9,14,25,.42); }
+    body.visual-studio.flow-workspace .workspace[data-view="split"] #codeEditor { background: rgba(255,255,255,.72); }
+    body.flow-workspace .workspace[data-view="split"] .collab-pulse,
+    body.flow-workspace .workspace[data-view="split"] .collab-pulse-detail,
+    body.flow-workspace .workspace[data-view="split"] .collab-handoff,
+    body.flow-workspace .workspace[data-view="split"] .canvas-dock { transition: transform .22s ease; }
+    body.flow-source-open .workspace[data-view="split"] .canvas-chip { opacity: 0; pointer-events: none; }
+    body.flow-workspace.flow-source-open .workspace[data-view="split"] .collab-pulse,
+    body.flow-workspace.flow-source-open .workspace[data-view="split"] .collab-pulse-detail,
+    body.flow-workspace.flow-source-open .workspace[data-view="split"] .collab-handoff,
+    body.flow-workspace.flow-source-open .workspace[data-view="split"] .canvas-dock { transform: translateX(calc(min(360px, 38vw) + 16px)); }
+    @media (max-width: 1240px) {
+      body.flow-workspace:not(.flow-source-open) .workspace[data-view="split"] #editorPane { display: none; }
+      body.flow-workspace.flow-source-open .workspace[data-view="split"] #editorPane {
+        position: relative; inset: auto; width: auto; flex: 0 0 44% !important; border-radius: 0;
+        border-top: 0; border-bottom: 0; border-left: 0; box-shadow: none; backdrop-filter: none;
+        transform: none; opacity: 1; pointer-events: auto;
+      }
+      body.flow-workspace.flow-source-open .workspace[data-view="split"] #previewPane { flex: 1 1 56% !important; }
+      body.flow-workspace.flow-source-open .workspace[data-view="split"] .collab-pulse,
+      body.flow-workspace.flow-source-open .workspace[data-view="split"] .collab-pulse-detail,
+      body.flow-workspace.flow-source-open .workspace[data-view="split"] .collab-handoff,
+      body.flow-workspace.flow-source-open .workspace[data-view="split"] .canvas-dock { transform: none; }
+      body.flow-source-open .workspace[data-view="split"] .canvas-chip { opacity: 1; pointer-events: auto; }
+    }
+    @media (max-width: 1100px) {
+      .flow-rail { grid-template-columns: 1fr; }
+      .flow-rail-kicker, .flow-rail-actions { display: none; }
+      .flow-rail-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (max-width: 900px) { body.flow-workspace .flow-rail { display: none; } }
+    @media (max-width: 620px) {
+      body.flow-workspace .sidebar:not(.collapsed) { width: 72px !important; }
+      body.flow-workspace.flow-source-open .workspace[data-view="split"] #editorPane { flex-basis: 45% !important; }
+      body.flow-workspace.flow-source-open .workspace[data-view="split"] #previewPane { flex-basis: 55% !important; }
+    }
     .canvas-chip {
       position: absolute; right: 14px; top: 14px; z-index: 21; display: none;
       align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid var(--border);
@@ -1691,6 +1806,13 @@
           </div>
         </div>
         <div class="appearance-group">
+          <span class="appearance-label">工作台布局</span>
+          <div class="appearance-options" role="group" aria-label="工作台布局">
+            <button type="button" data-layout-system="classic">◫ Classic</button>
+            <button type="button" data-layout-system="flow">◇ Flow</button>
+          </div>
+        </div>
+        <div class="appearance-group">
           <span class="appearance-label">界面主题</span>
           <div class="appearance-options" role="group" aria-label="界面主题">
             <button type="button" data-ui-theme="dark">☾ 深色</button>
@@ -1734,9 +1856,11 @@
         </div>
         <div class="appearance-shortcuts">
           <span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd>
+          <span>Classic / Flow 布局</span><kbd>B</kbd>
           <span>循环切换 Aurora / Studio / Atlas</span><kbd>V</kbd>
           <span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd>
           <span>命令面板</span><kbd>? · Esc</kbd>
+          <span>Flow 源码抽屉</span><kbd>E</kbd>
           <span>专注模式</span><kbd>7</kbd>
           <span>沉浸工作区</span><kbd>Z</kbd>
           <span>协作工作台</span><kbd>C · Esc</kbd>
@@ -1764,6 +1888,16 @@
   </aside>
 
   <div class="workspace" id="workspace" data-view="split">
+    <div class="flow-rail" id="flowRail" aria-label="人机协作流程导航" style="--flow-progress: 0%" data-progress-label="0 / 4 READY · 0%">
+      <div class="flow-rail-kicker"><strong>FLOW WORKSPACE</strong><span id="flowRailMeta">0 待审 · 0 消息 · 0 批注</span><span class="flow-rail-safety">LOCAL · 批准前只读</span></div>
+      <div class="flow-rail-steps" aria-label="协作阶段">
+        <button type="button" class="flow-step" data-flow-stage="scan" data-state="idle"><span class="flow-step-icon">◇</span><span class="flow-step-copy"><strong>AI 生成图</strong><small>扫描项目结构</small></span><span class="flow-step-state">○</span></button>
+        <button type="button" class="flow-step" data-flow-stage="edit" data-state="idle"><span class="flow-step-icon">✎</span><span class="flow-step-copy"><strong>人改图 / 批注</strong><small>表达视觉意图</small></span><span class="flow-step-state">○</span></button>
+        <button type="button" class="flow-step" data-flow-stage="context" data-state="idle"><span class="flow-step-icon">↔</span><span class="flow-step-copy"><strong>共享上下文</strong><small>AI 读取只读意图</small></span><span class="flow-step-state">○</span></button>
+        <button type="button" class="flow-step" data-flow-stage="review" data-state="idle"><span class="flow-step-icon">✓</span><span class="flow-step-copy"><strong>人工批准</strong><small>逐行 diff 后确认</small></span><span class="flow-step-state">○</span></button>
+      </div>
+      <div class="flow-rail-actions"><button type="button" id="btnFlowSource" aria-pressed="false" title="展开或收起本机源码抽屉（E）">⌘ 源码</button><button type="button" id="btnFlowCollab" class="primary" title="打开双向协作工作台（C）">↔ 协作</button></div>
+    </div>
     <div class="panes">
       <div class="pane" id="editorPane">
         <div class="pane-header">
@@ -1956,6 +2090,7 @@
     <div class="shortcut-groups">
       <div class="shortcut-group"><h4>视图</h4>
         <div class="shortcut-row"><span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd></div>
+        <div class="shortcut-row"><span>切换 Classic / Flow 布局</span><kbd>B</kbd></div>
         <div class="shortcut-row"><span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd></div>
         <div class="shortcut-row"><span>协作工作台 / 专注模式</span><kbd>C / 7</kbd></div>
         <div class="shortcut-row"><span>沉浸工作区</span><kbd>Z</kbd></div>
@@ -1969,6 +2104,7 @@
       </div>
       <div class="shortcut-group"><h4>效率</h4>
         <div class="shortcut-row"><span>循环切换 Aurora / Studio / Atlas</span><kbd>V</kbd></div>
+        <div class="shortcut-row"><span>展开 / 收起 Flow 源码抽屉</span><kbd>E</kbd></div>
         <div class="shortcut-row"><span>展开 / 收起上下文速览</span><kbd>I</kbd></div>
         <div class="shortcut-row"><span>搜索命令面板</span><kbd>?</kbd></div>
         <div class="shortcut-row"><span>快捷键帮助</span><kbd>H</kbd></div>
@@ -2227,6 +2363,8 @@ const PREFS_DEFAULT = {
   uiTheme: 'dark',
   density: 'comfortable',
   visualSystem: 'aurora',
+  layoutSystem: 'flow',
+  flowSourceOpen: false,
   inspectorOpen: false,
   lastDiagramId: null,
 };
@@ -2263,6 +2401,7 @@ function applyPrefs() {
   document.body.classList.toggle('density-compact', prefs.density === 'compact');
   document.body.classList.toggle('ambient-calm', prefs.ambient === 'calm');
   document.body.classList.toggle('zen-workspace', prefs.zenWorkspace === true);
+  applyLayoutSystem(prefs.layoutSystem, false);
   applyVisualSystem(prefs.visualSystem, false);
   setInspectorOpen(Boolean(prefs.inspectorOpen), false);
   $('#collabShell').classList.toggle('focus-mode', prefs.focusMode === true);
@@ -2305,6 +2444,57 @@ function cycleVisualSystem() {
   const order = ['aurora', 'studio', 'atlas'];
   const next = order[(order.indexOf(prefs.visualSystem) + 1) % order.length];
   applyVisualSystem(next);
+}
+
+function applyLayoutSystem(system, persist = true) {
+  const next = system === 'flow' ? 'flow' : 'classic';
+  prefs.layoutSystem = next;
+  document.body.classList.toggle('flow-workspace', next === 'flow');
+  document.body.classList.toggle('classic-workspace', next === 'classic');
+  applyFlowSourceOpen(Boolean(prefs.flowSourceOpen), false);
+  for (const button of document.querySelectorAll('[data-layout-system]')) {
+    button.classList.toggle('active', button.dataset.layoutSystem === next);
+  }
+  if (persist) {
+    savePrefs();
+    syncAppearanceControls();
+    window.setTimeout(() => { positionFocusRing(); refreshMinimapImage(); }, 240);
+  }
+}
+
+function toggleLayoutSystem() {
+  applyLayoutSystem(prefs.layoutSystem === 'flow' ? 'classic' : 'flow');
+  showToast(prefs.layoutSystem === 'flow' ? '已切换 Flow · 画布优先布局' : '已切换 Classic · 经典分栏布局');
+}
+
+function applyFlowSourceOpen(open, persist = true) {
+  const next = Boolean(open) && prefs.layoutSystem === 'flow';
+  prefs.flowSourceOpen = next;
+  document.body.classList.toggle('flow-source-open', next);
+  const button = $('#btnFlowSource');
+  if (button) {
+    button.setAttribute('aria-pressed', String(next));
+    button.textContent = next ? '⌘ 收起源码' : '⌘ 源码';
+  }
+  if (persist) savePrefs();
+}
+
+function toggleFlowSource() {
+  if (prefs.layoutSystem !== 'flow') applyLayoutSystem('flow');
+  const shouldOpen = !prefs.flowSourceOpen;
+  if (shouldOpen && $('#workspace').dataset.view !== 'split') setWorkspaceView('split');
+  applyFlowSourceOpen(shouldOpen);
+  window.setTimeout(() => { positionFocusRing(); refreshMinimapImage(); }, 240);
+}
+
+function openFlowStage(stage) {
+  if (stage === 'scan' || stage === 'edit') {
+    setWorkspaceView('canvas');
+    showToast(stage === 'scan' ? '画布已聚焦 · 让 AI 调用 scan_project 生成结构图' : '画布已聚焦 · 点击节点或进入协作工作台表达意图');
+    return;
+  }
+  openCollab();
+  setCollabTab(stage === 'context' ? 'dialog' : 'proposals');
 }
 
 function setHeaderContext() {
@@ -2810,6 +3000,16 @@ window.addEventListener('keydown', (e) => {
     cycleVisualSystem();
     return;
   }
+  if (!typing && (e.key === 'b' || e.key === 'B') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    toggleLayoutSystem();
+    return;
+  }
+  if (!typing && (e.key === 'e' || e.key === 'E') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    toggleFlowSource();
+    return;
+  }
   if (!typing && (e.key === 'i' || e.key === 'I') && !e.metaKey && !e.ctrlKey && !e.altKey) {
     e.preventDefault();
     setInspectorOpen(!prefs.inspectorOpen);
@@ -3139,6 +3339,9 @@ function syncAppearanceControls() {
   for (const button of document.querySelectorAll('[data-visual]')) {
     button.classList.toggle('active', button.dataset.visual === prefs.visualSystem);
   }
+  for (const button of document.querySelectorAll('[data-layout-system]')) {
+    button.classList.toggle('active', button.dataset.layoutSystem === prefs.layoutSystem);
+  }
   for (const button of document.querySelectorAll('[data-ui-theme]')) {
     button.classList.toggle('active', button.dataset.uiTheme === prefs.uiTheme);
   }
@@ -3165,6 +3368,14 @@ function syncAppearanceControls() {
 $('#btnToggleSidebar').addEventListener('click', () => setSidebarCollapsed(!prefs.sidebarCollapsed));
 for (const button of document.querySelectorAll('[data-visual]')) {
   button.addEventListener('click', () => applyVisualSystem(button.dataset.visual));
+}
+for (const button of document.querySelectorAll('[data-layout-system]')) {
+  button.addEventListener('click', () => applyLayoutSystem(button.dataset.layoutSystem));
+}
+$('#btnFlowSource').addEventListener('click', toggleFlowSource);
+$('#btnFlowCollab').addEventListener('click', openCollab);
+for (const step of document.querySelectorAll('.flow-step')) {
+  step.addEventListener('click', () => openFlowStage(step.dataset.flowStage));
 }
 $('#btnRibbonInspector').addEventListener('click', () => setInspectorOpen(!prefs.inspectorOpen));
 $('#btnCloseInspector').addEventListener('click', () => setInspectorOpen(false));
@@ -3415,9 +3626,12 @@ const COMMANDS = [
   { group: '工作区视图', icon: '◎', title: '切换专注模式', hint: '隐藏概览、健康卡与流程条，放大三栏内容', shortcut: '7', keys: '专注 focus 概览 zen', run: () => setFocusMode(!prefs.focusMode) },
   { group: '工作区视图', icon: '◌', title: '切换沉浸工作区', hint: '让顶栏、图表库与状态栏退场，只留下当前图', shortcut: 'Z', keys: '沉浸 全屏 低干扰 zen workspace', run: () => setZenWorkspace(!prefs.zenWorkspace) },
   { group: '工作区视图', icon: '✦', title: '循环切换视觉系统', hint: '在 Aurora、Studio 与工程蓝图 Atlas 之间依次切换', shortcut: 'V', keys: '视觉 aurora studio atlas 外观 主题', run: () => cycleVisualSystem() },
+  { group: '工作区视图', icon: '◇', title: '切换 Classic / Flow 布局', hint: '在经典分栏与画布优先的 Flow 工作台之间切换', shortcut: 'B', keys: '布局 classic flow 画布 分栏 workspace', run: () => toggleLayoutSystem() },
+  { group: '工作区视图', icon: '⌘', title: '展开 / 收起 Flow 源码抽屉', hint: '显示或隐藏画布旁边的本机源码编辑器', shortcut: 'E', keys: '源码 抽屉 flow source editor', run: () => toggleFlowSource() },
   { group: '工作区视图', icon: '◧', title: '切换上下文速览', hint: '展开或收起实时只读对象上下文', shortcut: 'I', keys: '速览 上下文 inspector 侧栏', run: () => setInspectorOpen(!prefs.inspectorOpen) },
   { group: '外观与帮助', icon: '◈', title: '切换视觉氛围', hint: '在鲜明品牌渐变与静谧低干扰配色间切换', shortcut: '', keys: '氛围 鲜明 静谧 ambient theme', run: () => setAmbient(prefs.ambient === 'calm' ? 'vivid' : 'calm') },
   { group: '协作流程', icon: '↔', title: '打开协作工作台', hint: '进入人 / AI 双向协作面板', shortcut: 'C', keys: '协作 对话 workbench', run: () => openCollab() },
+  { group: '协作流程', icon: '✎', title: '查看项目结构图', hint: '打开 Flow 工作台并展开源码抽屉，再进入项目图', shortcut: '', keys: 'flow 项目图 结构 graph scan', run: () => { applyLayoutSystem('flow'); applyFlowSourceOpen(true); openCollab(); setCollabTab('graph'); } },
   { group: '协作流程', icon: '◇', title: '查看项目结构图', hint: '切到节点编辑与扫描流程', shortcut: '4', keys: '项目图 结构 graph scan', run: () => { openCollab(); setCollabTab('graph'); } },
   { group: '协作流程', icon: '↔', title: '查看双向对话', hint: '切到消息、批注与活动时间线', shortcut: '5', keys: '对话 消息 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
   { group: '协作流程', icon: '✓', title: '查看变更提案', hint: '切到逐行 diff 与人工批准', shortcut: '6', keys: '提案 diff 批准 proposal', run: () => { openCollab(); setCollabTab('proposals'); } },
@@ -3763,6 +3977,7 @@ function resumeCollabRenders() {
   renderInspector();
   renderHealthCard();
   renderCollabPulse();
+  renderFlowRail();
 }
 
 function deferCollabDerivedRender() {
@@ -3804,6 +4019,7 @@ function renderCollabPulse() {
   setMetric('#collabPulseAnnotations', openAnnotations);
   setMetric('#collabPulseNext', nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工决定是否批准。' : '打开工作台，继续编辑结构图或表达意图。'));
   renderCollabHandoff({ pendingMessages, pendingProposals, openAnnotations, nextAction, nextActor: diagnostics?.activity?.nextActor });
+  renderFlowRail({ pendingMessages, pendingProposals, openAnnotations });
   if (!$('#welcomeCard')?.hidden) {
     renderWelcomeJourney({ pendingProposals, attention, hasGraph: Boolean(graph?.nodes?.length) });
   }
@@ -3827,6 +4043,47 @@ function renderCollabHandoff({ pendingMessages, pendingProposals, openAnnotation
   const hint = nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工决定是否批准。' : '打开工作台，继续编辑结构图或表达意图。');
   $('#handoffNext').textContent = `${label} · ${hint}`;
   $('#handoffNext').title = '只读派生自 session / proposals / diagnostics；不发送消息、不批准提案、不写项目文件。';
+}
+
+function renderFlowRail({ pendingMessages = 0, pendingProposals = 0, openAnnotations = 0 } = {}) {
+  const rail = $('#flowRail');
+  if (!rail) return;
+  const graph = collabPulseSnapshot?.session?.graph || collabGraph;
+  const nodes = Array.isArray(graph?.nodes) ? graph.nodes.length : 0;
+  const annotations = openAnnotations || (Array.isArray(graph?.annotations) ? graph.annotations.length : 0);
+  const diffs = Array.isArray(collabPulseSnapshot?.session?.graphDiffs)
+    ? collabPulseSnapshot.session.graphDiffs.length : collabGraphDiffs.length;
+  const messages = pendingMessages || (Array.isArray(collabSessionMessages)
+    ? collabSessionMessages.filter((message) => message.status === 'pending').length : 0);
+  const proposals = pendingProposals || (Array.isArray(collabProposals)
+    ? collabProposals.filter((proposal) => proposal.status === 'pending').length : 0);
+  const hasContext = diffs > 0 || annotations > 0 || messages > 0 || Boolean(selectedNodeId);
+  const review = collabReviewReadiness?.status || collabPulseSnapshot?.reviewReadiness?.status || (proposals ? 'review' : 'ready');
+  const states = {
+    scan: nodes > 0 ? 'ready' : 'busy',
+    edit: diffs > 0 || annotations > 0 ? 'ready' : nodes > 0 ? 'busy' : 'idle',
+    context: messages > 0 || selectedNodeId ? 'ready' : hasContext ? 'busy' : 'idle',
+    review: review === 'blocked' ? 'blocked' : proposals > 0 ? 'busy' : 'idle',
+  };
+  const icons = { idle: '○', busy: '◷', ready: '✓', blocked: '!' };
+  const snippets = {
+    scan: nodes > 0 ? `${nodes} 个对象已成像` : '等待 AI 扫描项目',
+    edit: diffs > 0 ? `${diffs} 次视觉修订` : annotations > 0 ? `${annotations} 条对象批注` : '等待人表达意图',
+    context: messages > 0 ? `${messages} 条消息待 AI` : selectedNodeId ? '焦点已作为只读上下文' : '尚未选中上下文',
+    review: proposals > 0 ? `${proposals} 个提案待审` : '批准前仍保持只读',
+  };
+  const completed = Object.values(states).filter((state) => state === 'ready').length;
+  const progress = review === 'blocked' ? 50 : Math.round((completed / 4) * 100);
+  for (const step of rail.querySelectorAll('.flow-step')) {
+    const name = step.dataset.flowStage;
+    step.dataset.state = states[name];
+    step.querySelector('.flow-step-copy small').textContent = snippets[name];
+    step.querySelector('.flow-step-state').textContent = icons[states[name]];
+    step.title = `${step.querySelector('.flow-step-copy strong').textContent} · ${snippets[name]}；只读派生，不授权项目写入`;
+  }
+  rail.style.setProperty('--flow-progress', `${progress}%`);
+  rail.dataset.progressLabel = `${completed} / 4 READY · ${progress}%`;
+  $('#flowRailMeta').textContent = `${proposals} 待审 · ${messages} 消息 · ${annotations} 批注`;
 }
 
 function renderWelcomeJourney({ pendingProposals, attention, hasGraph }) {
@@ -5917,6 +6174,7 @@ syncAppearanceControls();
 renderInspector();
 renderWelcomeJourney({ pendingProposals: 0, attention: 0, hasGraph: false });
 renderCollabHandoff({ pendingMessages: 0, pendingProposals: 0, openAnnotations: 0, nextAction: '', nextActor: 'none' });
+renderFlowRail();
 loadCollabPulse();
 
 // Restore last viewed diagram (URL path takes priority)
