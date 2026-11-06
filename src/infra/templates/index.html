@@ -464,16 +464,58 @@
     .chat-item.human { border-left: 2px solid var(--green); }
     .chat-item.ai { border-left: 2px solid var(--accent); }
     .chat-item.pending { box-shadow: inset 0 0 0 1px var(--orange); }
-    .proposal-card { padding: 10px; margin-bottom: 9px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface2); }
-    .proposal-card h4 { font-size: 11px; margin-bottom: 4px; }
-    .proposal-card p { font-size: 10px; color: var(--text-muted); line-height: 1.5; margin-bottom: 6px; }
-    .proposal-card .status { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 3px; background: var(--bg); margin-bottom: 6px; }
-    .proposal-card button { height: 22px; padding: 0 8px; margin-right: 4px; font-size: 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; }
-    .proposal-card button.approve { border-color: var(--green); color: #9be29f; }
-    .proposal-card button.reject { border-color: var(--red); color: #ff9b95; }
-    .proposal-diff { margin: 6px 0; max-height: 150px; overflow: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); font: 10px/1.4 'JetBrains Mono', Consolas, monospace; }
-    .proposal-diff summary { cursor: pointer; padding: 5px 7px; color: var(--text-muted); }
-    .proposal-diff pre { margin: 0; padding: 6px 8px; white-space: pre-wrap; word-break: break-word; }
+    .proposal-list { display: flex; flex-direction: column; gap: 10px; }
+    .proposal-card {
+      --proposal-accent: var(--accent);
+      position: relative; padding: 12px; border: 1px solid var(--border); border-left: 3px solid var(--proposal-accent);
+      border-radius: 12px; background: linear-gradient(135deg, rgba(122,162,247,.06), transparent 55%), var(--surface2);
+      box-shadow: 0 8px 22px rgba(0,0,0,.16); animation: proposal-in .28s ease both;
+    }
+    .proposal-card.status-pending { --proposal-accent: var(--orange); }
+    .proposal-card.status-approved { --proposal-accent: var(--green); }
+    .proposal-card.status-applied { --proposal-accent: var(--accent2); }
+    .proposal-card.status-rejected, .proposal-card.status-failed { --proposal-accent: var(--red); }
+    body.theme-light .proposal-card.status-pending { --proposal-accent: #9a5a0d; }
+    body.theme-light .proposal-card.status-approved { --proposal-accent: #2f773f; }
+    body.theme-light .proposal-card.status-applied { --proposal-accent: #6742ad; }
+    body.theme-light .proposal-card.status-rejected, body.theme-light .proposal-card.status-failed { --proposal-accent: #ab3d52; }
+    @keyframes proposal-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    .proposal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+    .proposal-head h4 { font-size: 12px; line-height: 1.35; word-break: break-word; }
+    .proposal-badge { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border: 1px solid var(--proposal-accent); border-radius: 999px; background: rgba(9,14,25,.38); color: var(--proposal-accent); font-size: 9px; font-weight: 700; letter-spacing: .02em; }
+    body.theme-light .proposal-badge { background: rgba(255,255,255,.82); }
+    .proposal-card > p { font-size: 10px; color: var(--text-muted); line-height: 1.55; margin-bottom: 8px; }
+    .proposal-summary { padding-left: 8px; border-left: 2px solid var(--proposal-accent); }
+    .proposal-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 7px; }
+    .proposal-metric { padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
+    .proposal-metric span { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 2px; }
+    .proposal-metric strong { display: block; color: var(--text); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .proposal-impact { padding: 8px 9px; border: 1px solid var(--border); border-radius: 9px; background: var(--panel); font-size: 10px; color: var(--text-muted); line-height: 1.5; }
+    .proposal-impact.is-warning { border-color: var(--orange); color: var(--orange); }
+    .impact-title { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 6px; }
+    .impact-title strong { color: var(--text); font-size: 10px; }
+    .impact-safe { color: var(--green); font-size: 9px; font-weight: 700; }
+    .impact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+    .impact-grid span { padding: 5px 4px; border-radius: 6px; background: var(--surface2); text-align: center; }
+    .impact-grid small { display: block; color: var(--text-muted); font-size: 8px; margin-bottom: 2px; }
+    .impact-grid strong { display: block; color: var(--text); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .proposal-files { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; max-height: 76px; overflow-y: auto; }
+    .proposal-files code { max-width: 100%; padding: 3px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); color: var(--text-muted); font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .proposal-checklist { margin: 8px 0; padding: 8px 9px 8px 25px; border: 1px dashed var(--proposal-accent); border-radius: 9px; background: rgba(240,168,104,.06); color: var(--text-muted); font-size: 9px; line-height: 1.55; list-style: none; }
+    .proposal-checklist li { position: relative; }
+    .proposal-checklist li::before { content: '□'; position: absolute; left: -16px; color: var(--proposal-accent); font-size: 10px; }
+    .proposal-checklist li:first-child { color: var(--text); font-size: 10px; margin-bottom: 3px; }
+    .proposal-checklist li:first-child::before { content: '✓'; }
+    .proposal-diff { margin: 8px 0; max-height: 220px; overflow: auto; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); font: 10px/1.45 'JetBrains Mono', Consolas, monospace; }
+    .proposal-diff summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; list-style: none; cursor: pointer; padding: 8px 10px; color: var(--text); font-family: Inter, -apple-system, sans-serif; font-size: 10px; font-weight: 650; }
+    .proposal-diff summary::-webkit-details-marker { display: none; }
+    .proposal-diff summary > span:first-child { display: flex; align-items: center; gap: 7px; }
+    .proposal-diff summary > span:first-child::before { content: '›'; color: var(--accent); font-size: 14px; transition: transform .18s; }
+    .proposal-diff summary > span:last-child { color: var(--text-muted); font-size: 9px; font-weight: 500; }
+    .proposal-diff[open] summary > span:first-child::before { transform: rotate(90deg); }
+    .proposal-diff.loaded [data-diff-state] { color: var(--green); }
+    .proposal-diff.is-error [data-diff-state] { color: var(--red); }
+    .proposal-diff pre { margin: 0; padding: 8px 10px 10px; border-top: 1px solid var(--border); white-space: pre-wrap; word-break: break-word; color: var(--text-muted); }
     .diff-line.add { color: #9be29f; }
     .diff-line.remove { color: #ff9b95; }
     .diff-line.context { color: var(--text-muted); }
@@ -500,10 +542,17 @@
     .annotation-anchor-note { color: var(--orange); font-size: 9px; margin-top: 4px; }
     .annotation-reply-row input { min-width: 0; flex: 1; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); font-size: 10px; }
     #annotationList { flex: 0 0 220px; max-height: 220px; }
-    .proposal-facts { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 6px; }
-    .proposal-facts code { font-size: 9px; padding: 2px 5px; border-radius: 3px; background: var(--bg); }
-    .proposal-impact { font-size: 10px; color: var(--text-muted); line-height: 1.5; margin: 0 0 6px; }
-    .proposal-impact strong { color: var(--text); }
+    .proposal-facts { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 7px; }
+    .proposal-facts code { font-size: 9px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); color: var(--text-muted); }
+    .proposal-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .proposal-actions button { flex: 1; height: 30px; padding: 0 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 10px; font-weight: 650; cursor: pointer; transition: transform .15s, border-color .15s, background .15s; }
+    .proposal-actions button:hover { transform: translateY(-1px); }
+    .proposal-actions button.approve { border-color: var(--green); background: linear-gradient(135deg, rgba(158,206,106,.18), rgba(122,162,247,.12)); color: var(--green); font-weight: 750; }
+    .proposal-actions button.approve:hover { background: linear-gradient(135deg, rgba(158,206,106,.28), rgba(122,162,247,.18)); box-shadow: 0 6px 16px rgba(158,206,106,.12); }
+    .proposal-actions button.reject { color: var(--text-muted); background: transparent; }
+    .proposal-actions button.reject:hover { border-color: var(--red); color: var(--red); }
+    .proposal-actions button.decision-error { border-color: var(--red) !important; color: var(--red) !important; }
+    .proposal-error { margin-top: 7px; padding: 7px 8px; border-left: 2px solid var(--red); border-radius: 6px; background: rgba(255,122,147,.08); color: var(--red); font-size: 10px; line-height: 1.5; }
     .annotation-target { color: var(--accent); font-size: 9px; }
     .activity-list { flex: 0 0 190px; max-height: 190px; }
     .activity-item { padding: 5px 7px; margin-bottom: 5px; border-left: 2px solid var(--border); border-radius: 4px; background: var(--surface2); font-size: 10px; line-height: 1.4; word-break: break-word; }
@@ -2342,32 +2391,50 @@ async function reanchorAnnotation(id) {
 }
 
 function renderProposals(proposals) {
-  $('#proposalList').innerHTML = proposals.length ? [...proposals].reverse().map((proposal) => `
-    <div class="proposal-card">
-      <h4>${escapeHtml(proposal.title)}</h4>
-      <span class="status">${escapeHtml(proposal.status)} · ${proposal.changes.length} changes</span>
-      <div class="proposal-facts">
-        <code>rev ${escapeHtml(proposal.graphRevision ?? 0)}</code>
-        ${proposal.contentHash ? `<code title="${escapeHtml(proposal.contentHash)}">hash ${escapeHtml(String(proposal.contentHash).slice(0, 10))}</code>` : ''}
-        ${(proposal.changes || []).slice(0, 4).map((change) => `<code>${escapeHtml(change.kind)}:${escapeHtml(change.path)}</code>`).join('')}
-        ${(proposal.changes || []).length > 4 ? `<code>+${(proposal.changes || []).length - 4} files</code>` : ''}
+  const statusLabels = {
+    draft: '草稿', pending: '待人工审阅', approved: '已签发确认号',
+    applied: '已应用', rejected: '已拒绝', failed: '应用失败',
+  };
+  const statusIcons = {
+    draft: '◌', pending: '◷', approved: '✓', applied: '✓', rejected: '✕', failed: '!',
+  };
+  $('#proposalList').innerHTML = proposals.length ? [...proposals].reverse().map((proposal) => {
+    const status = escapeHtml(proposal.status);
+    const changes = Array.isArray(proposal.changes) ? proposal.changes : [];
+    const isPending = proposal.status === 'pending';
+    const statusLabel = Object.hasOwn(statusLabels, proposal.status) ? statusLabels[proposal.status] : proposal.status;
+    const statusIcon = Object.hasOwn(statusIcons, proposal.status) ? statusIcons[proposal.status] : '◇';
+    return `
+    <article class="proposal-card status-${status}" aria-label="${escapeHtml(proposal.title)} · ${escapeHtml(statusLabel)}">
+      <div class="proposal-head">
+        <h4>${escapeHtml(proposal.title)}</h4>
+        <span class="proposal-badge" aria-label="提案状态">${statusIcon} ${escapeHtml(statusLabel)}</span>
       </div>
-      <p>${escapeHtml(proposal.summary)}</p>
-      <p class="proposal-impact" data-impact="${escapeHtml(proposal.id)}">影响摘要加载中…</p>
-      <div>${proposal.changes.map((change) => `<code>${escapeHtml(change.kind)}:${escapeHtml(change.path)}</code>`).join('<br>')}</div>
+      <p class="proposal-summary">${escapeHtml(proposal.summary)}</p>
+      <div class="proposal-metrics">
+        <div class="proposal-metric"><span>图修订</span><strong>rev ${escapeHtml(proposal.graphRevision ?? 0)}</strong></div>
+        <div class="proposal-metric"><span>变更范围</span><strong>${changes.length} 个文件 / 路径</strong></div>
+      </div>
+      <div class="proposal-facts">
+        ${proposal.contentHash ? `<code title="${escapeHtml(proposal.contentHash)}">SHA-256 ${escapeHtml(String(proposal.contentHash).slice(0, 10))}…</code>` : ''}
+        ${proposal.createdAt ? `<code>${escapeHtml(relativeTime(proposal.createdAt))}</code>` : ''}
+      </div>
+      <div class="proposal-impact" data-impact="${escapeHtml(proposal.id)}">影响摘要加载中…</div>
+      ${changes.length ? `<div class="proposal-files">${changes.map((change) => `<code title="${escapeHtml(change.path)}">${escapeHtml(change.kind)} · ${escapeHtml(change.path)}</code>`).join('')}</div>` : ''}
+      ${isPending ? '<ul class="proposal-checklist"><li><strong>批准前检查</strong></li><li>展开并阅读完整逐行 diff</li><li>核对影响摘要与全部变更路径</li><li>批准后将一次性确认号发给 AI</li></ul>' : ''}
       <details class="proposal-diff" data-diff="${escapeHtml(proposal.id)}">
-        <summary>查看逐行差异</summary>
+        <summary><span>查看完整逐行差异</span><span data-diff-state>只读</span></summary>
         <pre>加载中…</pre>
       </details>
-      <div class="collab-actions">
-        ${proposal.status === 'pending'
-          ? `<button class="approve" data-approve="${escapeHtml(proposal.id)}">批准</button>
-             <button class="reject" data-reject="${escapeHtml(proposal.id)}">拒绝</button>`
-          : ''}
-      </div>
-      ${proposal.error ? `<p style="color:var(--red)">${escapeHtml(proposal.error)}</p>` : ''}
-    </div>
-  `).join('') : '<div class="empty-state"><span class="empty-state-icon">✓</span><strong>等待人工确认</strong><p>AI 会先通过 get_visual_context 理解你的意图；提案出现后仍需逐行 diff、人工批准与一次性确认号。</p></div>';
+      ${isPending
+        ? `<div class="proposal-actions">
+             <button class="approve" data-approve="${escapeHtml(proposal.id)}">✓ 批准并签发确认号</button>
+             <button class="reject" data-reject="${escapeHtml(proposal.id)}">拒绝提案</button>
+           </div>`
+        : ''}
+      ${proposal.error ? `<p class="proposal-error">${escapeHtml(proposal.error)}</p>` : ''}
+    </article>`;
+  }).join('') : '<div class="empty-state"><span class="empty-state-icon">✓</span><strong>等待人工确认</strong><p>AI 会先通过 get_visual_context 理解你的意图；提案出现后仍需逐行 diff、人工批准与一次性确认号。</p></div>';
 
   for (const button of $('#proposalList').querySelectorAll('[data-approve]')) {
     button.addEventListener('click', () => decideProposal(button.dataset.approve, 'approve'));
@@ -2385,8 +2452,12 @@ function renderProposals(proposals) {
           ...diff.lines.map((line) => `<span class="diff-line ${line.type}">${line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' '} ${escapeHtml(line.text)}</span>`),
           diff.truncated ? '<span class="diff-line context">… diff truncated …</span>' : '',
         ].join('\n')).join('\n\n') || '暂无差异';
+        details.classList.add('loaded');
+        details.querySelector('[data-diff-state]').textContent = '✓ 已加载';
         details.dataset.loaded = 'true';
       } catch (error) {
+        details.classList.add('is-error');
+        details.querySelector('[data-diff-state]').textContent = '加载失败';
         details.querySelector('pre').textContent = `差异加载失败：${error.message}`;
       }
     });
@@ -2400,10 +2471,18 @@ async function loadProposalImpact(target) {
   try {
     const data = await collabFetch(`/api/collab/proposals/${encodeURIComponent(target.dataset.impact)}/impact`);
     const impact = data.impact;
-    target.innerHTML = `<strong>${escapeHtml(impact.files)} files</strong> · +${escapeHtml(impact.addedLines)}/−${escapeHtml(impact.removedLines)} lines · ${escapeHtml(impact.contentBytes)} bytes · ${escapeHtml(impact.safePathsOnly ? 'safe paths only' : 'review paths')}`;
+    target.innerHTML = `
+      <div class="impact-title"><strong>影响摘要 · ${escapeHtml(impact.files)} 个路径</strong><span class="impact-safe">${escapeHtml(impact.safePathsOnly ? '✓ 安全路径' : '⚠ 需复核路径')}</span></div>
+      <div class="impact-grid">
+        <span><small>新增行</small><strong>+${escapeHtml(impact.addedLines)}</strong></span>
+        <span><small>删除行</small><strong>−${escapeHtml(impact.removedLines)}</strong></span>
+        <span><small>内容大小</small><strong>${escapeHtml(impact.contentBytes)} B</strong></span>
+        <span><small>新建 / 更新</small><strong>${escapeHtml(impact.created)} / ${escapeHtml(impact.updated)}</strong></span>
+      </div>`;
     target.title = impact.notes.join(' ');
   } catch (error) {
     target.textContent = `影响摘要不可用：${error.message}`;
+    target.classList.add('is-warning');
   }
 }
 
@@ -2710,11 +2789,13 @@ async function addAnnotation() {
 
 async function decideProposal(id, decision) {
   if (decision === 'approve' && !confirm('确认批准该提案？批准后还需在 AI 对话中提供一次性确认号，项目文件才会改变。')) return;
+  const button = [...$('#proposalList').querySelectorAll(`[data-${decision}]`)]
+    .find((candidate) => candidate.dataset[decision] === id);
   try {
-    const result = await collabFetch(`/api/collab/proposals/${encodeURIComponent(id)}/${decision}`, {
-      method: 'POST',
-      body: JSON.stringify({ approvedBy: 'human' }),
-    });
+    const result = await withBusyButton(button, () => collabFetch(`/api/collab/proposals/${encodeURIComponent(id)}/${decision}`, {
+        method: 'POST',
+        body: JSON.stringify({ approvedBy: 'human' }),
+      }));
     if (decision === 'approve' && result.receipt) {
       const grant = [
         `提案已批准。请把以下信息发给 AI，让它调用 apply_visual_proposal：`,
@@ -2731,6 +2812,7 @@ async function decideProposal(id, decision) {
     }
     await loadCollab();
   } catch (error) {
+    if (button) flashButton(button, 'decision-error');
     showToast(`操作失败：${error.message}`);
   }
 }

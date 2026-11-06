@@ -18,6 +18,27 @@ async function freePort() {
   });
 }
 
+async function seedProposalCard(base) {
+  const html = await fetch(base).then((response) => response.text());
+  const token = html.match(/const PANEL_TOKEN = "([^"]+)"/)?.[1];
+  const headers = { "Content-Type": "application/json", "X-AI-Draw-Token": token };
+  const proposal = await fetch(`${base}/api/collab/proposals`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      title: "把 README 改成中文",
+      summary: "根据图形批注更新说明，并在卡片里展示完整审阅路径。",
+      changes: [
+        { kind: "update", path: "README.md", content: "# 演示项目\n\n这是双向协作示例。\n" },
+        { kind: "create", path: "docs/ui-preview.md", content: "# 提案卡片预览\n" },
+      ],
+    }),
+  }).then((response) => response.json());
+  expect(proposal.id).toBeTruthy();
+  expect(proposal.contentHash).toMatch(/^[a-f0-9]{64}$/);
+  return { id: proposal.id };
+}
+
 const port = await freePort();
 const base = `http://127.0.0.1:${port}`;
 
@@ -59,6 +80,7 @@ describe("collaboration panel UI", () => {
     process.env.PREVIEW_PORT = String(port);
     const { preview } = await createServer();
     await preview.start();
+    await seedProposalCard(base);
 
     try {
       const page = await browser.newPage();
@@ -102,12 +124,13 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("c");
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
       await page.waitForSelector("#overviewRevision");
-      await page.waitForSelector(".empty-state");
+      await page.waitForSelector(".proposal-card.status-pending");
       const desktop = await page.evaluate(() => ({
         stats: document.querySelectorAll(".overview-stat").length,
         drawers: document.querySelectorAll(".signal-drawer").length,
         docks: document.querySelectorAll(".section-dock").length,
-        emptyState: Boolean(document.querySelector(".empty-state")),
+        graphGuide: Boolean(document.querySelector(".graph-guide")),
+        proposalCards: document.querySelectorAll(".proposal-card").length,
         scrollWidth: document.body.scrollWidth,
         clientWidth: document.body.clientWidth,
       }));
@@ -115,10 +138,53 @@ describe("collaboration panel UI", () => {
         stats: 6,
         drawers: 2,
         docks: 2,
-        emptyState: true,
+        graphGuide: true,
+        proposalCards: 1,
         scrollWidth: 1440,
         clientWidth: 1440,
       });
+      const proposalCard = await page.evaluate(() => {
+        const card = document.querySelector(".proposal-card.status-pending");
+        const badge = card.querySelector(".proposal-badge");
+        const approve = card.querySelector("[data-approve]");
+        return {
+          title: card.querySelector("h4").textContent,
+          badge: badge.textContent.trim(),
+          statusColor: getComputedStyle(badge).color,
+          accentColor: getComputedStyle(card).borderLeftColor,
+          metrics: [...card.querySelectorAll(".proposal-metric strong")].map((element) => element.textContent),
+          facts: [...card.querySelectorAll(".proposal-facts code")].map((element) => element.textContent),
+          files: [...card.querySelectorAll(".proposal-files code")].map((element) => element.textContent),
+          checklist: card.querySelector(".proposal-checklist").textContent,
+          impact: card.querySelector("[data-impact]").textContent,
+          diffSummary: card.querySelector(".proposal-diff summary").textContent,
+          approveLabel: approve.textContent.trim(),
+          approveWeight: getComputedStyle(approve).fontWeight,
+          rejectWeight: getComputedStyle(card.querySelector("[data-reject]")).fontWeight,
+          rejectLabel: card.querySelector("[data-reject]").textContent.trim(),
+        };
+      });
+      expect(proposalCard.title).toContain("把 README 改成中文");
+      expect(proposalCard.badge).toContain("待人工审阅");
+      expect(proposalCard.statusColor).toBe(proposalCard.accentColor);
+      expect(proposalCard.metrics).toEqual(["rev 0", "2 个文件 / 路径"]);
+      expect(proposalCard.facts.join(" ")).toContain("SHA-256");
+      expect(proposalCard.files.join(" ")).toContain("README.md");
+      expect(proposalCard.files.join(" ")).toContain("docs/ui-preview.md");
+      expect(proposalCard.checklist).toContain("批准前检查");
+      expect(proposalCard.checklist).toContain("一次性确认号");
+      expect(proposalCard.impact).toContain("影响摘要 · 2 个路径");
+      expect(proposalCard.impact).toContain("安全路径");
+      expect(proposalCard.impact).toContain("内容大小");
+      expect(proposalCard.diffSummary).toContain("查看完整逐行差异");
+      expect(proposalCard.diffSummary).toContain("只读");
+      expect(proposalCard.approveLabel).toContain("批准并签发确认号");
+      expect(Number(proposalCard.approveWeight)).toBeGreaterThan(Number(proposalCard.rejectWeight));
+      expect(proposalCard.rejectLabel).toContain("拒绝提案");
+      await page.$eval(".proposal-diff", (element) => { element.open = true; });
+      await page.waitForFunction(() => document.querySelector(".proposal-diff.loaded"));
+      expect(await page.$eval(".proposal-diff.loaded pre", (element) => element.textContent)).toContain("演示项目");
+      expect(await page.$eval(".proposal-diff.loaded summary", (element) => element.textContent)).toContain("✓");
       expect(await page.$eval("#collabHealth", (element) => element.className)).toContain("health-card");
       expect(await page.$eval("#healthProgressLabel", (element) => element.textContent)).toMatch(/\/ 4 步/);
       expect(await page.$eval(".graph-guide", (element) => element.textContent)).toContain("先生成一张项目结构图");
