@@ -104,6 +104,107 @@
     body.density-compact .collab-help, body.density-compact .activity-summary { margin-bottom: 5px; }
     body.density-compact .sidebar-item { padding: 7px 9px; }
     body.density-compact .collab-actions button, body.density-compact .toolbar button { height: 27px; }
+    body.visual-studio {
+      --bg: #e8edf5; --surface: #f9fbfe; --surface2: #eef2f8; --border: #cbd5e5;
+      --text: #17233a; --text-muted: #5f6e88; --accent: #3768d8; --accent2: #7b59d1;
+      --accent3: #0d918c; --green: #2f8a53; --red: #cf4e68; --orange: #b87224;
+      --panel: #fcfdff; --glass: rgba(250,252,255,.94); --surface-glow: rgba(55,104,216,.07);
+      --shadow: 0 18px 50px rgba(38,54,84,.17); --radius: 10px;
+    }
+    body.visual-studio.theme-light {
+      --bg: #f4f6fa; --surface: #ffffff; --surface2: #f4f6fa; --border: #d8dfeb;
+      --text: #18233a; --text-muted: #66758e; --panel: #ffffff; --glass: rgba(255,255,255,.97);
+      --surface-glow: rgba(55,104,216,.045); --shadow: 0 14px 40px rgba(38,54,84,.14);
+    }
+    body.visual-studio, body.visual-studio.ambient-calm {
+      background: radial-gradient(circle at 10% -14%, rgba(55,104,216,.12), transparent 34%),
+                  radial-gradient(circle at 92% 110%, rgba(13,145,140,.08), transparent 33%),
+                  var(--bg);
+    }
+    body.visual-studio .header, body.visual-studio .sidebar, body.visual-studio .workspace,
+    body.visual-studio .pane, body.visual-studio .collab-shell, body.visual-studio .collab-section {
+      background: var(--glass); box-shadow: 0 6px 22px rgba(38,54,84,.10);
+    }
+    body.visual-studio .header, body.visual-studio .collab-header { border-bottom-color: var(--border); }
+    body.visual-studio .brand-mark, body.visual-studio .toolbar button.primary,
+    body.visual-studio .status #btnCollaborate, body.visual-studio .collab-actions button.primary,
+    body.visual-studio .welcome-actions button.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: none;
+    }
+    body.visual-studio .toolbar, body.visual-studio .view-switch { background: rgba(225,232,244,.72); }
+    body.visual-studio .sidebar-item.active { background: rgba(55,104,216,.10); border-color: rgba(55,104,216,.40); }
+    body.visual-studio .preview-wrap { background-color: #fbfcfe; }
+    body.visual-studio .preview-wrap.dark-bg { background-color: #11182a; }
+    body.visual-studio .welcome-card, body.visual-studio .canvas-object-card,
+    body.visual-studio .canvas-dock, body.visual-studio .appearance-popover {
+      background: rgba(255,255,255,.98); border-color: rgba(80,110,165,.34);
+      box-shadow: 0 16px 42px rgba(38,54,84,.16); color: var(--text);
+    }
+    body.visual-studio .welcome-visual { background: linear-gradient(160deg, #eff4fc, #dfe8f6); }
+    body.visual-studio .welcome-node, body.visual-studio .welcome-flow-center { background: #fff; }
+    body.visual-studio #codeEditor { background: #fff; color: #27364f; caret-color: var(--accent); }
+    body.visual-studio #codeEditor::placeholder { color: #8492aa; }
+    body.visual-studio .pane-header { background: #f7f9fd; }
+    body.visual-studio .toolbar button, body.visual-studio .toolbar select { background: #fff; color: var(--text); }
+    body.visual-studio .toolbar button.subtle { color: var(--text-muted); }
+    body.visual-studio .canvas-object-actions button, body.visual-studio .canvas-context-chip,
+    body.visual-studio .canvas-dock button { background: #fff; color: var(--text); }
+    body.visual-studio .canvas-object-note, body.visual-studio .canvas-chip { color: var(--text-muted); }
+    body.visual-studio .canvas-context-chip { background: rgba(55,104,216,.045); }
+    body.visual-studio .collab-body { background: rgba(229,235,246,.62); }
+    body.visual-studio .collab-header { background: linear-gradient(90deg, rgba(55,104,216,.08), transparent 56%); }
+    body.visual-studio .overview-stat, body.visual-studio .health-card,
+    body.visual-studio .journey-step { background: rgba(255,255,255,.78); }
+    body.visual-studio .signal-drawer, body.visual-studio .proposal-card,
+    body.visual-studio .chat-item, body.visual-studio .intent-composer { background: #fff; }
+    body.visual-studio .canvas-focus-ring { border-color: var(--accent3); }
+    .visual-switch { display: flex; gap: 2px; padding: 2px; margin-right: 2px; border: 1px solid rgba(122,162,247,.32); border-radius: 9px; background: rgba(122,162,247,.08); }
+    .visual-switch button { height: 24px; padding: 0 8px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--text-muted); font-size: 9px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background .16s, color .16s, border-color .16s; }
+    .visual-switch button:hover { color: var(--text); background: rgba(122,162,247,.12); }
+    .visual-switch button.active { color: var(--text); border-color: rgba(61,219,217,.38); background: linear-gradient(135deg, rgba(122,162,247,.22), rgba(61,219,217,.12)); }
+    body.visual-studio .visual-switch { border-color: rgba(80,110,165,.30); background: rgba(55,104,216,.05); }
+    .workspace-ribbon {
+      position: absolute; right: 14px; bottom: 68px; z-index: 20; display: none;
+      align-items: center; gap: 5px; padding: 5px 7px; border: 1px solid var(--border);
+      border-radius: 999px; background: var(--glass); color: var(--text-muted); font-size: 9px;
+      backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0,0,0,.22);
+    }
+    .workspace:not(.welcome) .workspace-ribbon { display: flex; }
+    .workspace[data-view="canvas"] .workspace-ribbon { bottom: 64px; }
+    .workspace-ribbon .ribbon-orb { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); box-shadow: 0 0 0 3px rgba(61,219,217,.12); }
+    .workspace-ribbon strong { color: var(--text); font-size: 9px; }
+    .workspace-ribbon button { height: 20px; padding: 0 7px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text); font-size: 8px; cursor: pointer; }
+    .workspace-ribbon button:hover { border-color: var(--accent3); }
+    body.visual-aurora .workspace-ribbon { border-color: rgba(61,219,217,.40); }
+    .live-inspector {
+      position: fixed; right: 18px; top: 68px; bottom: 50px; z-index: 480; width: 280px;
+      display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 14px;
+      background: var(--glass); box-shadow: var(--shadow); backdrop-filter: blur(18px);
+      transform: translateX(calc(100% + 24px)); opacity: 0; pointer-events: none;
+      transition: transform .25s cubic-bezier(.2,.8,.2,1), opacity .2s ease;
+    }
+    .live-inspector.open { transform: none; opacity: 1; pointer-events: auto; }
+    .live-inspector-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 12px; border-bottom: 1px solid var(--border); }
+    .live-inspector-head strong { display: block; font-size: 11px; }
+    .live-inspector-head span { display: block; margin-top: 2px; color: var(--text-muted); font-size: 8px; letter-spacing: .07em; text-transform: uppercase; }
+    .live-inspector-head button { width: 26px; height: 26px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface2); color: var(--text); cursor: pointer; }
+    .live-inspector-body { flex: 1; overflow-y: auto; padding: 10px; }
+    .inspector-banner { padding: 9px 10px; border: 1px solid rgba(61,219,217,.32); border-radius: 9px; background: linear-gradient(135deg, rgba(61,219,217,.10), rgba(122,162,247,.06)); color: var(--text-muted); font-size: 9px; line-height: 1.5; }
+    .inspector-banner strong { display: block; margin-bottom: 3px; color: var(--accent3); font-size: 10px; }
+    .inspector-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 9px 0; }
+    .inspector-metric { padding: 8px; border: 1px solid var(--border); border-radius: 9px; background: rgba(122,162,247,.05); }
+    .inspector-metric strong { display: block; color: var(--text); font-size: 14px; font-variant-numeric: tabular-nums; }
+    .inspector-metric span { color: var(--text-muted); font-size: 8px; }
+    .inspector-section { margin-top: 10px; }
+    .inspector-section h4 { margin-bottom: 6px; color: var(--text-muted); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .inspector-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 8px; margin-bottom: 5px; border: 1px solid var(--border); border-radius: 8px; background: rgba(9,14,25,.22); font-size: 9px; }
+    .inspector-row span { overflow: hidden; color: var(--text); text-overflow: ellipsis; white-space: nowrap; }
+    .inspector-row button { flex-shrink: 0; height: 20px; padding: 0 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); color: var(--text-muted); font-size: 8px; cursor: pointer; }
+    .inspector-row button:hover { border-color: var(--accent3); color: var(--text); }
+    .inspector-foot { padding: 9px 10px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 8px; line-height: 1.5; }
+    body.visual-studio .inspector-row { background: rgba(55,104,216,.035); }
+    body.zen-workspace .live-inspector { top: 14px; bottom: 14px; }
+    @media (max-width: 900px) { .visual-switch { display: none; } .live-inspector { width: min(280px, calc(100vw - 36px)); } }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     body {
@@ -114,6 +215,14 @@
       color: var(--text); height: 100vh; overflow: hidden;
       transition: background-color .22s ease, color .22s ease;
     }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background: radial-gradient(circle at 14% 15%, rgba(122,162,247,.11), transparent 25%),
+                  radial-gradient(circle at 86% 82%, rgba(61,219,217,.08), transparent 28%);
+      opacity: 0; transition: opacity .3s ease;
+    }
+    body.visual-aurora::before { opacity: 1; }
+    body.visual-studio::before { display: none; }
     body.ambient-calm {
       background: radial-gradient(circle at 8% -12%, rgba(111, 155, 232, .10), transparent 36%),
                   radial-gradient(circle at 96% 112%, rgba(169, 142, 230, .08), transparent 38%),
@@ -127,6 +236,17 @@
       backdrop-filter: blur(18px); flex-shrink: 0; position: relative; z-index: 1200;
       transition: height .22s ease, opacity .22s ease, transform .22s ease;
     }
+    .header::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(122,162,247,.65), rgba(187,154,247,.42), rgba(61,219,217,.4), transparent);
+      opacity: 0; transition: opacity .3s ease;
+    }
+    body.visual-aurora .header::after { opacity: 1; }
+    body.visual-aurora .brand-mark { animation: mark-glow 4s ease-in-out infinite; }
+    body.visual-aurora .header .brand { letter-spacing: .025em; }
+    body.visual-aurora .view-switch button.active { box-shadow: inset 0 2px 0 var(--accent3), 0 0 14px rgba(122,162,247,.18); }
+    @keyframes mark-glow { 0%, 100% { box-shadow: 0 6px 18px rgba(122,162,247,.24); } 50% { box-shadow: 0 6px 26px rgba(61,219,217,.38); } }
+    body.visual-studio .header::after { display: none; }
     body.ambient-calm .header { border-bottom-color: transparent; box-shadow: 0 12px 36px rgba(0,0,0,.16); }
     body.zen-workspace .header { height: 0; overflow: hidden; opacity: 0; border-color: transparent; pointer-events: none; }
     .brand-wrap { display: flex; align-items: center; gap: 10px; min-width: 200px; }
@@ -191,6 +311,14 @@
 
     /* ── Editor + Preview split ── */
     .workspace { flex: 1; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--glass); box-shadow: 0 8px 26px rgba(0,0,0,.22); transition: border-radius .22s ease, border-color .22s ease; }
+    body.visual-aurora .workspace { border-color: rgba(122,162,247,.38); box-shadow: 0 12px 40px rgba(0,0,0,.32), 0 0 0 1px rgba(61,219,217,.05); }
+    body.visual-aurora .workspace::before {
+      content: ''; position: absolute; inset: 0 0 auto; height: 1px; z-index: 3; pointer-events: none;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent3), transparent);
+      opacity: .68;
+    }
+    body.visual-aurora .pane-header { background: linear-gradient(90deg, rgba(122,162,247,.09), rgba(187,154,247,.04), transparent 58%), var(--surface); }
+    body.visual-studio .workspace { border-color: rgba(80,110,165,.28); }
     body.zen-workspace .workspace { border: none; border-radius: 0; box-shadow: none; }
     .panes { flex: 1; display: flex; min-height: 0; padding: 0; gap: 0; }
     .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--panel); }
@@ -250,6 +378,9 @@
       box-shadow: 0 34px 90px rgba(0,0,0,.58), 0 0 0 1px rgba(61,219,217,.06), inset 0 1px 0 rgba(255,255,255,.07);
       text-align: left; pointer-events: auto;
     }
+    body.visual-aurora .welcome-card { border-color: rgba(61,219,217,.46); box-shadow: 0 34px 96px rgba(0,0,0,.62), 0 0 0 1px rgba(61,219,217,.12), inset 0 1px 0 rgba(255,255,255,.1); }
+    body.visual-aurora .welcome-card .welcome-icon { border-color: rgba(61,219,217,.66); box-shadow: 0 0 28px rgba(61,219,217,.2); }
+    body.visual-aurora .welcome-visual { background: radial-gradient(circle at 48% 38%, rgba(61,219,217,.18), transparent 48%), radial-gradient(circle at 76% 78%, rgba(187,154,247,.18), transparent 38%), linear-gradient(160deg, rgba(10,20,39,.96), rgba(19,28,55,.96)); }
     .welcome-card[hidden] { display: none; }
     .welcome-main { padding: 26px 25px 22px; }
     .welcome-kicker { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px; padding: 4px 9px; border: 1px solid rgba(122,162,247,.42); border-radius: 999px; background: rgba(122,162,247,.10); color: var(--accent); font-size: 9px; font-weight: 800; letter-spacing: .07em; }
@@ -561,6 +692,13 @@
       box-shadow: 0 16px 38px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
       backdrop-filter: blur(14px); color: var(--text);
     }
+    body.visual-aurora .canvas-object-card { border-color: rgba(61,219,217,.48); box-shadow: 0 18px 46px rgba(0,0,0,.44), 0 0 28px rgba(61,219,217,.08), inset 0 1px 0 rgba(255,255,255,.06); }
+    body.visual-aurora .canvas-object-card::before {
+      content: ''; position: absolute; left: 16px; right: 16px; top: -1px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent3), var(--accent2), transparent); opacity: .85;
+    }
+    body.visual-aurora .canvas-context-chip[data-ready="true"] { box-shadow: inset 0 0 12px rgba(61,219,217,.08); }
+    body.visual-studio .canvas-object-card { border-radius: 8px; }
     .workspace:not(.welcome) .canvas-object-card { display: block; }
     .canvas-object-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
     .canvas-object-kicker { color: var(--accent); font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
@@ -579,6 +717,15 @@
     .canvas-object-conversation strong { color: var(--text); }
     .canvas-object-conversation button { height: 20px; padding: 0 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); color: var(--text); font-size: 8px; cursor: pointer; white-space: nowrap; }
     .canvas-object-conversation button:hover { border-color: var(--accent); }
+    .canvas-context-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-top: 6px; padding-top: 7px; border-top: 1px solid var(--border); }
+    .canvas-context-chip { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; padding: 5px 4px; border: 1px solid var(--border); border-radius: 8px; background: rgba(122,162,247,.06); color: var(--text-muted); font-size: 7px; text-align: left; cursor: pointer; transition: transform .15s, border-color .15s, background .15s; }
+    .canvas-context-chip:hover { transform: translateY(-1px); border-color: rgba(61,219,217,.55); background: rgba(61,219,217,.10); }
+    .canvas-context-chip:disabled { opacity: .42; cursor: not-allowed; transform: none; }
+    .canvas-context-chip strong { overflow: hidden; width: 100%; color: var(--text); font-size: 10px; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-context-chip[data-ready="false"] strong { color: var(--text-muted); }
+    .canvas-context-chip[data-ready="true"] { border-color: rgba(61,219,217,.32); }
+    .canvas-context-chip[data-ready="true"] strong { color: var(--accent3); }
+    .canvas-context-chip span { overflow: hidden; width: 100%; text-overflow: ellipsis; white-space: nowrap; }
     .canvas-object-actions.secondary { margin-top: 5px; gap: 4px; }
     .canvas-object-actions.secondary button { flex: 1; padding: 0 5px; color: var(--text); font-size: 8px; white-space: nowrap; }
     .canvas-object-actions button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
@@ -729,6 +876,15 @@
       box-shadow: var(--shadow); backdrop-filter: blur(20px); display: flex; flex-direction: column;
       overflow: hidden;
     }
+    body.visual-aurora .collab-shell { border-color: rgba(122,162,247,.46); box-shadow: 0 30px 90px rgba(0,0,0,.66), 0 0 0 1px rgba(61,219,217,.06); }
+    body.visual-aurora .collab-shell::before {
+      content: ''; position: absolute; inset: 0 0 auto; height: 2px; z-index: 3;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3), var(--green));
+    }
+    body.visual-aurora .collab-header { background: linear-gradient(90deg, rgba(122,162,247,.16), rgba(187,154,247,.08), rgba(61,219,217,.06), transparent 72%); }
+    body.visual-aurora .overview-stat { background: rgba(17,28,49,.84); border-color: rgba(122,162,247,.28); }
+    body.visual-aurora .journey-step.active { box-shadow: inset 0 2px 0 var(--accent3), 0 0 24px rgba(61,219,217,.12); }
+    body.visual-studio .collab-shell { border-color: rgba(80,110,165,.34); border-radius: 10px; }
     .collab-shell[hidden] { display: none; }
     .collab-shell:not([hidden]) { animation: collab-in .22s cubic-bezier(.2,.8,.2,1) both; }
     .collab-section { animation: section-in .28s ease both; }
@@ -799,6 +955,9 @@
       border-radius: var(--radius); padding: 14px; background: var(--glass);
       box-shadow: 0 8px 24px rgba(0,0,0,.18); overflow-y: auto;
     }
+    body.visual-aurora .collab-section { border-color: rgba(122,162,247,.30); box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 12px 32px rgba(0,0,0,.24); }
+    body.visual-aurora .collab-section h3::before { background: linear-gradient(var(--accent), var(--accent3)); box-shadow: 0 0 10px rgba(61,219,217,.34); }
+    body.visual-studio .collab-section { border-color: rgba(80,110,165,.24); border-radius: 8px; }
     .collab-section > .section-scroll { flex: 1 1 auto; min-height: 0; }
     .collab-section > .section-dock {
       position: sticky; bottom: -14px; margin: 10px -14px -14px; padding: 10px 14px 14px;
@@ -1181,6 +1340,10 @@
   </div>
   <div class="toolbar">
     <button class="btn-icon" id="btnToggleSidebar" title="Toggle sidebar">☰</button>
+    <div class="visual-switch" role="group" aria-label="视觉系统">
+      <button type="button" class="active" data-visual="aurora" title="Aurora：沉浸式渐变光效">✦ Aurora</button>
+      <button type="button" data-visual="studio" title="Studio：清爽高可读浅色视觉">▤ Studio</button>
+    </div>
     <div class="view-switch" role="group" aria-label="工作区视图">
       <button type="button" class="active" data-view-target="split" title="分屏视图（1）">◫ 分屏</button>
       <button type="button" data-view-target="source" title="源码视图（2）">⌘ 源码</button>
@@ -1201,6 +1364,13 @@
       <button class="btn-icon" id="btnAppearance" type="button" title="外观、布局与快捷键" aria-label="外观、布局与快捷键" aria-expanded="false" aria-controls="appearancePopover">⚙</button>
       <div class="appearance-popover" id="appearancePopover" hidden role="dialog" aria-label="外观设置">
         <div class="appearance-title">工作台外观 <span>本机偏好</span></div>
+        <div class="appearance-group">
+          <span class="appearance-label">视觉系统</span>
+          <div class="appearance-options" role="group" aria-label="视觉系统">
+            <button type="button" data-visual="aurora">✦ Aurora</button>
+            <button type="button" data-visual="studio">▤ Studio</button>
+          </div>
+        </div>
         <div class="appearance-group">
           <span class="appearance-label">界面主题</span>
           <div class="appearance-options" role="group" aria-label="界面主题">
@@ -1245,6 +1415,7 @@
         </div>
         <div class="appearance-shortcuts">
           <span>分屏 / 源码 / 画布</span><kbd>1 / 2 / 3</kbd>
+          <span>切换 Aurora / Studio</span><kbd>V</kbd>
           <span>项目图 / 对话 / 提案</span><kbd>4 / 5 / 6</kbd>
           <span>命令面板</span><kbd>? · Esc</kbd>
           <span>专注模式</span><kbd>7</kbd>
@@ -1339,6 +1510,12 @@
             <div id="minimapContent"></div>
             <div id="minimapViewport"></div>
           </div>
+          <div class="workspace-ribbon" id="workspaceRibbon" aria-label="本机工作台状态">
+            <span class="ribbon-orb" aria-hidden="true"></span>
+            <strong id="ribbonFocus">等待焦点</strong>
+            <span id="ribbonMode">Aurora · 只读上下文</span>
+            <button type="button" id="btnRibbonInspector" title="展开只读上下文速览（I）">◧ 速览</button>
+          </div>
           <div class="canvas-dock" aria-label="画布快捷操作">
             <div class="canvas-dock-status">
               <div class="canvas-dock-label"><strong id="canvasDiagramLabel">本机预览</strong><span>Live · read-only until approval</span></div>
@@ -1370,6 +1547,12 @@
               <span id="canvasConversationSummary">对话 · 暂无绑定批注</span>
               <button type="button" id="btnCanvasOpenConversation" title="进入对话工作台查看当前对象">↔ 对话</button>
             </div>
+            <div class="canvas-context-strip" id="canvasContextStrip" aria-label="当前对象只读上下文">
+              <button type="button" class="canvas-context-chip" id="btnCanvasEvidence" data-ready="false"><strong id="canvasEvidenceCount">—</strong><span>源码证据</span></button>
+              <button type="button" class="canvas-context-chip" id="btnCanvasReview" data-ready="false"><strong id="canvasReviewState">—</strong><span>审阅就绪</span></button>
+              <button type="button" class="canvas-context-chip" id="btnCanvasDecision" data-ready="false"><strong id="canvasDecisionCount">—</strong><span>决策链</span></button>
+              <button type="button" class="canvas-context-chip" id="btnCanvasNavigation" data-ready="false"><strong id="canvasNavigationCount">—</strong><span>源码跳转</span></button>
+            </div>
             <div class="canvas-object-actions secondary">
               <button type="button" id="btnCanvasRelatedNode" title="沿真实连线切换到相邻对象">↗ 关联</button>
               <button type="button" id="btnCanvasCopyFocus" title="复制只读焦点上下文给 AI">⧉ 复制</button>
@@ -1387,6 +1570,24 @@
 </div>
 
 <button class="zen-exit" id="btnZenExit" type="button" aria-label="退出沉浸工作区" title="退出沉浸工作区（Z / Esc）">◌ 沉浸工作区 · Z / Esc 退出</button>
+<aside class="live-inspector" id="liveInspector" aria-label="只读上下文速览" aria-hidden="true">
+  <div class="live-inspector-head">
+    <div><strong>上下文速览</strong><span>Live read-only focus</span></div>
+    <button type="button" id="btnCloseInspector" title="收起速览（I / Esc）">✕</button>
+  </div>
+  <div class="live-inspector-body">
+    <div class="inspector-banner"><strong id="inspectorFocus">等待项目结构图</strong><span id="inspectorPath">选中节点后作为 AI 的只读上下文；速览不会批准提案或写文件。</span></div>
+    <div class="inspector-metrics">
+      <div class="inspector-metric"><strong id="inspectorEvidence">0</strong><span>源码证据</span></div>
+      <div class="inspector-metric"><strong id="inspectorThreads">0</strong><span>开放对话</span></div>
+      <div class="inspector-metric"><strong id="inspectorRevision">—</strong><span>图形修订</span></div>
+      <div class="inspector-metric"><strong id="inspectorReadiness">—</strong><span>审阅就绪</span></div>
+    </div>
+    <div class="inspector-section"><h4>当前对象</h4><div id="inspectorActions"></div></div>
+    <div class="inspector-section"><h4>协作下一步</h4><div id="inspectorNext"></div></div>
+  </div>
+  <div class="inspector-foot">所有数值均为当前会话的只读投影；项目写入仍须逐行 diff、人工确认与一次性确认号。</div>
+</aside>
 <div class="toast" id="toast"></div>
 
 <div class="shortcut-backdrop" id="shortcutBackdrop" hidden>
@@ -1410,6 +1611,8 @@
         <div class="shortcut-row"><span>上一个 / 下一个节点</span><kbd>[ / ]</kbd></div>
       </div>
       <div class="shortcut-group"><h4>效率</h4>
+        <div class="shortcut-row"><span>切换 Aurora / Studio 视觉</span><kbd>V</kbd></div>
+        <div class="shortcut-row"><span>展开 / 收起上下文速览</span><kbd>I</kbd></div>
         <div class="shortcut-row"><span>搜索命令面板</span><kbd>?</kbd></div>
         <div class="shortcut-row"><span>快捷键帮助</span><kbd>H</kbd></div>
         <div class="shortcut-row"><span>关闭面板 / 帮助</span><kbd>Esc</kbd></div>
@@ -1576,7 +1779,7 @@
       <div class="history-pane" id="historyPaneActivity" data-history-pane="activity" role="tabpanel" aria-label="活动"><p class="activity-summary" id="activitySummary">活动时间线加载中…</p><div class="chat-log activity-list" id="activityList"></div></div>
       <div class="history-pane" id="historyPaneAnnotations" data-history-pane="annotations" role="tabpanel" aria-label="批注"><div class="chat-log" id="annotationList"></div></div>
       <div class="history-pane" id="historyPaneDiffs" data-history-pane="diffs" role="tabpanel" aria-label="差异"><p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p><div class="chat-log graph-diff-list" id="graphDiffList"></div></div>
-      <details class="signal-drawer" open>
+      <details class="signal-drawer" id="contextDrawerKey" open>
         <summary>关键上下文</summary>
         <div class="drawer-body">
           <p class="activity-summary" id="diagnosticsSummary">会话诊断加载中…</p>
@@ -1587,7 +1790,7 @@
           <div class="diagnostics-list" id="selectionWorkorderList"></div>
         </div>
       </details>
-      <details class="signal-drawer">
+      <details class="signal-drawer" id="contextDrawerMore">
         <summary>更多只读上下文</summary>
         <div class="drawer-body">
           <p class="activity-summary" id="sharedBriefSummary">共享简报 · 加载中；只读交接视图不含批准凭据</p>
@@ -1666,6 +1869,8 @@ const PREFS_DEFAULT = {
   ambient: 'calm',
   uiTheme: 'dark',
   density: 'comfortable',
+  visualSystem: 'aurora',
+  inspectorOpen: false,
   lastDiagramId: null,
 };
 let prefs = { ...PREFS_DEFAULT };
@@ -1701,6 +1906,8 @@ function applyPrefs() {
   document.body.classList.toggle('density-compact', prefs.density === 'compact');
   document.body.classList.toggle('ambient-calm', prefs.ambient === 'calm');
   document.body.classList.toggle('zen-workspace', prefs.zenWorkspace === true);
+  applyVisualSystem(prefs.visualSystem, false);
+  setInspectorOpen(Boolean(prefs.inspectorOpen), false);
   $('#collabShell').classList.toggle('focus-mode', prefs.focusMode === true);
   $('#btnFocusMode').setAttribute('aria-pressed', String(prefs.focusMode === true));
   $('#btnFocusMode').textContent = prefs.focusMode ? '◉ 退出专注' : '◎ 专注';
@@ -1716,12 +1923,98 @@ function setFocusMode(enabled) {
   showToast(prefs.focusMode ? '已开启专注模式 · 概览与流程条暂时隐藏' : '已退出专注模式 · 恢复全部概览');
 }
 
+function applyVisualSystem(system, persist = true) {
+  const next = system === 'studio' ? 'studio' : 'aurora';
+  prefs.visualSystem = next;
+  document.body.classList.toggle('visual-aurora', next === 'aurora');
+  document.body.classList.toggle('visual-studio', next === 'studio');
+  for (const button of document.querySelectorAll('[data-visual]')) {
+    button.classList.toggle('active', button.dataset.visual === next);
+  }
+  const ribbon = $('#ribbonMode');
+  if (ribbon) ribbon.textContent = `${next === 'studio' ? 'Studio' : 'Aurora'} · 只读上下文`;
+  if (persist) {
+    savePrefs();
+    syncAppearanceControls();
+    if (!$('#appearancePopover')?.hidden) {
+      showToast(next === 'studio' ? '已切换 Studio · 清爽高可读视觉' : '已切换 Aurora · 沉浸式渐变光效');
+    }
+  }
+}
+
+function setInspectorOpen(open, persist = true) {
+  const next = Boolean(open);
+  prefs.inspectorOpen = next;
+  const inspector = $('#liveInspector');
+  if (inspector) {
+    inspector.classList.toggle('open', next);
+    inspector.setAttribute('aria-hidden', String(!next));
+  }
+  const button = $('#btnRibbonInspector');
+  if (button) button.setAttribute('aria-pressed', String(next));
+  if (persist) {
+    savePrefs();
+    window.setTimeout(renderInspector, 0);
+  }
+}
+
 function setAmbient(mode) {
   prefs.ambient = mode === 'vivid' ? 'vivid' : 'calm';
   document.body.classList.toggle('ambient-calm', prefs.ambient === 'calm');
   savePrefs();
   syncAppearanceControls();
   showToast(prefs.ambient === 'calm' ? '已切换静谧氛围 · 低对比、柔和光晕' : '已切换鲜明氛围 · 高对比、品牌渐变');
+}
+
+function inspectorNode() {
+  const nodes = collabGraph?.nodes || [];
+  return nodes.find((node) => node.id === selectedNodeId) || null;
+}
+
+function inspectorMetrics() {
+  const node = inspectorNode();
+  const evidence = node?.sourceEvidence?.filter((item) => item.path && Number.isFinite(item.line)) || [];
+  const conversations = focusConversationState();
+  const readinessStatus = collabReviewReadiness?.status || collabCapabilities?.workflow?.reviewReadiness?.status || '—';
+  const readinessLabel = { ready: '就绪', review: '待复核', blocked: '阻塞' }[readinessStatus] || readinessStatus;
+  return { node, evidence, conversations, readinessLabel };
+}
+
+function renderInspector() {
+  if (!$('#liveInspector')) return;
+  const { node, evidence, conversations, readinessLabel } = inspectorMetrics();
+  const focusLabel = node?.label || '等待项目结构图';
+  const setText = (selector, value) => { const target = $(selector); if (target) target.textContent = value; };
+  setText('#inspectorFocus', focusLabel);
+  setText('#inspectorPath', node?.path || '选中节点后作为 AI 的只读上下文；速览不会批准提案或写文件。');
+  setText('#ribbonFocus', node ? `焦点 · ${focusLabel}` : '等待焦点');
+  setText('#inspectorEvidence', String(evidence.length));
+  setText('#inspectorThreads', String(conversations.open || 0));
+  setText('#inspectorRevision', Number.isFinite(collabRevision) ? String(collabRevision) : '—');
+  setText('#inspectorReadiness', readinessLabel);
+  const actions = [
+    { label: '↔ 查看对象对话', enabled: Boolean(node), run: 'openFocusConversation()' },
+    { label: '◇ 查看只读证据', enabled: evidence.length > 0, run: 'openContextDrawer("evidence")' },
+    { label: '⧉ 复制焦点上下文', enabled: Boolean(node), run: 'copyCanvasFocusContext()' },
+    { label: '↗ 跳到关联对象', enabled: Boolean(node) && relatedCanvasNodeIds(node?.id).length > 0, run: 'stepRelatedCanvasFocus()' },
+  ];
+  const actionTarget = $('#inspectorActions');
+  if (!actionTarget) return;
+  actionTarget.innerHTML = actions.map((action) => `<div class="inspector-row"><span>${escapeHtml(action.label)}</span><button type="button" data-inspector-action="${escapeHtml(action.run)}" ${action.enabled ? '' : 'disabled'}>执行</button></div>`).join('');
+  const nextActions = Array.isArray(collabDiagnostics?.nextActions) ? collabDiagnostics.nextActions.slice(0, 3) : [];
+  const nextItems = nextActions.length ? nextActions : ['等待协作诊断；批准前仍需完整逐行 diff、人工确认与一次性确认号。'];
+  const nextTarget = $('#inspectorNext');
+  if (nextTarget) nextTarget.innerHTML = nextItems.map((item) => `<div class="inspector-row"><span>${escapeHtml(item)}</span><button type="button" data-inspector-action="openCollab()">协作</button></div>`).join('');
+  for (const button of document.querySelectorAll('[data-inspector-action]')) {
+    button.addEventListener('click', () => {
+      const action = button.dataset.inspectorAction;
+      if (action === 'openFocusConversation()') openFocusConversation();
+      else if (action === 'openContextDrawer("evidence")') openContextDrawer('evidence');
+      else if (action === 'copyCanvasFocusContext()') copyCanvasFocusContext();
+      else if (action === 'stepRelatedCanvasFocus()') stepRelatedCanvasFocus();
+      else if (action === 'openCollab()') openCollab();
+    });
+  }
 }
 
 function setZenWorkspace(enabled) {
@@ -2009,6 +2302,10 @@ $('#btnCanvasOpenNode').addEventListener('click', () => { openCollab(); setColla
 $('#btnCanvasRelatedNode').addEventListener('click', stepRelatedCanvasFocus);
 $('#btnCanvasCopyFocus').addEventListener('click', copyCanvasFocusContext);
 $('#btnCanvasOpenConversation').addEventListener('click', openFocusConversation);
+$('#btnCanvasEvidence').addEventListener('click', () => openContextDrawer('evidence'));
+$('#btnCanvasReview').addEventListener('click', () => openContextDrawer('review'));
+$('#btnCanvasDecision').addEventListener('click', copyDecisionTrail);
+$('#btnCanvasNavigation').addEventListener('click', copySourceNavigation);
 
 // Keyboard: F=fit, 0=reset, +/- zoom
 window.addEventListener('keydown', (e) => {
@@ -2052,6 +2349,21 @@ window.addEventListener('keydown', (e) => {
   if (!typing && (e.key === 'z' || e.key === 'Z') && !e.metaKey && !e.ctrlKey && !e.altKey) {
     e.preventDefault();
     setZenWorkspace(!prefs.zenWorkspace);
+    return;
+  }
+  if (!typing && (e.key === 'v' || e.key === 'V') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    applyVisualSystem(prefs.visualSystem === 'aurora' ? 'studio' : 'aurora');
+    return;
+  }
+  if (!typing && (e.key === 'i' || e.key === 'I') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    setInspectorOpen(!prefs.inspectorOpen);
+    return;
+  }
+  if (e.key === 'Escape' && prefs.inspectorOpen && collabShell?.hidden && receiptBackdrop?.hidden && commandBackdrop?.hidden && shortcutBackdrop?.hidden) {
+    e.preventDefault();
+    setInspectorOpen(false);
     return;
   }
   if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === '[' || e.key === ']')) {
@@ -2367,6 +2679,9 @@ function setSidebarCollapsed(collapsed) {
 }
 
 function syncAppearanceControls() {
+  for (const button of document.querySelectorAll('[data-visual]')) {
+    button.classList.toggle('active', button.dataset.visual === prefs.visualSystem);
+  }
   for (const button of document.querySelectorAll('[data-ui-theme]')) {
     button.classList.toggle('active', button.dataset.uiTheme === prefs.uiTheme);
   }
@@ -2391,6 +2706,11 @@ function syncAppearanceControls() {
 }
 
 $('#btnToggleSidebar').addEventListener('click', () => setSidebarCollapsed(!prefs.sidebarCollapsed));
+for (const button of document.querySelectorAll('[data-visual]')) {
+  button.addEventListener('click', () => applyVisualSystem(button.dataset.visual));
+}
+$('#btnRibbonInspector').addEventListener('click', () => setInspectorOpen(!prefs.inspectorOpen));
+$('#btnCloseInspector').addEventListener('click', () => setInspectorOpen(false));
 for (const button of document.querySelectorAll('[data-ambient]')) {
   button.addEventListener('click', () => setAmbient(button.dataset.ambient));
 }
@@ -2601,6 +2921,8 @@ const COMMANDS = [
   { group: '工作区视图', icon: '1:1', title: '重置缩放', hint: '恢复 100% 与默认平移', shortcut: '0', keys: '重置 缩放 reset', run: () => resetView() },
   { group: '工作区视图', icon: '◎', title: '切换专注模式', hint: '隐藏概览、健康卡与流程条，放大三栏内容', shortcut: '7', keys: '专注 focus 概览 zen', run: () => setFocusMode(!prefs.focusMode) },
   { group: '工作区视图', icon: '◌', title: '切换沉浸工作区', hint: '让顶栏、图表库与状态栏退场，只留下当前图', shortcut: 'Z', keys: '沉浸 全屏 低干扰 zen workspace', run: () => setZenWorkspace(!prefs.zenWorkspace) },
+  { group: '工作区视图', icon: '✦', title: '切换 Aurora / Studio', hint: '在沉浸渐变光效与清爽高可读视觉间切换', shortcut: 'V', keys: '视觉 aurora studio 外观 主题', run: () => applyVisualSystem(prefs.visualSystem === 'aurora' ? 'studio' : 'aurora') },
+  { group: '工作区视图', icon: '◧', title: '切换上下文速览', hint: '展开或收起实时只读对象上下文', shortcut: 'I', keys: '速览 上下文 inspector 侧栏', run: () => setInspectorOpen(!prefs.inspectorOpen) },
   { group: '外观与帮助', icon: '◈', title: '切换视觉氛围', hint: '在鲜明品牌渐变与静谧低干扰配色间切换', shortcut: '', keys: '氛围 鲜明 静谧 ambient theme', run: () => setAmbient(prefs.ambient === 'calm' ? 'vivid' : 'calm') },
   { group: '协作流程', icon: '↔', title: '打开协作工作台', hint: '进入人 / AI 双向协作面板', shortcut: 'C', keys: '协作 对话 workbench', run: () => openCollab() },
   { group: '协作流程', icon: '◇', title: '查看项目结构图', hint: '切到节点编辑与扫描流程', shortcut: '4', keys: '项目图 结构 graph scan', run: () => { openCollab(); setCollabTab('graph'); } },
@@ -2612,6 +2934,8 @@ const COMMANDS = [
   { group: '协作流程', icon: '↗', title: '跳到关联对象', hint: '沿真实连线切换当前只读焦点', shortcut: '', keys: '关联 相邻 边 edge 对象', run: () => stepRelatedCanvasFocus() },
   { group: '协作流程', icon: '⧉', title: '复制焦点上下文', hint: '复制当前节点的只读上下文提示给 AI', shortcut: '', keys: '复制 焦点 上下文 context', run: () => copyCanvasFocusContext() },
   { group: '协作流程', icon: '↔', title: '查看当前对象对话', hint: '定位到焦点节点绑定的批注与下一棒', shortcut: '', keys: '对话 批注 下一棒 对象', run: () => openFocusConversation() },
+  { group: '协作流程', icon: '◇', title: '查看当前对象证据', hint: '打开只读源码证据与源码跳转投影', shortcut: '', keys: '证据 源码 file:line 对象', run: () => openContextDrawer('evidence') },
+  { group: '协作流程', icon: '◎', title: '查看审阅就绪', hint: '打开只读就绪诊断；不替代完整 diff', shortcut: '', keys: '审阅 就绪 review readiness', run: () => openContextDrawer('review') },
   { group: '外观与帮助', icon: '☀', title: '切换浅色 / 深色主题', hint: '只影响本机界面，不改图主题', shortcut: '', keys: '主题 浅色 深色 theme', run: () => setUiTheme(prefs.uiTheme === 'light' ? 'dark' : 'light') },
   { group: '外观与帮助', icon: '⚙', title: '打开外观设置', hint: '主题、密度、预览背景与图表库', shortcut: '', keys: '外观 设置 快捷键 appearance', run: () => setAppearanceOpen(true) },
   { group: '外观与帮助', icon: '?', title: '打开快捷键帮助', hint: '查看视图、画布、效率与编辑快捷键', shortcut: 'H', keys: '帮助 快捷键 help keyboard', run: () => openShortcutDialog() },
@@ -3019,7 +3343,8 @@ function setCollabTab(target) {
     tab.tabIndex = active ? 0 : -1;
   }
   renderJourney();
-  if (next === 'graph') renderCanvasConversation();
+  if (next === 'graph') { renderCanvasConversation(); renderCanvasContextStrip(); }
+  renderInspector();
 }
 
 function renderJourney() {
@@ -3249,6 +3574,43 @@ function renderCanvasConversation() {
   button.disabled = !state.total;
 }
 
+function renderCanvasContextStrip() {
+  const nodes = collabGraph?.nodes || [];
+  const node = nodes.find((item) => item.id === selectedNodeId);
+  const evidence = node?.sourceEvidence?.filter((item) => item.path && Number.isFinite(item.line)) || [];
+  const navigationItems = Array.isArray(collabSourceNavigation?.items) ? collabSourceNavigation.items : [];
+  const navigationCount = navigationItems.filter((item) => !selectedNodeId || item.nodeId === selectedNodeId).length;
+  const decisionEvents = Array.isArray(collabDecisionTrail?.events) ? collabDecisionTrail.events : [];
+  const decisionCount = decisionEvents.filter((item) => !selectedNodeId || item.nodeId === selectedNodeId).length;
+  const readinessStatus = collabReviewReadiness?.status || collabCapabilities?.workflow?.reviewReadiness?.status || '—';
+  const readinessLabel = { ready: '就绪', review: '待复核', blocked: '阻塞' }[readinessStatus] || readinessStatus;
+  const values = {
+    evidence: { value: String(evidence.length), ready: evidence.length > 0 },
+    review: { value: readinessLabel, ready: readinessStatus === 'ready' },
+    decision: { value: String(decisionCount), ready: decisionCount > 0 },
+    navigation: { value: String(navigationCount), ready: navigationCount > 0 },
+  };
+  for (const [key, state] of Object.entries(values)) {
+    const button = $(`#btnCanvas${key[0].toUpperCase()}${key.slice(1)}`);
+    const output = $(`#canvas${key[0].toUpperCase()}${key.slice(1)}${key === 'review' ? 'State' : 'Count'}`);
+    if (button) button.dataset.ready = String(state.ready);
+    if (output) output.textContent = state.value;
+  }
+  $('#btnCanvasDecision').disabled = decisionCount === 0;
+  $('#btnCanvasNavigation').disabled = navigationCount === 0;
+  renderInspector();
+}
+
+function openContextDrawer(kind) {
+  openCollab();
+  setCollabTab('dialog');
+  const drawer = $(kind === 'evidence' ? '#contextDrawerMore' : '#contextDrawerKey');
+  if (drawer) drawer.open = true;
+  const target = $(kind === 'evidence' ? '#sourceEvidenceList' : '#reviewReadinessList');
+  if (target) target.scrollIntoView({ block: 'center' });
+  showToast(kind === 'evidence' ? '已打开只读源码证据；点击不会写文件' : '已打开只读审阅就绪诊断；它不替代完整 diff');
+}
+
 function openFocusConversation() {
   const state = focusConversationState();
   if (!state.total) return showToast('当前对象还没有绑定批注；可先在项目图栏添加图形批注');
@@ -3282,6 +3644,8 @@ function renderCanvasObject() {
   $('#canvasFocusRevision').textContent = `rev ${Number.isFinite(collabRevision) ? collabRevision : '—'}`;
   $('#btnCanvasRelatedNode').disabled = !relatedCount;
   renderCanvasConversation();
+  renderCanvasContextStrip();
+  renderInspector();
   $('#canvasObjectCard').title = node
     ? `${node.label} · ${node.path || '无路径'} · 只读焦点`
     : '项目结构图加载后可切换节点';
@@ -3647,6 +4011,7 @@ function renderActivity(timeline) {
 }
 
 function renderDiagnostics(diagnostics) {
+  renderInspector();
   const summary = $('#diagnosticsSummary');
   const list = $('#diagnosticsList');
   if (!summary || !list) return;
@@ -3669,6 +4034,7 @@ function renderDiagnostics(diagnostics) {
 
 function renderReviewReadiness(readiness) {
   collabReviewReadiness = readiness;
+  renderCanvasContextStrip();
   const summary = $('#reviewReadinessSummary');
   const list = $('#reviewReadinessList');
   if (!summary || !list) return;
@@ -3735,6 +4101,7 @@ function decisionTrailCategoryLabel(category) {
 }
 
 function renderDecisionTrail(trail) {
+  renderCanvasContextStrip();
   const summary = $('#decisionTrailSummary');
   const list = $('#decisionTrailList');
   if (!summary || !list) return;
@@ -3834,6 +4201,7 @@ function renderAnnotations(annotations) {
     </article>
   `).join('') : historyEmpty('⌖', '还没有图形批注', '在左侧项目图选中节点，再用 <code>添加图形批注</code> 把想法绑定到对象；AI 会把它作为只读讨论上下文。');
   renderCanvasConversation();
+  renderCanvasContextStrip();
   syncFocusLabelConversation();
 
   for (const button of target.querySelectorAll('[data-annotation-status]')) {
@@ -4064,6 +4432,7 @@ async function loadCollab() {
     renderDiagnostics(diagnostics.diagnostics);
     const reviewReadiness = await collabFetch('/api/collab/review-readiness');
     renderReviewReadiness(reviewReadiness);
+    renderCanvasContextStrip();
     const graphDiffs = await collabFetch('/api/collab/graph/diffs?limit=5');
     collabGraphDiffs = graphDiffs.diffs || [];
     renderGraphDiffs(graphDiffs.diffs);
@@ -4085,6 +4454,7 @@ async function loadCollab() {
     const decisionTrail = await collabFetch('/api/collab/decision-trail?eventLimit=30&lineLimit=6');
     collabDecisionTrail = decisionTrail;
     renderDecisionTrail(decisionTrail);
+    renderCanvasContextStrip();
     const capabilities = await collabFetch('/api/collab/capabilities');
     collabCapabilities = capabilities;
     renderCapabilities(capabilities);
@@ -4631,6 +5001,8 @@ $('#btnAddAnnotation').addEventListener('click', addAnnotation);
 loadList();
 connectWs();
 syncWelcomeState();
+syncAppearanceControls();
+renderInspector();
 
 // Restore last viewed diagram (URL path takes priority)
 const pathMatch = location.pathname.match(/\/diagram\/(.+)/);

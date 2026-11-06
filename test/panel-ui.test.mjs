@@ -107,6 +107,8 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#diagramSearch", (element) => element.placeholder)).toContain("搜索图表");
       expect(await page.$eval(".sidebar-empty", (element) => element.textContent)).toContain("还没有图表");
       expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(false);
+      expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
+      expect(await page.$eval("#btnRibbonInspector", (element) => element.getAttribute("aria-pressed"))).toBe("false");
       const welcome = await page.evaluate(() => ({
         kicker: document.querySelector(".welcome-kicker").textContent,
         title: document.querySelector("#welcomeCard h2").textContent,
@@ -174,18 +176,35 @@ describe("collaboration panel UI", () => {
         expanded: document.querySelector("#btnAppearance").getAttribute("aria-expanded"),
         groups: document.querySelectorAll(".appearance-group").length,
         shortcuts: document.querySelectorAll(".appearance-shortcuts kbd").length,
+        visualSystems: document.querySelectorAll("[data-visual]").length,
+        activeVisual: document.querySelector("[data-visual].active")?.dataset.visual,
         activeTheme: document.querySelector('[data-ui-theme].active')?.dataset.uiTheme,
         activeAmbient: document.querySelector('[data-ambient].active')?.dataset.ambient,
         activeZen: document.querySelector('[data-zen].active')?.dataset.zen,
       }));
-      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 6, shortcuts: 10, activeTheme: "dark", activeAmbient: "calm", activeZen: "off" });
+      expect(appearanceOpen).toMatchObject({ visible: true, expanded: "true", groups: 7, shortcuts: 11, visualSystems: 4, activeVisual: "aurora", activeTheme: "dark", activeAmbient: "calm", activeZen: "off" });
+      expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("V");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("4 / 5 / 6");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("? · Esc");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("7");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("Z");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("H");
       expect(await page.$$eval(".appearance-shortcuts kbd", (elements) => elements.map((element) => element.textContent).join(" "))).toContain("[ / ]");
-      await page.click('[data-ui-theme="light"]');
+      await page.click('#appearancePopover [data-visual="studio"]');
+      expect(await page.$eval("body", (element) => element.classList.contains("visual-studio"))).toBe(true);
+      expect(await page.$eval("#ribbonMode", (element) => element.textContent)).toContain("Studio");
+      await page.click('.visual-switch [data-visual="aurora"]');
+      expect(await page.$eval("body", (element) => element.classList.contains("visual-aurora"))).toBe(true);
+      expect(await page.$eval("#ribbonMode", (element) => element.textContent)).toContain("Aurora");
+      await page.keyboard.press("i");
+      expect(await page.$eval("#liveInspector", (element) => element.classList.contains("open"))).toBe(true);
+      expect(await page.$eval("#liveInspector", (element) => element.getAttribute("aria-hidden"))).toBe("false");
+      expect(await page.$$eval("#inspectorActions .inspector-row", (elements) => elements.length)).toBe(4);
+      expect(await page.$eval(".inspector-foot", (element) => element.textContent)).toContain("只读投影");
+      await page.keyboard.press("i");
+      expect(await page.$eval("#liveInspector", (element) => element.classList.contains("open"))).toBe(false);
+      await page.click('#btnAppearance');
+      await page.click('#appearancePopover [data-ui-theme="light"]');
       expect(await page.$eval("body", (element) => element.classList.contains("theme-light"))).toBe(true);
       await page.click('[data-ambient="vivid"]');
       expect(await page.$eval("body", (element) => element.classList.contains("ambient-calm"))).toBe(false);

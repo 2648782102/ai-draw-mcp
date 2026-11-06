@@ -612,9 +612,11 @@ export class PreviewServer {
   }
 
   private async serveHtml(_req: express.Request, res: express.Response) {
-    const compiled = path.join(__dirname, "templates", "index.html");
     const source   = path.resolve(__dirname, "../../src/infra/templates/index.html");
-    for (const p of [compiled, source]) {
+    const compiled = path.join(__dirname, "templates", "index.html");
+    const candidates = source === compiled ? [source] : [source, compiled];
+    res.set("Cache-Control", "no-store, max-age=0");
+    for (const p of candidates) {
       try {
         const html = (await fs.readFile(p, "utf-8")).replace("__AI_DRAW_PANEL_TOKEN__", panelToken);
         res.type("html").send(html);

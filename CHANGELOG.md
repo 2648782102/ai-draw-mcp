@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- 双视觉系统与实时上下文速览（2026-11-06 14:45 CST）：新增默认 **Aurora** 与可切换 **Studio** 两套完整视觉系统。Aurora 用顶栏渐变光带、工作区顶部光线、青紫对象卡光晕、品牌呼吸标识和协作工作台彩色顶边建立沉浸式共享画布；Studio 用高可读浅色表面、克制蓝色强调和清晰分栏适配长时间审阅。顶栏 `✦ Aurora / ▤ Studio` 分段控件、`V` 快捷键、⚙ 外观面板与命令面板共用同一偏好。图形出现后新增右下角状态胶囊与可展开的右侧「上下文速览」（`I`）：只读投影当前对象、源码证据、开放讨论、图修订、审阅就绪与下一步动作，动作只打开既有只读视图或复制上下文。所有状态从已加载会话派生，不新增 MCP 工具、不改 version 1 协议、不签发凭据、不批准提案或写项目文件。为根治「源码模板已改但浏览器看到旧页面」，预览服务改为优先读取 `src/infra/templates/index.html` 并发送 `Cache-Control: no-store`，开发态不再依赖重新构建 `dist`。中英文 README、快捷键帮助、命令面板、离线守卫、浏览器回归、CHANGELOG 与双视觉可复现截图同步覆盖。
+
+### Added
+
 - `SELECTION_WORKORDER_JSON` 增加纯派生 `freshness`：比较 `selectionRevision` 与当前 `graphRevision`，给出 `current` / `stale` / `none` 描述、复制文本与缺口提示，帮助人和 AI 在图变化后重新确认范围。该字段只提示，不刷新/清空选择、不改会话、不含凭据，也不授权写入；图保存只移除失锚节点 ID，不静默改写人类原选择修订。面板、MCP 文本、ADR、工作流示例、纯函数/HTTP/MCP 测试与离线检查同步覆盖。
 
 ### Maintenance
