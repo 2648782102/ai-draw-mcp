@@ -123,6 +123,11 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#healthProgressLabel", (element) => element.textContent)).toMatch(/\/ 4 步/);
       expect(await page.$eval(".graph-guide", (element) => element.textContent)).toContain("先生成一张项目结构图");
       expect(await page.$eval(".graph-row-header", (element) => getComputedStyle(element).position)).toBe("sticky");
+      expect(await page.$$eval(".history-tab", (elements) => elements.length)).toBe(4);
+      await page.$eval('[data-history-target="diffs"]', (element) => element.click());
+      await page.waitForFunction(() => document.querySelector('[data-history-pane="diffs"]').classList.contains("active"));
+      expect(await page.$eval('[data-history-target="diffs"]', (element) => element.classList.contains("active"))).toBe(true);
+      await page.$eval('[data-history-target="chat"]', (element) => element.click());
 
       await page.click("#btnGraphMore");
       expect(await page.$eval("#graphMoreActions", (element) => element.classList.contains("open"))).toBe(true);

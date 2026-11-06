@@ -420,6 +420,12 @@
     .signal-drawer > summary:hover { background: rgba(122,162,247,.07); }
     .signal-drawer .drawer-body { padding: 0 10px 10px; }
     .signal-drawer .diagnostics-list { margin-bottom: 6px; }
+    .history-tabs { display: flex; gap: 4px; margin: 0 0 7px; padding: 3px; border: 1px solid var(--border); border-radius: 9px; background: rgba(9,14,25,.42); }
+    .history-tab { flex: 1; height: 25px; padding: 0 5px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text-muted); font-size: 9px; cursor: pointer; }
+    .history-tab.active { background: rgba(122,162,247,.16); border-color: rgba(122,162,247,.42); color: var(--text); font-weight: 700; }
+    .history-pane { display: none; }
+    .history-pane.active { display: block; }
+    .history-pane > .chat-log { max-height: 220px; }
     .shortcut-hint { color: var(--text-muted); font-size: 10px; opacity: .82; }
     .collab-backdrop { position: absolute; inset: 0; z-index: 1001; pointer-events: none; }
     .collab-shell { z-index: 1002; }
@@ -763,11 +769,16 @@
           <p class="activity-summary" id="activitySummary">活动时间线加载中…</p>
         </div>
       </details>
-      <p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p>
-      <div class="chat-log graph-diff-list" id="graphDiffList"></div>
-      <div class="chat-log activity-list" id="activityList"></div>
-      <div class="chat-log" id="chatLog"></div>
-      <div class="chat-log" id="annotationList"></div>
+      <div class="history-tabs" role="tablist" aria-label="对话历史视图">
+        <button class="history-tab active" type="button" data-history-target="chat" role="tab">对话</button>
+        <button class="history-tab" type="button" data-history-target="activity" role="tab">活动</button>
+        <button class="history-tab" type="button" data-history-target="annotations" role="tab">批注</button>
+        <button class="history-tab" type="button" data-history-target="diffs" role="tab">差异</button>
+      </div>
+      <div class="history-pane active" data-history-pane="chat"><div class="chat-log" id="chatLog"></div></div>
+      <div class="history-pane" data-history-pane="activity"><p class="activity-summary" id="activitySummary">活动时间线加载中…</p><div class="chat-log activity-list" id="activityList"></div></div>
+      <div class="history-pane" data-history-pane="annotations"><div class="chat-log" id="annotationList"></div></div>
+      <div class="history-pane" data-history-pane="diffs"><p class="activity-summary" id="graphDiffSummary">图形修订差异加载中…</p><div class="chat-log graph-diff-list" id="graphDiffList"></div></div>
       </div>
       <div class="section-dock">
       <div class="dock-label"><span>发消息给 AI · ⌘/Ctrl + Enter</span><span id="messageCount">0 / 2000</span></div>
@@ -2811,6 +2822,15 @@ $('#btnDialogMore').addEventListener('click', (event) => {
   group.classList.toggle('open');
   event.currentTarget.textContent = group.classList.contains('open') ? '收起 ⌃' : '更多 ⌄';
 });
+for (const tab of document.querySelectorAll('.history-tab')) {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.historyTarget;
+    for (const other of document.querySelectorAll('.history-tab')) other.classList.toggle('active', other === tab);
+    for (const pane of document.querySelectorAll('.history-pane')) {
+      pane.classList.toggle('active', pane.dataset.historyPane === target);
+    }
+  });
+}
 const messageInput = $('#messageInput');
 const updateMessageCount = () => {
   const count = messageInput.value.length;
