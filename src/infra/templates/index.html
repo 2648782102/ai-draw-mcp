@@ -151,22 +151,52 @@
     .preview-wrap.dark-bg { background: radial-gradient(circle at 50% 30%, #15243d, #0b1220); }
     .welcome-card {
       position: absolute; inset: 50% auto auto 50%; z-index: 12;
-      width: min(520px, calc(100% - 48px)); transform: translate(-50%, -50%);
-      padding: 26px; border: 1px solid var(--border); border-radius: 16px;
-      background: linear-gradient(145deg, rgba(24,36,58,.96), rgba(9,14,25,.96));
-      box-shadow: var(--shadow); text-align: center; pointer-events: auto;
+      width: min(720px, calc(100% - 48px)); transform: translate(-50%, -50%);
+      display: grid; grid-template-columns: 1.32fr .68fr; overflow: hidden;
+      border: 1px solid rgba(122,162,247,.34); border-radius: 20px;
+      background: linear-gradient(145deg, rgba(24,36,58,.98), rgba(9,14,25,.98));
+      box-shadow: 0 28px 80px rgba(0,0,0,.54), inset 0 1px 0 rgba(255,255,255,.06);
+      text-align: left; pointer-events: auto;
     }
-    .welcome-card .welcome-icon { font-size: 30px; margin-bottom: 8px; }
-    .welcome-card h2 { font-size: 18px; margin-bottom: 8px; }
-    .welcome-card p { color: var(--text-muted); font-size: 11px; line-height: 1.7; margin-bottom: 14px; }
-    .welcome-features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 16px; }
-    .welcome-feature { padding: 9px 6px; border: 1px solid var(--border); border-radius: 9px; background: rgba(9,14,25,.45); font-size: 10px; }
-    .welcome-feature strong { display: block; color: var(--text); margin-bottom: 3px; }
-    .welcome-feature span { color: var(--text-muted); font-size: 9px; }
-    .welcome-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .welcome-main { padding: 26px 25px 22px; }
+    .welcome-kicker { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px; padding: 4px 9px; border: 1px solid rgba(122,162,247,.42); border-radius: 999px; background: rgba(122,162,247,.10); color: var(--accent); font-size: 9px; font-weight: 800; letter-spacing: .07em; }
+    .welcome-kicker::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(158,206,106,.14); }
+    .welcome-card .welcome-icon { display: grid; place-items: center; width: 38px; height: 38px; margin-bottom: 12px; border: 1px solid rgba(122,162,247,.38); border-radius: 12px; background: linear-gradient(135deg, rgba(122,162,247,.22), rgba(187,154,247,.14)); color: var(--accent); font-size: 22px; }
+    .welcome-card h2 { font-size: 21px; line-height: 1.35; letter-spacing: -.01em; margin-bottom: 9px; }
+    .welcome-card p { color: var(--text-muted); font-size: 11px; line-height: 1.75; margin-bottom: 15px; max-width: 370px; }
+    .welcome-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
+    .welcome-feature { padding: 9px 8px; border: 1px solid var(--border); border-radius: 10px; background: rgba(9,14,25,.48); font-size: 10px; }
+    .welcome-feature strong { display: block; color: var(--text); margin-bottom: 3px; font-size: 10px; }
+    .welcome-feature span { color: var(--text-muted); font-size: 9px; line-height: 1.35; }
+    .welcome-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .welcome-actions button { height: 32px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 11px; cursor: pointer; }
+    .welcome-actions button:hover { transform: translateY(-1px); border-color: rgba(122,162,247,.6); }
     .welcome-actions button.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #08111f; border-color: transparent; font-weight: 750; }
-    .welcome-shortcuts { margin-top: 13px; color: var(--text-muted); font-size: 9px; }
+    .welcome-shortcuts { margin-top: 13px; color: var(--text-muted); font-size: 9px; line-height: 1.5; }
+    .welcome-visual { position: relative; min-height: 306px; border-left: 1px solid var(--border); background: radial-gradient(circle at 50% 42%, rgba(122,162,247,.18), transparent 62%), linear-gradient(160deg, rgba(11,18,32,.92), rgba(19,30,50,.92)); overflow: hidden; }
+    .welcome-visual::before { content: ''; position: absolute; inset: 0; opacity: .18; background-image: linear-gradient(rgba(122,162,247,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(122,162,247,.18) 1px, transparent 1px); background-size: 22px 22px; mask-image: radial-gradient(circle at 50% 50%, #000, transparent 72%); }
+    .welcome-flow { position: absolute; inset: 50% auto auto 50%; width: min(190px, calc(100% - 18px)); height: 226px; transform: translate(-50%, -50%); }
+    .welcome-node { position: absolute; z-index: 2; display: grid; place-items: center; width: 58px; height: 41px; border: 1px solid rgba(122,162,247,.48); border-radius: 10px; background: rgba(15,25,43,.94); color: var(--text); font-size: 9px; font-weight: 800; text-align: center; box-shadow: 0 10px 26px rgba(0,0,0,.28); }
+    .welcome-node small { display: block; margin-top: 2px; color: var(--text-muted); font-size: 8px; font-weight: 500; }
+    .welcome-node.ai { top: 0; left: 50%; transform: translateX(-50%); border-color: rgba(122,162,247,.72); color: var(--accent); }
+    .welcome-node.human { bottom: 0; left: 50%; transform: translateX(-50%); border-color: rgba(158,206,106,.72); color: var(--green); }
+    .welcome-node.graph { top: 50%; left: 0; transform: translateY(-50%); }
+    .welcome-node.review { top: 50%; right: 0; transform: translateY(-50%); border-color: rgba(240,168,104,.72); color: var(--orange); }
+    .welcome-flow-center { position: absolute; z-index: 3; inset: 50% auto auto 50%; display: grid; place-items: center; width: 54px; height: 54px; transform: translate(-50%, -50%); border: 1px solid rgba(187,154,247,.62); border-radius: 50%; background: linear-gradient(135deg, rgba(122,162,247,.22), rgba(187,154,247,.18)); color: var(--text); font-size: 8px; font-weight: 800; line-height: 1.3; text-align: center; box-shadow: 0 0 0 7px rgba(122,162,247,.06); }
+    .welcome-line { position: absolute; z-index: 1; left: 50%; top: 50%; width: 2px; height: 58px; transform-origin: top center; background: linear-gradient(var(--accent), transparent); }
+    .welcome-line.line-top { transform: translate(-50%, -100%) rotate(180deg); }
+    .welcome-line.line-bottom { transform: translate(-50%, 0); background: linear-gradient(var(--green), transparent); }
+    .welcome-line.line-left { transform: translate(-50%, -50%) rotate(90deg); background: linear-gradient(var(--accent2), transparent); }
+    .welcome-line.line-right { transform: translate(-50%, -50%) rotate(-90deg); background: linear-gradient(var(--orange), transparent); }
+    .welcome-flow-center::after { content: ''; position: absolute; inset: -13px; border: 1px solid rgba(122,162,247,.42); border-radius: 50%; animation: welcome-pulse 2.6s ease-out infinite; }
+    @keyframes welcome-pulse { 0% { opacity: .8; transform: scale(.85); } 100% { opacity: 0; transform: scale(1.35); } }
+    .welcome-caption { position: absolute; left: 8px; right: 8px; bottom: 14px; text-align: center; color: var(--text-muted); font-size: 8px; letter-spacing: .08em; line-height: 1.5; text-transform: uppercase; }
+    body.theme-light .welcome-card { background: linear-gradient(145deg, #ffffff, #edf3fc); border-color: rgba(93,126,187,.42); }
+    body.theme-light .welcome-visual { background: radial-gradient(circle at 50% 42%, rgba(122,162,247,.16), transparent 48%), linear-gradient(160deg, #f6f9fe, #eaf1fb); }
+    body.theme-light .welcome-node { background: rgba(255,255,255,.96); }
+    body.theme-light .welcome-flow-center { background: #ffffff; }
+    body.density-compact .welcome-main { padding: 20px; }
+    body.density-compact .welcome-visual { min-height: 270px; }
     .workspace[data-view="source"] .welcome-card { display: none; }
     #diagramRender {
       position: absolute; top: 0; left: 0;
@@ -346,6 +376,38 @@
     button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible {
       outline: 2px solid rgba(122,162,247,.85); outline-offset: 2px;
     }
+    .receipt-backdrop {
+      position: fixed; inset: 0; z-index: 1400; display: grid; place-items: center;
+      padding: 18px; background: rgba(3,7,15,.72); backdrop-filter: blur(8px);
+      opacity: 0; pointer-events: none; transition: opacity .18s ease;
+    }
+    .receipt-backdrop.open { opacity: 1; pointer-events: auto; }
+    .receipt-backdrop[hidden] { display: none; }
+    .receipt-dialog {
+      width: min(520px, 100%); max-height: min(680px, calc(100vh - 36px)); overflow-y: auto;
+      border: 1px solid rgba(158,206,106,.42); border-radius: 18px;
+      background: linear-gradient(150deg, rgba(21,36,53,.98), rgba(9,14,25,.98));
+      box-shadow: 0 28px 80px rgba(0,0,0,.58); transform: translateY(8px) scale(.98);
+      transition: transform .2s cubic-bezier(.2,.8,.2,1);
+    }
+    .receipt-backdrop.open .receipt-dialog { transform: none; }
+    .receipt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 17px 18px 13px; border-bottom: 1px solid var(--border); }
+    .receipt-head strong { display: block; font-size: 14px; margin-bottom: 4px; }
+    .receipt-head span { display: block; color: var(--text-muted); font-size: 10px; line-height: 1.55; }
+    .receipt-icon { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid rgba(158,206,106,.5); border-radius: 11px; background: rgba(158,206,106,.12); color: var(--green); font-size: 17px; font-weight: 800; }
+    .receipt-body { padding: 14px 18px 18px; }
+    .receipt-warning { margin-bottom: 12px; padding: 9px 11px; border-left: 2px solid var(--orange); border-radius: 7px; background: rgba(240,168,104,.08); color: var(--text-muted); font-size: 10px; line-height: 1.6; }
+    .receipt-warning strong { color: var(--orange); }
+    .receipt-grid { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 7px 10px; align-items: stretch; }
+    .receipt-grid label { display: flex; align-items: center; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: rgba(9,14,25,.42); color: var(--text-muted); font-size: 9px; }
+    .receipt-value { display: flex; align-items: center; min-width: 0; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); font: 10px/1.45 'JetBrains Mono', Consolas, monospace; word-break: break-all; }
+    .receipt-expires { margin-top: 10px; color: var(--orange); font-size: 10px; }
+    .receipt-actions { display: flex; gap: 8px; margin-top: 15px; }
+    .receipt-actions button { flex: 1; height: 34px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface2); color: var(--text); font-size: 11px; font-weight: 650; cursor: pointer; }
+    .receipt-actions button.primary { border-color: transparent; background: linear-gradient(135deg, rgba(158,206,106,.92), rgba(122,162,247,.88)); color: #08111f; font-weight: 800; }
+    .receipt-actions button.copied { border-color: var(--green); color: var(--green); }
+    body.theme-light .receipt-dialog { background: linear-gradient(150deg, #ffffff, #eff5fd); }
+    body.theme-light .receipt-grid label, body.theme-light .receipt-value { background: #f7faff; }
     ::selection { background: rgba(122,162,247,.32); color: #fff; }
     *::-webkit-scrollbar { width: 9px; height: 9px; }
     *::-webkit-scrollbar-track { background: transparent; }
@@ -723,6 +785,9 @@
       .history-tab { flex: 0 0 auto; min-width: 62px; }
       .proposal-metrics { grid-template-columns: 1fr; }
       .toolbar #btnExportSvg, .toolbar #btnExportPng, .toolbar #btnCopyId, .toolbar #btnDeleteDiagram { display: none; }
+      .welcome-card { width: min(660px, calc(100% - 36px)); }
+      .welcome-main { padding: 21px; }
+      .welcome-features { gap: 5px; }
     }
     @media (max-width: 620px) {
       .header { height: 50px; }
@@ -738,6 +803,10 @@
       .journey-step + .journey-step::before { display: none; }
       .proposal-impact .impact-grid { grid-template-columns: repeat(2, 1fr); }
       .proposal-actions { flex-direction: column; }
+      .welcome-card { grid-template-columns: 1fr; width: min(480px, calc(100% - 24px)); max-height: calc(100vh - 120px); overflow-y: auto; }
+      .welcome-visual { display: none; }
+      .welcome-main { padding: 20px; }
+      .receipt-grid { grid-template-columns: 1fr; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
@@ -859,19 +928,34 @@
           <div id="diagramRender"></div>
           <div id="panOverlay"></div>
           <div class="welcome-card" id="welcomeCard">
-            <div class="welcome-icon" aria-hidden="true">◇</div>
-            <h2>把项目结构变成人和 AI 的共同工作区</h2>
-            <p>AI 负责生成图形与理解上下文；你负责修改、批注和批准。项目文件只在人工确认后变化。</p>
-            <div class="welcome-features">
-              <div class="welcome-feature"><strong>1 / 2 / 3</strong><span>分屏 · 源码 · 画布</span></div>
-              <div class="welcome-feature"><strong>C / Esc</strong><span>打开 / 关闭协作</span></div>
-              <div class="welcome-feature"><strong>F / 0</strong><span>适应 / 重置视图</span></div>
+            <div class="welcome-main">
+              <span class="welcome-kicker">LOCAL-FIRST · HUMAN ↔ AI</span>
+              <div class="welcome-icon" aria-hidden="true">◇</div>
+              <h2>从一张图开始，把项目说清楚</h2>
+              <p>AI 生成项目结构，人直接改图、对话和批注；每次文件变化都先经过逐行 diff 与人工确认。人和 AI 始终看的是同一份上下文。</p>
+              <div class="welcome-features">
+                <div class="welcome-feature"><strong>1 / 2 / 3</strong><span>分屏 · 源码 · 画布</span></div>
+                <div class="welcome-feature"><strong>4 / 5 / 6</strong><span>结构 · 对话 · 提案</span></div>
+                <div class="welcome-feature"><strong>C / Esc</strong><span>进入 / 离开协作</span></div>
+              </div>
+              <div class="welcome-actions">
+                <button type="button" class="primary" id="btnLoadExample">载入示例图形</button>
+                <button type="button" id="btnOpenCollabWelcome">打开协作工作台</button>
+              </div>
+              <div class="welcome-shortcuts">示例只写入本机编辑器并渲染预览，不创建图、不改协作会话、不写项目文件。</div>
             </div>
-            <div class="welcome-actions">
-              <button type="button" class="primary" id="btnLoadExample">载入示例图形</button>
-              <button type="button" id="btnOpenCollabWelcome">打开协作工作台</button>
+            <div class="welcome-visual" aria-hidden="true">
+              <div class="welcome-flow">
+                <span class="welcome-line line-top"></span><span class="welcome-line line-bottom"></span>
+                <span class="welcome-line line-left"></span><span class="welcome-line line-right"></span>
+                <span class="welcome-node ai">AI<small>扫描 / 生成</small></span>
+                <span class="welcome-node graph">结构图<small>节点 · 连线</small></span>
+                <span class="welcome-node review">提案<small>diff · 批准</small></span>
+                <span class="welcome-node human">人<small>修改 / 确认</small></span>
+                <span class="welcome-flow-center">共同<br>上下文</span>
+              </div>
+              <div class="welcome-caption">Visual context · Conversation · Reviewed change</div>
             </div>
-            <div class="welcome-shortcuts">示例只写入本机编辑器并渲染预览，不创建图、不写项目文件</div>
           </div>
           <div id="minimap">
             <div id="minimapContent"></div>
@@ -889,6 +973,24 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="receipt-backdrop" id="receiptBackdrop" hidden>
+  <section class="receipt-dialog" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
+    <div class="receipt-head">
+      <div><strong id="receiptTitle">✓ 一次性确认号已签发</strong><span>把完整确认号发给 AI；批准本身不会写项目文件。</span></div>
+      <span class="receipt-icon" aria-hidden="true">⚿</span>
+    </div>
+    <div class="receipt-body">
+      <div class="receipt-warning"><strong>仍需人工交接：</strong>请让 AI 调用 `apply_visual_proposal`，并使用下面四个字段。确认号只在有效期内可用，用后即失效；不要把它写进仓库或公开日志。</div>
+      <div class="receipt-grid" id="receiptGrid"></div>
+      <p class="receipt-expires" id="receiptExpires"></p>
+      <div class="receipt-actions">
+        <button type="button" class="primary" id="btnCopyReceipt">复制完整确认号</button>
+        <button type="button" id="btnCloseReceipt">我已交接 · 关闭</button>
+      </div>
+    </div>
+  </section>
+</div>
 
 <div class="collab-shell" id="collabShell" data-tab="graph" hidden>
   <div class="collab-header">
@@ -1249,7 +1351,13 @@ $('#btnZoomReset').addEventListener('click', () => resetView());
 // Keyboard: F=fit, 0=reset, +/- zoom
 window.addEventListener('keydown', (e) => {
   const collabShell = $('#collabShell');
+  const receiptBackdrop = $('#receiptBackdrop');
   const typing = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+  if (e.key === 'Escape' && receiptBackdrop && !receiptBackdrop.hidden) {
+    e.preventDefault();
+    closeReceiptDialog();
+    return;
+  }
   if (e.key === 'Escape' && collabShell && !collabShell.hidden) {
     e.preventDefault();
     collabShell.hidden = true;
@@ -1692,6 +1800,41 @@ function showToast(msg, duration = 2500) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), duration);
+}
+
+let activeReceipt = null;
+function receiptText(receipt) {
+  return [
+    '提案已批准。请把以下信息发给 AI，让它调用 apply_visual_proposal：',
+    `proposal_id: ${receipt.proposalId}`,
+    `approval_id: ${receipt.approvalId}`,
+    `approval_grant: ${receipt.grantHash}`,
+    `approval_expires_at: ${receipt.expiresAt}`,
+  ].join('\n');
+}
+function openReceiptDialog(receipt) {
+  activeReceipt = receipt;
+  const fields = [
+    ['提案 ID', receipt.proposalId],
+    ['批准 ID', receipt.approvalId],
+    ['确认号', receipt.grantHash],
+    ['有效期至', receipt.expiresAt],
+  ];
+  $('#receiptGrid').innerHTML = fields.map(([label, value]) => `<label>${escapeHtml(label)}</label><span class="receipt-value">${escapeHtml(value)}</span>`).join('');
+  const expires = new Date(receipt.expiresAt);
+  $('#receiptExpires').textContent = Number.isFinite(expires.getTime())
+    ? `⏳ 有效期约 10 分钟 · ${expires.toLocaleString()} 后失效；面板不会自动写入项目文件。`
+    : '⏳ 一次性凭据 · 面板不会自动写入项目文件。';
+  const backdrop = $('#receiptBackdrop');
+  backdrop.hidden = false;
+  requestAnimationFrame(() => backdrop.classList.add('open'));
+  $('#btnCopyReceipt').focus();
+}
+function closeReceiptDialog() {
+  const backdrop = $('#receiptBackdrop');
+  backdrop.classList.remove('open');
+  window.setTimeout(() => { backdrop.hidden = true; }, 180);
+  activeReceipt = null;
 }
 
 function flashButton(button, className = 'copied') {
@@ -3174,7 +3317,7 @@ async function addAnnotation() {
 }
 
 async function decideProposal(id, decision) {
-  if (decision === 'approve' && !confirm('确认批准该提案？批准后还需在 AI 对话中提供一次性确认号，项目文件才会改变。')) return;
+  if (decision === 'approve' && !confirm('确认批准该提案？下一步会显示一次性确认号，仍需把它交给 AI；面板不会自动写项目文件。')) return;
   const button = [...$('#proposalList').querySelectorAll(`[data-${decision}]`)]
     .find((candidate) => candidate.dataset[decision] === id);
   try {
@@ -3183,15 +3326,8 @@ async function decideProposal(id, decision) {
         body: JSON.stringify({ approvedBy: 'human' }),
       }));
     if (decision === 'approve' && result.receipt) {
-      const grant = [
-        `提案已批准。请把以下信息发给 AI，让它调用 apply_visual_proposal：`,
-        `proposal_id: ${result.receipt.proposalId}`,
-        `approval_id: ${result.receipt.approvalId}`,
-        `approval_grant: ${result.receipt.grantHash}`,
-        `approval_expires_at: ${result.receipt.expiresAt}`,
-      ].join('\n');
-      await navigator.clipboard?.writeText(grant).catch(() => {});
-      alert(grant);
+      await navigator.clipboard?.writeText(receiptText(result.receipt)).catch(() => {});
+      openReceiptDialog(result.receipt);
       showToast('确认号已复制，请发给 AI');
     } else {
       showToast(decision === 'approve' ? '提案已批准' : '提案已拒绝');
@@ -3277,7 +3413,21 @@ for (const step of document.querySelectorAll('.journey-step')) {
   });
 }
 $('#btnCommandHint').addEventListener('click', () => {
-  showToast('快捷键：1 分屏 · 2 源码 · 3 画布 · C 协作 · Esc 关闭 · F 适应窗口 · 0 重置缩放 · ⌘/Ctrl+Enter 渲染或发送', 4800);
+  showToast('快捷键：1 分屏 · 2 源码 · 3 画布 · 4 结构 · 5 对话 · 6 提案 · C 协作 · Esc 关闭 · F 适应窗口 · 0 重置缩放 · ⌘/Ctrl+Enter 渲染或发送', 4800);
+});
+$('#btnCopyReceipt').addEventListener('click', async (event) => {
+  if (!activeReceipt) return;
+  try {
+    await navigator.clipboard.writeText(receiptText(activeReceipt));
+    flashButton(event.currentTarget);
+  } catch {
+    flashButton(event.currentTarget, 'decision-error');
+    showToast('剪贴板不可用；请手动复制卡片中的四个字段');
+  }
+});
+$('#btnCloseReceipt').addEventListener('click', closeReceiptDialog);
+$('#receiptBackdrop').addEventListener('click', (event) => {
+  if (event.target === $('#receiptBackdrop')) closeReceiptDialog();
 });
 $('#btnLoadExample').addEventListener('click', loadExampleDiagram);
 $('#btnOpenCollabWelcome').addEventListener('click', openCollab);

@@ -105,6 +105,22 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#diagramSearch", (element) => element.placeholder)).toContain("搜索图表");
       expect(await page.$eval(".sidebar-empty", (element) => element.textContent)).toContain("还没有图表");
       expect(await page.$eval("#welcomeCard", (element) => element.hidden)).toBe(false);
+      const welcome = await page.evaluate(() => ({
+        kicker: document.querySelector(".welcome-kicker").textContent,
+        title: document.querySelector("#welcomeCard h2").textContent,
+        features: [...document.querySelectorAll(".welcome-feature strong")].map((element) => element.textContent),
+        nodes: [...document.querySelectorAll(".welcome-node")].map((element) => element.textContent),
+        center: document.querySelector(".welcome-flow-center").textContent,
+        width: Math.round(document.querySelector("#welcomeCard").getBoundingClientRect().width),
+        visualWidth: Math.round(document.querySelector(".welcome-visual").getBoundingClientRect().width),
+      }));
+      expect(welcome.kicker).toContain("HUMAN ↔ AI");
+      expect(welcome.title).toContain("从一张图开始");
+      expect(welcome.features).toContain("4 / 5 / 6");
+      expect(welcome.nodes.length).toBe(4);
+      expect(welcome.center).toContain("共同");
+      expect(welcome.width).toBeGreaterThan(520);
+      expect(welcome.visualWidth).toBeGreaterThan(180);
       expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("none");
 
       const diagramsBefore = await fetch(`${base}/api/diagrams`).then((response) => response.json());
@@ -323,6 +339,26 @@ describe("collaboration panel UI", () => {
       });
       expect(await page.$eval("#messageCount", (element) => element.textContent)).toBe("6 / 2000");
       expect(await page.$eval(".safety-note", (element) => element.textContent)).toContain("写入闸门");
+
+      page.once("dialog", async (dialog) => dialog.accept());
+      await page.click(".proposal-card.status-pending [data-approve]");
+      await page.waitForFunction(() => !document.querySelector("#receiptBackdrop").hidden);
+      const receipt = await page.evaluate(() => ({
+        title: document.querySelector("#receiptTitle").textContent,
+        fields: [...document.querySelectorAll("#receiptGrid label")].map((element) => element.textContent),
+        values: [...document.querySelectorAll(".receipt-value")].map((element) => element.textContent),
+        warning: document.querySelector(".receipt-warning").textContent,
+        expires: document.querySelector("#receiptExpires").textContent,
+        buttons: [...document.querySelectorAll(".receipt-actions button")].map((element) => element.textContent.trim()),
+      }));
+      expect(receipt.title).toContain("一次性确认号已签发");
+      expect(receipt.fields).toEqual(["提案 ID", "批准 ID", "确认号", "有效期至"]);
+      expect(receipt.values.every(Boolean)).toBe(true);
+      expect(receipt.warning).toContain("apply_visual_proposal");
+      expect(receipt.expires).toContain("有效期约 10 分钟");
+      expect(receipt.buttons[0]).toContain("复制完整确认号");
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => document.querySelector("#receiptBackdrop").hidden);
 
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
