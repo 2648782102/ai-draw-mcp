@@ -32,6 +32,8 @@ export interface AppConfig {
   defaultTheme: z.infer<typeof themeSchema>;
   defaultFormat: z.infer<typeof formatSchema>;
   workspaceRoot: string;
+  /** Opt-in legacy behavior: open the local browser/IDE panel after generated tools. */
+  autoOpenPanel: boolean;
 }
 
 function parsePort(raw: string | undefined, fallback: number): number {
@@ -39,6 +41,15 @@ function parsePort(raw: string | undefined, fallback: number): number {
   if (!Number.isFinite(n) || n < 1 || n > 65535)
     throw new Error(`PREVIEW_PORT invalid (got ${JSON.stringify(raw)}). Use 1–65535, e.g. 3399.`);
   return n;
+}
+
+function parseBooleanEnv(raw: string | undefined, fallback: boolean, name: string): boolean {
+  if (raw === undefined) return fallback;
+  const normalized = raw.trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+  logger.warn(`${name} invalid (${JSON.stringify(raw)}), falling back to ${fallback}`);
+  return fallback;
 }
 
 export function loadConfig(): AppConfig {
@@ -58,6 +69,8 @@ export function loadConfig(): AppConfig {
   const defaultFormat = formatParsed.success ? formatParsed.data : "svg";
   if (formatRaw && !formatParsed.success) logger.warn(`DEFAULT_FORMAT invalid (${JSON.stringify(formatRaw)}), falling back to "svg"`);
 
+  const autoOpenPanel = parseBooleanEnv(process.env.AI_DRAW_AUTO_OPEN_PANEL, false, "AI_DRAW_AUTO_OPEN_PANEL");
+
   return {
     previewHost,
     panelUriAuthority,
@@ -66,6 +79,7 @@ export function loadConfig(): AppConfig {
     defaultTheme,
     defaultFormat,
     workspaceRoot: resolveWorkspaceRoot(),
+    autoOpenPanel,
   };
 }
 

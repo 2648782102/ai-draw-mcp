@@ -13,6 +13,11 @@ try {
   await client.connect(transport);
   const { tools } = await client.listTools();
   console.log(`Registered tools: ${tools.length}`);
+  const { resources } = await client.listResources();
+  console.log(`Agent resources: ${resources.length}`);
+  const brief = await client.readResource({ uri: "ai-draw://board/brief" });
+  const briefText = brief.contents.find((item) => "text" in item)?.text ?? "";
+  console.log(`Brief resource: ${briefText.includes("BRIEF_JSON") || briefText.includes("\"version\": 1") ? "ready" : "empty"}`);
   const mermaidCode = await fs.readFile("examples/mermaid/login-flow.mmd", "utf8");
   const result = await client.callTool({
     name: "render_diagram",

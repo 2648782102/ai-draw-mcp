@@ -155,7 +155,8 @@ export class VisualSyncService {
     });
 
     const panelUrl = `http://${config.previewHost}:${config.previewPort}/diagram/${encodeURIComponent(id)}`;
-    if (options.openPanel !== false) await openPanelInIDE(panelUrl);
+    const shouldOpenPanel = options.openPanel ?? config.autoOpenPanel;
+    if (shouldOpenPanel) await openPanelInIDE(panelUrl);
     return {
       id,
       title,

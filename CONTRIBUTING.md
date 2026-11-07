@@ -1,6 +1,6 @@
 # Contributing to AI Draw MCP
 
-感谢你参与 AI Draw MCP。项目以 AI 可直接调用的 MCP 工具为主体：AI 生成结构化可视化上下文，人通过薄面板做轻量纠错、审阅 diff 并确认变更提案；面板不应扩展成聊天或协作应用。
+感谢你参与 AI Draw MCP。项目以 AI 可直接调用的 MCP 工具、资源和初始化指令为主体：AI 在 agent 内部生成并消费结构化可视化上下文，人只在需要时通过薄面板做轻量纠错、审阅 diff 并确认变更提案；面板不应扩展成聊天或协作应用，也不应成为普通工具调用的自动窗口副作用。
 
 ## 开发环境
 
@@ -32,7 +32,8 @@ export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS
 
 - 所有日志必须写 `stderr`，不能写 `stdout`：MCP 的 stdio 是 JSON-RPC 通道。
 - 工具名用 `snake_case`，注册函数用 `registerXxx`，文件名用 `kebab-case`。
-- 公共类型放在 `src/domain/types.ts`，配置类型放在 `src/infra/config.ts`。
+- 公共类型放在 `src/domain/types.ts`，配置类型放在 `src/infra/config.ts`，MCP 资源投影放在 `src/infra/agent-context.ts`。
+- 普通生成/扫描工具默认不打开浏览器；只有 `open_preview`、显式 `open_panel: true` 或 `AI_DRAW_AUTO_OPEN_PANEL=1` 才允许窗口副作用。
 - 工具通过 `src/tools/_shared.ts` 访问基础设施，不直接散落引用。
 - 涉及项目文件写入的能力必须先形成提案、再由人类确认；禁止绕过 `src/domain/path-safety.ts`。
 - 新增工具必须同步更新 `src/server.ts` 的 `TOOL_COUNT`、README、AGENTS.md 和测试。

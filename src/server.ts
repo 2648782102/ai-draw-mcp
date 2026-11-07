@@ -18,6 +18,13 @@ import { SessionStore } from "./infra/session-store.js";
 import { VisualSyncService } from "./infra/visual-sync-service.js";
 import { logger } from "./infra/logger.js";
 import { SERVER_VERSION } from "./infra/version.js";
+import {
+  MCP_INSTRUCTIONS,
+  buildAgentBrief,
+  buildAgentCapabilities,
+  buildAgentDiagnostics,
+  buildAgentSessionProjection,
+} from "./infra/agent-context.js";
 
 // ── Tool imports ──────────────────────────────────────────────────────────────
 // ← ADD NEW TOOL IMPORT HERE
@@ -51,6 +58,82 @@ import { SERVER_TOOL_COUNT } from "./domain/capabilities.js";
 
 const TOOL_COUNT = SERVER_TOOL_COUNT; // keep in sync when adding tools
 
+function registerAgentResources(mcp: McpServer, sessions: SessionStore, config: ReturnType<typeof loadConfig>): void {
+  const jsonResource = (uri: string, value: () => unknown) => ({
+    contents: [{
+      uri,
+      mimeType: "application/json",
+      text: JSON.stringify(value(), null, 2),
+    }],
+  });
+
+  mcp.registerResource(
+    "Shared board session",
+    "ai-draw://board/session",
+    {
+      title: "Shared board session",
+      description: "Credential-free current graph, focus, annotations, messages, graph diffs, downgraded proposal state, and an export manifest.",
+      mimeType: "application/json",
+      annotations: { audience: ["assistant"], priority: 1 },
+    },
+    async () => jsonResource("ai-draw://board/session", () => buildAgentSessionProjection(sessions)),
+  );
+
+  mcp.registerResource(
+    "Shared board brief",
+    "ai-draw://board/brief",
+    {
+      title: "Shared board brief",
+      description: "Compact read-only BRIEF_JSON handoff derived from the current session; excludes approval grants.",
+      mimeType: "application/json",
+      annotations: { audience: ["assistant"], priority: 0.9 },
+    },
+    async () => jsonResource("ai-draw://board/brief", () => buildAgentBrief(sessions)),
+  );
+
+  mcp.registerResource(
+    "Shared board capabilities",
+    "ai-draw://board/capabilities",
+    {
+      title: "Shared board capabilities",
+      description: "Versioned tool catalogue, JSON contracts, workflow readiness, next action, and the write boundary.",
+      mimeType: "application/json",
+      annotations: { audience: ["assistant"], priority: 0.8 },
+    },
+    async () => jsonResource("ai-draw://board/capabilities", () => buildAgentCapabilities(sessions, SERVER_VERSION)),
+  );
+
+  mcp.registerResource(
+    "Shared board diagnostics",
+    "ai-draw://board/diagnostics",
+    {
+      title: "Shared board diagnostics",
+      description: "Read-only session health, signals, next actions, and project-write safety invariants.",
+      mimeType: "application/json",
+      annotations: { audience: ["assistant"], priority: 0.7 },
+    },
+    async () => jsonResource("ai-draw://board/diagnostics", () => buildAgentDiagnostics(sessions)),
+  );
+
+  mcp.registerResource(
+    "Shared board panel",
+    "ai-draw://board/panel",
+    {
+      title: "Shared board panel",
+      description: "Optional localhost URL for human review; agents should consume JSON resources instead of opening this URL.",
+      mimeType: "text/plain",
+      annotations: { audience: ["user", "assistant"], priority: 0.1 },
+    },
+    async () => ({
+      contents: [{
+        uri: "ai-draw://board/panel",
+        mimeType: "text/plain",
+        text: `http://${config.previewHost}:${config.previewPort}/\n`,
+      }],
+    }),
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function createServer() {
@@ -74,7 +157,10 @@ export async function createServer() {
   });
   preview = new PreviewServer(store, config, sessions, visualSync);
 
-  const mcp = new McpServer({ name: "ai-draw-mcp", version: SERVER_VERSION });
+  const mcp = new McpServer(
+    { name: "ai-draw-mcp", version: SERVER_VERSION },
+    { instructions: MCP_INSTRUCTIONS },
+  );
 
   const ctx = { store, config, preview, sessions, visualSync };
 
@@ -106,6 +192,8 @@ export async function createServer() {
   registerGetCapabilities(mcp, ctx);
   registerGetSelectionScope(mcp, ctx);
   registerGetSelectionWorkorder(mcp, ctx);
+
+  registerAgentResources(mcp, sessions, config);
 
   logger.info(`${TOOL_COUNT} MCP tools registered`);
 

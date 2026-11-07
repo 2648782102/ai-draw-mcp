@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Agent 内部优先的 MCP 表面（2026-11-07）：MCP 初始化指令与 `ai-draw://board/{session,brief,capabilities,diagnostics,panel}` 五个只读资源让 agent 在 IDE / CLI 内直接发现工具、读取图形上下文、交接简报、诊断和可选面板地址；普通生成图与 `scan_project` 默认不再自动打开浏览器或 Simple Browser。`open_preview`、显式 `scan_project(open_panel: true)` 与 `AI_DRAW_AUTO_OPEN_PANEL=1` 保留给人按需查看画布。资源由 `src/infra/agent-context.ts` 从现有 version 1 会话派生，复用去敏 bundle、导出清单和只读投影，剔除一次性凭据、凭据式 metadata 与临时本机状态；新增 [ADR 0024](docs/ADR/0024-agent-first-mcp-surface.md)、MCP 资源回归、Codex 配置示例与离线守卫。官方 OpenAI 文档确认 MCP server 可提供 tools/resources/instructions 而自定义 UI 资源是可选的，Codex CLI 与 IDE 共用 MCP 配置；不改变 26 个工具名/参数、version 1 协议、完整 diff、人工批准、一次性确认号或项目写入闸门。
+
 - 清理旧界面截图与本机图库（2026-11-07）：删除 13 张旧布局 PNG，只保留 `docs/shared-board-panel.png` 作为唯一当前界面基线；`npm run ui:shots` 改为只复现这一张图，离线守卫会拒绝再次堆积 `docs/*.png`。清理本地运行时的旧 `output/diagrams.json`、`output/.ai-draw/session.json` 与历史 SVG/PNG，再从当前工作区重新扫描生成一张新图，避免旧版本协议或旧会话把当前画板带偏。版本化 SVG 概念图仍保留；不改变 26 个 MCP 工具、version 1 协议、完整 diff、人工批准、一次性确认号或项目写入闸门。
 
 - 可读首屏扫描（2026-11-07）：默认项目扫描从 4 层 / 400 节点收束为 2 层 / 40 节点，并只在默认参数下把大项目按顶层分组生成「根目录 → 分组 → 代表对象 / 另有 N 个对象」的有界布局，避免 Mermaid 把上百个平铺对象排成极窄竖条。显式 `max_files` / `max_depth` 仍可展开更完整的结构，`group_summary` 可关闭分组收束；汇总节点只是 version 1 图形对象，不新增工具、不改协议字段、不授权项目写入。

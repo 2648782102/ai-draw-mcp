@@ -7,8 +7,8 @@ This guide covers first-run problems that are easiest to diagnose from the local
 1. `node --version` is 20, 22, or 24.
 2. `npm ci && npm run build` succeeds from a clean checkout.
 3. `npm run doctor` passes; if Chrome is outside Puppeteer's cache, set `PUPPETEER_EXECUTABLE_PATH`.
-4. The MCP host uses stdio and starts `npx ai-draw-mcp` or `node dist/index.js` with an absolute `OUTPUT_DIR`.
-5. `PREVIEW_HOST` stays at `127.0.0.1`; open `http://127.0.0.1:3399/` in the IDE Simple Browser or a local browser.
+4. The MCP host uses stdio and starts `npx ai-draw-mcp` or `node dist/index.js` with an absolute `OUTPUT_DIR` and `AI_DRAW_WORKSPACE_ROOT`.
+5. The agent consumes `get_capabilities`, `scan_project`, `get_visual_context`, and `ai-draw://board/*` directly; no browser is required. `PREVIEW_HOST` stays at `127.0.0.1`; open `http://127.0.0.1:3399/` or call `open_preview` only when the human wants the canvas.
 6. Run `node examples/collab-demo.mjs` once to see the full scan → edit → propose → approve → apply loop in a temporary workspace.
 
 ## Common problems
@@ -16,6 +16,7 @@ This guide covers first-run problems that are easiest to diagnose from the local
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | `PREVIEW_PORT` already in use | Another MCP server or panel is running | Set `PREVIEW_PORT=3400` in the MCP host config, or stop the existing process. |
+| A browser or IDE panel opens during normal MCP calls | `AI_DRAW_AUTO_OPEN_PANEL` was enabled, or an explicit `open_panel: true` / `open_preview` call was made | Remove the host env override and avoid the explicit human-facing open path; default tool calls are headless. |
 | `mmdc` fails to launch Chrome | Puppeteer cannot find a usable browser | Set `PUPPETEER_EXECUTABLE_PATH` to local Chrome/Chromium; on hardened Linux CI use `MERMAID_CHROME_NO_SANDBOX=1`. |
 | Panel is blank or JavaScript throws | Stale MCP process or stale panel token | Restart the MCP server in the host, then reload the panel URL. |
 | `scan_project` shows the wrong repository | `AI_DRAW_WORKSPACE_ROOT` points at the package or another workspace | Set it to the project root that the AI should scan and write to. |

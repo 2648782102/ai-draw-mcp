@@ -63,19 +63,19 @@ export function jsonLine(payload: Record<string, string | undefined>): string {
 
 /**
  * One-line hint shown in MCP tool responses.
- * Editor-agnostic: just show the http:// URL and universal instructions.
+ * Agent-first: the URL is optional; the browser is never required to consume tool output.
  */
 export function openHint(httpPanelUrl: string, _config: AppConfig): string {
   return [
-    `面板地址：${httpPanelUrl}`,
-    `（在编辑器内置浏览器中打开：Ctrl+Shift+P → "Simple Browser: Show" 粘贴上方地址；或让 AI 调用 open_preview 工具）`,
+    `可选面板地址：${httpPanelUrl}`,
+    `（AI 直接消费本工具返回的结构化结果即可；只有人需要看画布时才调用 open_preview 或打开该地址）`,
   ].join("\n");
 }
 
 function workflowHint(kind: "mermaid" | "svg"): string {
   if (kind === "svg")
-    return "提示：SVG 模式，在面板编辑完整 SVG 并保存写回磁盘。管理：list_diagrams、delete_diagram。";
-  return "提示：可用 update_diagram(diagram_id, mermaid_code) 迭代；list_diagrams 查看全部；delete_diagram 删除；open_preview 打开面板。";
+    return "提示：SVG 模式；agent 可直接继续处理 ID 与资产路径。管理：list_diagrams、delete_diagram；人需要查看时才用 open_preview。";
+  return "提示：可用 update_diagram(diagram_id, mermaid_code) 迭代；list_diagrams 查看全部；delete_diagram 删除；人需要查看时才用 open_preview。";
 }
 
 export function errorResult(toolName: string, err: unknown): ToolResult {
@@ -110,11 +110,11 @@ export async function renderMermaidAndRespond(opts: RenderOpts): Promise<ToolRes
   await store.add({ id, title, type: diagramType, createdAt: new Date().toISOString(), svgPath, pngPath, mermaidCode });
 
   const panelUrl = panelDiagramUrl(config, id);
-  await openPanelInIDE(panelUrl);
+  if (config.autoOpenPanel) await openPanelInIDE(panelUrl);
   preview.notifyNewDiagram(id, title, mermaidCode);
 
   const lines = [
-    `✅ 图表「${title}」已推送到编辑器面板`,
+    `✅ 图表「${title}」已生成并写入 MCP 会话`,
     ``,
     `ID: ${id}`,
     `面板: ${panelUrl}`,
@@ -157,11 +157,11 @@ export async function renderSvgAndRespond(opts: SvgOpts): Promise<ToolResult> {
   await store.add({ id, title, type: "custom", createdAt: new Date().toISOString(), svgPath, pngPath });
 
   const panelUrl = panelDiagramUrl(config, id);
-  await openPanelInIDE(panelUrl);
+  if (config.autoOpenPanel) await openPanelInIDE(panelUrl);
   preview.notifyNewDiagram(id, title, "");
 
   const lines = [
-    `✅ SVG 图「${title}」已推送到面板（可编辑 SVG 源码）`,
+    `✅ SVG 图「${title}」已生成并写入 MCP 会话`,
     ``,
     `ID: ${id}`,
     `面板: ${panelUrl}`,

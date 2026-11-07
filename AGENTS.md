@@ -8,6 +8,8 @@
 
 `ai-draw-mcp` 是一个本机优先的**AI 与人类项目沟通画板**。共享项目图是双方交流项目理解与意图的主要工作区；MCP stdio 是 AI 访问图形、证据、焦点/选择、批注和提案的接入方式。人类在画布中改图、选范围、附加上下文；AI 读取这些变化并在同一会话回应。产品定义与落地顺序见 [docs/PRODUCT_DIRECTION.md](docs/PRODUCT_DIRECTION.md) 与 [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md)。
 
+AI 的默认工作位置是 agent 内部：MCP 初始化指令与 `ai-draw://board/{session,brief,capabilities,diagnostics,panel}` 只读资源为宿主提供发现、交接、会话、诊断和可选面板 URL；普通工具调用不应自动打开浏览器或 IDE。`open_preview`、`scan_project(open_panel: true)` 与 `AI_DRAW_AUTO_OPEN_PANEL=1` 是面向人的显式兼容入口。详见 [ADR 0024](docs/ADR/0024-agent-first-mcp-surface.md)。官方 OpenAI 文档把 MCP UI 资源列为可选能力，并说明 Codex CLI 与 IDE 共用 MCP 配置。
+
 AI 主循环：
 
 ```text
@@ -61,6 +63,7 @@ src/
 │   ├── renderer.ts           mmdc / sharp 渲染，SVG 包装
 │   ├── preview-server.ts     Express REST + WebSocket + 协作 API
 │   ├── ide-opener.ts         在 IDE 中打开 Simple Browser
+│   ├── agent-context.ts      MCP instructions 与 ai-draw://board/* 只读资源投影
 │   ├── logger.ts             stderr logger
 │   └── templates/index.html  薄辅助面板：查看/纠错/审阅/批准
 └── tools/
@@ -129,7 +132,7 @@ ROADMAP.md                   产品路线图与非目标
 | 分组 | 工具 |
 |------|------|
 | Mermaid / SVG 绘图 | `render_diagram`、`render_flowchart`、`render_sequence`、`render_architecture`、`render_class_diagram`、`render_mindmap`、`render_svg` |
-| 图管理 | `update_diagram`、`delete_diagram`、`list_diagrams`、`open_preview` |
+| 图管理 | `update_diagram`、`delete_diagram`、`list_diagrams`、`open_preview`（按需打开人用面板） |
 | 双向协作 | `scan_project`、`get_visual_context`、`reply_to_visual_context`、`create_visual_proposal`、`apply_visual_proposal` |
 | 提案预检 | `preflight_visual_proposal` |
 | 只读变更模板 | `list_change_templates` |
@@ -265,6 +268,7 @@ server.tool(
 | `PREVIEW_PORT` | `3399` | 预览服务端口 |
 | `PREVIEW_HOST` | `127.0.0.1` | 面板 URL 主机名，也是 HTTP 监听地址 |
 | `AI_DRAW_WORKSPACE_ROOT` | 包根目录 | 项目扫描与提案写入的目标工作区 |
+| `AI_DRAW_AUTO_OPEN_PANEL` | `false` | 兼容旧行为的宿主级开关；设为 `1` / `true` 时生成工具才尝试自动打开面板 |
 | `OUTPUT_DIR` | `./output` | 图与会话输出目录；建议绝对路径 |
 | `DEFAULT_THEME` | `default` | Mermaid 主题 |
 | `DEFAULT_FORMAT` | `svg` | 默认输出格式 |

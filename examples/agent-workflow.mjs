@@ -33,6 +33,7 @@ const transport = new StdioClientTransport({
     OUTPUT_DIR: outputDir,
     PREVIEW_PORT: "3435",
     LOG_LEVEL: "error",
+    AI_DRAW_AUTO_OPEN_PANEL: "0",
   },
 });
 const client = new Client({ name: "ai-draw-workflow-example", version: "1.0.0" });
@@ -66,6 +67,22 @@ function jsonAfter(text, marker) {
 
 try {
   await client.connect(transport);
+  const instructions = client.getInstructions() ?? "";
+  if (!instructions.includes("Prefer MCP tools and resources directly inside the agent")) {
+    throw new Error("The server unexpectedly omitted agent-first MCP instructions");
+  }
+  const { resources } = await client.listResources();
+  const resourceUris = resources.map((resource) => resource.uri);
+  for (const uri of ["ai-draw://board/session", "ai-draw://board/brief", "ai-draw://board/capabilities", "ai-draw://board/diagnostics", "ai-draw://board/panel"]) {
+    if (!resourceUris.includes(uri)) throw new Error(`The server unexpectedly omitted MCP resource ${uri}`);
+  }
+  const sessionResource = await client.readResource({ uri: "ai-draw://board/session" });
+  const sessionText = sessionResource.contents.map((item) => item.text ?? "").join("\n");
+  if (sessionText.includes('"approvalGrant":') || sessionText.includes('"approvalId":')) {
+    throw new Error("The session resource unexpectedly exposed an approval credential");
+  }
+  console.log("    MCP surface: agent-first instructions / 5 credential-free resources");
+
   console.log("0/5 Scanning the temporary workspace through MCP …");
   const scanText = textOf(await client.callTool({
     name: "scan_project",

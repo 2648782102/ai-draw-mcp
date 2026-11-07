@@ -46,6 +46,7 @@ The loop can pause or repeat at any point. Reading, correcting, and discussing t
 5. **Keep the surface small.** The default view prioritizes canvas, current selection, and relevant notes. Diagnostics and derived JSON projections remain available on demand for agents and maintainers.
 6. **Keep project writes explicit.** The person reviews the full diff and approves the exact proposal; the AI applies it using the one-time receipt and existing path-safety checks.
 7. **Stay local-first.** The board works with the local project and MCP host without requiring an account or hosted collaboration service.
+8. **Keep the agent in the agent.** MCP stdio tools, resources, and instructions are the default AI workflow; browser or IDE window opening is an explicit, human-facing opt-in rather than a side effect of normal tool calls.
 
 ## Boundaries
 
@@ -54,6 +55,7 @@ The loop can pause or repeat at any point. Reading, correcting, and discussing t
 - It does not need a separate chat product, social presence, or mandatory turn-taking workflow. Contextual notes and replies serve the shared visual model.
 - It does not let the AI write project files directly from a conversation, graph edit, or annotation. Every project write goes through a proposal, human-reviewed full diff, explicit approval, one-time receipt, path validation, and `SessionStore.applyProposal()`.
 - The version 1 MCP and session contracts remain compatibility boundaries. Product realignment should reuse existing graph, message, annotation, focus, selection, and proposal capabilities where possible; any protocol change requires an ADR, migration plan, and compatibility coverage.
+- `ai-draw://board/*` resources are derived, credential-free projections for AI hosts. They do not add a second source of truth, conversation state machine, custom UI requirement, or approval grant.
 
 ## Current implementation gap
 

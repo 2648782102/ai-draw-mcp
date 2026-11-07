@@ -130,6 +130,14 @@ const releaseWorkflow = await read(".github/workflows/release.yml");
 const contributing = await read("CONTRIBUTING.md");
 const pullRequestTemplate = await read(".github/PULL_REQUEST_TEMPLATE.md");
 const featureRequestTemplate = await read(".github/ISSUE_TEMPLATE/feature_request.yml");
+const agentContext = await read("src/infra/agent-context.ts");
+const agentContextTest = await read("test/agent-context.test.mjs");
+const agentFirstAdr = await read("docs/ADR/0024-agent-first-mcp-surface.md");
+const serverSource = await read("src/server.ts");
+const configSource = await read("src/infra/config.ts");
+const sharedTools = await read("src/tools/_shared.ts");
+const openPreviewTool = await read("src/tools/open-preview.ts");
+const codexMcpExample = await read("examples/mcp-config/codex.toml");
 
 const expectedDescription = "Local-first visual communication board where people and AI share and refine a software project model; code changes remain human-approved.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
@@ -149,6 +157,33 @@ const expectedTopics = [
 ];
 
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
+check(agents.includes("ai-draw://board/{session,brief,capabilities,diagnostics,panel}"), "AGENTS.md does not document the agent-first MCP resources");
+check(architecture.includes("MCP 初始化指令与 5 个只读 `ai-draw://board/*` 资源"), "ARCHITECTURE.md does not document agent-first MCP resources");
+check(productDirection.includes("Keep the agent in the agent"), "PRODUCT_DIRECTION.md is missing the agent-first experience principle");
+check(englishQuickstart.includes("tools do not open a browser by default"), "README.en.md does not document the headless MCP default");
+check(readme.includes("工具调用不再自动弹出浏览器"), "README.md does not document the headless MCP default");
+check(roadmap.includes("ai-draw://board/*"), "ROADMAP.md does not document MCP resources");
+check(documentationMap.includes("0024-agent-first-mcp-surface.md"), "docs/README.md does not link ADR 0024");
+check(agentFirstAdr.includes("MCP stdio is the default AI-facing product surface"), "ADR 0024 is missing the agent-first decision");
+check(agentContext.includes("buildAgentSessionProjection"), "agent-context.ts is missing the session resource projection");
+check(agentContext.includes("scrubProposalMetadata"), "agent-context.ts does not scrub credential-like metadata");
+check(agentContextTest.includes("credential-free bundles"), "agent-context.test.mjs is missing the credential-free resource assertion");
+check(serverSource.includes("instructions: MCP_INSTRUCTIONS"), "server.ts does not publish MCP instructions");
+check(serverSource.includes('"ai-draw://board/session"'), "server.ts is missing the session resource");
+check(serverSource.includes('"ai-draw://board/panel"'), "server.ts is missing the optional panel resource");
+check(configSource.includes("autoOpenPanel"), "config.ts is missing the auto-open opt-in");
+check(configSource.includes('process.env.AI_DRAW_AUTO_OPEN_PANEL'), "config.ts is missing the AI_DRAW_AUTO_OPEN_PANEL env var");
+check(sharedTools.includes("if (config.autoOpenPanel) await openPanelInIDE(panelUrl)"), "render pipelines are not opt-in for panel opening");
+check(scanTool.includes("Open the preview panel for a human (default false)"), "scan_project still describes browser opening as the default");
+check(openPreviewTool.includes("仅当人明确想查看共享画板时"), "open_preview does not describe the human-facing opt-in");
+check(codexMcpExample.includes('AI_DRAW_AUTO_OPEN_PANEL = "0"'), "Codex example does not disable legacy auto-open behavior");
+check(changelog.includes("Agent 内部优先的 MCP 表面"), "CHANGELOG.md is missing the agent-first MCP entry");
+check(launchKit.includes("Agent-first 短帖"), "LAUNCH_KIT.md is missing the agent-first launch copy");
+check(troubleshooting.includes("no browser is required"), "TROUBLESHOOTING.md does not state the headless MCP default");
+check(contributing.includes("普通生成/扫描工具默认不打开浏览器"), "CONTRIBUTING.md does not state the headless tool convention");
+check(mcpTest.includes("agent-first instructions and credential-free read-only resources"), "mcp.test.mjs is missing MCP resource regression");
+check(agentWorkflowExample.includes("agent-first MCP instructions"), "agent-workflow.mjs does not verify MCP instructions");
+check(examplesReadme.includes("mcp-config/codex.toml"), "examples/README.md does not list the Codex MCP example");
 check(await assetExists("docs/collaboration-loop.svg"), "README is missing the shared-board concept diagram");
 check(await assetExists("docs/shared-board-panel.png"), "README is missing the canonical shared-board screenshot");
 const docsPngs = (await fs.readdir(path.join(root, "docs")))
@@ -959,7 +994,7 @@ for (const [label, file, needle] of [
   ["dialog star track canvas browser regression", canvasFocusTest, "handoffStars"],
   ["dialog star track reduced motion CSS", panel, '.dialog-star[data-status="pending"]::after { animation: none;'],
   ["dialog star track browser regression", panelUiTest, "welcomeDialogTrack"],
-  ["shared-board Chinese README", readme, "AI 与人类项目沟通画板"],
+  ["shared-board Chinese README", readme, "项目沟通画板"],
   ["shared-board English README", englishQuickstart, "visual communication board"],
   ["shared-board agents definition", agents, "AI 与人类项目沟通画板"],
   ["shared-board roadmap principle", roadmap, "The shared visual board is the product"],

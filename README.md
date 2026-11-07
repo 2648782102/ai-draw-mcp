@@ -1,8 +1,8 @@
 # AI Draw MCP
 
-> 一个本机优先的 AI 与人类项目沟通画板：AI 通过 MCP 把项目理解呈现在共享画布上，人通过图形编辑、选择和对象批注表达意图；项目文件变更仍须人工审阅与批准。
+> 一个本机优先、给 IDE 里的 AI 直接使用的项目沟通画板：AI 通过 MCP 工具与资源读写共享图形上下文，人只在需要查看、纠错、审 diff 时打开薄面板；项目文件变更仍须人工审阅与批准。
 
-AI 通过 MCP stdio 访问共享项目图、源码证据、人的焦点/选择与画布上下文；人通过本机浏览器画布查看并纠正 AI 的理解。节点、关系、批注和修订共同承载双方围绕项目的交流，AI 可读取人的视觉意图并在同一会话中回应。
+AI 默认在 agent 内部通过 MCP stdio / `ai-draw://board/*` 资源读取共享项目图、源码证据、人的焦点/选择与画布上下文；工具调用不再自动弹出浏览器。人可以在需要时通过 `open_preview` 或 `http://127.0.0.1:3399/` 打开本机共享画板查看并纠正 AI 的理解。节点、关系、批注和修订共同承载双方围绕项目的交流，AI 可读取人的视觉意图并在同一会话中回应。
 
 产品定义与后续演进计划见 [产品方向](docs/PRODUCT_DIRECTION.md)。当前 `0.3.4` 已支持项目扫描、图形编辑、选择、给当前对象/范围写画布留言、在同一锚定线程里继续回复、AI 读取并回应，以及提案审批。画布沟通本身不授权写入：**只有人类审阅完整 diff、明确批准并签发一次性确认号后，AI 才能应用提案修改项目文件**。
 
@@ -38,7 +38,7 @@ AI 通过 MCP stdio 访问共享项目图、源码证据、人的焦点/选择�
 
 ## 功能
 
-- **26 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_capabilities`、`get_selection_scope`、`get_selection_workorder`、`get_visual_context`、`get_shared_brief`、`get_decision_trail`、`get_node_context`、`get_source_navigation`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
+- **26 个 MCP 工具 + 5 个只读资源** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_capabilities`、`get_selection_scope`、`get_selection_workorder`、`get_visual_context`、`get_shared_brief`、`get_decision_trail`、`get_node_context`、`get_source_navigation`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`；新 agent 可直接读取 `ai-draw://board/{session,brief,capabilities,diagnostics,panel}`，MCP 初始化指令也会明确「优先在 agent 内使用，不主动开浏览器」
 - **共享画布** — 默认以「单一画板栏 + 连续画布 + 固定对象检视器」展示 AI 扫描的项目结构，支持节点/连线纠错、焦点/多选；右侧把当前对象、源码证据、关系、有序人 / AI 线程收束在同一处，并可直接留言或继续回复；图库与审阅台都按需打开
 - **有界图形撤销 / 重做** — 12 步视觉状态历史，人类确认后恢复节点/连线/批注为一次新图形修订；不回退项目文件、提案状态或一次性批准凭据
 - **只读源码证据** — 扫描时为源码/文档节点记录少量 `file:line` 定义、导入或标题线索，AI 与面板可引用代码位置；证据不自动改代码、不扩大提案路径，也不签发批准凭据
@@ -156,7 +156,7 @@ npm run test:examples:workflow
 
 ## 快速开始
 
-最短体验路径：从源码安装 → 在 IDE 配置 MCP → 让 AI 调用 `scan_project` → 在面板查看项目结构图与上下文 → 必要时审阅完整 diff 并授权写入。完整闭环可运行 `node examples/collab-demo.mjs`。
+最短体验路径：从源码安装 → 在 IDE 配置 MCP → 让 AI 调用 `get_capabilities` / `scan_project` 并直接消费结构化结果 → 只有需要人看画布时才调用 `open_preview` → 必要时审阅完整 diff 并授权写入。完整闭环可运行 `node examples/collab-demo.mjs`。
 
 > **版本说明（2026-11-07）**：仓库源码与 GitHub Release 为 `0.3.4`，但 npm registry 的 `ai-draw-mcp` 仍是 `0.2.0`。`npm install -g ai-draw-mcp` 与 `npx ai-draw-mcp` 当前只会装到旧版本；想使用本仓库当前功能，请按「方式一：从源码安装」。等 npm 发布同步后，再恢复 npm / npx 安装路径。
 
@@ -236,7 +236,7 @@ npm install -g ai-draw-mcp
 | `update_diagram` | 按 ID 更新已有图（重新渲染 + 推送） |
 | `delete_diagram` | 按 ID 删除磁盘文件 + 通知面板 |
 | `list_diagrams` | 列出全部已生成图表（含 ID、类型、路径） |
-| `open_preview` | 在 IDE 中打开预览面板，可 deep-link 到指定图 |
+| `open_preview` | 仅当人明确想查看画板时，IDE / 浏览器按需打开预览面板；AI 正常读取上下文不调用 |
 | `scan_project` | 只读扫描工作区，生成/刷新项目结构图；稳定路径 ID 保留人工布局、批注与焦点，返回 `PRESERVATION_JSON`；`render: false` 可供无头状态检查 |
 | `get_capabilities` | 一次读取 `CAPABILITIES_JSON`：全部工具、JSON 契约、工作流/审阅就绪、下一步安全动作与唯一项目写入边界；只读，不调用其他工具、不签发凭据 |
 | `get_selection_workorder` | 读取 `SELECTION_WORKORDER_JSON`：把有界选择范围收束为只读预提案工作单，含选择新鲜度提示；不含文件内容/逐行 diff/提案/凭据，不授权写入 |
@@ -267,6 +267,7 @@ npm install -g ai-draw-mcp
 | `DEFAULT_FORMAT` | `svg` | 默认输出格式：`svg` / `png` |
 | `LOG_LEVEL` | `info` | 日志级别：`debug` / `info` / `warn` / `error` |
 | `AI_DRAW_WORKSPACE_ROOT` | 包根目录 | 协作扫描与提案应用的目标工作区；MCP 宿主应设为当前项目根目录 |
+| `AI_DRAW_AUTO_OPEN_PANEL` | `false` | 兼容旧行为的宿主级开关；设为 `1` / `true` 时生成工具会尝试自动打开面板。默认不弹浏览器 |
 | `PUPPETEER_EXECUTABLE_PATH` | 自动检测 | 本机 Chrome/Chromium 路径，用于 `mmdc` 在没有缓存浏览器时渲染 |
 
 ---

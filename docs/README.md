@@ -35,6 +35,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0021-restrained-visual-system.md](ADR/0021-restrained-visual-system.md) | Contributors, reviewers | Semantic visual tokens retained as a consistency baseline for the shared board |
 | [ADR/0022-shared-visual-board-is-the-product.md](ADR/0022-shared-visual-board-is-the-product.md) | Contributors, reviewers | Why the shared visual board is the product and MCP is the AI access channel |
 | [ADR/0023-board-modules-and-library-boundary.md](ADR/0023-board-modules-and-library-boundary.md) | Contributors, reviewers | Why one board header, canvas, and object inspector replace the legacy status layers |
+| [ADR/0024-agent-first-mcp-surface.md](ADR/0024-agent-first-mcp-surface.md) | AI agents, maintainers | Why MCP tools/resources/instructions are the default agent surface and panel opening is opt-in |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
 | [../SECURITY.md](../SECURITY.md) | Security reviewers | Threat model, supported versions, vulnerability reporting |
@@ -48,6 +49,8 @@ Portable `ai-draw-session-*.json` bundles are for bug reports and reproducible e
 Stable-path rescans are documented in [ADR 0006](ADR/0006-stable-scan-preserves-human-visual-state.md): deterministic IDs and a read-only visual-state merge preserve layout, labels, threads, and focus while keeping scans separate from the proposal/write boundary.
 
 Agent-facing workflow guidance is documented in [ADR 0007](ADR/0007-agent-workflow-is-a-read-only-contract.md): `get_agent_workflow` returns a session-derived `WORKFLOW_JSON` with readiness blockers and explicit `none` / `session` / `project` write targets, but never a capability token.
+
+Agent-first MCP discovery is documented in [ADR 0024](ADR/0024-agent-first-mcp-surface.md): initialization instructions and `ai-draw://board/*` resources expose credential-free session, brief, capabilities, diagnostics, and optional panel URL inside the MCP host. Generated tools do not open a browser by default; `open_preview` and `AI_DRAW_AUTO_OPEN_PANEL` are explicit human-facing compatibility paths.
 
 Visual history is documented in [ADR 0008](ADR/0008-visual-undo-is-not-project-undo.md): human-confirmed undo/redo restores a bounded graph snapshot as a new revision, while bundles omit the history and project writes stay outside its reach.
 

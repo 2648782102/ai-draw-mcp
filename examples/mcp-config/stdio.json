@@ -3,6 +3,7 @@
   "args": ["ai-draw-mcp"],
   "env": {
     "AI_DRAW_WORKSPACE_ROOT": "<absolute-path-to-your-project>",
-    "OUTPUT_DIR": "./output"
+    "OUTPUT_DIR": "<absolute-path-to>/ai-draw-mcp/output",
+    "AI_DRAW_AUTO_OPEN_PANEL": "0"
   }
 }

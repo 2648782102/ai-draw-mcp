@@ -44,7 +44,7 @@ npm run doctor
 node examples/collab-demo.mjs
 ```
 
-Point your MCP stdio host at `dist/index.js`, set `OUTPUT_DIR` to an absolute path, and set `AI_DRAW_WORKSPACE_ROOT` to the repository the AI should scan. Then open `http://127.0.0.1:3399/` to view the shared project board.
+Point your MCP stdio host at `dist/index.js`, set `OUTPUT_DIR` to an absolute path, and set `AI_DRAW_WORKSPACE_ROOT` to the repository the AI should scan. The agent can then consume `get_capabilities`, `scan_project`, `get_visual_context`, and the `ai-draw://board/*` resources directly; tools do not open a browser by default. Open `http://127.0.0.1:3399/` or call `open_preview` only when a person wants the shared project board.
 
 ### npm / npx (older published `0.2.0`)
 

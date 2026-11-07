@@ -28,6 +28,7 @@ async function withClient(port, callback) {
       ...process.env,
       PREVIEW_PORT: String(port),
       LOG_LEVEL: "error",
+      AI_DRAW_AUTO_OPEN_PANEL: "0",
       AI_DRAW_WORKSPACE_ROOT: process.cwd(),
     },
   });
@@ -80,6 +81,30 @@ describe("MCP server", () => {
       for (const name of COLLAB_TOOLS) expect(names).toContain(name);
     });
   });
+
+  it("exposes agent-first instructions and credential-free read-only resources", async () => {
+    await withClient(3440, async (client) => {
+      const instructions = client.getInstructions();
+      expect(instructions).toContain("Prefer MCP tools and resources directly inside the agent");
+      expect(instructions).toContain("do not open a browser unless the human explicitly asks");
+      const { resources } = await client.listResources();
+      expect(resources.map((resource) => resource.uri)).toEqual(expect.arrayContaining([
+        "ai-draw://board/session",
+        "ai-draw://board/brief",
+        "ai-draw://board/capabilities",
+        "ai-draw://board/diagnostics",
+        "ai-draw://board/panel",
+      ]));
+      const session = await client.readResource({ uri: "ai-draw://board/session" });
+      const text = session.contents.map((item) => item.text ?? "").join("\n");
+      expect(text).toContain("ai-draw-session-bundle");
+      expect(text).toContain("ai-draw-export-manifest");
+      expect(text).not.toContain('"approvalGrant":');
+      expect(text).not.toContain('"approvalId":');
+      const panel = await client.readResource({ uri: "ai-draw://board/panel" });
+      expect(panel.contents[0].text).toContain("http://127.0.0.1:3440/");
+    });
+  }, 30_000);
 
   it("renders and deletes a diagram through the full pipeline", async () => {
     await withClient(3422, async (client) => {

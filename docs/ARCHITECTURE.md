@@ -4,6 +4,8 @@ AI Draw MCP 是一个本机优先的**人类与 AI 项目沟通画板**。共享
 
 当前 `0.3.x` 默认打开共享画布：首用可直接只读扫描项目，节点对象卡显示人与 AI 的有序留言并支持就地续答；项目工作台作为次级入口保留图形编辑、只读投影、变更 diff 与人工批准。可复制只读投影作为辅助工具独立存在。后续阶段继续补强证据可信度与从视觉意图到安全提案的追踪。无论任何交互路径，项目文件写入仍须经过提案、完整 diff、人工批准和一次性确认号。系统由四层组成：
 
+AI 侧的默认入口是 MCP stdio：`src/server.ts` 注册 26 个工具、MCP 初始化指令与 5 个只读 `ai-draw://board/*` 资源。资源由 `src/infra/agent-context.ts` 从现有 `SessionSnapshot` 派生，清理一次性凭据、凭据式 metadata 与临时本机状态，并复用 `createSessionBundle()` / `buildExportManifest()` / `BRIEF_JSON` / `CAPABILITIES_JSON` / 诊断投影。`open_preview` 与 `AI_DRAW_AUTO_OPEN_PANEL=1` 只是人想看画布时的显式兼容入口；生成图或 `scan_project` 默认不会打开浏览器。官方 OpenAI 文档把 MCP 的自定义 UI 资源列为可选能力，并说明 Codex CLI 与 IDE 共用 MCP 配置；因此本项目优先提供工具、资源和指令，而不是把网页变成 agent 的必经入口。详见 [ADR 0024](ADR/0024-agent-first-mcp-surface.md)。
+
 ```text
 IDE / human browser
   ├── MCP stdio (AI tools) ──────┐
@@ -24,7 +26,7 @@ IDE / human browser
 2. 工具把参数转成 Mermaid DSL 或包装 SVG。
 3. `renderer.ts` 调用本地 `mmdc` 或 `sharp` 产出 SVG/PNG。
 4. `DiagramStore` 写入 `diagrams.json`，`PreviewServer` 通过 WebSocket 广播 `diagram_added`。
-5. `ide-opener.ts` 尝试在 IDE 内置浏览器打开面板。
+5. `ide-opener.ts` 只在 `open_preview`、`scan_project(open_panel: true)` 或 `AI_DRAW_AUTO_OPEN_PANEL=1` 时尝试在 IDE 内置浏览器打开面板；默认路径没有窗口副作用。
 
 ## Collaboration path (0.3)
 
@@ -37,7 +39,7 @@ IDE / human browser
 7. 人类把确认号发给 AI；AI 调用 `apply_visual_proposal`，服务端校验凭据与内容哈希后写入项目，失败自动回滚。
 8. AI 可再次 `scan_project`，或人在面板触发 `POST /api/collab/rescan`，生成反映新结构的图；两者共用 `VisualSyncService` 并保留人工视觉状态，形成闭环。
 
-`POST /api/collab/rescan` 要求 `confirmedBy: "human"` 与本机面板令牌；`scan_project` 可设 `open_panel: false` 适配无头工作流。两者还可在测试/自动化场景显式传 `render: false`，跳过重复 `mmdc` 渲染但仍完成扫描、合并、会话保存与 `PRESERVATION_JSON`；面板始终传 `render: true`，未传时保持默认渲染，非布尔的 `render` 会被 rescan 端点以 400 拒绝。扫描器只用 `fs.readdir` / `fs.readFile` 读取工作区；图形同步写的是 `OUTPUT_DIR` 下的图资产和会话，不写 `AI_DRAW_WORKSPACE_ROOT`。`mergeScannedGraph()` 按稳定 ID 优先、路径次之匹配旧节点：保留有限 `x` / `y`、自定义标签、`metadata.layoutSource`、`human` 焦点以及可锚定批注；新节点占用空闲自动布局位，删除节点使相关线程 `detached`，标签/路径变化使线程 `outdated`。version 1 `ScanPreservationSummary` 通过 `PRESERVATION_JSON`、HTTP 响应、系统消息与 WebSocket `session_updated` 暴露计数；它只是审计信息，不签发批准凭据，也不授权项目写入。详见 [ADR 0006](ADR/0006-stable-scan-preserves-human-visual-state.md)。
+`POST /api/collab/rescan` 要求 `confirmedBy: "human"` 与本机面板令牌；`scan_project` 默认不打开面板，可显式传 `open_panel: true` 供人查看，或用 `AI_DRAW_AUTO_OPEN_PANEL=1` 恢复旧宿主行为。两者还可在测试/自动化场景显式传 `render: false`，跳过重复 `mmdc` 渲染但仍完成扫描、合并、会话保存与 `PRESERVATION_JSON`；面板始终传 `render: true`，未传时保持默认渲染，非布尔的 `render` 会被 rescan 端点以 400 拒绝。扫描器只用 `fs.readdir` / `fs.readFile` 读取工作区；图形同步写的是 `OUTPUT_DIR` 下的图资产和会话，不写 `AI_DRAW_WORKSPACE_ROOT`。`mergeScannedGraph()` 按稳定 ID 优先、路径次之匹配旧节点：保留有限 `x` / `y`、自定义标签、`metadata.layoutSource`、`human` 焦点以及可锚定批注；新节点占用空闲自动布局位，删除节点使相关线程 `detached`，标签/路径变化使线程 `outdated`。version 1 `ScanPreservationSummary` 通过 `PRESERVATION_JSON`、HTTP 响应、系统消息与 WebSocket `session_updated` 暴露计数；它只是审计信息，不签发批准凭据，也不授权项目写入。详见 [ADR 0006](ADR/0006-stable-scan-preserves-human-visual-state.md)。
 
 协作会话可导出为 `kind: "ai-draw-session-bundle"` 的 version 1 JSON。导出只包含图、有限人工坐标、消息和去敏后的提案；一次性批准凭据留在内存中且不写入 bundle。导入必须带 `confirmedBy: "human"`，服务端会重新校验图与提案路径、清空批准凭据、拒绝非法文件和非有限坐标；导入绝不写项目文件。
 

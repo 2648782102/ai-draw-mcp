@@ -1,0 +1,11 @@
+[mcp_servers.ai-draw]
+command = "node"
+args = ["<absolute-path-to>/ai-draw-mcp/dist/index.js"]
+cwd = "<absolute-path-to-your-project>"
+
+[mcp_servers.ai-draw.env]
+AI_DRAW_WORKSPACE_ROOT = "<absolute-path-to-your-project>"
+OUTPUT_DIR = "<absolute-path-to>/ai-draw-mcp/output"
+PREVIEW_HOST = "127.0.0.1"
+PREVIEW_PORT = "3399"
+AI_DRAW_AUTO_OPEN_PANEL = "0"

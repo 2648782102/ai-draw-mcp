@@ -6,9 +6,8 @@ import { openPanelInIDE } from "../infra/ide-opener.js";
 export function registerOpenPreview(server: McpServer, ctx: ToolContext) {
   server.tool(
     "open_preview",
-    "在 IDE 内打开实时预览面板。支持 Cursor、VS Code、Windsurf、Trae、Zed 等所有主流编辑器：" +
-    "自动检测当前 IDE 并用 --open-url 在内置浏览器（Simple Browser / Browser Tab）中打开，" +
-    "无法自动打开时返回 http:// 地址供用户手动粘贴到 Simple Browser。",
+    "仅当人明确想查看共享画板时，才请求 IDE 或浏览器打开实时预览面板；AI 正常读取图形上下文、证据、批注、提案不应调用本工具。" +
+    " 支持 Cursor、VS Code、Windsurf、Trae、Zed 等编辑器：检测宿主后用 --open-url 在内置浏览器打开，无法自动打开时返回 http:// 地址供人手动打开。",
     {
       diagram_id: z.string().optional().describe("Diagram ID to open directly (omit for gallery)"),
     },

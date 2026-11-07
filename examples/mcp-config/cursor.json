@@ -9,7 +9,8 @@
         "PREVIEW_PORT": "3399",
         "DEFAULT_THEME": "default",
         "DEFAULT_FORMAT": "svg",
-        "LOG_LEVEL": "info"
+        "LOG_LEVEL": "info",
+        "AI_DRAW_AUTO_OPEN_PANEL": "0"
       }
     }
   }

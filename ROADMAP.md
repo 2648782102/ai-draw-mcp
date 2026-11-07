@@ -5,6 +5,7 @@ This roadmap sequences work toward the product contract in [docs/PRODUCT_DIRECTI
 ## Current baseline — 0.3.4
 
 - Local MCP stdio server with 26 tools for project scans, diagrams, graph context, proposals, and approval-gated writes.
+- Agent-first MCP discovery: initialization instructions and five read-only `ai-draw://board/*` resources expose session, brief, capabilities, diagnostics, and the optional panel URL inside the agent. Generated tools default to no window side effects; `open_preview` and `AI_DRAW_AUTO_OPEN_PANEL` are opt-in human paths. See [ADR 0024](docs/ADR/0024-agent-first-mcp-surface.md).
 - Local browser canvas with project scanning, editable nodes and edges, focus, selection, annotations, AI-readable context, and proposal review.
 - Version 1 session, graph, annotation, and proposal contracts with source evidence, graph diffs, and bounded read-only projections.
 - Shared board notes persist; people and AI can reply in the same anchored thread. Copyable AI context is a separate read-only utility.

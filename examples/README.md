@@ -3,6 +3,7 @@
 These examples are intentionally small and contain no secrets or absolute paths.
 
 - `mcp-config/cursor.json` — Cursor MCP server configuration for local development.
+- `mcp-config/codex.toml` — Codex MCP stdio snippet with agent-first defaults and an absolute workspace root.
 - `mcp-config/stdio.json` — generic stdio configuration shape.
 - `mermaid/login-flow.mmd` — a Mermaid flowchart for `render_diagram`.
 - `svg/badge.svg` — an SVG fragment for `render_svg`.
@@ -22,6 +23,8 @@ These examples are intentionally small and contain no secrets or absolute paths.
 - `collaboration-workflow.md` — a human ↔ AI walkthrough for scanning, annotating, approving, and applying a proposal.
 
 Run the client after `npm run build`:
+
+Inside an MCP host, prefer `get_capabilities` / `scan_project` / `get_visual_context` and the credential-free `ai-draw://board/*` resources. Generated tools do not open a browser by default; call `open_preview` only when a human asks to see the board.
 
 ```bash
 node examples/node-client.mjs
