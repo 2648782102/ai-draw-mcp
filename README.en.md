@@ -28,20 +28,33 @@ AI or human: rescan → stable path IDs preserve human coordinates, labels, thre
 
 ## Install
 
-```bash
-npm install -g ai-draw-mcp
-```
+> **Version note (2026-11-07):** the repository source and GitHub Release are `0.3.4`, while npm registry `ai-draw-mcp` is still `0.2.0`. To try the current version, install from source first. The npm/npx path below installs the older published package only.
 
-Configure an MCP stdio host with `npx ai-draw-mcp`, set `OUTPUT_DIR` to an absolute path, and set `AI_DRAW_WORKSPACE_ROOT` to the repository the AI should scan. Then open `http://127.0.0.1:3399/` and click `💬 协作`.
-
-From source:
+### From source (current `0.3.4`)
 
 ```bash
+git clone https://github.com/2648782102/ai-draw-mcp.git
+cd ai-draw-mcp
 npm ci
 npm run build
 npm run doctor
 node examples/collab-demo.mjs
 ```
+
+Point your MCP stdio host at `dist/index.js`, set `OUTPUT_DIR` to an absolute path, and set `AI_DRAW_WORKSPACE_ROOT` to the repository the AI should scan. Then open `http://127.0.0.1:3399/` and inspect the local context panel.
+
+### npm / npx (older published `0.2.0`)
+
+```bash
+npm install -g ai-draw-mcp
+```
+
+```text
+command: npx
+args: ai-draw-mcp
+```
+
+This path does not yet include the current repository feature set; restore it as the recommended install after npm publishing is synchronized.
 
 Run the read-only agent workflow example, which stops after preflight and verifies that no proposal or project write occurred:
 
