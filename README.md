@@ -6,6 +6,8 @@ AI 通过 MCP stdio 直接调用 26 个工具：扫描项目、生成 Mermaid/SV
 
 这不是聊天/协作应用，也不是托管白板。消息、批注与活动时间线只作为 AI 可读取的上下文信号存在，不构成「下一棒」或必须走完的对话流程；**只有人类审阅逐行 diff、批准并交给 AI 一次性确认号后，项目文件才会改变**。
 
+> **30 秒阅读**：[快速开始](#快速开始) · [工具列表](#工具列表) · [安全模型与完整文档](docs/ARCHITECTURE.md)。仓库当前源码与 GitHub Release 为 `0.3.4`；npm `ai-draw-mcp` 仍为 `0.2.0`，体验当前版本请优先从源码安装，详见下方版本说明。
+
 <p align="center">
   <a href="https://www.npmjs.com/package/ai-draw-mcp">
     <img src="https://img.shields.io/npm/v/ai-draw-mcp?style=flat-square" alt="npm">
@@ -203,36 +205,16 @@ npm run test:examples:workflow
 
 ## 快速开始
 
-最短体验路径：安装 → 在 IDE 配置 MCP → 让 AI 调用 `scan_project` → 在面板点「💬 协作」改图、添加节点批注并回复线程 → 查看提案 diff → 批准并把一次性确认号发给 AI。完整闭环可运行 `node examples/collab-demo.mjs`。
+最短体验路径：从源码安装 → 在 IDE 配置 MCP → 让 AI 调用 `scan_project` → 在面板查看项目结构图与上下文 → 必要时审阅完整 diff 并授权写入。完整闭环可运行 `node examples/collab-demo.mjs`。
 
-### 方式一：通过 npm 安装（推荐）
+> **版本说明（2026-11-07）**：仓库源码与 GitHub Release 为 `0.3.4`，但 npm registry 的 `ai-draw-mcp` 仍是 `0.2.0`。`npm install -g ai-draw-mcp` 与 `npx ai-draw-mcp` 当前只会装到旧版本；想使用本仓库当前功能，请按「方式一：从源码安装」。等 npm 发布同步后，再恢复 npm / npx 安装路径。
 
-```bash
-npm install -g ai-draw-mcp
-```
-
-然后直接在 MCP 配置里使用：
-
-```json
-{
-  "mcpServers": {
-    "ai-draw": {
-      "command": "npx",
-      "args": ["ai-draw-mcp"],
-      "env": {
-        "OUTPUT_DIR": "./output"
-      }
-    }
-  }
-}
-```
-
-### 方式二：从源码安装
+### 方式一：从源码安装（体验当前 `0.3.4`）
 
 ```bash
 git clone https://github.com/2648782102/ai-draw-mcp.git
 cd ai-draw-mcp
-npm install
+npm ci
 npm run build
 ```
 
@@ -261,24 +243,13 @@ npm run doctor
 
 > 将 `args[0]` 和 `OUTPUT_DIR` 替换为你本机的**绝对路径**。Windows 路径用正斜杠或双反斜杠均可。
 
-### 配置到其他 MCP 宿主
+### 方式二：通过 npm 安装（仅旧版 `0.2.0`）
 
-任何支持 `stdio` 传输的 MCP 宿主都可以接入，使用 `npx ai-draw-mcp` 最简单：
-
-**VS Code（`settings.json`）**：
-
-```json
-"mcp.servers": {
-  "ai-draw": {
-    "type": "stdio",
-    "command": "npx",
-    "args": ["ai-draw-mcp"],
-    "env": { "OUTPUT_DIR": "./output" }
-  }
-}
+```bash
+npm install -g ai-draw-mcp
 ```
 
-**Windsurf（`~/.codeium/windsurf/mcp_config.json`）**：
+然后直接在 MCP 配置里使用：
 
 ```json
 {
@@ -286,90 +257,15 @@ npm run doctor
     "ai-draw": {
       "command": "npx",
       "args": ["ai-draw-mcp"],
-      "env": { "OUTPUT_DIR": "./output" }
-    }
-  }
-}
-```
-
-**Claude Desktop（`~/Library/Application Support/Claude/claude_desktop_config.json` 或 Windows `%APPDATA%/Claude/claude_desktop_config.json`）**：
-
-```json
-{
-  "mcpServers": {
-    "ai-draw": {
-      "command": "npx",
-      "args": ["ai-draw-mcp"],
-      "env": { "OUTPUT_DIR": "./output" }
-    }
-  }
-}
-```
-
-> Claude Desktop 没有内置浏览器，面板地址需手动在浏览器中打开。
-
-**Zed（`~/.config/zed/settings.json`）**：
-
-```json
-{
-  "context_servers": {
-    "ai-draw": {
-      "command": {
-        "path": "npx",
-        "args": ["ai-draw-mcp"],
-        "env": { "OUTPUT_DIR": "./output" }
+      "env": {
+        "OUTPUT_DIR": "./output"
       }
     }
   }
 }
 ```
 
-**Trae（`~/.trae/mcp.json`）**：
-
-```json
-{
-  "mcpServers": {
-    "ai-draw": {
-      "command": "npx",
-      "args": ["ai-draw-mcp"],
-      "env": { "OUTPUT_DIR": "./output" }
-    }
-  }
-}
-```
-
-> 运行 `npm run doctor` 可以自动检测本机已安装的编辑器及对应配置文件位置。
-
-### 3. 打开预览面板
-
-配置好 MCP 后，有三种方式打开面板：
-
-| 方式 | 操作 |
-|---|---|
-| **AI 自动打开** | 让 AI 调用任意 `render_*` 工具，首次渲染后会自动尝试打开面板 |
-| **上下文审阅台** | 点击面板右上角「⌁ 审阅台」，查看项目结构图、上下文信号与提案 |
-| **命令面板** | `Ctrl+Shift+P` → `Simple Browser: Show` → 输入 `http://127.0.0.1:3399/` |
-| **MCP 工具** | 在 AI 对话里说「打开预览面板」，AI 调用 `open_preview` |
-
-### 4. 开始绘图
-
-直接在 Cursor Chat 或任意 AI 对话里输入自然语言：
-
-```
-画一个用户注册的流程图
-帮我画 Redis 缓存架构图
-用时序图描述 OAuth 2.0 登录流程
-```
-
-AI 会自动选择合适的工具，生成图表并推送到面板。
-
-要进入双向协作闭环，直接说：
-
-```
-扫描这个项目，生成结构图
-我在图上加了几条批注，请根据我的意图提出修改方案
-只创建提案，等我批准并给你确认号后再改代码
-```
+> 这一路径对应 npm 已发布的 `0.2.0`，不代表仓库当前的 `0.3.4` 功能集。任何使用 `npx ai-draw-mcp` 的旧配置同样只适用于 `0.2.0`，直到 npm 发布同步。
 
 ---
 
