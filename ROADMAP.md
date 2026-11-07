@@ -8,7 +8,7 @@ This roadmap sequences work toward the product contract in [docs/PRODUCT_DIRECTI
 - Local browser canvas with project scanning, editable nodes and edges, focus, selection, annotations, AI-readable context, and proposal review.
 - Version 1 session, graph, annotation, and proposal contracts with source evidence, graph diffs, and bounded read-only projections.
 - Shared board notes persist; people and AI can reply in the same anchored thread. Copyable AI context is a separate read-only utility.
-- The default panel is the shared canvas with a contextual object thread. The project workbench, derived status cards, and review flow are secondary surfaces; `docs/shared-board-panel.png` is the canonical shared-board capture and older captures remain development artifacts.
+- The default panel is one board header, one shared canvas, and one fixed object inspector. The legacy brand header, Flow rail, duplicate render toolbar, and floating status cards are out of the default view. The diagram library is an on-demand drawer for local previews and downloads; the review surface holds graph editing, derived context, and change diffs. `docs/shared-board-panel.png` is the canonical shared-board capture and older captures remain development artifacts.
 
 ## Phase 0 — Product contract
 
@@ -31,7 +31,7 @@ Define the board as the shared communication surface, record the decision in ADR
 - Keep proposal diff review in a focused secondary surface linked to its originating visual intent.
 - Rewrite first-run guidance and publish one canonical screenshot of the shared loop.
 
-**Status:** implemented. The canvas is the default view; the contextual inspector shows ordered human/AI notes and accepts an in-place reply; first-run guidance can scan the project directly; review opens in a focused secondary workbench. `docs/shared-board-panel.png` is the canonical screenshot.
+**Status:** implemented. The canvas is the default view; one board header carries identity, state, and actions; the fixed object inspector shows the selected object, evidence, relations, ordered human/AI notes, and accepts an in-place reply; first-run guidance can scan the project directly; the on-demand library separates historical diagram previews from the active board; review opens as a secondary surface. `docs/shared-board-panel.png` is the canonical screenshot.
 
 **Acceptance:** a new user can see the AI's project understanding, correct it on the canvas, and locate the related AI response and proposal without learning tool names or following a fixed sequence. Keyboard and narrow-screen behavior remain covered by browser regressions.
 

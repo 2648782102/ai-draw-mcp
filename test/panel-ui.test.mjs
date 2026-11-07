@@ -133,6 +133,10 @@ describe("collaboration panel UI", () => {
       await page.reload({ waitUntil: "networkidle2" });
 
       expect(await page.$(".brand-mark")).toBeTruthy();
+      expect(await page.$eval(".board-header", (element) => getComputedStyle(element).display)).toBe("flex");
+      expect(await page.$eval("#boardHeaderTitle", (element) => element.textContent)).toContain("共享项目画板");
+      expect(await page.$eval("#btnBoardLibraryHeader", (element) => element.getAttribute("aria-expanded"))).toBe("false");
+      expect(await page.$eval("#boardLibrary", (element) => element.hidden)).toBe(true);
       expect(await page.$eval(".sidebar", (element) => getComputedStyle(element).display)).toBe("none");
       expect(await page.$eval("#btnToggleSidebar", (element) => getComputedStyle(element).display)).toBe("none");
       expect(await page.$eval(".statusbar", (element) => getComputedStyle(element).display)).toBe("none");
@@ -152,7 +156,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(true);
       expect(await page.$eval("#canvasFrame", (element) => element.dataset.focus)).toBe("idle");
       expect(await page.$eval("body", (element) => element.classList.contains("graph-skin-off"))).toBe(false);
-      expect(await page.$eval("#flowRail", (element) => getComputedStyle(element).display)).toBe("grid");
+      expect(await page.$eval("#flowRail", (element) => getComputedStyle(element).display)).toBe("none");
       expect(await page.$eval("#flowRail", (element) => element.querySelectorAll(".flow-step").length)).toBe(4);
       expect(await page.$eval("#flowRailMeta", (element) => element.textContent)).toMatch(/批准前只读/);
       expect(await page.$eval("#canvasBoardThread", (element) => element.textContent)).toContain("还没有关于这个对象的留言");
@@ -175,8 +179,8 @@ describe("collaboration panel UI", () => {
       expect(handoff.proposals).toBe("1");
       expect(handoff.next).toContain("上下文 · 待人纠错");
       expect(handoff.active).toBe(1);
-      expect(await page.$eval("#btnCollaborate", (element) => getComputedStyle(element).backgroundImage)).toBe("none");
-      expect(await page.$eval("#btnCollaborate", (element) => getComputedStyle(element).backgroundColor)).toBe("rgb(138, 180, 248)");
+      expect(await page.$eval("#btnBoardScanHeader", (element) => getComputedStyle(element).backgroundImage)).toBe("none");
+      expect(await page.$eval("#btnBoardScanHeader", (element) => getComputedStyle(element).backgroundColor)).toBe("rgb(138, 180, 248)");
       const welcome = await page.evaluate(() => ({
         kicker: document.querySelector(".welcome-kicker").textContent,
         title: document.querySelector("#welcomeCard h2").textContent,
@@ -260,9 +264,15 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#minimap", (element) => getComputedStyle(element).display)).toBe("none");
 
       const diagramsBefore = await fetch(`${base}/api/diagrams`).then((response) => response.json());
-      await page.click("#btnLoadExample");
+      await page.evaluate(() => document.querySelector("#btnLoadExample").click());
       await page.waitForFunction(() => Boolean(document.querySelector("#diagramRender svg")));
-      await page.waitForFunction(() => Number(document.querySelector("#collabPulseCount").textContent) > 0);
+      await page.waitForFunction(() => Number(document.querySelector("#collabPulseCount").textContent) > 0, { timeout: 5000 });
+      await page.click("#btnBoardLibraryHeader");
+      expect(await page.$eval("#boardLibrary", (element) => element.hidden)).toBe(false);
+      expect(await page.$eval("#btnBoardLibraryHeader", (element) => element.getAttribute("aria-expanded"))).toBe("true");
+      expect(await page.$eval("#boardLibraryTitle", (element) => element.textContent)).toContain("图库");
+      await page.keyboard.press("Escape");
+      expect(await page.$eval("#boardLibrary", (element) => element.hidden)).toBe(true);
       expect(await page.$eval("#btnCollabPulse", (element) => getComputedStyle(element).display)).toBe("none");
       expect(await page.$eval("#collabPulseHint", (element) => element.textContent)).toContain("提案待审");
       const pulseSurface = await page.evaluate(() => {
@@ -322,8 +332,9 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval(".canvas-dock", (element) => getComputedStyle(element).display)).toBe("flex");
       expect(await page.$eval("#canvasDiagramLabel", (element) => element.textContent)).toContain("示例");
       expect(await page.$eval("#canvasZoomLabel", (element) => element.textContent)).toMatch(/^\d+%$/);
+      const zoomBefore = Number.parseInt(await page.$eval("#canvasZoomLabel", (element) => element.textContent), 10);
       await page.click("#btnCanvasZoomIn");
-      expect(Number.parseInt(await page.$eval("#canvasZoomLabel", (element) => element.textContent), 10)).toBeGreaterThan(100);
+      expect(Number.parseInt(await page.$eval("#canvasZoomLabel", (element) => element.textContent), 10)).toBeGreaterThan(zoomBefore);
       await page.click("#btnCanvasZoomFit");
       expect(await page.$eval("#canvasZoomLabel", (element) => element.textContent)).toMatch(/%/);
       expect(await page.$$eval(".canvas-dock button", (elements) => elements.length)).toBe(7);
@@ -376,14 +387,14 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval("#btnFlowSource", (element) => element.textContent)).toContain("源码");
       await page.keyboard.press("b");
       expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(false);
-      expect(await page.$eval("#flowRail", (element) => getComputedStyle(element).display)).toBe("grid");
+      expect(await page.$eval("#flowRail", (element) => getComputedStyle(element).display)).toBe("none");
       await page.keyboard.press("b");
       expect(await page.$eval("body", (element) => element.classList.contains("flow-workspace"))).toBe(true);
       await page.keyboard.press("e");
       expect(await page.$eval("body", (element) => element.classList.contains("flow-source-open"))).toBe(true);
       await page.keyboard.press("e");
       expect(await page.$eval("body", (element) => element.classList.contains("flow-source-open"))).toBe(false);
-      await page.click("#btnFlowCollab");
+      await page.evaluate(() => document.querySelector("#btnFlowCollab").click());
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
       expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toMatch(/graph|dialog|proposals/);
       await page.click("#btnBoardDetails");
@@ -478,7 +489,7 @@ describe("collaboration panel UI", () => {
           foot: document.querySelector(".canvas-relation-foot").textContent,
         };
       });
-      expect(relationMap.visible).toBe(false);
+      expect(relationMap.visible).toBe(true);
       expect(relationMap.gradient).toBe("none");
       expect(relationMap.rails).toBe(2);
       expect(relationMap.directions).toEqual(["inbound", "outbound"]);
@@ -570,7 +581,7 @@ describe("collaboration panel UI", () => {
       }));
       expect(commandPalette.title).toContain("搜索面板命令");
       expect(Number.parseInt(commandPalette.count, 10)).toBeGreaterThan(10);
-      expect(commandPalette.items).toContain("打开项目工作台");
+      expect(commandPalette.items).toContain("打开审阅台");
       expect(commandPalette.items).toContain("查看变更提案");
       expect(commandPalette.items).toContain("显示 / 隐藏节点悬停速览");
       expect(commandPalette.active).toContain("分屏视图");
@@ -938,7 +949,7 @@ describe("collaboration panel UI", () => {
       await page.keyboard.press("[");
       expect(await page.$eval("#canvasObjectLabel", (element) => element.textContent)).toBe(firstFocus);
       expect(await page.$eval("#focusSummary", (element) => element.textContent)).toContain(firstFocus);
-      expect(await page.$eval("#canvasObjectCard", (element) => getComputedStyle(element).display)).toBe("block");
+      expect(await page.$eval("#canvasObjectCard", (element) => getComputedStyle(element).display)).toBe("grid");
       const focusRing = await page.$eval("#canvasFocusRing", (element) => ({
         display: getComputedStyle(element).display,
         focusNodeId: element.dataset.focusNodeId,
@@ -963,7 +974,7 @@ describe("collaboration panel UI", () => {
       await page.setViewport({ width: 820, height: 820 });
       await page.keyboard.press("c");
       await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
-      await page.click('[data-tab-target="dialog"]');
+      await page.evaluate(() => document.querySelector('[data-tab-target="dialog"]').click());
       const mobile = await page.evaluate(() => ({
         activeTab: document.querySelector("#collabShell").dataset.tab,
         selectedTab: document.querySelector('[data-tab-target="dialog"]').getAttribute("aria-selected"),
@@ -982,7 +993,7 @@ describe("collaboration panel UI", () => {
         clientWidth: 820,
       });
       await page.setViewport({ width: 560, height: 820 });
-      await page.waitForFunction(() => document.querySelector(".header").getBoundingClientRect().height === 50, { timeout: 5000 });
+      await page.waitForFunction(() => document.querySelector(".board-header").getBoundingClientRect().height >= 86, { timeout: 5000 });
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
       await page.waitForFunction(() => !document.body.classList.contains("zen-workspace"));
@@ -991,7 +1002,7 @@ describe("collaboration panel UI", () => {
         document.querySelector("#workspace").dataset.view = "canvas";
       });
       const compact = await page.evaluate(() => ({
-        headerHeight: document.querySelector(".header").getBoundingClientRect().height,
+        headerHeight: Math.round(document.querySelector(".board-header").getBoundingClientRect().height),
         themeHidden: getComputedStyle(document.querySelector("#selTheme")).display === "none",
         sidebarHidden: getComputedStyle(document.querySelector("#btnToggleSidebar")).display === "none",
         lensTop: Math.round(document.querySelector("#flowLens").getBoundingClientRect().top),
@@ -1000,7 +1011,7 @@ describe("collaboration panel UI", () => {
         clientWidth: document.body.clientWidth,
       }));
       expect(compact).toMatchObject({
-        headerHeight: 50,
+        headerHeight: 88,
         themeHidden: true,
         sidebarHidden: true,
         lensTop: 0,

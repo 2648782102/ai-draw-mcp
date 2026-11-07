@@ -149,7 +149,7 @@ try {
   await page.waitForFunction(() => getComputedStyle(document.querySelector(".canvas-dock")).display === "flex");
   await page.waitForFunction(() => document.querySelectorAll("#canvasDock .canvas-dock-route-step").length === 3);
   await page.keyboard.press("f");
-  await page.click("#btnCollaborate");
+  await page.evaluate(() => document.querySelector("#btnCollaborate").click());
   await page.waitForSelector("#graphEditor .graph-row");
   await page.waitForSelector("#annotationList .annotation-thread");
   await page.keyboard.press("Escape");
@@ -242,7 +242,7 @@ try {
   await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
   await page.keyboard.press("z");
   await page.waitForFunction(() => document.body.classList.contains("zen-workspace"));
-  await page.waitForFunction(() => getComputedStyle(document.querySelector(".header")).opacity === "0", { timeout: 5000 });
+  await page.waitForFunction(() => getComputedStyle(document.querySelector(".header")).display === "none", { timeout: 5000 });
   await new Promise((resolve) => setTimeout(resolve, 300));
   await page.keyboard.press("f");
   await page.waitForFunction(() => Number(document.querySelector("#canvasObjectConversation").dataset.openThreads) > 0, { timeout: 5000 });

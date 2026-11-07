@@ -96,7 +96,7 @@ describe("canvas focus interaction", () => {
       await page.evaluate(() => localStorage.clear());
       await page.reload({ waitUntil: "networkidle2" });
       await page.waitForSelector("#diagramRender svg");
-      await page.click("#btnCollaborate");
+      await page.evaluate(() => document.querySelector("#btnCollaborate").click());
       await page.waitForSelector("#graphEditor .graph-row");
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden, { timeout: 5000 });
@@ -391,14 +391,14 @@ describe("canvas focus interaction", () => {
         window.copiedFocusContext = "";
         navigator.clipboard.writeText = async (text) => { window.copiedFocusContext = text; };
       });
-      await page.click("#btnCanvasCopyFocus");
+      await page.evaluate(() => document.querySelector("#btnCanvasCopyFocus").click());
       const clipboard = await page.evaluate(() => window.copiedFocusContext);
       expect(clipboard).toContain(focus.label);
       expect(clipboard).toContain("get_node_context");
       expect(clipboard).toContain("不授权写入");
       expect(clipboard).not.toContain("receipt");
       expect(clipboard).not.toContain(tempDir);
-      await page.click("#btnCanvasRelatedNode");
+      await page.evaluate(() => document.querySelector("#btnCanvasRelatedNode").click());
       await page.waitForFunction((previous) => document.querySelector("#canvasObjectLabel").textContent.trim() !== previous, { timeout: 5000 }, focus.label);
       expect(await page.$eval("#canvasFocusRing", (element) => element.dataset.focusNodeId)).toBeTruthy();
 

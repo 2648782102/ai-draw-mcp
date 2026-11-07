@@ -34,6 +34,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0019-selection-workorder-is-read-only-preflight.md](ADR/0019-selection-workorder-is-read-only-preflight.md) | AI agents, reviewers | Why a derived pre-proposal workorder excludes file content, proposals, credentials, and write authority |
 | [ADR/0021-restrained-visual-system.md](ADR/0021-restrained-visual-system.md) | Contributors, reviewers | Semantic visual tokens retained as a consistency baseline for the shared board |
 | [ADR/0022-shared-visual-board-is-the-product.md](ADR/0022-shared-visual-board-is-the-product.md) | Contributors, reviewers | Why the shared visual board is the product and MCP is the AI access channel |
+| [ADR/0023-board-modules-and-library-boundary.md](ADR/0023-board-modules-and-library-boundary.md) | Contributors, reviewers | Why one board header, canvas, and object inspector replace the legacy status layers |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
 | [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |

@@ -32,14 +32,14 @@ AI 通过 MCP stdio 访问共享项目图、源码证据、人的焦点/选择�
 
 ![AI Draw MCP 共享画板](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/shared-board-panel.png)
 
-界面沿用克制视觉系统。这是可复现的当前共享画板：默认全画布、首用可直接扫描、右侧对象卡显示有序的人 / AI 线程并支持就地留言。闭环概念图与后续阶段见 [产品方向](docs/PRODUCT_DIRECTION.md) 与 [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md)。其他布局截图留在仓库作为可复现的历史开发资产，不再并列充当产品入口。
+界面沿用克制视觉系统。这是可复现的当前共享画板：单一画板栏、连续画布和右侧固定对象检视器构成默认工作区；旧品牌栏、流程轨、悬浮状态卡和重复工具栏已从首屏移除。图库与审阅台按需打开，用于查看本机图记录、完整上下文和变更 diff，不会静默切换当前共享会话。闭环概念图与后续阶段见 [产品方向](docs/PRODUCT_DIRECTION.md)、[ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md) 与 [ADR 0023](docs/ADR/0023-board-modules-and-library-boundary.md)。其他布局截图留在仓库作为可复现的历史开发资产，不再并列充当产品入口。
 
 ---
 
 ## 功能
 
 - **26 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_capabilities`、`get_selection_scope`、`get_selection_workorder`、`get_visual_context`、`get_shared_brief`、`get_decision_trail`、`get_node_context`、`get_source_navigation`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
-- **共享画布** — 默认全画布展示 AI 扫描的项目结构，支持节点/连线纠错、焦点/多选；右侧对象卡显示锚定到该对象的人 / AI 有序线程，并可直接留言或继续回复
+- **共享画布** — 默认以「单一画板栏 + 连续画布 + 固定对象检视器」展示 AI 扫描的项目结构，支持节点/连线纠错、焦点/多选；右侧把当前对象、源码证据、关系、有序人 / AI 线程收束在同一处，并可直接留言或继续回复；图库与审阅台都按需打开
 - **有界图形撤销 / 重做** — 12 步视觉状态历史，人类确认后恢复节点/连线/批注为一次新图形修订；不回退项目文件、提案状态或一次性批准凭据
 - **只读源码证据** — 扫描时为源码/文档节点记录少量 `file:line` 定义、导入或标题线索，AI 与面板可引用代码位置；证据不自动改代码、不扩大提案路径，也不签发批准凭据
 - **有界多选范围** — 面板复选框最多选择 24 个节点；`get_selection_scope` 与 `SELECTION_SCOPE_JSON` 把「这几个模块」投影成节点、内部连线和安全相对 `file:line` 证据。选择范围只表达意图，不签发凭据、不改变图修订或授权项目写入，详见 [ADR 0018](docs/ADR/0018-human-selection-is-read-only-scope.md)

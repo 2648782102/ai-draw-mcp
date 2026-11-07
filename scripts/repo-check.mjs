@@ -99,6 +99,7 @@ const selectionTest = await read("test/selection.test.mjs");
 const selectionWorkorderAdr = await read("docs/ADR/0019-selection-workorder-is-read-only-preflight.md");
 const mcpToolAdr = await read("docs/ADR/0020-mcp-tool-is-the-primary-product.md");
 const restrainedVisualAdr = await read("docs/ADR/0021-restrained-visual-system.md");
+const boardModulesAdr = await read("docs/ADR/0023-board-modules-and-library-boundary.md");
 const selectionWorkorderDomain = await read("src/domain/selection-workorder.ts");
 const getSelectionWorkorderTool = await read("src/tools/get-selection-workorder.ts");
 const selectionWorkorderTest = await read("test/selection-workorder.test.mjs");
@@ -948,6 +949,24 @@ for (const [label, file, needle] of [
   ["shared-board decision", sharedBoardAdr, "The local-first shared visual board is the product"],
   ["superseded MCP-first ADR", mcpToolAdr, "Superseded by [ADR 0022]"],
   ["shared-board goal mode", goalMode, "AI 与人类项目沟通画板"],
+  ["board modules Chinese README", readme, "单一画板栏 + 连续画布 + 固定对象检视器"],
+  ["board modules English README", englishQuickstart, "board header, one continuous canvas"],
+  ["board modules ADR index", adrIndex, "0023-board-modules-and-library-boundary.md"],
+  ["board modules ADR boundary", boardModulesAdr, "Opening a library record is a local preview only"],
+  ["board modules changelog", changelog, "画板模块与图库边界"],
+  ["board header action", panel, "btnBoardScanHeader"],
+  ["board save action", panel, "btnBoardSaveHeader"],
+  ["single board header", panel, ".header { display: none !important; }"],
+  ["hidden legacy flow rail", panel, 'id="flowRail" aria-label="共享画板状态" hidden'],
+  ["board safety boundary", panel, "boardSafetyState"],
+  ["object inspector evidence", panel, "canvasContextStrip"],
+  ["single header regression", panelUiTest, 'document.querySelector(".board-header").getBoundingClientRect().height'],
+  ["hidden legacy flow rail regression", panelUiTest, 'getComputedStyle(element).display)).toBe("none")'],
+  ["board library action", panel, "btnBoardLibraryHeader"],
+  ["board library drawer", panel, "boardLibrary"],
+  ["board history notice", panel, "boardHistoryNotice"],
+  ["board header regression", panelUiTest, "boardHeaderTitle"],
+  ["board library regression", panelUiTest, "btnBoardLibraryHeader"],
   ["panel shared board framing", panel, "和 AI 在同一张图上理解项目"],
   ["panel shared board context", panel, "SHARED VISUAL BOARD"],
   ["dialog live route CSS", panel, ".welcome-live-route"],
@@ -1117,7 +1136,7 @@ for (const [label, file, needle] of [
   ["panel UI board note counter regression", panelUiTest, "boardNoteCount"],
   ["panel UI default canvas regression", panelUiTest, 'data-view-target="canvas"'],
   ["panel UI first-run rescan regression", panelUiTest, "btnWelcomeRescan"],
-  ["panel UI workbench action regression", panelUiTest, "打开项目工作台"],
+  ["panel UI workbench action regression", panelUiTest, "打开审阅台"],
   ["canvas object thread regression", panelUiTest, "canvasBoardThread"],
   ["panel UI first-run regression", panelUiTest, "btnLoadExample"],
   ["panel UI hidden welcome regression", panelUiTest, 'getComputedStyle(element).display)).toBe("none")'],

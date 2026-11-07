@@ -26,5 +26,6 @@ ADRs capture product and protocol decisions that contributors and AI coding agen
 | [0020-mcp-tool-is-the-primary-product.md](0020-mcp-tool-is-the-primary-product.md) | Superseded by 0022 | Historical MCP-tool-first product hierarchy; its human-approval safety constraints remain in force. |
 | [0021-restrained-visual-system.md](0021-restrained-visual-system.md) | Superseded for product hierarchy by 0022 | Its semantic tokens and visual consistency remain useful; the thin-panel information hierarchy is no longer the target. |
 | [0022-shared-visual-board-is-the-product.md](0022-shared-visual-board-is-the-product.md) | Accepted | The local-first shared visual board is the product; MCP is the AI access channel and code writes retain human approval. |
+| [0023-board-modules-and-library-boundary.md](0023-board-modules-and-library-boundary.md) | Accepted | One board header, canvas, and object inspector form the default panel; legacy status layers are hidden and the diagram library is an on-demand local preview drawer. |
 
 Add a new ADR when a change affects the human/AI protocol, persisted state, tool surface, approval boundary, or public product direction. Keep the decision, alternatives, and safety consequence in one file.

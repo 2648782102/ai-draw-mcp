@@ -2567,14 +2567,106 @@
     .visual-switch, .sidebar, .sidebar.collapsed, body.flow-workspace .sidebar:not(.collapsed),
     body.flow-workspace .sidebar.collapsed, .btn-icon#btnToggleSidebar,
     .context-banner, .statusbar, .view-switch, .status #wsLabel { display: none !important; }
+    .board-header { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-3); min-height: 58px; padding: 0 var(--ui-space-4); border-bottom: 1px solid var(--ui-line); background: var(--ui-panel); }
+    body.zen-workspace .header { display: none; }
+    .board-identity { display: flex; align-items: baseline; gap: var(--ui-space-2); min-width: 0; }
+    .board-identity strong { overflow: hidden; color: var(--ui-ink); font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .board-identity span { flex: 0 0 auto; color: var(--ui-muted); font-size: 10px; }
+    .board-actions { display: flex; align-items: center; gap: var(--ui-space-1); flex: 0 0 auto; }
+    .board-menu { position: relative; }
+    .board-actions > button, .board-menu > button, .board-menu-item, .board-panel button, .board-footer button {
+      min-height: 30px; padding: 0 10px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small);
+      background: var(--ui-panel-raised); color: var(--ui-ink); font: inherit; font-size: 10px; font-weight: 600; cursor: pointer;
+    }
+    .board-actions > button:hover, .board-menu > button:hover, .board-menu-item:hover, .board-panel button:hover, .board-footer button:hover { border-color: var(--ui-accent); }
+    .board-actions > button.primary, .board-footer button.primary { border-color: var(--ui-accent); background: var(--ui-accent); color: #08111f; }
+    body.theme-light .board-actions > button.primary, body.theme-light .board-footer button.primary { color: #ffffff; }
+    .board-actions > button[aria-expanded="true"] { border-color: var(--ui-accent); background: var(--ui-accent-soft); }
+    .board-menu-list { position: absolute; z-index: 1300; right: 0; top: 36px; display: grid; gap: 3px; min-width: 188px; padding: 6px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius); background: var(--ui-panel); box-shadow: var(--ui-shadow); }
+    .board-menu-list[hidden] { display: none; }
+    .board-menu-item { width: 100%; text-align: left; }
+    .board-menu-item:disabled { opacity: .45; cursor: not-allowed; }
+    .board-menu-label { padding: 4px 8px 2px; color: var(--ui-muted); font-size: 9px; }
+    .board-main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; height: calc(100vh - var(--header-height) - 58px); }
+    body.zen-workspace .board-header { display: none; }
+    body.zen-workspace .board-main { height: 100vh; grid-template-columns: 1fr; }
+    body.zen-workspace .board-inspector { display: none; }
+    .board-stage { position: relative; min-width: 0; overflow: hidden; }
+    .board-inspector { display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--ui-line); background: var(--ui-panel); }
+    .board-inspector-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); padding: var(--ui-space-3) var(--ui-space-4); border-bottom: 1px solid var(--ui-line); }
+    .board-inspector-head h2 { margin: 0; color: var(--ui-ink); font-size: 12px; font-weight: 700; }
+    .board-inspector-head p { margin: 2px 0 0; color: var(--ui-muted); font-size: 9px; }
+    .board-inspector-body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--ui-space-3); }
+    .board-history-notice { display: none; margin-bottom: var(--ui-space-3); padding: var(--ui-space-3); border: 1px solid var(--ui-warn); border-radius: var(--ui-radius); background: var(--ui-panel-raised); }
+    body.board-history-mode .board-history-notice { display: block; }
+    .board-history-notice strong { display: block; margin-bottom: 4px; color: var(--ui-ink); font-size: 11px; }
+    .board-history-notice p { margin: 0 0 var(--ui-space-2); color: var(--ui-muted); font-size: 10px; line-height: 1.5; }
+    .board-history-notice button { width: 100%; }
+    .board-inspector .canvas-object-card {
+      position: static; display: block; width: auto; max-height: none; margin: 0; padding: 0; overflow: visible;
+      border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; opacity: 1; transform: none; pointer-events: auto;
+    }
+    .board-inspector .canvas-object-card[data-visible="false"] { display: block; }
+    .board-inspector .canvas-object-head, .board-inspector .canvas-object-stats, .board-inspector .canvas-object-actions.secondary { display: none; }
+    .board-inspector .canvas-object-card strong { margin: 0 0 4px; font-size: 14px; }
+    .board-inspector .canvas-object-path { margin-bottom: var(--ui-space-3); font-size: 10px; }
+    .board-inspector .canvas-object-actions { margin-top: 0; }
+    .board-inspector .canvas-board-note { margin-top: var(--ui-space-3); padding-top: var(--ui-space-3); }
+    .board-inspector .canvas-board-thread { max-height: none; min-height: 92px; }
+    .board-inspector .canvas-board-note textarea { min-height: 76px; }
+    .board-inspector .canvas-context-strip, .board-inspector .canvas-relation-map { display: none !important; }
+    .board-inspector .live-inspector { position: static; display: none; width: auto; max-height: none; margin: 0; padding: 0; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; opacity: 1; transform: none; pointer-events: auto; }
+    .board-inspector .live-inspector.open { display: block; }
+    .board-inspector .live-inspector.open + .canvas-object-card { display: none; }
+    .board-inspector .live-inspector-head, .board-inspector .live-inspector-metrics, .board-inspector .live-inspector-foot { display: none; }
+    .board-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); padding: var(--ui-space-2) var(--ui-space-3); border-top: 1px solid var(--ui-line); }
+    .board-footer span { overflow: hidden; color: var(--ui-muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .board-library-backdrop { position: fixed; z-index: 1200; inset: 0; background: rgba(3, 8, 16, .52); }
+    .board-library-backdrop[hidden] { display: none; }
+    .board-library { position: absolute; z-index: 1201; inset: 0 0 0 auto; display: flex; flex-direction: column; width: min(380px, 100vw); border-left: 1px solid var(--ui-line); background: var(--ui-panel); box-shadow: var(--ui-shadow); }
+    .board-library[hidden] { display: none; }
+    .board-library-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); padding: var(--ui-space-4); border-bottom: 1px solid var(--ui-line); }
+    .board-library-head h2 { margin: 0; color: var(--ui-ink); font-size: 14px; }
+    .board-library-head p { margin: 3px 0 0; color: var(--ui-muted); font-size: 10px; }
+    .board-library-search { padding: var(--ui-space-3) var(--ui-space-4); border-bottom: 1px solid var(--ui-line); }
+    .board-library-search input { width: 100%; min-height: 34px; padding: 0 10px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small); background: var(--ui-panel-raised); color: var(--ui-ink); font: inherit; font-size: 11px; }
+    .board-library-list { flex: 1; min-height: 0; overflow-y: auto; padding: var(--ui-space-3); }
+    .board-library-foot { padding: var(--ui-space-3) var(--ui-space-4); border-top: 1px solid var(--ui-line); color: var(--ui-muted); font-size: 9px; line-height: 1.5; }
+    .board-library-item { display: grid; gap: var(--ui-space-2); margin-bottom: var(--ui-space-2); padding: var(--ui-space-3); border: 1px solid var(--ui-line); border-radius: var(--ui-radius); background: var(--ui-panel-raised); }
+    .board-library-item.active { border-color: var(--ui-accent); background: var(--ui-accent-soft); }
+    .board-library-item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ui-space-2); }
+    .board-library-item strong { overflow: hidden; color: var(--ui-ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .board-library-item small { flex: 0 0 auto; color: var(--ui-muted); font-size: 9px; }
+    .board-library-item p { margin: 0; color: var(--ui-muted); font-size: 9px; }
+    .board-library-item-actions { display: flex; flex-wrap: wrap; gap: var(--ui-space-1); }
+    .board-library-item-actions button, .board-library-item-actions a { min-height: 26px; padding: 0 8px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small); background: var(--ui-panel); color: var(--ui-ink); font: inherit; font-size: 9px; text-decoration: none; cursor: pointer; }
+    .board-library-item-actions .danger:hover { border-color: var(--ui-danger); color: var(--ui-danger); }
+    .board-library-empty { padding: var(--ui-space-4); border: 1px dashed var(--ui-line); border-radius: var(--ui-radius); color: var(--ui-muted); font-size: 10px; line-height: 1.6; text-align: center; }
+    .sidebar-item.board-active { border-color: var(--ui-accent); }
+    .sidebar-item .badge.board-badge { background: var(--ui-accent); color: #08111f; }
+    body.theme-light .sidebar-item .badge.board-badge { color: #ffffff; }
+    .board-actions > button:disabled, .board-menu-item:disabled { opacity: .45; cursor: not-allowed; }
+    .board-inspector .live-inspector .inspector-section { display: grid; gap: var(--ui-space-2); padding: 0; border: 0; }
+    .board-inspector .live-inspector .inspector-section h4 { margin: 0; color: var(--ui-ink); font-size: 10px; }
+    .board-inspector .live-inspector-body { padding: 0; }
+    .board-inspector .live-inspector .inspector-banner { padding: var(--ui-space-2); border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small); background: var(--ui-panel-raised); }
+    .board-inspector .live-inspector .inspector-banner strong { display: block; color: var(--ui-ink); font-size: 11px; }
+    .board-inspector .live-inspector .inspector-banner span { display: block; margin-top: 3px; color: var(--ui-muted); font-size: 9px; line-height: 1.5; }
+    .board-inspector .live-inspector .inspector-row { padding: var(--ui-space-2); border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small); background: var(--ui-panel-raised); color: var(--ui-muted); font-size: 9px; line-height: 1.45; }
+    .board-inspector .live-inspector .inspector-row strong { color: var(--ui-ink); font-size: 10px; }
     .appearance-group:has([data-visual]) { display: none !important; }
-    .main, body.flow-workspace .main { gap: 0; padding: var(--ui-space-2) !important; }
+    .main, body.flow-workspace .main { display: contents; gap: 0; padding: 0 !important; }
+    .board-main { height: calc(100vh - var(--header-height) - 58px - 2 * var(--ui-space-2)); margin: var(--ui-space-2); border: 1px solid var(--ui-line); border-radius: var(--ui-radius); overflow: hidden; }
+    .board-stage .workspace { width: 100%; height: 100%; border: 0; border-radius: 0; }
+    body.zen-workspace .board-main { height: 100vh; margin: 0; border: 0; border-radius: 0; }
     .workspace, body.flow-workspace .workspace, body.flow-workspace.visual-aurora .workspace {
       border-radius: var(--ui-radius) !important; border-color: var(--ui-line) !important;
       box-shadow: none !important;
     }
     .toolbar { border: 0; background: transparent; padding: 0; }
     .toolbar > .toolbar-overflow, .toolbar > .appearance-wrap { display: none !important; }
+    .board-actions > button, .board-menu > button { background: var(--ui-panel-raised) !important; }
+    .board-actions > button.primary { background: var(--ui-accent) !important; background-image: none !important; }
     #btnRender.primary { display: none !important; }
     .header .status { margin-left: auto; }
     .status .dot { display: none !important; }
@@ -2958,17 +3050,30 @@
       .context-banner { display: none !important; }
       .flow-rail { grid-template-columns: 1fr auto; }
       .flow-rail-kicker { display: none; }
+      .board-header { flex-wrap: wrap; align-content: center; gap: var(--ui-space-1); padding: var(--ui-space-2) var(--ui-space-3); }
+      .board-actions { width: 100%; overflow-x: auto; }
+      .board-main { grid-template-columns: 1fr; height: calc(100vh - var(--header-height) - 86px - 2 * var(--ui-space-2)); }
+      .board-inspector { position: absolute; z-index: 30; inset: auto var(--ui-space-2) var(--ui-space-2) var(--ui-space-2); max-height: 43vh; border: 1px solid var(--ui-line); border-radius: var(--ui-radius); box-shadow: var(--ui-shadow); }
+      .board-stage { min-height: 0; }
       .canvas-object-card { width: min(300px, calc(100% - 24px)) !important; }
       .canvas-dock { width: calc(100% - 16px) !important; justify-content: center; flex-wrap: wrap; }
       .canvas-dock-group[data-group="VIEW"] { order: 1; }
       .canvas-dock-group[data-group="SHARED"] { order: 2; }
     }
     @media (max-width: 620px) {
+      .brand-wrap { min-width: 0; }
+      .brand-sub { display: none; }
+      .board-identity span { display: none; }
+      .board-actions > button, .board-menu > button { padding: 0 8px; font-size: 9px; }
+      .board-library { width: 100vw; }
       .flow-rail-actions #btnBoardRescan { font-size: 0 !important; padding: 0 8px !important; }
       .flow-rail-actions #btnBoardRescan::before { content: '↻'; font-size: 14px; }
       .flow-rail-actions #btnFlowCollab { font-size: 0 !important; padding: 0 8px !important; }
       .flow-rail-actions #btnFlowCollab::before { content: '◫'; font-size: 13px; }
-      .canvas-object-card {
+      .board-inspector .canvas-object-card {
+        position: static !important; width: auto !important; max-height: none !important;
+      }
+      .canvas-object-card:not(.board-inspector .canvas-object-card) {
         left: var(--ui-space-2) !important; right: var(--ui-space-2) !important;
         top: auto !important; bottom: 64px !important; width: auto !important; max-height: 46vh !important;
       }
@@ -2977,20 +3082,158 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
     }
+    .board-header .board-identity span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .flow-rail { min-height: 38px; }
+    .flow-rail-kicker { display: none !important; }
+    .flow-rail-actions #btnBoardRescan, .flow-rail-actions #btnFlowCollab { display: none !important; }
+    .status #btnCollaborate[hidden] { display: none !important; }
+    .board-actions > button, .board-menu > button, .board-footer button, .board-menu-item { font-family: inherit; letter-spacing: 0; text-transform: none; }
+    .board-identity strong, .board-inspector h2 { font-family: inherit; letter-spacing: 0; text-transform: none; }
+    .board-inspector .canvas-object-card,
+    .board-inspector .canvas-object-card[data-visible="false"] { position: static; display: block !important; width: auto; max-height: none; margin: 0; padding: 0; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; opacity: 1; transform: none; pointer-events: auto; }
+    .board-inspector-body { display: block; }
+
+    /* Shared-board composition: one header, one canvas, one object inspector. */
+    .header { display: none !important; }
+    .board-header {
+      min-height: 64px; padding: 0 var(--ui-space-4); gap: var(--ui-space-4);
+      background: var(--ui-panel); border-bottom: 1px solid var(--ui-line);
+    }
+    .board-identity { display: flex; align-items: center; min-width: 0; }
+    .board-identity > div { display: grid; gap: 2px; min-width: 0; }
+    .board-identity strong { display: block; color: var(--ui-ink); font-size: 14px; font-weight: 750; line-height: 1.2; }
+    .board-identity #boardHeaderState { display: block; overflow: hidden; color: var(--ui-muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .board-identity .board-safety {
+      flex: 0 0 auto; max-width: 210px; margin-left: var(--ui-space-2); padding: 4px 8px;
+      border: 1px solid var(--ui-line); border-radius: 999px; background: var(--ui-panel-raised);
+      color: var(--ui-muted); font-size: 9px; font-weight: 600;
+    }
+    .board-actions { display: flex; align-items: center; gap: var(--ui-space-2); }
+    .board-actions > button, .board-menu > button {
+      min-height: 32px; padding: 0 12px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small);
+      background: var(--ui-panel-raised); color: var(--ui-ink); font: inherit; font-size: 11px; font-weight: 650;
+    }
+    .board-actions > button.primary {
+      border-color: var(--ui-accent); background: var(--ui-accent); color: #08111f;
+    }
+    .board-menu-list { top: 40px; min-width: 164px; }
+    .board-menu-label { display: none; }
+    .board-menu-item { width: 100%; min-height: 30px; text-align: left; }
+    .board-main {
+      height: calc(100vh - 64px - 2 * var(--ui-space-2));
+      grid-template-columns: minmax(0, 1fr) 348px;
+    }
+    body.zen-workspace .board-main { height: 100vh; }
+    .flow-rail[hidden] { display: none !important; }
+    .board-stage .workspace { background: var(--ui-panel); }
+    .board-stage .preview-wrap { background-color: #fbfcfe !important; }
+    .board-inspector {
+      border-left: 1px solid var(--ui-line); background: var(--ui-panel-raised);
+    }
+    .board-inspector-head {
+      padding: var(--ui-space-4); border-bottom: 1px solid var(--ui-line); background: var(--ui-panel);
+    }
+    .board-inspector-head h2 { font-size: 14px; }
+    .board-inspector-head p { margin-top: 4px; color: var(--ui-muted); font-size: 10px; line-height: 1.45; }
+    .board-inspector-body { padding: var(--ui-space-4); }
+    .board-inspector .canvas-object-card { display: grid !important; gap: var(--ui-space-3); }
+    .board-inspector .canvas-object-card > strong {
+      margin: 0; padding: var(--ui-space-3); border: 1px solid var(--ui-line); border-radius: var(--ui-radius);
+      background: var(--ui-panel); color: var(--ui-ink); font-size: 16px; line-height: 1.35;
+    }
+    .board-inspector .canvas-object-path {
+      margin: calc(var(--ui-space-3) * -1) 0 0; padding: 0 var(--ui-space-3) var(--ui-space-3);
+      border: 1px solid var(--ui-line); border-top: 0; border-radius: 0 0 var(--ui-radius) var(--ui-radius);
+      background: var(--ui-panel); color: var(--ui-muted); font-size: 10px; line-height: 1.45; word-break: break-word;
+    }
+    .board-inspector .canvas-object-actions {
+      display: grid !important; grid-template-columns: 40px 40px minmax(0, 1fr); gap: var(--ui-space-2);
+    }
+    .board-inspector .canvas-object-actions button {
+      min-height: 32px; padding: 0 10px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small);
+      background: var(--ui-panel); color: var(--ui-ink); font: inherit; font-size: 10px; font-weight: 650;
+    }
+    .board-inspector .canvas-object-actions button.primary {
+      border-color: var(--ui-accent); background: var(--ui-accent-soft); color: var(--ui-accent);
+    }
+    .board-inspector .canvas-object-stats {
+      display: flex !important; align-items: center; justify-content: space-between; gap: var(--ui-space-2);
+      padding: 0 2px; color: var(--ui-muted); font-size: 10px;
+    }
+    .board-inspector .canvas-object-conversation { display: none !important; }
+    .board-inspector .canvas-board-note {
+      display: grid; gap: var(--ui-space-2); margin: 0; padding: var(--ui-space-3);
+      border: 1px solid var(--ui-line); border-radius: var(--ui-radius); background: var(--ui-panel);
+    }
+    .board-inspector .canvas-board-head { color: var(--ui-ink); font-size: 11px; font-weight: 700; }
+    .board-inspector .canvas-board-thread {
+      min-height: 140px; max-height: min(38vh, 320px); padding: var(--ui-space-2);
+      border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small); background: var(--ui-panel-raised);
+    }
+    .board-inspector .canvas-board-note textarea {
+      min-height: 84px; padding: var(--ui-space-2); border: 1px solid var(--ui-line);
+      border-radius: var(--ui-radius-small); background: var(--ui-panel-raised); color: var(--ui-ink);
+      font: inherit; font-size: 11px; line-height: 1.55;
+    }
+    .board-inspector .canvas-board-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); }
+    .board-inspector .canvas-board-actions span { overflow: hidden; color: var(--ui-muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .board-inspector .canvas-board-actions button {
+      min-height: 32px; padding: 0 12px; border: 1px solid var(--ui-accent);
+      border-radius: var(--ui-radius-small); background: var(--ui-accent); color: #08111f; font: inherit; font-size: 10px; font-weight: 700;
+    }
+    .board-inspector .canvas-context-strip {
+      display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2);
+    }
+    .board-inspector .canvas-context-chip {
+      display: grid; gap: 2px; min-height: 54px; padding: var(--ui-space-2); text-align: left;
+      border: 1px solid var(--ui-line) !important; border-radius: var(--ui-radius-small) !important;
+      background: var(--ui-panel) !important; color: var(--ui-ink) !important;
+    }
+    .board-inspector .canvas-context-chip strong { color: var(--ui-accent); font-size: 13px; }
+    .board-inspector .canvas-context-chip span { color: var(--ui-muted); font-size: 9px; }
+    .board-inspector .canvas-object-actions.secondary { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-2); }
+    .board-inspector .canvas-object-actions.secondary button { min-height: 30px; }
+    .board-inspector .canvas-relation-map {
+      display: block !important; padding: var(--ui-space-3); border: 1px solid var(--ui-line);
+      border-radius: var(--ui-radius); background: var(--ui-panel);
+    }
+    .board-inspector .canvas-relation-head { color: var(--ui-muted); font-size: 9px; }
+    .board-inspector .canvas-relation-nodes { margin-top: var(--ui-space-2); color: var(--ui-muted); font-size: 9px; }
+    .board-inspector .canvas-relation-foot, .board-inspector .canvas-object-note { display: none !important; }
+    .board-footer { padding: var(--ui-space-3) var(--ui-space-4); background: var(--ui-panel); }
+    .board-footer button { min-height: 32px; padding: 0 12px; }
+    .canvas-dock {
+      bottom: var(--ui-space-4) !important; padding: var(--ui-space-1) !important;
+      border-color: var(--ui-line) !important; border-radius: 999px !important;
+      background: var(--ui-panel) !important; box-shadow: var(--ui-shadow) !important;
+    }
+    .canvas-dock button { min-height: 30px; border-color: transparent !important; background: transparent !important; font-size: 11px; }
+    .canvas-dock button:hover { border-color: var(--ui-accent) !important; background: var(--ui-accent-soft) !important; }
+    .canvas-dock .zoom-readout { min-width: 44px; color: var(--ui-muted); font-size: 10px; }
+    .canvas-dock-divider { display: none !important; }
+    .canvas-object-card:not(.board-inspector .canvas-object-card) { display: none !important; }
+    @media (max-width: 900px) {
+      .board-header { min-height: 58px; }
+      .board-identity .board-safety { display: none; }
+      .board-main {
+        height: calc(100vh - 58px - 2 * var(--ui-space-2));
+        grid-template-columns: minmax(0, 1fr) 300px;
+      }
+    }
+    @media (max-width: 720px) {
+      .board-header { min-height: 86px; flex-wrap: wrap; align-content: center; gap: var(--ui-space-1); padding: var(--ui-space-2) var(--ui-space-3); }
+      .board-actions { width: 100%; overflow-x: auto; padding-bottom: 2px; }
+      .board-main { height: calc(100vh - 86px - 2 * var(--ui-space-2)); grid-template-columns: 1fr; }
+      .board-inspector { position: absolute; inset: auto var(--ui-space-2) var(--ui-space-2) var(--ui-space-2); max-height: 42vh; }
+      .board-inspector .canvas-context-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .board-inspector .canvas-board-thread { max-height: 110px; }
+    }
   </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="brand-wrap">
-    <span class="brand-mark" aria-hidden="true">AI</span>
-    <span><span class="brand">AI Draw MCP</span><span class="brand-sub">人与 AI 的共享项目画板</span></span>
-  </div>
-    <div class="context-banner" aria-label="当前图形上下文" aria-hidden="true">
-      <strong id="headerContextTitle">等待图形</strong>
-      <span id="headerContextMeta">LOCAL · READ-ONLY UNTIL APPROVAL</span>
-    </div>
-    <div class="toolbar">
+  <div class="toolbar" aria-hidden="true">
       <button class="btn-icon" id="btnToggleSidebar" title="Toggle sidebar">☰</button>
       <div class="visual-switch" role="group" aria-label="视觉系统" aria-hidden="true">
         <button type="button" class="active" data-visual="aurora" title="Aurora：沉浸式渐变光效">✦ Aurora</button>
@@ -3102,6 +3345,8 @@
           <span>显示 / 隐藏节点悬停速览</span><kbd>P</kbd>
           <span>统一视觉系统</span><kbd>V</kbd>
           <span>项目图 / 上下文 / 提案</span><kbd>4 / 5 / 6</kbd>
+          <span>图库</span><kbd>L</kbd>
+          <span>保存当前共享图形</span><kbd>⌘/Ctrl + S</kbd>
           <span>命令面板</span><kbd>? · Esc</kbd>
           <span>Flow 源码抽屉</span><kbd>E</kbd>
           <span>专注模式</span><kbd>7</kbd>
@@ -3116,11 +3361,39 @@
     </div>
   </div>
   <div class="status">
-    <button id="btnCollaborate" title="打开项目工作台（C）">◫ 工作台</button>
+    <button id="btnCollaborate" title="打开项目工作台（C）" hidden>◫ 工作台</button>
     <span class="dot" id="wsStatus"></span>
     <span id="wsLabel" aria-live="polite">连接中…</span>
   </div>
 </div>
+
+<header class="board-header" aria-label="当前共享画板">
+  <div class="board-identity">
+    <span class="brand-mark" aria-hidden="true">AI</span>
+    <div><strong id="boardHeaderTitle">共享项目画板</strong><span id="boardHeaderState">人与 AI 的共享项目画板 · 等待扫描</span></div>
+    <span class="board-safety" id="boardSafetyState">项目写入需审阅与批准</span>
+    <span id="headerContextTitle" hidden>等待图形</span>
+    <span id="headerContextMeta" hidden>LOCAL · READ-ONLY UNTIL APPROVAL</span>
+  </div>
+  <div class="board-actions" aria-label="画板操作">
+    <button type="button" id="btnBoardScanHeader" class="primary" title="只读扫描项目并刷新当前共享画板">扫描刷新</button>
+    <button type="button" id="btnBoardSaveHeader" title="保存当前共享图形；不写项目源码">保存画板</button>
+    <button type="button" id="btnBoardLibraryHeader" aria-haspopup="dialog" aria-controls="boardLibrary" aria-expanded="false" title="打开本机保存的图与下载项">图库</button>
+    <div class="board-menu">
+      <button type="button" id="btnBoardMoreHeader" aria-haspopup="menu" aria-controls="boardMoreMenu" aria-expanded="false" title="更多画板操作">⋯ 更多</button>
+      <div class="board-menu-list" id="boardMoreMenu" role="menu" hidden>
+        <div class="board-menu-label">导出与源码</div>
+        <button type="button" class="board-menu-item" id="btnBoardDownloadSvg" role="menuitem">下载 SVG</button>
+        <button type="button" class="board-menu-item" id="btnBoardDownloadPng" role="menuitem">下载 PNG</button>
+        <button type="button" class="board-menu-item" id="btnBoardSaveSource" role="menuitem">保存图源码</button>
+        <button type="button" class="board-menu-item" id="btnBoardExportSession" role="menuitem">导出会话</button>
+        <button type="button" class="board-menu-item" id="btnBoardCopyId" role="menuitem">复制图 ID</button>
+        <button type="button" class="board-menu-item" id="btnBoardCommands" role="menuitem">命令面板</button>
+      </div>
+    </div>
+    <button type="button" id="btnBoardWorkbenchHeader" title="打开项目图编辑、上下文与变更审阅">审阅台</button>
+  </div>
+</header>
 
 <div class="main">
   <aside class="sidebar" id="sidebar">
@@ -3130,8 +3403,10 @@
     <div class="sidebar-resize" id="sidebarResize"></div>
   </aside>
 
+  <div class="board-main" id="boardMain">
+  <div class="board-stage" id="boardStage">
   <div class="workspace" id="workspace" data-view="canvas">
-    <div class="flow-rail" id="flowRail" aria-label="共享画板状态" style="--flow-progress: 0%" data-progress-label="0 / 4 READY · 0%">
+    <div class="flow-rail" id="flowRail" aria-label="共享画板状态" hidden style="--flow-progress: 0%" data-progress-label="0 / 4 READY · 0%">
       <div class="flow-rail-kicker"><strong id="boardContextTitle">等待 AI 扫描项目</strong><span id="flowRailMeta">选中画布对象即可留言 · 批准前只读</span><span class="flow-rail-safety">LOCAL · 批准前只读</span></div>
       <div class="flow-rail-steps" aria-label="工具上下文阶段">
         <button type="button" class="flow-step" data-flow-stage="scan" data-state="idle"><span class="flow-step-icon">◇</span><span class="flow-step-copy"><strong>AI 生成结构</strong><small>MCP 扫描项目</small></span><span class="flow-step-state">○</span></button>
@@ -3139,7 +3414,7 @@
         <button type="button" class="flow-step" data-flow-stage="context" data-state="idle"><span class="flow-step-icon">⌁</span><span class="flow-step-copy"><strong>AI 读取上下文</strong><small>机器可读投影</small></span><span class="flow-step-state">○</span></button>
         <button type="button" class="flow-step" data-flow-stage="review" data-state="idle"><span class="flow-step-icon">✓</span><span class="flow-step-copy"><strong>人工批准</strong><small>逐行 diff 后确认</small></span><span class="flow-step-state">○</span></button>
       </div>
-      <div class="flow-rail-actions"><button type="button" id="btnBoardRescan" class="primary" title="只读扫描项目并刷新共享结构图">↻ 扫描项目</button><button type="button" id="btnFlowSource" aria-pressed="false" title="展开或收起本机源码抽屉（E）">⌘ 源码</button><button type="button" id="btnFlowCollab" title="打开项目图、上下文与变更审阅（C）">◫ 打开工作台</button></div>
+      <div class="flow-rail-actions"><button type="button" id="btnBoardRescan" class="primary" title="只读扫描项目并刷新共享结构图">↻ 扫描项目</button><button type="button" id="btnFlowSource" aria-pressed="false" title="展开或收起本机源码抽屉（E）">⌘ 源码</button><button type="button" id="btnFlowCollab" title="打开项目图、上下文与变更审阅（C）">◫ 打开审阅台</button></div>
     </div>
     <div class="panes">
       <div class="pane" id="editorPane">
@@ -3340,54 +3615,6 @@
           <button type="button" class="collab-pulse-open" id="btnCollabPulseOpen">◫ 打开工作台 · C</button>
             <div class="collab-pulse-detail-foot">这里只汇总既有只读状态；批准前不会签发凭据或写项目文件。</div>
           </section>
-          <aside class="canvas-object-card" id="canvasObjectCard" data-visible="false" aria-label="当前画布对象">
-            <div class="canvas-object-head"><span class="canvas-object-kicker">Focus · read only</span><span class="canvas-object-index" id="canvasObjectIndex">0 / 0</span></div>
-            <strong id="canvasObjectLabel">等待项目结构图</strong>
-            <code class="canvas-object-path" id="canvasObjectPath">选中节点后作为 AI 的只读上下文</code>
-            <div class="canvas-object-actions">
-              <button type="button" id="btnCanvasPrevNode" title="上一个节点">←</button>
-              <button type="button" id="btnCanvasNextNode" title="下一个节点">→</button>
-              <button type="button" id="btnCanvasOpenNode" class="primary" title="在协作工作台查看项目图">查看节点</button>
-            </div>
-            <div class="canvas-object-stats"><span id="canvasRelatedStat" data-focus-paths="0">直接关联 <strong id="canvasRelatedCount">0</strong> 个对象</span><span id="canvasFocusRevision">rev —</span></div>
-            <div class="canvas-relation-map" id="canvasRelationMap" data-state="empty" aria-label="当前对象关系轨道">
-              <div class="canvas-relation-head"><span class="canvas-relation-title">关系轨道 · 只读</span><span class="canvas-relation-total" id="canvasRelationTotal">等待真实连线</span></div>
-              <div class="canvas-relation-rails">
-                <div class="canvas-relation-rail" data-direction="inbound"><div class="canvas-relation-rail-label"><i aria-hidden="true">←</i>入向<span>指向这里</span><strong id="canvasRelationInbound">0</strong></div><div class="canvas-relation-rail-track" aria-hidden="true"><span id="canvasRelationInboundBar"></span></div></div>
-                <div class="canvas-relation-rail" data-direction="outbound"><div class="canvas-relation-rail-label"><i aria-hidden="true">→</i>出向<span>指向别处</span><strong id="canvasRelationOutbound">0</strong></div><div class="canvas-relation-rail-track" aria-hidden="true"><span id="canvasRelationOutboundBar"></span></div></div>
-              </div>
-              <div class="canvas-relation-nodes" id="canvasRelationNodes"><div class="canvas-relation-empty">选中节点后显示相邻对象</div></div>
-              <div class="canvas-relation-foot">点击相邻对象同步既有只读焦点 · 不批准或写文件</div>
-            </div>
-            <div class="canvas-object-conversation sr-only" id="canvasObjectConversation" data-state="clear">
-              <span id="canvasConversationSummary">上下文 · 暂无绑定批注</span>
-              <span id="canvasConversationFallback">在工作台查看完整对象线程</span>
-            </div>
-            <section class="canvas-board-note" aria-label="当前对象留言">
-              <div class="canvas-board-head">
-                <span>对象线程</span>
-                <button type="button" id="btnCanvasOpenConversation" title="在工作台里查看完整对象线程">◫ 完整线程</button>
-              </div>
-              <div class="canvas-board-thread" id="canvasBoardThread" aria-live="polite"></div>
-              <label class="sr-only" for="canvasBoardNoteInput">给当前对象留言</label>
-              <textarea id="canvasBoardNoteInput" maxlength="2000" placeholder="告诉 AI 这个对象应如何理解，或继续上面的线程…"></textarea>
-              <div class="canvas-board-actions">
-                <span id="canvasBoardNoteState">留言只写入共享画板，不写项目文件</span>
-                <button type="button" class="primary" id="btnCanvasBoardNote">保存到线程</button>
-              </div>
-            </section>
-            <div class="canvas-context-strip" id="canvasContextStrip" aria-label="当前对象只读上下文">
-              <button type="button" class="canvas-context-chip" id="btnCanvasEvidence" data-ready="false"><strong id="canvasEvidenceCount">—</strong><span>源码证据</span></button>
-              <button type="button" class="canvas-context-chip" id="btnCanvasReview" data-ready="false"><strong id="canvasReviewState">—</strong><span>审阅就绪</span></button>
-              <button type="button" class="canvas-context-chip" id="btnCanvasDecision" data-ready="false"><strong id="canvasDecisionCount">—</strong><span>决策链</span></button>
-              <button type="button" class="canvas-context-chip" id="btnCanvasNavigation" data-ready="false"><strong id="canvasNavigationCount">—</strong><span>源码跳转</span></button>
-            </div>
-            <div class="canvas-object-actions secondary">
-              <button type="button" id="btnCanvasRelatedNode" title="沿真实连线切换到相邻对象">↗ 关联</button>
-              <button type="button" id="btnCanvasCopyFocus" title="复制只读焦点上下文给 AI">⧉ 复制</button>
-            </div>
-            <div class="canvas-object-note">点击图中节点或按 `← / →` 切换；焦点只表达「人正在指哪个对象」，不签发凭据、不自动写项目文件。</div>
-          </aside>
         </div>
       </div>
     </div>
@@ -3396,27 +3623,109 @@
       <span id="statusErr"></span>
     </div>
   </div>
+  </div>
+  <aside class="board-inspector" aria-label="当前对象线程">
+    <div class="board-inspector-head">
+      <div><h2>当前对象</h2><p>选中画布对象后，在这里查看证据并与 AI 继续同一条线程</p></div>
+      <button type="button" id="btnBoardLibraryInspector" title="打开图库">图库</button>
+    </div>
+    <div class="board-inspector-body">
+      <section class="board-history-notice" id="boardHistoryNotice" aria-label="历史图预览">
+        <strong>正在查看历史图预览</strong>
+        <p>这张图不是当前共享画板，右侧对象线程和 AI 上下文仍属于活动画板。返回后继续在同一个会话里沟通。</p>
+        <button type="button" id="btnBoardReturnActive" class="primary">返回当前共享画板</button>
+      </section>
+      <aside class="canvas-object-card" id="canvasObjectCard" data-visible="false" aria-label="当前画布对象">
+        <div class="canvas-object-head"><span class="canvas-object-kicker">当前对象</span><span class="canvas-object-index" id="canvasObjectIndex">0 / 0</span></div>
+        <strong id="canvasObjectLabel">等待项目结构图</strong>
+        <code class="canvas-object-path" id="canvasObjectPath">点选画布里的节点，让 AI 知道你正在谈哪个对象</code>
+        <div class="canvas-object-actions">
+          <button type="button" id="btnCanvasPrevNode" title="上一个节点">←</button>
+          <button type="button" id="btnCanvasNextNode" title="下一个节点">→</button>
+          <button type="button" id="btnCanvasOpenNode" class="primary" title="在审阅台查看项目图">查看节点</button>
+        </div>
+        <div class="canvas-object-stats"><span id="canvasRelatedStat" data-focus-paths="0">关联 <strong id="canvasRelatedCount">0</strong> 个对象</span><span id="canvasFocusRevision">rev —</span></div>
+        <div class="canvas-relation-map" id="canvasRelationMap" data-state="empty" aria-label="当前对象关系轨道">
+          <div class="canvas-relation-head"><span class="canvas-relation-title">关系轨道 · 只读</span><span class="canvas-relation-total" id="canvasRelationTotal">等待真实连线</span></div>
+          <div class="canvas-relation-rails">
+            <div class="canvas-relation-rail" data-direction="inbound"><div class="canvas-relation-rail-label"><i aria-hidden="true">←</i>入向<span>指向这里</span><strong id="canvasRelationInbound">0</strong></div><div class="canvas-relation-rail-track" aria-hidden="true"><span id="canvasRelationInboundBar"></span></div></div>
+            <div class="canvas-relation-rail" data-direction="outbound"><div class="canvas-relation-rail-label"><i aria-hidden="true">→</i>出向<span>指向别处</span><strong id="canvasRelationOutbound">0</strong></div><div class="canvas-relation-rail-track" aria-hidden="true"><span id="canvasRelationOutboundBar"></span></div></div>
+          </div>
+          <div class="canvas-relation-nodes" id="canvasRelationNodes"><div class="canvas-relation-empty">选中节点后显示相邻对象</div></div>
+          <div class="canvas-relation-foot">点击相邻对象同步既有只读焦点 · 不批准或写文件</div>
+        </div>
+        <div class="canvas-object-conversation sr-only" id="canvasObjectConversation" data-state="clear">
+          <span id="canvasConversationSummary">上下文 · 暂无绑定批注</span>
+          <span id="canvasConversationFallback">在工作台查看完整对象线程</span>
+        </div>
+        <section class="canvas-board-note" aria-label="当前对象留言">
+          <div class="canvas-board-head">
+            <span>人 / AI 对话</span>
+            <button type="button" id="btnCanvasOpenConversation" title="在审阅台里查看完整对象线程">完整线程</button>
+          </div>
+          <div class="canvas-board-thread" id="canvasBoardThread" aria-live="polite"></div>
+          <label class="sr-only" for="canvasBoardNoteInput">给当前对象留言</label>
+          <textarea id="canvasBoardNoteInput" maxlength="2000" placeholder="告诉 AI 这个对象应如何理解，或继续上面的线程…"></textarea>
+          <div class="canvas-board-actions">
+            <span id="canvasBoardNoteState">留言写入当前画板，不写项目文件</span>
+            <button type="button" class="primary" id="btnCanvasBoardNote">发给 AI</button>
+          </div>
+        </section>
+        <div class="canvas-context-strip" id="canvasContextStrip" aria-label="当前对象只读上下文">
+          <button type="button" class="canvas-context-chip" id="btnCanvasEvidence" data-ready="false"><strong id="canvasEvidenceCount">—</strong><span>源码证据</span></button>
+          <button type="button" class="canvas-context-chip" id="btnCanvasReview" data-ready="false"><strong id="canvasReviewState">—</strong><span>审阅就绪</span></button>
+          <button type="button" class="canvas-context-chip" id="btnCanvasDecision" data-ready="false"><strong id="canvasDecisionCount">—</strong><span>决策链</span></button>
+          <button type="button" class="canvas-context-chip" id="btnCanvasNavigation" data-ready="false"><strong id="canvasNavigationCount">—</strong><span>源码跳转</span></button>
+        </div>
+        <div class="canvas-object-actions secondary">
+          <button type="button" id="btnCanvasRelatedNode" title="沿真实连线切换到相邻对象">↗ 关联</button>
+          <button type="button" id="btnCanvasCopyFocus" title="复制只读焦点上下文给 AI">⧉ 复制</button>
+        </div>
+        <div class="canvas-object-note">点击图中节点或按 `← / →` 切换；焦点只表达「人正在指哪个对象」，不签发凭据、不自动写项目文件。</div>
+      </aside>
+      <aside class="live-inspector" id="liveInspector" aria-label="只读上下文速览" aria-hidden="true">
+        <div class="live-inspector-head">
+          <div><strong>上下文速览</strong><span>Live read-only focus</span></div>
+          <button type="button" id="btnCloseInspector" title="收起速览（I / Esc）">✕</button>
+        </div>
+        <div class="live-inspector-body">
+          <div class="inspector-banner"><strong id="inspectorFocus">等待项目结构图</strong><span id="inspectorPath">选中节点后作为 AI 的只读上下文；速览不会批准提案或写文件。</span></div>
+          <div class="inspector-metrics">
+            <div class="inspector-metric"><strong id="inspectorEvidence">0</strong><span>源码证据</span></div>
+            <div class="inspector-metric"><strong id="inspectorThreads">0</strong><span>开放信号</span></div>
+            <div class="inspector-metric"><strong id="inspectorRevision">—</strong><span>图形修订</span></div>
+            <div class="inspector-metric"><strong id="inspectorReadiness">—</strong><span>审阅就绪</span></div>
+          </div>
+          <div class="inspector-section"><h4>当前对象</h4><div id="inspectorActions"></div></div>
+          <div class="inspector-section"><h4>协作下一步</h4><div id="inspectorNext"></div></div>
+        </div>
+        <div class="inspector-foot">所有数值均为当前会话的只读投影；项目写入仍须逐行 diff、人工确认与一次性确认号。</div>
+      </aside>
+    </div>
+    <div class="board-footer">
+      <span id="boardFooterState">当前共享画板 · 项目写入仍需审阅与批准</span>
+      <button type="button" id="btnBoardReviewFooter">审阅变更</button>
+    </div>
+  </aside>
+  </div>
+</div>
+
+<div class="board-library-backdrop" id="boardLibraryBackdrop" hidden>
+  <aside class="board-library" id="boardLibrary" role="dialog" aria-modal="true" aria-labelledby="boardLibraryTitle" aria-hidden="true" hidden>
+    <div class="board-library-head">
+      <div><h2 id="boardLibraryTitle">图库</h2><p>本机保存的图与下载项；当前共享画板始终单独标识</p></div>
+      <button type="button" id="btnCloseBoardLibrary" aria-label="关闭图库">✕</button>
+    </div>
+    <div class="board-library-search">
+      <label class="sr-only" for="boardLibrarySearch">搜索图表</label>
+      <input id="boardLibrarySearch" type="search" placeholder="搜索图表标题或类型…" autocomplete="off" />
+    </div>
+    <div class="board-library-list" id="boardLibraryList" role="list"></div>
+    <div class="board-library-foot">打开历史图只切换本机预览，不会改写共享会话、对象线程或批准凭据。SVG / PNG 下载当前可见画面，保存源码只更新已有图记录。</div>
+  </aside>
 </div>
 
 <button class="zen-exit" id="btnZenExit" type="button" aria-label="退出沉浸工作区" title="退出沉浸工作区（Z / Esc）">◌ 沉浸工作区 · Z / Esc 退出</button>
-<aside class="live-inspector" id="liveInspector" aria-label="只读上下文速览" aria-hidden="true">
-  <div class="live-inspector-head">
-    <div><strong>上下文速览</strong><span>Live read-only focus</span></div>
-    <button type="button" id="btnCloseInspector" title="收起速览（I / Esc）">✕</button>
-  </div>
-  <div class="live-inspector-body">
-    <div class="inspector-banner"><strong id="inspectorFocus">等待项目结构图</strong><span id="inspectorPath">选中节点后作为 AI 的只读上下文；速览不会批准提案或写文件。</span></div>
-    <div class="inspector-metrics">
-      <div class="inspector-metric"><strong id="inspectorEvidence">0</strong><span>源码证据</span></div>
-      <div class="inspector-metric"><strong id="inspectorThreads">0</strong><span>开放信号</span></div>
-      <div class="inspector-metric"><strong id="inspectorRevision">—</strong><span>图形修订</span></div>
-      <div class="inspector-metric"><strong id="inspectorReadiness">—</strong><span>审阅就绪</span></div>
-    </div>
-    <div class="inspector-section"><h4>当前对象</h4><div id="inspectorActions"></div></div>
-    <div class="inspector-section"><h4>协作下一步</h4><div id="inspectorNext"></div></div>
-  </div>
-  <div class="inspector-foot">所有数值均为当前会话的只读投影；项目写入仍须逐行 diff、人工确认与一次性确认号。</div>
-</aside>
 <div class="toast" id="toast"></div>
 
 <div class="shortcut-backdrop" id="shortcutBackdrop" hidden>
@@ -3432,7 +3741,9 @@
         <div class="shortcut-row"><span>切换增强 / 原色图形皮肤</span><kbd>G</kbd></div>
         <div class="shortcut-row"><span>显示 / 隐藏节点悬停速览</span><kbd>P</kbd></div>
         <div class="shortcut-row"><span>项目图 / 上下文 / 提案</span><kbd>4 / 5 / 6</kbd></div>
-        <div class="shortcut-row"><span>项目工作台 / 专注模式</span><kbd>C / 7</kbd></div>
+        <div class="shortcut-row"><span>审阅台 / 专注模式</span><kbd>C / 7</kbd></div>
+        <div class="shortcut-row"><span>打开 / 关闭图库</span><kbd>L</kbd></div>
+        <div class="shortcut-row"><span>保存当前共享图形</span><kbd>⌘/Ctrl + S</kbd></div>
         <div class="shortcut-row"><span>沉浸工作区</span><kbd>Z</kbd></div>
       </div>
       <div class="shortcut-group"><h4>画布</h4>
@@ -3498,10 +3809,10 @@
 <div class="collab-shell" id="collabShell" data-tab="graph" data-details="closed" hidden>
   <div class="collab-header">
     <div>
-      <strong>项目工作台</strong><span class="focus-badge">专注模式 · 概览已隐藏</span>
+      <strong>审阅台</strong><span class="focus-badge">专注模式 · 概览已隐藏</span>
       <span class="collab-kicker">LOCAL · READ-ONLY UNTIL APPROVAL</span>
       <span id="collabMeta">等待同步…</span>
-      <span class="shortcut-hint">Esc 关闭 · C 打开</span>
+      <span class="shortcut-hint">从共享画板打开 · Esc 返回</span>
     </div>
     <div class="collab-header-actions">
       <button id="btnBoardDetails" type="button" aria-pressed="false" title="显示或隐藏概览与状态信息">显示概览</button>
@@ -3684,6 +3995,9 @@ const PANEL_TOKEN = "__AI_DRAW_PANEL_TOKEN__";
 const $ = (s) => document.querySelector(s);
 const API = location.origin;
 let currentId = null;
+let activeDiagramId = null;
+let boardLibraryReturnFocus = null;
+let allDiagrams = [];
 let editorKind = 'mermaid'; // 'mermaid' | 'svg'
 let renderTimer = null;
 
@@ -3709,6 +4023,7 @@ const PREFS_DEFAULT = {
   flowSourceOpen: false,
   inspectorOpen: false,
   lastDiagramId: null,
+  boardLibraryOpen: false,
 };
 let prefs = { ...PREFS_DEFAULT };
 
@@ -3915,9 +4230,11 @@ function setHeaderContext() {
   const title = $('#diagramTitle')?.textContent.trim() || '等待图形';
   const headerTitle = $('#headerContextTitle');
   const headerMeta = $('#headerContextMeta');
+  const boardState = $('#boardHeaderState');
   const hasDiagram = Boolean($('#diagramRender svg') || currentId);
   if (headerTitle) headerTitle.textContent = hasDiagram ? title : '等待图形';
   if (headerMeta) headerMeta.textContent = hasDiagram ? `LOCAL · ${currentId ? 'SAVED' : 'DRAFT'} · 批准前只读` : 'LOCAL · READ-ONLY UNTIL APPROVAL';
+  if (boardState && !collabGraph?.nodes?.length) boardState.textContent = '人与 AI 的共享项目画板 · 等待扫描';
 }
 
 function setInspectorOpen(open, persist = true) {
@@ -4420,6 +4737,7 @@ function updateCanvasDock() {
   $('#canvasDiagramLabel').textContent = meaningfulTitle;
   $('#canvasDiagramLabel').title = meaningfulTitle;
   setHeaderContext();
+  syncBoardHeader();
 }
 
 function resetView() { zScale = 1; zX = 0; zY = 0; applyTransform(); }
@@ -4448,15 +4766,17 @@ function fitView() {
   const { width: svgW, height: svgH } = naturalSvgSize(svg);
   if (!svgW || !svgH) { zScale = 1; zX = 0; zY = 0; applyTransform(); return; }
   const canvasMode = $('#workspace').dataset.view === 'canvas';
-  const objectCard = $('#canvasObjectCard');
-  const objectCardVisible = canvasMode && objectCard?.dataset.visible === 'true'
-    && window.getComputedStyle(objectCard).display !== 'none';
+  const objectCard = $('#boardMain');
+  const objectCardVisible = canvasMode && objectCard
+    && window.getComputedStyle(objectCard).gridTemplateColumns.split(' ').length > 1;
   const objectCardRect = objectCardVisible ? objectCard.getBoundingClientRect() : null;
   const wrapRect = wrap.getBoundingClientRect();
-  const rightInset = objectCardRect ? Math.max(0, wrapRect.right - objectCardRect.left) : 0;
+  const inspector = $('.board-inspector');
+  const inspectorRect = objectCardVisible && inspector ? inspector.getBoundingClientRect() : null;
+  const rightInset = inspectorRect ? Math.max(0, wrapRect.right - inspectorRect.left) : 0;
   const padW = wrap.clientWidth - (canvasMode ? 92 : 64) - rightInset;
   const padH = wrap.clientHeight - (canvasMode ? 128 : 96);
-  const newScale = Math.min(padW / svgW, padH / svgH, 3.2);
+  const newScale = Math.min(padW / svgW, padH / svgH, 1.2);
   zScale = Math.max(0.05, newScale);
   const leftInset = 46;
   const availableWidth = Math.max(1, wrap.clientWidth - leftInset - rightInset);
@@ -4686,7 +5006,37 @@ window.addEventListener('keydown', (e) => {
   const receiptBackdrop = $('#receiptBackdrop');
   const commandBackdrop = $('#commandBackdrop');
   const shortcutBackdrop = $('#shortcutBackdrop');
+  const boardLibrary = $('#boardLibrary');
   const typing = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+  if (e.key === 'Escape' && boardLibrary && !boardLibrary.hidden) {
+    e.preventDefault();
+    setBoardLibraryOpen(false);
+    return;
+  }
+  if (boardLibrary && !boardLibrary.hidden && e.key === 'Tab') {
+    const focusable = [...boardLibrary.querySelectorAll('button:not([disabled]), a[href], input')];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    return;
+  }
+  if (e.key === 'Escape' && $('#boardMoreMenu') && !$('#boardMoreMenu').hidden) {
+    e.preventDefault();
+    closeBoardMoreMenu();
+    return;
+  }
+  if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S') && document.activeElement !== $('#codeEditor')) {
+    e.preventDefault();
+    saveBoardGraph();
+    return;
+  }
+  if (!typing && (e.key === 'l' || e.key === 'L') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    setBoardLibraryOpen($('#boardLibrary')?.hidden);
+    return;
+  }
   if (commandBackdrop && !commandBackdrop.hidden) {
     if (e.key === 'Escape') { e.preventDefault(); closeCommandPalette(); return; }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -5092,6 +5442,190 @@ function setSidebarCollapsed(collapsed) {
   syncAppearanceControls();
 }
 
+function boardActiveMode() {
+  return !activeDiagramId || !currentId || currentId === activeDiagramId;
+}
+
+function setActiveDiagramId(id, { refresh = false } = {}) {
+  const normalized = typeof id === 'string' && id ? id : null;
+  const changed = normalized !== activeDiagramId;
+  activeDiagramId = normalized;
+  syncBoardHeader();
+  if (changed) renderDiagramList();
+  if (refresh && normalized) loadDiagram(normalized);
+}
+
+function syncBoardHeader() {
+  const graph = collabPulseSnapshot?.session?.graph || collabGraph;
+  const nodes = Array.isArray(graph?.nodes) ? graph.nodes.length : 0;
+  const title = allDiagrams.find((item) => item.id === activeDiagramId)?.title
+    || $('#diagramTitle')?.textContent.trim();
+  const meaningfulTitle = title && title !== '—' ? title : null;
+  const active = boardActiveMode();
+  const name = active ? '共享项目画板' : `历史图 · ${meaningfulTitle || currentId || '预览'}`;
+  const titleTarget = $('#boardHeaderTitle');
+  const stateTarget = $('#boardHeaderState');
+  const footerTarget = $('#boardFooterState');
+  const status = active
+    ? `${nodes ? `${nodes} 个对象` : '等待扫描'} · rev ${Number.isFinite(collabRevision) ? collabRevision : '—'} · 批准前只读`
+    : '历史图预览 · 共享会话未切换 · 对象线程只读';
+  if (titleTarget) {
+    titleTarget.textContent = name;
+    titleTarget.title = name;
+  }
+  if (stateTarget) stateTarget.textContent = status;
+  if (footerTarget) footerTarget.textContent = active ? '当前共享画板 · 写入项目仍需审阅与批准' : '正在查看本机图记录 · 返回当前共享画板后继续沟通';
+  document.body.classList.toggle('board-history-mode', !active);
+  const saveButton = $('#btnBoardSaveHeader');
+  if (saveButton) {
+    saveButton.disabled = !active || !collabGraph;
+    saveButton.title = active ? '保存当前共享图形；不写项目源码' : '历史图预览不能改写当前共享图形；请先返回当前画板';
+  }
+  const sourceButton = $('#btnBoardSaveSource');
+  if (sourceButton) sourceButton.disabled = !currentId;
+  const copyButton = $('#btnBoardCopyId');
+  if (copyButton) copyButton.disabled = !currentId;
+}
+
+function closeBoardMoreMenu() {
+  const menu = $('#boardMoreMenu');
+  const trigger = $('#btnBoardMoreHeader');
+  if (menu) menu.hidden = true;
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
+}
+
+function toggleBoardMoreMenu(force) {
+  const menu = $('#boardMoreMenu');
+  const trigger = $('#btnBoardMoreHeader');
+  if (!menu || !trigger) return;
+  const open = typeof force === 'boolean' ? force : menu.hidden;
+  menu.hidden = !open;
+  trigger.setAttribute('aria-expanded', String(open));
+}
+
+function setBoardLibraryOpen(open, { returnFocus = true } = {}) {
+  const next = Boolean(open);
+  const backdrop = $('#boardLibraryBackdrop');
+  const drawer = $('#boardLibrary');
+  if (!backdrop || !drawer) return;
+  if (next) {
+    if (!$('#shortcutBackdrop').hidden) closeShortcutDialog();
+    if (!$('#commandBackdrop').hidden) closeCommandPalette();
+    if (!$('#receiptBackdrop').hidden) closeReceiptDialog();
+    toggleBoardMoreMenu(false);
+  }
+  if (next && !boardLibraryReturnFocus) boardLibraryReturnFocus = document.activeElement;
+  prefs.boardLibraryOpen = next;
+  savePrefs();
+  backdrop.hidden = !next;
+  drawer.hidden = !next;
+  drawer.setAttribute('aria-hidden', String(!next));
+  for (const trigger of [$('#btnBoardLibraryHeader'), $('#btnBoardLibraryInspector')]) {
+    if (trigger) trigger.setAttribute('aria-expanded', String(next));
+  }
+  if (next) {
+    renderBoardLibraryList();
+    window.setTimeout(() => $('#boardLibrarySearch')?.focus(), 0);
+  } else if (returnFocus && boardLibraryReturnFocus?.isConnected) {
+    boardLibraryReturnFocus.focus();
+    boardLibraryReturnFocus = null;
+  }
+}
+
+function renderBoardLibraryList() {
+  const list = $('#boardLibraryList');
+  if (!list) return;
+  const query = ($('#boardLibrarySearch')?.value || '').trim().toLowerCase();
+  const items = query
+    ? allDiagrams.filter((item) => `${item.title || ''} ${item.type || ''} ${item.id || ''}`.toLowerCase().includes(query))
+    : allDiagrams;
+  if (!items.length) {
+    list.innerHTML = `<div class="board-library-empty">${allDiagrams.length ? '没有匹配的图；试试标题、类型或图 ID。' : '还没有保存的图。扫描项目、由 AI 生成图，或在首用引导中载入示例。'}</div>`;
+    return;
+  }
+  list.innerHTML = items.map((item) => {
+    const isActive = item.id === activeDiagramId;
+    const isCurrent = item.id === currentId;
+    const safeTitle = escapeHtml(item.title || item.id);
+    const safeType = escapeHtml(item.type || 'diagram');
+    const safeId = escapeHtml(item.id);
+    return `<div class="board-library-item ${isCurrent ? 'active' : ''}" role="listitem" data-board-diagram-id="${safeId}">
+      <div class="board-library-item-head"><strong title="${safeTitle}">${safeTitle}</strong><small>${isActive ? '当前画板' : '本机记录'}</small></div>
+      <p>${safeType} · ${escapeHtml(relativeTime(item.createdAt))} · ${isCurrent ? '正在预览' : '可打开预览'}</p>
+      <div class="board-library-item-actions">
+        <button type="button" data-board-action="open" data-diagram-id="${safeId}">${isCurrent ? '正在查看' : '打开预览'}</button>
+        ${isActive ? '<button type="button" data-board-action="active" data-diagram-id="' + safeId + '">返回当前画板</button>' : ''}
+        <a data-board-action="svg" href="/api/diagram/${encodeURIComponent(item.id)}/svg?download=1" download>下载 SVG</a>
+        <a data-board-action="png" href="/api/diagram/${encodeURIComponent(item.id)}/png?download=1" download>下载 PNG</a>
+        <button type="button" data-board-action="copy" data-diagram-id="${safeId}">复制 ID</button>
+        <button type="button" class="danger" data-board-action="delete" data-diagram-id="${safeId}">删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteBoardLibraryDiagram(id) {
+  if (!id || !confirm(`确定从本机删除图「${id}」？共享会话不会因此改写。`)) return;
+  try {
+    const response = await fetch(`${API}/api/diagram/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (currentId === id) {
+      currentId = null;
+      $('#diagramTitle').textContent = '—';
+      $('#codeEditor').value = '';
+      $('#diagramRender').innerHTML = '';
+      if (activeDiagramId) await loadDiagram(activeDiagramId);
+    }
+    await loadList();
+    renderBoardLibraryList();
+    syncBoardHeader();
+    showToast('已删除本机图记录');
+  } catch (error) {
+    showToast(`删除失败：${error.message}`);
+  }
+}
+
+function downloadCurrentSvg() {
+  const svg = $('#diagramRender').innerHTML.trim();
+  if (!svg) return showToast('当前没有可下载的 SVG；先扫描项目或打开一张图');
+  download(new Blob([svg], { type: 'image/svg+xml' }), `${currentId || activeDiagramId || 'shared-board'}.svg`);
+  showToast('已下载当前 SVG');
+}
+
+function downloadCurrentPng() {
+  const svgElement = $('#diagramRender svg');
+  if (!svgElement) return showToast('当前没有可下载的 PNG；先扫描项目或打开一张图');
+  const svgData = new XMLSerializer().serializeToString(svgElement);
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  const image = new Image();
+  image.onload = () => {
+    const width = Math.max(1, Math.round(image.width || svgElement.getBoundingClientRect().width || 1200));
+    const height = Math.max(1, Math.round(image.height || svgElement.getBoundingClientRect().height || 800));
+    canvas.width = width * 2;
+    canvas.height = height * 2;
+    context.scale(2, 2);
+    context.drawImage(image, 0, 0, width, height);
+    canvas.toBlob((blob) => {
+      if (!blob) return showToast('PNG 生成失败；请改用下载 SVG');
+      download(blob, `${currentId || activeDiagramId || 'shared-board'}.png`);
+      showToast('已下载当前 PNG');
+    }, 'image/png');
+  };
+  image.onerror = () => showToast('PNG 生成失败；请改用下载 SVG');
+  image.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+}
+
+async function saveBoardGraph() {
+  if (!boardActiveMode()) return showToast('历史图预览不能改写当前共享图形；请先返回当前画板');
+  if (!collabGraph) return showToast('当前没有可保存的共享图形');
+  if (graphDirtyRows.size) {
+    const confirmed = confirm('工作台里还有未保存的图形编辑。保存会把这些编辑写入当前共享图形；继续？');
+    if (!confirmed) return;
+  }
+  await saveGraph();
+}
+
 function syncAppearanceControls() {
   for (const button of document.querySelectorAll('[data-visual]')) {
     button.classList.toggle('active', button.dataset.visual === prefs.visualSystem);
@@ -5410,7 +5944,11 @@ const COMMANDS = [
   { group: '工作区视图', icon: '⌘', title: '展开 / 收起 Flow 源码抽屉', hint: '显示或隐藏画布旁边的本机源码编辑器', shortcut: 'E', keys: '源码 抽屉 flow source editor', run: () => toggleFlowSource() },
   { group: '工作区视图', icon: '◧', title: '切换上下文速览', hint: '展开或收起实时只读对象上下文', shortcut: 'I', keys: '速览 上下文 inspector 侧栏', run: () => setInspectorOpen(!prefs.inspectorOpen) },
   { group: '外观与帮助', icon: '◈', title: '切换视觉氛围', hint: '在鲜明品牌渐变与静谧低干扰配色间切换', shortcut: '', keys: '氛围 鲜明 静谧 ambient theme', run: () => setAmbient(prefs.ambient === 'calm' ? 'vivid' : 'calm') },
-  { group: '项目画板', icon: '◫', title: '打开项目工作台', hint: '查看结构图、对象线程与变更审阅', shortcut: 'C', keys: '上下文 画板 结构 审阅 workbench', run: () => openCollab() },
+  { group: '项目画板', icon: '◫', title: '打开审阅台', hint: '查看结构图、完整上下文与变更审阅', shortcut: 'C', keys: '上下文 画板 结构 审阅 workbench', run: () => openCollab() },
+  { group: '项目画板', icon: '◫', title: '打开图库', hint: '打开本机保存的图与下载项；不切换共享会话', shortcut: 'L', keys: '图库 切换图 保存 图 library diagrams', run: () => setBoardLibraryOpen(true) },
+  { group: '项目画板', icon: '↻', title: '扫描刷新当前画板', hint: '只读扫描项目、保留人工视觉状态并刷新共享图形', shortcut: '', keys: '扫描 刷新 项目 rescan board', run: () => rescanBoardProject($('#btnBoardScanHeader')) },
+  { group: '项目画板', icon: '✓', title: '保存当前共享图形', hint: '把当前共享图形写入会话；不写项目源码', shortcut: '⌘/Ctrl + S', keys: '保存 图形 共享画板 save graph', run: () => saveBoardGraph() },
+  { group: '项目画板', icon: '↓', title: '下载当前 SVG', hint: '下载当前可见的 SVG；不改变共享会话', shortcut: '', keys: '下载 svg 导出 image', run: () => downloadCurrentSvg() },
   { group: '协作流程', icon: '✎', title: '查看项目结构图', hint: '打开 Flow 工作台并展开源码抽屉，再进入项目图', shortcut: '', keys: 'flow 项目图 结构 graph scan', run: () => { applyLayoutSystem('flow'); applyFlowSourceOpen(true); openCollab(); setCollabTab('graph'); } },
   { group: '协作流程', icon: '◇', title: '查看项目结构图', hint: '切到节点编辑与扫描流程', shortcut: '4', keys: '项目图 结构 graph scan', run: () => { openCollab(); setCollabTab('graph'); } },
   { group: '项目画板', icon: '⌁', title: '查看对象线程', hint: '查看和继续绑定在画布对象上的交流', shortcut: '5', keys: '对象 线程 留言 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
@@ -5513,7 +6051,6 @@ const diagramTypeIcons = {
   mindmap: '✣', custom: '◇', svg: '◈', state: '◉', er: '⌘',
   gantt: '▤', pie: '◔', timeline: '⟶',
 };
-let allDiagrams = [];
 let diagramKeyboardIndex = -1;
 
 function relativeTime(value) {
@@ -5534,6 +6071,7 @@ function renderDiagramList() {
   const list = $('#diagramList');
   const items = filteredDiagrams();
   $('#diagramCount').textContent = String(allDiagrams.length);
+  renderBoardLibraryList();
   list.innerHTML = '';
   if (!items.length) {
     const empty = document.createElement('div');
@@ -5546,10 +6084,10 @@ function renderDiagramList() {
   }
   for (const [index, item] of items.entries()) {
     const el = document.createElement('div');
-    el.className = 'sidebar-item' + (item.id === currentId ? ' active' : '');
+    el.className = 'sidebar-item' + (item.id === currentId ? ' active' : '') + (item.id === activeDiagramId ? ' board-active' : '');
     el.dataset.diagramId = item.id;
     el.tabIndex = 0;
-    el.innerHTML = `<div class="name"><span class="diagram-icon">${escapeHtml(diagramTypeIcons[item.type] || '◇')}</span><span>${escapeHtml(item.title)}</span></div><div class="meta"><span class="badge">${escapeHtml(item.type)}</span>${escapeHtml(relativeTime(item.createdAt))}</div>`;
+    el.innerHTML = `<div class="name"><span class="diagram-icon">${escapeHtml(diagramTypeIcons[item.type] || '◇')}</span><span>${escapeHtml(item.title)}</span></div><div class="meta">${item.id === activeDiagramId ? '<span class="badge board-badge">当前画板</span>' : `<span class="badge">${escapeHtml(item.type)}</span>`}${escapeHtml(relativeTime(item.createdAt))}</div>`;
     el.onclick = () => loadDiagram(item.id);
     el.onkeydown = (event) => { if (event.key === 'Enter') loadDiagram(item.id); };
     if (index === diagramKeyboardIndex) el.classList.add('keyboard-focus');
@@ -5569,6 +6107,7 @@ async function loadDiagram(id) {
   currentId = id;
   prefs.lastDiagramId = id;
   savePrefs();
+  syncBoardHeader();
   try {
     const res = await fetch(`${API}/api/diagram/${id}`);
     const data = await res.json();
@@ -5591,10 +6130,13 @@ async function loadDiagram(id) {
     }
     loadList();
   } catch {}
+  finally { syncBoardHeader(); }
 }
 
 async function saveCurrent() {
   if (!currentId) return;
+  const button = $('#btnBoardSaveSource');
+  button?.setAttribute('aria-busy', 'true');
   const code = $('#codeEditor').value;
   try {
     const body =
@@ -5609,8 +6151,12 @@ async function saveCurrent() {
       showToast(j.error || `Save failed ${r.status}`);
       return;
     }
-    showToast('Saved');
-  } catch {}
+    showToast('图形源码已保存');
+  } catch {
+    showToast('图形源码保存失败');
+  } finally {
+    button?.removeAttribute('aria-busy');
+  }
 }
 
 $('#codeEditor').addEventListener('keydown', (e) => {
@@ -5714,7 +6260,7 @@ let collabProposalsRendered = false;
 let proposalListEventsBound = false;
 
 function isCollabOverlayOpen() {
-  for (const selector of ['#receiptBackdrop', '#commandBackdrop', '#shortcutBackdrop', '#appearancePopover']) {
+  for (const selector of ['#receiptBackdrop', '#commandBackdrop', '#shortcutBackdrop', '#boardLibraryBackdrop', '#appearancePopover']) {
     const element = $(selector);
     if (element && !element.hidden) return true;
   }
@@ -5841,6 +6387,7 @@ function renderCollabPulse() {
     const nodes = Array.isArray(graph?.nodes) ? graph.nodes.length : 0;
     boardTitle.textContent = nodes ? `共享结构图 · ${nodes} 个对象` : '等待 AI 扫描项目';
   }
+  syncBoardHeader();
   if (!$('#welcomeCard')?.hidden) {
     renderWelcomeJourney({ pendingProposals, attention, hasGraph: Boolean(graph?.nodes?.length) });
   }
@@ -5986,6 +6533,7 @@ async function loadCollabPulse() {
     collabFetch('/api/collab/review-readiness').catch(() => null),
   ]);
   if (!session) return;
+  setActiveDiagramId(session.activeDiagramId || session.graph?.diagramId || null);
   collabAuthoritativeRevision = Math.max(collabAuthoritativeRevision, session.graphRevision);
   collabPulseSnapshot = {
     session,
@@ -6484,6 +7032,7 @@ function renderCanvasBoardThread() {
   const input = $('#canvasBoardNoteInput');
   const save = $('#btnCanvasBoardNote');
   if (!card || !summary || !button || !thread || !input || !save) return;
+  const active = boardActiveMode();
   const state = focusConversationState();
   card.dataset.state = state.blocked ? 'blocked' : state.open ? 'pending' : 'clear';
   card.dataset.openThreads = String(state.open);
@@ -6492,7 +7041,7 @@ function renderCanvasBoardThread() {
   else if (state.blocked) summary.innerHTML = `上下文 · <strong>${state.blocked}</strong> 条批注需重锚`;
   else if (state.open) summary.innerHTML = `上下文 · <strong>${state.open}</strong> 条开放信号`;
   else summary.textContent = '上下文 · 批注已全部解决';
-  button.disabled = false;
+  button.disabled = !active;
   const node = (collabGraph?.nodes || []).find((item) => item.id === selectedNodeId);
   const threads = focusConversationThreads(selectedNodeId);
   const entries = threads.flatMap((annotation) => [
@@ -6507,10 +7056,18 @@ function renderCanvasBoardThread() {
         <span>${escapeHtml(entry.body)}</span>
       </div>`).join('')
     : '<div class="canvas-board-empty">还没有关于这个对象的留言。写下第一句，AI 会通过 MCP 在同一线程读到并回应。</div>';
-  input.disabled = !node;
-  save.disabled = !node;
-  input.placeholder = node ? `告诉 AI「${node.label}」应如何理解，或继续上面的线程…` : '先选中画布中的一个对象，再写留言';
-  $('#canvasBoardNoteState').textContent = node ? `绑定到 ${node.label} · 不写项目文件` : '选中对象后可留言';
+  input.disabled = !active || !node;
+  save.disabled = !active || !node;
+  input.placeholder = !active
+    ? '正在查看历史图；返回当前共享画板后即可继续对象线程'
+    : node ? `告诉 AI「${node.label}」应如何理解，或继续上面的线程…` : '先选中画布中的一个对象，再写留言';
+  $('#canvasBoardNoteState').textContent = !active
+    ? '历史图预览 · 对象线程只读'
+    : node ? `绑定到 ${node.label} · 不写项目文件` : '选中对象后可留言';
+  if (!active) {
+    thread.innerHTML = '<div class="canvas-board-empty">对象线程属于当前共享画板。返回当前画板后，可继续查看人和 AI 在同一对象上的交流。</div>';
+    return;
+  }
 }
 
 function renderCanvasContextStrip() {
@@ -6566,11 +7123,8 @@ function openCollabFromCanvas(tab, afterOpen) {
   afterOpen?.();
   loadCollab();
   window.requestAnimationFrame(() => {
-    if (!shell.hidden) return;
-    shell.hidden = false;
-    setCollabTab(tab);
-    afterOpen?.();
-    loadCollab();
+    if (shell.hidden) return;
+    if (shell.dataset.tab !== tab) setCollabTab(tab);
   });
 }
 
@@ -7988,7 +8542,10 @@ async function rescanBoardProject(button) {
       method: 'POST',
       body: JSON.stringify({ confirmedBy: 'human', render: true }),
     });
-    if (result.diagramId) await loadDiagram(result.diagramId);
+    if (result.diagramId) {
+      await loadDiagram(result.diagramId);
+      setActiveDiagramId(result.diagramId);
+    }
     await loadCollabPulse();
     showToast(`共享结构图已更新 · rev ${result.graphRevision}`);
   } catch (error) {
@@ -8261,6 +8818,7 @@ renderCanvasDockRoute();
 renderCanvasObject();
 renderCollabPulse();
 loadCollabPulse();
+syncBoardHeader();
 
 // Restore last viewed diagram (URL path takes priority)
 const pathMatch = location.pathname.match(/\/diagram\/(.+)/);
@@ -8285,6 +8843,68 @@ $('#diagramList').addEventListener('keydown', (event) => {
   items.forEach((item, index) => item.classList.toggle('keyboard-focus', index === diagramKeyboardIndex));
   items[diagramKeyboardIndex].focus();
 });
+
+function bindBoardModules() {
+  $('#btnBoardScanHeader').addEventListener('click', (event) => rescanBoardProject(event.currentTarget));
+  $('#btnBoardSaveHeader').addEventListener('click', saveBoardGraph);
+  $('#btnBoardWorkbenchHeader').addEventListener('click', openCollab);
+  $('#btnBoardReviewFooter').addEventListener('click', () => { openCollab(); setCollabTab('proposals'); });
+  $('#btnBoardLibraryHeader').addEventListener('click', () => setBoardLibraryOpen(true));
+  $('#btnBoardLibraryInspector').addEventListener('click', () => setBoardLibraryOpen(true));
+  $('#btnCloseBoardLibrary').addEventListener('click', () => setBoardLibraryOpen(false));
+  $('#boardLibraryBackdrop').addEventListener('click', (event) => {
+    if (event.target === $('#boardLibraryBackdrop')) setBoardLibraryOpen(false);
+  });
+  $('#boardLibrarySearch').addEventListener('input', renderBoardLibraryList);
+  $('#boardLibraryList').addEventListener('click', async (event) => {
+    const action = event.target.closest('[data-board-action]');
+    if (!action) return;
+    const id = action.dataset.diagramId;
+    if (action.dataset.boardAction === 'open' && id) {
+      await loadDiagram(id);
+      setBoardLibraryOpen(false);
+      showToast('已打开图预览；共享画板会话未切换');
+    } else if (action.dataset.boardAction === 'active' && id) {
+      setActiveDiagramId(id, { refresh: true });
+      setBoardLibraryOpen(false);
+      showToast('已返回当前共享画板');
+    } else if (action.dataset.boardAction === 'copy' && id) {
+      try { await navigator.clipboard.writeText(id); showToast('已复制图 ID'); }
+      catch { showToast(`图 ID：${id}`); }
+    } else if (action.dataset.boardAction === 'delete' && id) {
+      await deleteBoardLibraryDiagram(id);
+    }
+  });
+  $('#btnBoardMoreHeader').addEventListener('click', () => toggleBoardMoreMenu());
+  $('#boardMoreMenu').addEventListener('click', (event) => {
+    if (event.target.closest('[role="menuitem"]')) closeBoardMoreMenu();
+  });
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.board-menu')) closeBoardMoreMenu();
+  });
+  $('#btnBoardDownloadSvg').addEventListener('click', downloadCurrentSvg);
+  $('#btnBoardDownloadPng').addEventListener('click', downloadCurrentPng);
+  $('#btnBoardSaveSource').addEventListener('click', async () => {
+    if (!currentId) return showToast('当前是本机预览；请先打开或扫描保存的图');
+    await saveCurrent();
+  });
+  $('#btnBoardExportSession').addEventListener('click', exportSession);
+  $('#btnBoardCopyId').addEventListener('click', async () => {
+    if (!currentId) return showToast('当前没有图 ID；先扫描项目或打开一张图');
+    try { await navigator.clipboard.writeText(currentId); showToast('已复制当前图 ID'); }
+    catch { showToast(`当前图 ID：${currentId}`); }
+  });
+  $('#btnBoardCommands').addEventListener('click', openCommandPalette);
+  $('#btnBoardReturnActive').addEventListener('click', () => {
+    if (!activeDiagramId) return showToast('当前会话还没有活动画板；先扫描项目');
+    setActiveDiagramId(activeDiagramId, { refresh: true });
+    showToast('已返回当前共享画板');
+  });
+}
+
+bindBoardModules();
+renderBoardLibraryList();
+syncBoardHeader();
 </script>
 </body>
 </html>
