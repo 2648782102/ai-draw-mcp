@@ -119,12 +119,6 @@ const browser = await puppeteer.launch({
 try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
-  await page.goto(base, { waitUntil: "networkidle2" });
-  await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle2" });
-  await page.waitForSelector("#welcomeJourney");
-  await new Promise((resolve) => setTimeout(resolve, 350));
-  await page.screenshot({ path: path.join(outputDir, "welcome-panel.png") });
   await page.goto(`${base}/diagram/${scanResult.id}`, { waitUntil: "networkidle2" });
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "networkidle2" });
@@ -133,19 +127,6 @@ try {
   await page.keyboard.press("f");
   await page.keyboard.press("3");
   await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
-  await page.keyboard.press("e");
-  await page.waitForFunction(() => document.body.classList.contains("flow-source-open"));
-  await new Promise((resolve) => setTimeout(resolve, 450));
-  await page.screenshot({ path: path.join(outputDir, "preview-panel.png") });
-  await page.keyboard.press("e");
-  await page.waitForFunction(() => !document.body.classList.contains("flow-source-open"));
-  await new Promise((resolve) => setTimeout(resolve, 260));
-  await page.screenshot({ path: path.join(outputDir, "flow-workspace-panel.png") });
-  await new Promise((resolve) => setTimeout(resolve, 260));
-  await page.screenshot({ path: path.join(outputDir, "restrained-workspace-panel.png") });
-  await page.keyboard.press("3");
-  await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
-  await page.waitForSelector("#diagramRender svg");
   await page.waitForFunction(() => getComputedStyle(document.querySelector(".canvas-dock")).display === "flex");
   await page.waitForFunction(() => document.querySelectorAll("#canvasDock .canvas-dock-route-step").length === 3);
   await page.keyboard.press("f");
@@ -159,7 +140,6 @@ try {
     return parts[0] > 0 && parts[1] > 1;
   });
   await new Promise((resolve) => setTimeout(resolve, 450));
-  const focusBefore = await page.$eval("#canvasObjectIndex", (element) => element.textContent);
   const targetNode = await page.evaluate(() => {
     const groups = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")];
     const target = groups.find((group) => (group.textContent || "").includes("index.ts"));
@@ -197,85 +177,12 @@ try {
   await page.waitForFunction(() => document.querySelectorAll("#diagramRender svg .flowchart-link.is-hover-path").length > 0, { timeout: 5000 });
   await page.waitForFunction(() => Number(document.querySelector("#canvasRelationMap").dataset.edges) > 0, { timeout: 5000 });
   await new Promise((resolve) => setTimeout(resolve, 220));
-  await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
   await page.mouse.move(20, 20);
   await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "false");
   await page.waitForFunction(() => document.querySelectorAll("#canvasBoardThread .canvas-board-entry.ai").length > 0, { timeout: 5000 });
   await new Promise((resolve) => setTimeout(resolve, 260));
   await page.screenshot({ path: path.join(outputDir, "shared-board-panel.png") });
-  await page.keyboard.press("h");
-  await page.waitForFunction(() => !document.querySelector("#shortcutBackdrop").hidden);
-  await page.waitForFunction(() => Number(getComputedStyle(document.querySelector("#shortcutBackdrop")).opacity) >= 0.99);
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  await page.screenshot({ path: path.join(outputDir, "canvas-shortcuts-panel.png") });
-  await page.keyboard.press("Escape");
-  await page.waitForFunction(() => document.querySelector("#shortcutBackdrop").hidden);
-  await page.keyboard.press("c");
-  await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
-  await page.waitForSelector("#overviewRevision");
-  await page.waitForSelector(".proposal-card.status-pending .impact-grid");
-  await page.waitForSelector("#chatLog .chat-item.ai");
-  await page.evaluate(() => {
-    const diff = document.querySelector(".proposal-card.status-pending .proposal-diff");
-    diff.open = true;
-  });
-  await page.waitForSelector(".proposal-card.status-pending .proposal-diff.loaded");
-  await page.evaluate(() => {
-    const card = document.querySelector(".proposal-card.status-pending");
-    card.scrollIntoView({ block: "start" });
-    const pane = document.querySelector("#collabSectionProposals .section-scroll");
-    if (pane) pane.scrollTop = Math.max(0, pane.scrollTop - 12);
-  });
-  await page.waitForFunction(() => document.querySelector(".proposal-card.status-pending").dataset.reviewReady === "true");
-  await page.waitForFunction(() => {
-    const shell = document.querySelector("#collabShell");
-    return Number(getComputedStyle(shell).opacity) >= 0.99;
-  });
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  await page.screenshot({ path: path.join(outputDir, "collaboration-workbench-panel.png") });
-  await page.keyboard.press("7");
-  await page.waitForFunction(() => document.querySelector("#collabShell").classList.contains("focus-mode"));
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  await page.screenshot({ path: path.join(outputDir, "collaboration-focus-panel.png") });
-  await page.keyboard.press("7");
-  await page.keyboard.press("Escape");
-  await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
-  await page.keyboard.press("z");
-  await page.waitForFunction(() => document.body.classList.contains("zen-workspace"));
-  await page.waitForFunction(() => getComputedStyle(document.querySelector(".header")).display === "none", { timeout: 5000 });
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  await page.keyboard.press("f");
-  await page.waitForFunction(() => Number(document.querySelector("#canvasObjectConversation").dataset.openThreads) > 0, { timeout: 5000 });
-  await page.evaluate(() => {
-    const toast = document.querySelector("#toast");
-    toast.textContent = "已切换沉浸工作区 · 画布优先";
-    toast.classList.add("show");
-  });
-  await new Promise((resolve) => setTimeout(resolve, 450));
-  await page.screenshot({ path: path.join(outputDir, "zen-workspace-panel.png") });
-  await page.evaluate(() => document.querySelector("#toast").classList.remove("show"));
-  await page.setViewport({ width: 560, height: 820, deviceScaleFactor: 1 });
-  await page.keyboard.press("z");
-  await page.waitForFunction(() => !document.body.classList.contains("zen-workspace"));
-  await page.keyboard.press("3");
-  await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
-  await page.keyboard.press("f");
-  const touchTarget = await page.evaluate(() => {
-    const groups = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")];
-    const target = groups.find((group) => (group.textContent || "").includes("index.ts"));
-    if (!target) return null;
-    const rect = target.querySelector("rect.basic.label-container, rect, polygon, path, ellipse, circle").getBoundingClientRect();
-    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-  });
-  if (!touchTarget) throw new Error("Touch focus target node not found in rendered graph");
-  await page.mouse.click(touchTarget.x, touchTarget.y);
-  await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "true", { timeout: 5000 });
-  await page.waitForFunction(() => document.querySelector("#canvasHoverHint").textContent === "轻点先速览", { timeout: 5000 });
-  await page.evaluate(() => document.querySelector("#toast").classList.remove("show"));
-  await new Promise((resolve) => setTimeout(resolve, 350));
-  await page.screenshot({ path: path.join(outputDir, "compact-glance-panel.png") });
-  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
-  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/flow-workspace-panel.png, docs/restrained-workspace-panel.png, docs/shared-board-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png, docs/zen-workspace-panel.png and docs/compact-glance-panel.png");
+  console.log("✅ Captured docs/shared-board-panel.png");
 } finally {
   await browser.close();
   await preview.stop().catch(() => {});

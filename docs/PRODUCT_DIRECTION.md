@@ -87,7 +87,7 @@ The repository already has project scanning, editable graphs, selection and focu
 - Use consistent plain-language names and a compact set of visual states for human input, AI response, evidence, unresolved intent, and proposed code changes.
 - Rework first-run guidance and capture one canonical screenshot that demonstrates the shared board loop.
 
-**Status:** implemented. The default workspace is the full canvas with one board header and one fixed object inspector; first-run guidance offers a direct read-only project scan. The on-demand library handles local diagram previews and downloads without silently switching the shared session, and the review surface holds graph editing, derived context, proposal review, and approval. `docs/shared-board-panel.png` is the reproducible canonical screenshot.
+**Status:** implemented. The default workspace is the full canvas with one board header and one fixed object inspector; first-run guidance offers a direct read-only project scan. The on-demand library handles local diagram previews and downloads without silently switching the shared session, and the review surface holds graph editing, derived context, proposal review, and approval. `docs/shared-board-panel.png` is the reproducible canonical screenshot and the only retained UI capture.
 
 **Complete when:** a first-time user can identify the shared project model, add a contextual correction, see the AI-side update, and find code review without navigating a multi-step dashboard. Keyboard, narrow-screen, empty, loading, and error states remain usable; broader cross-breakpoint validation remains part of ongoing UI maintenance.
 

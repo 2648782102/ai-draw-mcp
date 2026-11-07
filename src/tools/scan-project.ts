@@ -13,20 +13,22 @@ export function registerScanProject(server: McpServer, ctx: ToolContext) {
     " 只读扫描项目文件，不写源代码；图形与会话保存不等于项目写入授权。如需根据批注修改代码，请使用 get_visual_context 生成提案。",
     {
       title: z.string().optional().describe("Diagram title"),
-      max_depth: z.number().int().min(1).max(8).optional().describe("Maximum directory depth (default 4)"),
-      max_files: z.number().int().min(10).max(1000).optional().describe("Maximum nodes to include (default 400)"),
+      max_depth: z.number().int().min(1).max(8).optional().describe("Maximum directory depth (default 2; use 4 for a deeper tree)"),
+      max_files: z.number().int().min(10).max(1000).optional().describe("Maximum nodes to include (default 40 with grouped board summaries; set higher for a full tree)"),
       include_hidden: z.boolean().optional().describe("Include dotfiles/directories other than protected ones (default false)"),
       output_format: z.enum(["svg", "png"]).optional(),
       open_panel: z.boolean().optional().describe("Open the preview panel in the IDE (default true); set false for headless workflows"),
       render: z.boolean().optional().describe("Render SVG/PNG assets (default true); set false only for fast headless graph/state checks"),
+      group_summary: z.boolean().optional().describe("Group omitted files into bounded summary nodes (default true only when max_files uses its default)"),
     },
-    async ({ title, max_depth, max_files, include_hidden, output_format, open_panel, render }) => {
+    async ({ title, max_depth, max_files, include_hidden, output_format, open_panel, render, group_summary }) => {
       try {
         const result = await ctx.visualSync.sync({
           title,
           maxDepth: max_depth,
           maxFiles: max_files,
           includeHidden: include_hidden,
+          groupSummary: group_summary,
           format: output_format ?? ctx.config.defaultFormat,
           source: "ai",
           openPanel: open_panel,

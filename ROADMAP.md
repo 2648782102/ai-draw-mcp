@@ -8,7 +8,7 @@ This roadmap sequences work toward the product contract in [docs/PRODUCT_DIRECTI
 - Local browser canvas with project scanning, editable nodes and edges, focus, selection, annotations, AI-readable context, and proposal review.
 - Version 1 session, graph, annotation, and proposal contracts with source evidence, graph diffs, and bounded read-only projections.
 - Shared board notes persist; people and AI can reply in the same anchored thread. Copyable AI context is a separate read-only utility.
-- The default panel is one board header, one shared canvas, and one fixed object inspector. The legacy brand header, Flow rail, duplicate render toolbar, and floating status cards are out of the default view. The diagram library is an on-demand drawer for local previews and downloads; the review surface holds graph editing, derived context, and change diffs. `docs/shared-board-panel.png` is the canonical shared-board capture and older captures remain development artifacts.
+- The default panel is one board header, one shared canvas, and one fixed object inspector. The legacy brand header, Flow rail, duplicate render toolbar, and floating status cards are out of the default view. The diagram library is an on-demand drawer for local previews and downloads; the review surface holds graph editing, derived context, and change diffs. `docs/shared-board-panel.png` is the canonical shared-board capture. Legacy UI screenshots were removed so the repository has one current visual baseline.
 
 ## Phase 0 — Product contract
 

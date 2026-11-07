@@ -57,4 +57,19 @@ describe("read-only source evidence", () => {
     badLine.session.graph.nodes.find((node) => node.path === "src/service.ts").sourceEvidence[0].line = 0;
     expect(() => parseSessionBundle(badLine)).toThrow(/positive integer/);
   });
+
+  it("bounds large workspace scans into grouped board nodes", async () => {
+    await Promise.all(
+      Array.from({ length: 45 }, (_, index) =>
+        fs.writeFile(path.join(tempDir, `src/module-${index}.ts`), `export const value${index} = ${index};\n`, "utf8"))
+    );
+    const scan = await scanProject({ workspaceRoot: tempDir });
+    expect(scan.nodes.length).toBeLessThanOrEqual(41);
+    expect(scan.nodes.some((node) => node.metadata?.boardGroup)).toBe(true);
+    expect(scan.nodes.some((node) => node.metadata?.summary)).toBe(true);
+    const nodeIds = new Set(scan.nodes.map((node) => node.id));
+    expect(scan.edges.every((edge) => nodeIds.has(edge.from) && nodeIds.has(edge.to))).toBe(true);
+    const expanded = await scanProject({ workspaceRoot: tempDir, maxFiles: 100, groupSummary: false });
+    expect(expanded.nodes.length).toBeGreaterThan(scan.nodes.length);
+  });
 });

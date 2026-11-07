@@ -32,7 +32,7 @@ AI 通过 MCP stdio 访问共享项目图、源码证据、人的焦点/选择�
 
 ![AI Draw MCP 共享画板](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/shared-board-panel.png)
 
-界面沿用克制视觉系统。这是可复现的当前共享画板：单一画板栏、连续画布和右侧固定对象检视器构成默认工作区；旧品牌栏、流程轨、悬浮状态卡和重复工具栏已从首屏移除。图库与审阅台按需打开，用于查看本机图记录、完整上下文和变更 diff，不会静默切换当前共享会话。闭环概念图与后续阶段见 [产品方向](docs/PRODUCT_DIRECTION.md)、[ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md) 与 [ADR 0023](docs/ADR/0023-board-modules-and-library-boundary.md)。其他布局截图留在仓库作为可复现的历史开发资产，不再并列充当产品入口。
+界面沿用克制视觉系统。这是可复现的当前共享画板：单一画板栏、连续画布和右侧固定对象检视器构成默认工作区；旧品牌栏、流程轨、悬浮状态卡和重复工具栏已从首屏移除。图库与审阅台按需打开，用于查看本机图记录、完整上下文和变更 diff，不会静默切换当前共享会话。闭环概念图与后续阶段见 [产品方向](docs/PRODUCT_DIRECTION.md)、[ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md) 与 [ADR 0023](docs/ADR/0023-board-modules-and-library-boundary.md)。仓库只保留这一张可复现界面截图，旧版布局截图已清理，避免旧面板被误解为并行产品入口。
 
 ---
 

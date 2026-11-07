@@ -20,8 +20,10 @@ const CONFIG_BASENAMES = new Set([
   "package.json", "tsconfig.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock",
   "vitest.config.ts", "vite.config.ts", "eslint.config.js", ".gitignore", ".env.example",
 ]);
-const MAX_DEPTH = 4;
-const MAX_FILES = 400;
+const MAX_DEPTH = 2;
+const MAX_FILES = 40;
+const MAX_FILES_PER_GROUP = 3;
+const LARGE_SCAN_NODE_COUNT = 40;
 const MAX_IMPORTS_PER_FILE = 8;
 const MAX_EVIDENCE_PER_FILE = 5;
 const MAX_FIRST_LINE_BYTES = 1024 * 1024;
@@ -107,10 +109,17 @@ export interface ScanOptions {
   includeHidden?: boolean;
   maxDepth?: number;
   maxFiles?: number;
+  groupSummary?: boolean;
 }
 
 export async function scanProject(options: ScanOptions): Promise<ProjectScanResult> {
-  const { workspaceRoot, includeHidden = false, maxDepth = MAX_DEPTH, maxFiles = MAX_FILES } = options;
+  const {
+    workspaceRoot,
+    includeHidden = false,
+    maxDepth = MAX_DEPTH,
+    maxFiles = MAX_FILES,
+    groupSummary = maxFiles === MAX_FILES,
+  } = options;
   const nodes: ProjectScanNode[] = [];
   const edges: ProjectScanEdge[] = [];
   const absoluteById = new Map<string, string>();
@@ -194,7 +203,7 @@ export async function scanProject(options: ScanOptions): Promise<ProjectScanResu
     }
   }
 
-  return {
+  const result: ProjectScanResult = {
     version: 1,
     workspaceRoot,
     generatedAt: nowIso(),
@@ -209,6 +218,96 @@ export async function scanProject(options: ScanOptions): Promise<ProjectScanResu
       ignoredPaths,
       evidencedNodes: nodes.filter((node) => (node.sourceEvidence?.length ?? 0) > 0).length,
       totalEvidence: nodes.reduce((total, node) => total + (node.sourceEvidence?.length ?? 0), 0),
+    },
+  };
+  return groupSummary && result.nodes.length > LARGE_SCAN_NODE_COUNT
+    ? summarizeScanForBoard(result, maxFiles)
+    : result;
+}
+
+function summarizeScanForBoard(scan: ProjectScanResult, maxFiles: number): ProjectScanResult {
+  const keep = new Set<string>();
+  const root = scan.nodes.find((node) => node.path === ".");
+  for (const node of scan.nodes) {
+    if (node.path === "." || (node.kind === "directory" && node.metadata?.depth === 0)) keep.add(node.id);
+  }
+  const groups = new Map<string, ProjectScanNode[]>();
+  for (const node of scan.nodes) {
+    if (keep.has(node.id)) continue;
+    const group = (node.group ?? "root") === "root" ? "root files" : node.group ?? "root files";
+    const bucket = groups.get(group) ?? [];
+    bucket.push(node);
+    groups.set(group, bucket);
+  }
+  const nodes = [...scan.nodes.filter((node) => keep.has(node.id))];
+  const edges: ProjectScanEdge[] = [];
+  for (const [group, bucket] of groups) {
+    const groupId = stableId("node", "board-group", group);
+    nodes.push({
+      id: groupId,
+      label: `📁 ${group}`,
+      kind: "directory",
+      path: group === "root files" ? "." : group,
+      group,
+      metadata: { boardGroup: true, totalCount: bucket.length },
+    });
+    if (root) edges.push({
+      id: stableId("edge", "board-group", root.id, groupId),
+      from: root.id,
+      to: groupId,
+      label: "contains",
+      kind: "contains",
+    });
+    bucket.sort((left, right) => {
+      const rank = (node: ProjectScanNode) => node.kind === "documentation" ? 0 : node.kind === "config" ? 1 : 2;
+      return rank(left) - rank(right) || left.path.localeCompare(right.path);
+    });
+    const visible = bucket.slice(0, MAX_FILES_PER_GROUP);
+    for (const node of visible) {
+      keep.add(node.id);
+      nodes.push(node);
+      edges.push({
+        id: stableId("edge", "board-group-member", groupId, node.id),
+        from: groupId,
+        to: node.id,
+        label: "contains",
+        kind: "contains",
+      });
+    }
+    const hidden = bucket.length - visible.length;
+    if (hidden > 0) {
+      const summaryId = stableId("node", "group-summary", group);
+      nodes.push({
+        id: summaryId,
+        label: `… 另有 ${hidden} 个对象`,
+        kind: "documentation",
+        path: `${group}/…`,
+        group,
+        metadata: { summary: true, hiddenCount: hidden },
+      });
+      edges.push({
+        id: stableId("edge", "board-group-summary", groupId, summaryId),
+        from: groupId,
+        to: summaryId,
+        label: `${hidden} more`,
+        kind: "contains",
+      });
+    }
+  }
+  const bounded = nodes.slice(0, maxFiles + 1);
+  const boundedIds = new Set(bounded.map((node) => node.id));
+  return {
+    ...scan,
+    nodes: bounded,
+    edges: edges.filter((edge) => boundedIds.has(edge.from) && boundedIds.has(edge.to)),
+    stats: {
+      ...scan.stats,
+      files: bounded.filter((node) => node.kind !== "directory" && node.path !== ".").length,
+      sourceFiles: bounded.filter((node) => SOURCE_EXTENSIONS.has(path.extname(node.path))).length,
+      testFiles: bounded.filter((node) => node.kind === "test").length,
+      configFiles: bounded.filter((node) => node.kind === "config").length,
+      evidencedNodes: bounded.filter((node) => (node.sourceEvidence?.length ?? 0) > 0).length,
+      totalEvidence: bounded.reduce((total, node) => total + (node.sourceEvidence?.length ?? 0), 0),
     },
   };
 }

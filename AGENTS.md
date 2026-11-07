@@ -78,7 +78,7 @@ src/
 
 test/                         Vitest：批注线程、活动时间线、领域契约、MCP 集成测试、协作集成测试
 scripts/doctor.mjs            环境自检（含真实 Mermaid 渲染探针）
-scripts/capture-panel.mjs     用临时示例项目生成全部真实面板截图
+scripts/capture-panel.mjs     用临时示例项目生成唯一 canonical 界面截图
 scripts/github-maintenance.mjs GitHub About/topics 漂移检查、同步与 Release 创建维护者后备路径
 scripts/repo-check.mjs        离线一致性检查：发布文案、文档链接、脚本与 CHANGELOG
 scripts/generate-doc-assets.mjs 版本化 README 概念图；`npm run docs:assets` 生成、`--check` 校验
@@ -88,7 +88,7 @@ docs/README.md                文档地图
 docs/COMPETITIVE_RESEARCH.md  同类产品调研与定位
 docs/collaboration-loop.svg    README 概念图：共享画布闭环；由版本化脚本生成
 docs/collaboration-workbench.svg 目标画布交互概念图；不是当前界面截图
-docs/restrained-workspace-panel.png 当前 0.3.x 界面基线截图
+docs/shared-board-panel.png   唯一当前界面基线截图；由 `npm run ui:shots` 复现
 docs/DEPENDENCY_MAINTENANCE.md 依赖升级、CI 验证与重大版本决策记录
 docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
 docs/GOVERNANCE.md             开源治理、维护清单与元数据漂移证据

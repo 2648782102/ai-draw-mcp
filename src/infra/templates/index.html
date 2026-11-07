@@ -4791,7 +4791,7 @@ function fitCanvasWithObjectCard() {
 
 loadPrefs();
 // Apply theme before initializing mermaid
-mermaid.initialize({ startOnLoad: false, theme: prefs.theme || 'default', securityLevel: 'loose' });
+mermaid.initialize({ startOnLoad: false, theme: prefs.theme || 'default', securityLevel: 'loose', flowchart: { nodeSpacing: 18, rankSpacing: 42, padding: 8 } });
 applyPrefs();
 // ────────────────────────────────────────────────────────────────
 
@@ -5415,7 +5415,7 @@ $('#selTheme').addEventListener('change', async () => {
   const theme = $('#selTheme').value;
   prefs.theme = theme;
   savePrefs();
-  await mermaid.initialize({ theme, securityLevel: 'loose' });
+  await mermaid.initialize({ theme, securityLevel: 'loose', flowchart: { nodeSpacing: 18, rankSpacing: 42, padding: 8 } });
   renderDiagram($('#codeEditor').value);
 });
 

@@ -73,7 +73,7 @@ The current local panel opens on a full shared canvas. Its contextual inspector 
 
 ![Current shared board](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/shared-board-panel.png)
 
-This is the reproducible canonical shared-board capture. Other layout captures remain reproducible development artifacts, not parallel product definitions.
+This is the reproducible canonical shared-board capture. It is the only UI screenshot kept in the repository; legacy layout captures were removed so old panels cannot read as parallel product definitions.
 
 ## Safety model
 

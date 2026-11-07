@@ -14,6 +14,7 @@ export interface VisualSyncOptions {
   title?: string;
   maxDepth?: number;
   maxFiles?: number;
+  groupSummary?: boolean;
   includeHidden?: boolean;
   format?: AppConfig["defaultFormat"];
   source: "ai" | "human";
@@ -36,11 +37,15 @@ export interface VisualSyncResult {
 }
 
 function mermaidSafe(value: string): string {
-  return value.replace(/["[\]{}|<>]/g, " ").replace(/\s+/g, " ").trim();
+  return value
+    .replace(/["[\]{}|<>]/g, " ")
+    .replace(/[📁…]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function graphToMermaid(nodes: VisualGraph["nodes"], edges: VisualGraph["edges"]): string {
-  const lines = ["graph LR"];
+  const lines = ["%%{init: {'flowchart': {'nodeSpacing': 18, 'rankSpacing': 42, 'padding': 8}}}%%", "flowchart TB"];
   for (const node of nodes) {
     const label = mermaidSafe(node.label);
     const shape = node.kind === "directory" ? `["📁 ${label}"]` : `["${label}"]`;
@@ -79,6 +84,7 @@ export class VisualSyncService {
       maxDepth: options.maxDepth,
       maxFiles: options.maxFiles,
       includeHidden: options.includeHidden,
+      groupSummary: options.groupSummary,
     });
     const activeDiagramId = sessions.getSnapshot().activeDiagramId;
     const activeRecord = activeDiagramId ? store.get(activeDiagramId) : undefined;

@@ -28,7 +28,7 @@ IDE / human browser
 
 ## Collaboration path (0.3)
 
-1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点），按 POSIX 相对路径派生确定性节点/连线 ID；对 1 MiB 以下的源码/Markdown 文本提取最多 5 条 version 1 `GraphSourceEvidence`（`definition` / `import` / `heading` 的 `file:line` 证据）。`visual-sync-service.ts` 把扫描结果交给 `mergeScannedGraph()` 生成 `VisualGraph`，同时复用同一套渲染、会话保存与 WebSocket 广播。
+1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 2 层、最多 40 个节点；大项目按顶层分组保留骨架并生成有界「另有 N 个对象」汇总节点），按 POSIX 相对路径派生确定性节点/连线 ID；对 1 MiB 以下的源码/Markdown 文本提取最多 5 条 version 1 `GraphSourceEvidence`（`definition` / `import` / `heading` 的 `file:line` 证据）。`visual-sync-service.ts` 把扫描结果交给 `mergeScannedGraph()` 生成 `VisualGraph`，同时复用同一套渲染、会话保存与 WebSocket 广播。
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
 3. 人类可在本机浏览器画布中改节点/连线、选取范围、给当前焦点或画布范围写留言、在既有批注线程里续答，或重新扫描项目；图形写入会提升 `graphRevision` 并通过 WebSocket 同步。主输入复用 `POST /api/collab/annotations`，线程回复复用 `POST /api/collab/annotations/:id/reply`；两条路径都只写共享会话，不写项目文件。AI 可通过 MCP 在同一批注线程回复，面板会保留作者与顺序。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、有限坐标、路径/分组/连线类型、回复结构与引用完整性。
 4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、人类当前选中节点的 `focus`、有界多节点的 `selectionScope`、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`：节点改名或路径变化后标为 `outdated`，节点删除后标为 `detached`；`staleThreads` 不进入 `intentByNode`，AI 应等待人类确认或重锚，不能把旧讨论当作当前写入意图。

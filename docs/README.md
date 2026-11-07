@@ -13,7 +13,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [COMPETITIVE_RESEARCH.md](COMPETITIVE_RESEARCH.md) | Maintainers, contributors | Market map, positioning, and product lessons from Mermaid/whiteboard/MCP tools |
 | [collaboration-loop.svg](collaboration-loop.svg) | Everyone | Product concept: shared board loop and human approval boundary |
 | [collaboration-workbench.svg](collaboration-workbench.svg) | Everyone | Target canvas interaction concept; not a screenshot of shipped UI |
-| [shared-board-panel.png](shared-board-panel.png) | Everyone | Canonical current `0.3.x` shared-board screenshot |
+| [shared-board-panel.png](shared-board-panel.png) | Everyone | Only retained UI screenshot; canonical current `0.3.x` shared-board capture |
 | [DEPENDENCY_MAINTENANCE.md](DEPENDENCY_MAINTENANCE.md) | Maintainers | Dependabot policy, verification order, and major-version decisions |
 | [LAUNCH_KIT.md](LAUNCH_KIT.md) | Maintainers | Copy for GitHub About, releases, Show HN, X/Mastodon, and Chinese communities |
 | [GOVERNANCE.md](GOVERNANCE.md) | Maintainers, contributors | Public surfaces, maintainer checklist, and observed metadata drift |
@@ -36,11 +36,12 @@ Start with the [main README](../README.md) for installation and the product over
 | [ADR/0022-shared-visual-board-is-the-product.md](ADR/0022-shared-visual-board-is-the-product.md) | Contributors, reviewers | Why the shared visual board is the product and MCP is the AI access channel |
 | [ADR/0023-board-modules-and-library-boundary.md](ADR/0023-board-modules-and-library-boundary.md) | Contributors, reviewers | Why one board header, canvas, and object inspector replace the legacy status layers |
 | [../ROADMAP.md](../ROADMAP.md) | Everyone | Shipped direction, upcoming work, and explicit non-goals |
-| [../AGENTS.md](../AGENTS.md) | AI coding agents | Repository map, coding conventions, tool registration, and safety rules |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Local setup, verification, PR expectations |
 | [../SECURITY.md](../SECURITY.md) | Security reviewers | Threat model, supported versions, vulnerability reporting |
 | [../CHANGELOG.md](../CHANGELOG.md) | Users | Versioned release notes |
 | [../examples/README.md](../examples/README.md) | New users | MCP configs, diagram examples, and the end-to-end collaboration demo |
+
+Legacy UI screenshots were removed during the 0.3.x shared-board consolidation. The versioned SVG diagrams above remain concept assets; `npm run ui:shots` regenerates the one canonical PNG from a temporary demo project.
 
 Portable `ai-draw-session-*.json` bundles are for bug reports and reproducible examples. They contain graph/chat/annotation-thread/proposal state, finite human coordinates, and the validated human focus, but never one-time approval grants; importing a bundle requires explicit human confirmation and never writes project files. The activity timeline is a derived, read-only view of those same source records and never grants project-write capability.
 
