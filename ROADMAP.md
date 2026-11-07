@@ -7,12 +7,12 @@ This roadmap sequences work toward the product contract in [docs/PRODUCT_DIRECTI
 - Local MCP stdio server with 26 tools for project scans, diagrams, graph context, proposals, and approval-gated writes.
 - Local browser canvas with project scanning, editable nodes and edges, focus, selection, annotations, AI-readable context, and proposal review.
 - Version 1 session, graph, annotation, and proposal contracts with source evidence, graph diffs, and bounded read-only projections.
-- Node annotations persist and the AI can reply in a thread, but the panel has no human reply control; the separate general correction composer only copies drafts to the clipboard.
+- Shared board notes persist; people and AI can reply in the same anchored thread. Copyable AI context is a separate read-only utility.
 - The current panel still foregrounds MCP tool status and review flow. README now shows one target concept and one current interface baseline; older captures remain development artifacts.
 
 ## Phase 0 — Product contract
 
-Define the board as the shared communication surface, record the decision in ADR 0022, and align public and contributor-facing descriptions. **Status: documented in this planning change; product implementation has not started.**
+Define the board as the shared communication surface, record the decision in ADR 0022, and align public and contributor-facing descriptions. **Status: complete; product implementation continues in Phase 1.**
 
 ## Phase 1 — Shared communication loop
 
@@ -22,7 +22,7 @@ Define the board as the shared communication surface, record the decision in ADR
 - Remove or redirect the separate clipboard-only composer; reuse session and annotation contracts instead of adding a second message store or conversation state machine.
 - Preserve the distinction between discussion and project-write approval.
 
-**Acceptance:** a person adds a note to a selected object, an MCP client reads and answers it in the same thread, and the person can reply there after reload. No code changes without a separate approved proposal.
+**Status:** implemented with the existing version 1 annotation and reply contracts, an in-thread human reply control, a persistent ordered exchange, and a browser regression. No code changes without a separate approved proposal.
 
 ## Phase 2 — Canvas-first experience
 

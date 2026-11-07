@@ -49,6 +49,37 @@ async function seedProposalCard(base) {
   return { id: proposal.id };
 }
 
+async function seedBoardThread(base) {
+  const html = await fetch(base).then((response) => response.text());
+  const token = html.match(/const PANEL_TOKEN = "([^"]+)"/)?.[1];
+  const headers = { "Content-Type": "application/json", "X-AI-Draw-Token": token };
+  const graph = {
+    version: 1,
+    diagramId: "diagram_board_thread",
+    nodes: Array.from({ length: 4 }, (_, index) => ({
+      id: `node_${index}`,
+      label: index === 0 ? "README.md" : `src/module-${index}.ts`,
+      kind: index === 0 ? "file" : "module",
+      path: index === 0 ? "README.md" : `src/module-${index}.ts`,
+    })),
+    edges: [],
+    annotations: [],
+  };
+  const graphResponse = await fetch(`${base}/api/collab/graph`, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify(graph),
+  });
+  expect(graphResponse.ok).toBe(true);
+  const focusResponse = await fetch(`${base}/api/collab/focus`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ nodeId: "node_0", confirmedBy: "human" }),
+  });
+  expect(focusResponse.ok).toBe(true);
+  return { headers };
+}
+
 const port = await freePort();
 const base = `http://127.0.0.1:${port}`;
 
@@ -151,8 +182,8 @@ describe("collaboration panel UI", () => {
         width: Math.round(document.querySelector("#welcomeCard").getBoundingClientRect().width),
         visualWidth: Math.round(document.querySelector(".welcome-visual").getBoundingClientRect().width),
       }));
-      expect(welcome.kicker).toContain("MCP-NATIVE AI TOOL");
-      expect(welcome.title).toContain("让 AI 用结构图表达项目理解");
+      expect(welcome.kicker).toContain("SHARED VISUAL BOARD");
+      expect(welcome.title).toContain("和 AI 在同一张图上理解项目");
       expect(welcome.features).toContain("4 / 5 / 6");
       expect(welcome.nodes.length).toBe(4);
       expect(welcome.center).toContain("机器");
@@ -761,7 +792,7 @@ describe("collaboration panel UI", () => {
       expect(await page.$eval('[data-history-pane="diffs"] #graphDiffSummary', (element) => element.textContent)).toContain("图形修订差异");
       expect(await page.$eval('[data-history-pane="diffs"] .graph-diff-list details', (element) => element.textContent)).toContain("人工编辑模块");
       await page.$eval('[data-history-target="annotations"]', (element) => element.click());
-      expect(await page.$eval('[data-history-pane="annotations"] .history-empty', (element) => element.textContent)).toContain("还没有批注信号");
+      expect(await page.$eval('[data-history-pane="annotations"] .history-empty', (element) => element.textContent)).toContain("还没有画布留言");
       await page.$eval('[data-history-target="activity"]', (element) => element.click());
       expect(await page.$$eval('[data-history-pane="activity"] .activity-item', (elements) => elements.length)).toBeGreaterThan(0);
       await page.$eval('[data-history-target="chat"]', (element) => element.click());
@@ -771,38 +802,81 @@ describe("collaboration panel UI", () => {
         if (!group.classList.contains("open")) document.querySelector("#btnGraphMore").click();
       });
       expect(await page.$eval("#graphMoreActions", (element) => element.classList.contains("open"))).toBe(true);
+      const { headers } = await seedBoardThread(base);
+      await page.reload({ waitUntil: "networkidle2" });
+      await page.keyboard.press("c");
+      await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
+      await page.$eval('[data-history-target="annotations"]', (element) => element.click());
+      await page.$eval('[data-tab-target="dialog"]', (element) => element.click());
       expect(await page.$(".intent-composer")).toBeTruthy();
-      await page.click('[data-intent-preset="describe"]');
-      const intent = await page.evaluate(() => ({
-        text: document.querySelector("#messageInput").value,
-        state: document.querySelector("#intentState").textContent,
-        count: document.querySelector("#messageCount").textContent,
-        activePresets: document.querySelectorAll(".intent-preset.active").length,
-        readonlyNote: document.querySelector(".intent-foot").textContent,
-      }));
-      expect(intent.text).toContain("get_visual_context");
-      expect(intent.state).toContain("本机草稿");
-      expect(intent.activePresets).toBe(1);
-      expect(intent.readonlyNote).toContain("不授权写入");
-      await page.$eval("#messageInput", (element) => {
-        element.value = "";
+      const noteTarget = await page.$eval("#intentState", (element) => element.textContent);
+      expect(noteTarget).toContain("README.md");
+      const readonlyNote = await page.$eval(".intent-foot", (element) => element.textContent);
+      expect(readonlyNote).toContain("不授权项目写入");
+      await page.$eval("#boardNoteInput", (element) => {
+        element.value = "请把这个模块与提案的关系讲清楚，先不要写文件。";
         element.dispatchEvent(new Event("input", { bubbles: true }));
       });
-      const proposalNode = await page.$eval(".proposal-card.status-pending [data-approve]", (element) => {
+      expect(await page.$eval("#boardNoteCount", (element) => element.textContent)).toMatch(/\/ 2000$/);
+      expect(await page.$eval("#btnSaveBoardNote", (element) => element.classList.contains("has-draft"))).toBe(true);
+      await page.click("#btnSaveBoardNote");
+      await page.waitForFunction(() => document.querySelector("#intentState").textContent.includes("已保存"));
+      await page.reload({ waitUntil: "networkidle2" });
+      await page.keyboard.press("c");
+      await page.waitForFunction(() => !document.querySelector("#collabShell").hidden);
+      await page.$eval('[data-history-target="annotations"]', (element) => element.click());
+      await page.$eval('[data-tab-target="dialog"]', (element) => element.click());
+      await page.waitForSelector("#annotationList .annotation-thread");
+      const savedThread = await page.$eval("#annotationList .annotation-thread", (element) => ({
+        body: element.querySelector(".annotation-body").textContent,
+        replyForm: Boolean(element.querySelector(".annotation-reply-form textarea")),
+        note: element.querySelector(".annotation-thread-note").textContent,
+      }));
+      expect(savedThread.body).toContain("请把这个模块与提案的关系讲清楚");
+      expect(savedThread.replyForm).toBe(true);
+      expect(savedThread.note).toContain("不写项目文件");
+      const graphWithThread = await fetch(`${base}/api/collab/graph`, { headers }).then((response) => response.json());
+      const threadId = graphWithThread.annotations.at(-1)?.id;
+      expect(threadId).toBeTruthy();
+      const aiReply = await fetch(`${base}/api/collab/annotations/${encodeURIComponent(threadId)}/reply`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ body: "已读到这条对象留言；改动仍会先生成提案。", author: "ai" }),
+      });
+      expect(aiReply.ok).toBe(true);
+      await page.waitForFunction(() => document.querySelector("#annotationList .annotation-reply.ai"));
+      const replyInput = `#annotationList .annotation-thread[data-annotation-id="${threadId}"] .annotation-reply-form textarea`;
+      await page.$eval(replyInput, (element) => {
+        element.value = "明白，请先只做只读预检。";
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      await page.click(`#annotationList .annotation-thread[data-annotation-id="${threadId}"] .annotation-reply-form button`);
+      await page.waitForFunction(() => [...document.querySelectorAll("#annotationList .annotation-reply.human")].some((element) => element.textContent.includes("请先只做只读预检")));
+      const finalGraph = await fetch(`${base}/api/collab/graph`, { headers }).then((response) => response.json());
+      const replies = finalGraph.annotations.find((annotation) => annotation.id === threadId)?.replies || [];
+      expect(replies.map((reply) => reply.author)).toEqual(["ai", "human"]);
+      expect(replies.at(-1).body).toContain("只读预检");
+      expect(await page.$eval("#collabShell", (element) => element.dataset.tab)).toBe("dialog");
+      expect(await page.$eval("#copyFallback", (element) => element.dataset.visible)).toBe("false");
+      await page.$eval("#btnCopyAiContext", (element) => element.click());
+      await page.waitForFunction(() => document.querySelector("#copyFallback").dataset.visible === "true" || document.querySelector("#copyFallback").dataset.visible === "false");
+      const fallbackVisible = await page.$eval("#copyFallback", (element) => element.dataset.visible);
+      expect(["true", "false"]).toContain(fallbackVisible);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
+      await page.evaluate(() => {
+        const shell = document.querySelector("#collabShell");
+        shell.hidden = false;
+        shell.dataset.tab = "proposals";
+      });
+      await page.waitForFunction(() => document.querySelector("#collabShell").dataset.tab === "proposals");
+      const approvalNode = await page.$eval(".proposal-card.status-pending [data-approve]", (element) => {
         window.__proposalApprovalNode = element;
         return element.textContent;
       });
-      await page.$eval("#messageInput", (element) => {
-        element.value = "前端交互回归";
-        element.dispatchEvent(new Event("input", { bubbles: true }));
-      });
-      expect(await page.$eval("#messageCount", (element) => element.textContent)).toBe("6 / 2000");
-      expect(await page.$eval("#btnSendMessage", (element) => element.classList.contains("has-draft"))).toBe(true);
-      expect(await page.$eval(".safety-note", (element) => element.textContent)).toContain("写入闸门");
-
-      expect(await page.evaluate(() => window.__proposalApprovalNode?.isConnected)).toBe(true);
-      expect(proposalNode).toContain("批准");
+      expect(approvalNode).toContain("批准");
       page.once("dialog", async (dialog) => dialog.accept());
+      await page.waitForSelector(".proposal-card.status-pending [data-approve]");
       await page.$eval(".proposal-card.status-pending [data-approve]", (element) => element.click());
       await page.waitForFunction(() => !document.querySelector("#receiptBackdrop").hidden);
       const receipt = await page.evaluate(() => ({
@@ -826,6 +900,19 @@ describe("collaboration panel UI", () => {
       await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
       expect(await page.evaluate(() => document.querySelector("#workspaceRibbon")?.dataset.sync || "idle")).not.toBe("loading");
 
+      await page.evaluate(() => {
+        document.body.classList.remove("flow-source-open");
+        document.body.classList.remove("zen-workspace");
+        const workspace = document.querySelector("#workspace");
+        workspace.dataset.view = "canvas";
+        workspace.classList.remove("welcome");
+        document.querySelector("#canvasObjectCard").dataset.visible = "true";
+      });
+      await page.waitForFunction(() => {
+        const button = document.querySelector("#btnCanvasNextNode");
+        const rect = button.getBoundingClientRect();
+        return getComputedStyle(button).display !== "none" && rect.width > 0 && document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === button;
+      }, { timeout: 5000 });
       const firstFocus = await page.$eval("#canvasObjectLabel", (element) => element.textContent);
       const firstIndex = await page.$eval("#canvasObjectIndex", (element) => element.textContent);
       expect(firstIndex).toMatch(/^1 \/ \d+$/);

@@ -57,7 +57,7 @@ The loop can pause or repeat at any point. Reading, correcting, and discussing t
 
 ## Current implementation gap
 
-The repository already has project scanning, editable graphs, selection and focus, persistent node annotations, AI replies in annotation threads, proposals, full diff review, and the approval gate. The panel displays AI replies but has no human reply control inside an existing thread. Its separate general correction composer only copies a local draft to the clipboard. The panel headline and default information hierarchy still put tool status and review flow ahead of the shared graph. This document and ADR 0022 set the product direction; the phased work below closes the interaction and presentation gaps without claiming they are already fixed.
+The repository already has project scanning, editable graphs, selection and focus, persistent board notes with human replies, AI replies in the same annotation threads, proposals, full diff review, and the approval gate. The primary human input now saves a note to the focused object or current board scope instead of copying a draft, and every thread has an in-place human reply control. Copyable read-only context remains a separate utility. The panel's default information hierarchy and first-run path still carry legacy tool-status and review-flow framing; Phase 2 continues that canvas-first cleanup. This document and ADR 0022 set the product direction; the phases below close the remaining presentation and evidence gaps without claiming they are already fixed.
 
 ## Delivery plan
 
@@ -67,17 +67,17 @@ The repository already has project scanning, editable graphs, selection and focu
 - Align README, English quickstart, architecture overview, `AGENTS.md`, goal-mode guidance, launch copy, package metadata, and the offline repository checks.
 - Mark existing screenshots and UI copy as the current implementation baseline where they do not yet express the new direction.
 
-**Status:** product definition, ADR, roadmap, contributor guidance, public copy, and canonical preview references are aligned in this planning change. Product implementation has not started.
+**Status:** product definition, ADR, roadmap, contributor guidance, public copy, and canonical preview references are aligned. Product implementation has started with the Phase 1 shared-loop slice.
 
 ### Phase 1 — Restore the shared communication loop
 
 - Audit the existing message and annotation endpoints, persisted session model, and `get_visual_context` / `reply_to_visual_context` tools before adding protocol state.
 - Reuse persisted node annotations and the existing `/api/collab/annotations/:id/reply` endpoint; the AI already replies through `reply_to_visual_context` and those replies are rendered in the panel.
-- Add a human reply control to the relevant annotation thread in the canvas context. Save replies with author and ordering through the existing endpoint, and refresh the same thread in place.
-- Make the primary human input contextual: add a note to the selected node or scope, or continue its existing thread. Remove or repurpose the separate clipboard-only composer so it no longer looks like the conversation path.
+- **Implemented:** the primary human input saves a note to the focused node, or to the board scope when no node is focused, through the existing annotation contract. The clipboard-only composer is gone; copy failures use a separate read-only text box.
+- **Implemented:** each thread has an in-place human reply control. Replies retain author and ordering through the existing endpoint and the same thread refreshes in place.
 - Preserve pending/resolved state, graph revision and anchor status. Keep broad notes associated with the board or selected scope only where existing contracts support it; do not invent a second message store.
 
-**Complete when:** a person can add a node or scope note, see the AI reply in that thread, and reply again from the same board without copy/paste; an MCP client reads the ordered exchange with its visual context. Reloading preserves the thread, and no project-write path is introduced.
+**Status: implemented and browser-regressed.** A person can add a node or scope note, see the AI reply in that thread, and reply again from the same board without copy/paste; an MCP client reads the ordered exchange with its visual context. Reloading preserves the thread, and no project-write path is introduced.
 
 ### Phase 2 — Make the canvas the primary workspace
 

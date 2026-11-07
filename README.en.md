@@ -4,7 +4,7 @@ AI Draw MCP is a local-first visual communication board for people and AI coding
 
 The graph is the shared context, while MCP is the AI access channel and the repository remains the source of truth for code. Project writes still require a proposal, full diff review, explicit human approval, and a one-time receipt. See the [product direction and delivery plan](docs/PRODUCT_DIRECTION.md) and [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md).
 
-The current `0.3.4` implementation supports project scans, graph editing, persistent node annotations, AI replies in annotation threads, and approval-gated proposals. The panel does not yet let a human reply within the same thread, and its separate general correction composer only copies drafts to the clipboard. The first planned slice adds that human reply path to the shared board.
+The current `0.3.4` implementation supports project scans, graph editing, scoped board notes, persistent node annotations, AI replies in annotation threads, human replies in the same anchored thread, and approval-gated proposals. Copyable AI context remains a separate read-only utility rather than the primary communication path.
 
 ![Collaboration loop](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-loop.svg)
 

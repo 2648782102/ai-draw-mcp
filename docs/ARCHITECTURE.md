@@ -2,7 +2,7 @@
 
 AI Draw MCP 是一个本机优先的**人类与 AI 项目沟通画板**。共享项目图是人类可见的主要工作区；MCP stdio 是 AI 读取和更新画布状态的接入方式。节点、关系、来源证据、人的选择与批注、AI 的回复和图形修订共同组成双方的项目上下文。产品定义与分阶段计划见 [PRODUCT_DIRECTION.md](PRODUCT_DIRECTION.md)。
 
-当前 `0.3.x` 已有扫描、图形编辑、节点批注、AI 上下文读取与审批提案；自由文本纠错仍由面板复制到剪贴板。后续实现会让人的上下文写入当前共享会话，并让 AI 回复回到同一画布。无论任何交互路径，项目文件写入仍须经过提案、完整 diff、人工批准和一次性确认号。系统由四层组成：
+当前 `0.3.x` 已有扫描、图形编辑、写入共享会话的画布留言、人与 AI 的同线程回复、AI 上下文读取与审批提案；可复制只读投影作为辅助工具独立存在。后续阶段会继续把默认信息层级收束到画布与当前对象。无论任何交互路径，项目文件写入仍须经过提案、完整 diff、人工批准和一次性确认号。系统由四层组成：
 
 ```text
 IDE / human browser
@@ -30,7 +30,7 @@ IDE / human browser
 
 1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点），按 POSIX 相对路径派生确定性节点/连线 ID；对 1 MiB 以下的源码/Markdown 文本提取最多 5 条 version 1 `GraphSourceEvidence`（`definition` / `import` / `heading` 的 `file:line` 证据）。`visual-sync-service.ts` 把扫描结果交给 `mergeScannedGraph()` 生成 `VisualGraph`，同时复用同一套渲染、会话保存与 WebSocket 广播。
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
-3. 人类可在本机浏览器画布中改节点/连线、选取范围、添加持久化对象批注或重新扫描项目；图形写入会提升 `graphRevision` 并通过 WebSocket 同步。AI 可通过 MCP 在批注线程回复，面板也会显示；当前面板缺少人类线程回复入口，另一个通用纠错 composer 只复制文本给外部 MCP 客户端。Phase 1 计划把人类后续回复并入同一对象线程。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、有限坐标、路径/分组/连线类型、回复结构与引用完整性。
+3. 人类可在本机浏览器画布中改节点/连线、选取范围、给当前焦点或画布范围写留言、在既有批注线程里续答，或重新扫描项目；图形写入会提升 `graphRevision` 并通过 WebSocket 同步。主输入复用 `POST /api/collab/annotations`，线程回复复用 `POST /api/collab/annotations/:id/reply`；两条路径都只写共享会话，不写项目文件。AI 可通过 MCP 在同一批注线程回复，面板会保留作者与顺序。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、有限坐标、路径/分组/连线类型、回复结构与引用完整性。
 4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、人类当前选中节点的 `focus`、有界多节点的 `selectionScope`、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`：节点改名或路径变化后标为 `outdated`，节点删除后标为 `detached`；`staleThreads` 不进入 `intentByNode`，AI 应等待人类确认或重锚，不能把旧讨论当作当前写入意图。
 5. AI 可先调用 `get_agent_workflow` 读取从当前 `SessionSnapshot` 派生的 version 1 `WORKFLOW_JSON`：八步顺序、前置/产物、`readOnly`、`writes: "none" | "session" | "project"` 与 `blocked` 就绪提示；工具自身只读且不持久化步骤。交接时可调用 `get_shared_brief` 得到同一快照派生的 `BRIEF_JSON`：焦点、就绪阻塞、有界意图、失锚讨论、最近图形修订、源码证据、计数和下一步；它不持久化、不含批准凭据。需要聚焦某个节点时可调用 `get_node_context`，从同一 `SessionSnapshot` 派生 version 1 `NODE_CONTEXT_JSON`：节点字段、`file:line` 证据、命中节点的批注线程及失锚状态、入/出连线与相邻节点、相关 `graphDiffs`、焦点状态和固定只读安全标记；默认节点是人类焦点，显式 `node_id` 不改变焦点。复盘决策依据时可调用 `get_decision_trail`，从同一快照派生 version 1 `DECISION_TRAIL_JSON`：把意图、失锚讨论、图修订、有界提案变更摘要、批准/应用阶段与活动时间线按证据类型串联；它是只读投影，不签发凭据。随后 AI 可选调用 `list_change_templates`：只读列出更新文档/添加测试/创建模块模板，或把模板展开为引用当前 `graphRevision` 与节点的 `changes` 草稿。它不写会话、不创建提案、不签发凭据。随后 AI 可先调用 `preflight_visual_proposal` 只读检查候选变更的路径、文件存在性、create/update 方向、重复路径、重复内容、编码与体积；这一步同样不写会话、不创建提案、不签发凭据。最后 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`，也只写会话，不碰项目文件。
 6. 面板通过 `/api/collab/proposals/:id/impact` 展示文件/行数/字节数摘要，并通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。
@@ -71,15 +71,15 @@ IDE / human browser
 
 面板把诊断信号与下一步动作展开为可扫读清单；`action` 信号提示需要人补充或 AI 读取的上下文，`warning` 提示已失败/等待应用的提案，`info` 只描述状态。清单不提供批准按钮，也不改变会话。
 
-「复制给 AI 的上下文」按钮完全在浏览器端从已加载的会话、诊断与差异摘要拼出一段只读文本；它不调用写端点、不新增消息、不修改会话、不签发凭据。剪贴板不可用时，文本只进入尚未发送的消息输入框，是否发送仍由人决定。
+「复制给 AI 的上下文」按钮完全在浏览器端从已加载的会话、诊断与差异摘要拼出一段只读文本；它不调用写端点、不新增消息、不修改会话、不签发凭据。剪贴板不可用时，文本只进入独立的只读复制框，等待人工复制；它不会进入画布留言输入框。
 
 「复制共享简报」按钮从 `GET /api/collab/brief` 已返回的 `BRIEF_JSON` 生成紧凑交接文本；它不调用写端点、不新增消息、不修改会话、不签发凭据，也不把确认号写入剪贴板。
 
 「复制决策链」按钮从 `GET /api/collab/decision-trail` 已返回的 `DECISION_TRAIL_JSON` 生成复盘提示；它不调用写端点、不新增消息、不修改会话、不签发凭据，也不把确认号写入剪贴板。
 
-「复制源码跳转」按钮从 `GET /api/collab/source-navigation` 已返回的 `SOURCE_NAVIGATION_JSON` 生成相对 `file:line` 提示；它不调用写端点、不打开文件、不启动 IDE 或执行命令行，也不把确认号或绝对路径写入剪贴板。剪贴板不可用时，文本只进入未发送的输入框。
+「复制源码跳转」按钮从 `GET /api/collab/source-navigation` 已返回的 `SOURCE_NAVIGATION_JSON` 生成相对 `file:line` 提示；它不调用写端点、不打开文件、不启动 IDE 或执行命令行，也不把确认号或绝对路径写入剪贴板。剪贴板不可用时，文本只进入独立的只读复制框。
 
-「复制能力清单」按钮从 `GET /api/collab/capabilities` 已返回的 `CAPABILITIES_JSON` 生成交接提示；它不调用其他工具、不调用写端点、不新增消息、不修改会话、不签发凭据，也不把确认号或本机绝对路径写入剪贴板。剪贴板不可用时，文本只进入未发送的输入框。
+「复制能力清单」按钮从 `GET /api/collab/capabilities` 已返回的 `CAPABILITIES_JSON` 生成交接提示；它不调用其他工具、不调用写端点、不新增消息、不修改会话、不签发凭据，也不把确认号或本机绝对路径写入剪贴板。剪贴板不可用时，文本只进入独立的只读复制框。
 
 `GET /api/collab/bundle/manifest` 从 `SessionStore.exportBundle()` 返回的同一份 `SessionBundle` 派生 version 1 `EXPORT_MANIFEST_JSON`。面板导出会话时把它作为顶层 `exportManifest` 附在下载 JSON 里，便于 Issue、示例和回归报告快速核对资产计数、建议文件名、被排除的凭据/图形历史/视口与固定安全标记。`parseSessionBundle()` 仍只投影严格校验的 `session` 字段，带清单的 bundle 与旧 bundle 均可导入；`buildExportManifest()` 会拒绝非 version 1 输入与 credential-like proposal metadata。清单不持久化、不签发凭据、不批准变更、不写会话或项目文件，详见 [ADR 0014](ADR/0014-export-manifest-is-a-derived-inventory.md)。
 

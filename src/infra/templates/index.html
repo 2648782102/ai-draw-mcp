@@ -2038,16 +2038,12 @@
     .intent-state.busy::before { background: var(--orange); animation: spin .7s linear infinite; }
     .intent-state.error::before { background: var(--red); }
     .intent-state.sent::before { background: var(--accent); }
-    .intent-presets { display: flex; gap: 4px; flex-wrap: wrap; padding: 7px 10px 0; }
-    .intent-preset { padding: 4px 8px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text-muted); font-size: 9px; cursor: pointer; }
-    .intent-preset:hover { border-color: rgba(122,162,247,.6); color: var(--text); }
-    .intent-preset.active { border-color: rgba(122,162,247,.72); background: rgba(122,162,247,.14); color: var(--text); }
     .intent-composer .input-row textarea { height: 68px; padding: 9px 10px 23px; border: none; border-radius: 0; background: transparent; box-shadow: none; }
     .intent-composer .input-row textarea:focus { box-shadow: inset 0 0 0 1px rgba(122,162,247,.38); }
     .intent-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 9px; }
     .intent-foot .draft-note { display: inline-flex; align-items: center; gap: 4px; }
     .intent-foot code { color: var(--accent); font-size: 9px; }
-    #btnSendMessage.has-draft { box-shadow: 0 0 0 2px rgba(122,162,247,.14); }
+    #btnSaveBoardNote.has-draft { box-shadow: 0 0 0 2px rgba(122,162,247,.14); }
     .safety-note { margin-top: 10px; padding: 10px; border: 1px solid rgba(240,168,104,.28); border-radius: 9px; background: rgba(240,168,104,.06); color: var(--text-muted); font-size: 10px; line-height: 1.55; }
     .safety-note strong { display: block; color: var(--orange); margin-bottom: 4px; }
     .collab-section:last-child { border-right: 0; }
@@ -2292,9 +2288,16 @@
     .annotation-reply.human { border-left: 2px solid var(--green); }
     .annotation-reply .meta { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 2px; }
     .annotation-empty { color: var(--text-muted); font-size: 9px; padding: 3px 0; }
-    .annotation-reply-readonly { margin-top: 6px; color: var(--text-muted); font-size: 9px; line-height: 1.45; }
+    .annotation-reply-form { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-top: 7px; }
+    .annotation-reply-form textarea { min-height: 36px; max-height: 90px; resize: vertical; font-size: 10px; }
+    .annotation-reply-form button { height: auto; min-height: 30px; align-self: end; padding: 0 10px; }
+    .annotation-thread-note { margin-top: 6px; color: var(--text-muted); font-size: 9px; line-height: 1.45; }
     .annotation-anchor-note { color: var(--orange); font-size: 9px; margin-top: 4px; }
-    #annotationList { flex: 0 0 220px; max-height: 220px; }
+    .annotation-thread[data-focused="true"] { border-color: var(--accent); }
+    #annotationList { max-height: none; }
+    #copyFallback { display: none; margin-top: 8px; }
+    #copyFallback[data-visible="true"] { display: grid; gap: 5px; }
+    #copyFallback textarea { min-height: 54px; max-height: 130px; font-size: 10px; }
     .proposal-facts { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 7px; }
     .proposal-facts code { font-size: 9px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); color: var(--text-muted); }
     .proposal-actions { display: flex; gap: 6px; margin-top: 8px; }
@@ -2396,8 +2399,8 @@
       .journey-step + .journey-step::before { display: none; }
       .proposal-impact .impact-grid { grid-template-columns: repeat(2, 1fr); }
       .proposal-actions { flex-direction: column; }
-      .intent-presets { flex-wrap: nowrap; overflow-x: auto; }
-      .intent-preset { flex: 0 0 auto; }
+      .annotation-reply-form { grid-template-columns: 1fr; }
+      .annotation-reply-form button { justify-self: end; min-width: 72px; }
       .intent-foot span:last-child { display: none; }
       .welcome-card { grid-template-columns: 1fr; width: min(480px, calc(100% - 24px)); max-height: calc(100vh - 120px); overflow-y: auto; }
       .welcome-visual { display: none; }
@@ -3070,7 +3073,7 @@
 
   <div class="workspace" id="workspace" data-view="split">
     <div class="flow-rail" id="flowRail" aria-label="AI 上下文工具状态" style="--flow-progress: 0%" data-progress-label="0 / 4 READY · 0%">
-      <div class="flow-rail-kicker"><strong>MCP CONTEXT TOOL</strong><span id="flowRailMeta">0 待审 · 0 上下文信号 · 0 批注</span><span class="flow-rail-safety">LOCAL · 批准前只读</span></div>
+      <div class="flow-rail-kicker"><strong>SHARED VISUAL BOARD</strong><span id="flowRailMeta">0 待审 · 0 上下文信号 · 0 批注</span><span class="flow-rail-safety">LOCAL · 批准前只读</span></div>
       <div class="flow-rail-steps" aria-label="工具上下文阶段">
         <button type="button" class="flow-step" data-flow-stage="scan" data-state="idle"><span class="flow-step-icon">◇</span><span class="flow-step-copy"><strong>AI 生成结构</strong><small>MCP 扫描项目</small></span><span class="flow-step-state">○</span></button>
         <button type="button" class="flow-step" data-flow-stage="edit" data-state="idle"><span class="flow-step-icon">✎</span><span class="flow-step-copy"><strong>人轻量纠错</strong><small>改图 / 批注信号</small></span><span class="flow-step-state">○</span></button>
@@ -3138,10 +3141,10 @@
           <div class="canvas-thread-layer" id="canvasThreadLayer" aria-label="图形节点上的只读讨论标记"></div>
           <div class="welcome-card" id="welcomeCard">
             <div class="welcome-main">
-              <span class="welcome-kicker">LOCAL-FIRST · MCP-NATIVE AI TOOL</span>
+              <span class="welcome-kicker">LOCAL-FIRST · SHARED VISUAL BOARD</span>
               <div class="welcome-icon" aria-hidden="true">◇</div>
-              <h2>让 AI 用结构图表达项目理解</h2>
-              <p>AI 通过 MCP 工具生成机器可读的上下文；人只在需要时轻量纠错、补充节点信号或审阅 diff。面板不是聊天应用，项目写入仍须人工批准与一次性确认号。</p>
+              <h2>和 AI 在同一张图上理解项目</h2>
+              <p>AI 通过 MCP 把项目结构画到共享画布；人选中对象留言或继续线程，AI 读取同一会话再回应。项目写入仍须人工审阅完整 diff、批准并给一次性确认号。</p>
               <div class="welcome-features">
                 <div class="welcome-feature"><strong>1 / 2 / 3</strong><span>分屏 · 源码 · 画布</span></div>
                 <div class="welcome-feature"><strong>4 / 5 / 6</strong><span>结构 · 上下文 · 提案</span></div>
@@ -3565,24 +3568,17 @@
       </details>
       </div>
       <div class="section-dock">
-      <div class="dock-label"><span>纠错上下文 · ⌘/Ctrl + Enter 复制</span><span id="messageCount">0 / 2000</span></div>
+      <div class="dock-label"><span>给当前范围留言 · ⌘/Ctrl + Enter 保存</span><span id="boardNoteCount">0 / 2000</span></div>
       <div class="intent-composer">
-        <div class="intent-head"><strong>纠错草稿 <span class="badge-mode">只复制 · 不发送</span></strong><span class="intent-state" id="intentState">本机草稿 · 尚未复制</span></div>
-        <div class="intent-presets" aria-label="快捷意图">
-          <button class="intent-preset" type="button" data-intent-preset="describe">解释这张图</button>
-          <button class="intent-preset" type="button" data-intent-preset="scope">只看选中模块</button>
-          <button class="intent-preset" type="button" data-intent-preset="preflight">先做只读预检</button>
-          <button class="intent-preset" type="button" data-intent-preset="diff">生成待审提案</button>
-        </div>
+        <div class="intent-head"><strong>画布留言 <span class="badge-mode">锚定对象 · 写入会话</span></strong><span class="intent-state" id="intentState">未选中对象</span></div>
         <div class="input-row">
-          <textarea id="messageInput" maxlength="2000" placeholder="留下一句轻量纠错或补充说明，复制给 AI 读取…"></textarea>
-          <span class="input-count" id="messageInputCount">0 / 2000</span>
+          <textarea id="boardNoteInput" maxlength="2000" placeholder="写下想让 AI 理解的事；选中节点后会绑定到该对象…"></textarea>
+          <span class="input-count" id="boardNoteInputCount">0 / 2000</span>
         </div>
-        <div class="intent-foot"><span class="draft-note">◇ 复制后交给 AI · 不写入会话 · 不授权写入</span><span><code>get_visual_context</code> 后再预检 / 提案</span></div>
+        <div class="intent-foot"><span class="draft-note">◇ 留言与回复保留在同一对象线程 · 不授权项目写入</span><span><code>get_visual_context</code> 读取</span></div>
       </div>
       <div class="collab-actions">
-        <button id="btnSendMessage" class="primary">复制给 AI</button>
-        <button id="btnAddAnnotation">添加批注信号</button>
+        <button id="btnSaveBoardNote" class="primary">保存到对象线程</button>
         <button id="btnCopyAiContext" class="subtle" title="复制只读提示，不写入会话、不签发凭据">复制给 AI 的上下文</button>
         <button id="btnCopySharedBrief" class="subtle" title="复制紧凑只读 BRIEF_JSON，不写入会话、不签发凭据">复制共享简报</button>
       </div>
@@ -3592,7 +3588,10 @@
         <button id="btnCopyCapabilities" class="subtle" title="复制只读 CAPABILITIES_JSON，不调用工具、不写入会话、不签发凭据">复制能力清单</button>
         <button id="btnDialogMore" class="dock-toggle" type="button">更多 ⌄</button>
       </div>
-      <input id="annotationInput" placeholder="一句轻量纠错；先选中左侧节点即可绑定" />
+      <div id="copyFallback" data-visible="false" aria-live="polite">
+        <label for="copyFallbackInput">剪贴板不可用 · 手动复制这段只读文本</label>
+        <textarea id="copyFallbackInput" readonly></textarea>
+      </div>
       </div>
     </section>
     <section class="collab-section" id="collabSectionProposals" role="tabpanel" aria-label="变更提案">
@@ -5311,7 +5310,7 @@ const COMMANDS = [
   { group: '上下文工具', icon: '⌁', title: '查看上下文信号', hint: '切到消息、批注与活动时间线', shortcut: '5', keys: '上下文 消息 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
   { group: '协作流程', icon: '✓', title: '查看变更提案', hint: '切到逐行 diff 与人工批准', shortcut: '6', keys: '提案 diff 批准 proposal', run: () => { openCollab(); setCollabTab('proposals'); } },
   { group: '协作流程', icon: '◇', title: '载入示例图形', hint: '只写入本机编辑器并渲染预览', shortcut: '', keys: '示例 demo mermaid', run: () => loadExampleDiagram() },
-  { group: '协作流程', icon: '↔', title: '解释这张图', hint: '把只读结构说明插入意图草稿，不发送', shortcut: '', keys: '意图 模板 解释 结构', run: () => { openCollab(); setCollabTab('dialog'); insertIntentPreset(document.querySelector('[data-intent-preset="describe"]')); } },
+  { group: '协作流程', icon: '↔', title: '给当前范围留言', hint: '打开画布留言输入框，把意图写入共享会话', shortcut: '', keys: '留言 范围 批注 意图 节点', run: () => { openCollab(); setCollabTab('dialog'); $('#boardNoteInput')?.focus(); } },
   { group: '协作流程', icon: '→', title: '切换下一个节点', hint: '把只读焦点移到下一个项目结构节点', shortcut: ']', keys: '节点 焦点 next object', run: () => stepCanvasFocus(1) },
   { group: '协作流程', icon: '↗', title: '跳到关联对象', hint: '沿真实连线切换当前只读焦点', shortcut: '', keys: '关联 相邻 边 edge 对象', run: () => stepRelatedCanvasFocus() },
   { group: '协作流程', icon: '⧉', title: '复制焦点上下文', hint: '复制当前节点的只读上下文提示给 AI', shortcut: '', keys: '复制 焦点 上下文 context', run: () => copyCanvasFocusContext() },
@@ -6121,6 +6120,7 @@ function renderSelectionSummary() {
   target.title = '多选范围最多 24 个节点；保存图形、导入会话或节点删除后会自动清除失锚 ID。它不签发批准凭据，也不写项目文件。';
   updateOverview();
   updateGraphToolbarSelection();
+  updateNoteContext();
 }
 
 function updateGraphToolbarSelection() {
@@ -6181,6 +6181,7 @@ function renderFocus(focus = null) {
     : '当前焦点 · 未选中节点；选中后 AI 会知道你正在指哪个对象';
   target.title = '选中状态只是只读上下文，不签发批准凭据，也不自动创建或应用提案。';
   renderCanvasObject();
+  updateNoteContext();
 }
 
 function setCanvasFocusNode(nodeId, publish = true) {
@@ -6190,6 +6191,7 @@ function setCanvasFocusNode(nodeId, publish = true) {
   renderGraphEditor();
   renderFocus();
   renderCanvasObject();
+  updateNoteContext();
   if (previousNodeId !== nodeId && $('#workspace').dataset.view === 'canvas') playFocusRipple();
   if (publish) publishFocus(nodeId);
 }
@@ -6306,6 +6308,27 @@ function stepRelatedCanvasFocus() {
   setCanvasFocusNode(nextId);
 }
 
+async function copyTextForAi(text, successMessage, label = '只读提示') {
+  try {
+    await navigator.clipboard.writeText(text);
+    const fallback = $('#copyFallback');
+    if (fallback) fallback.dataset.visible = 'false';
+    showToast(successMessage);
+    return true;
+  } catch {
+    const fallback = $('#copyFallback');
+    const input = $('#copyFallbackInput');
+    if (fallback && input) {
+      input.value = text;
+      fallback.dataset.visible = 'true';
+      input.focus();
+      input.select();
+    }
+    showToast(`剪贴板不可用；${label}已放入下方只读文本框`);
+    return false;
+  }
+}
+
 async function copyCanvasFocusContext() {
   const node = (collabGraph?.nodes || []).find((item) => item.id === selectedNodeId);
   if (!node) return showToast('先让 AI 扫描项目，并在画布上选中一个对象');
@@ -6321,14 +6344,7 @@ async function copyCanvasFocusContext() {
     '',
     '请先解释这个对象及相邻关系；如需改变项目文件，仍须 preflight_visual_proposal、完整逐行 diff、人工批准与一次性确认号。此提示不含批准凭据，也不授权写入。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读焦点上下文；不含确认号、绝对路径或写入授权');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把只读焦点提示放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读焦点上下文；不含确认号、绝对路径或写入授权', '只读焦点提示');
 }
 
 function focusConversationThreads(nodeId = selectedNodeId) {
@@ -6727,8 +6743,9 @@ function renderSelectionWorkorder(workorder) {
 }
 
 async function copySelectionScope() {
+  let scope = collabSelectionScope;
   try {
-    const scope = collabSelectionScope || await loadSelectionScope();
+    scope = scope || await loadSelectionScope();
     const prompt = [
       '请调用 get_selection_scope 读取同一份 version 1 SELECTION_SCOPE_JSON；下面是面板已加载的只读选择范围：',
       scope.copyText,
@@ -6736,19 +6753,20 @@ async function copySelectionScope() {
       `SELECTION_SCOPE_JSON: ${JSON.stringify(scope)}`,
       '选择范围只是人类注意力上下文；请再用 get_visual_context 读取完整会话，创建提案前先 preflight_visual_proposal。',
     ].join('\n');
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读选择范围；它不包含确认号或本机绝对路径');
+    await copyTextForAi(prompt, '已复制只读选择范围；它不包含确认号或本机绝对路径', '选择范围提示');
   } catch {
-    const scope = collabSelectionScope;
-    $('#messageInput').value = scope ? `请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。\n${scope.copyText}` : '请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。';
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把选择范围提示放入纠错草稿框（尚未复制）');
+    const text = scope ? `请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。\n${scope.copyText}` : '请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。';
+    await copyTextForAi(text, '已复制只读选择范围；它不包含确认号或本机绝对路径', '选择范围提示');
   }
 }
 
 async function copySelectionWorkorder() {
+  let workorder = collabSelectionWorkorder;
   try {
-    const workorder = collabSelectionWorkorder || (await loadSelectionScope(), collabSelectionWorkorder);
+    if (!workorder) {
+      await loadSelectionScope();
+      workorder = collabSelectionWorkorder;
+    }
     const prompt = [
       '请调用 get_selection_workorder 读取同一份 version 1 SELECTION_WORKORDER_JSON；下面是面板已加载的只读预提案工作单：',
       workorder.copyText,
@@ -6756,15 +6774,12 @@ async function copySelectionWorkorder() {
       `SELECTION_WORKORDER_JSON: ${JSON.stringify(workorder)}`,
       '工作单不含文件内容、逐行 diff 或批准凭据；请先用 get_visual_context 读取完整会话，讨论缺口后再显式起草 changes，并先调用 preflight_visual_proposal。',
     ].join('\n');
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读预提案工作单；它不包含文件内容、确认号或本机绝对路径');
+    await copyTextForAi(prompt, '已复制只读预提案工作单；它不包含文件内容、确认号或本机绝对路径', '工作单提示');
   } catch {
-    const workorder = collabSelectionWorkorder;
-    $('#messageInput').value = workorder
+    const text = workorder
       ? `请调用 get_selection_workorder 读取当前预提案工作单；这是只读清单，不授权写入。\n${workorder.copyText}`
       : '请调用 get_selection_workorder 读取当前预提案工作单；这是只读清单，不授权写入。';
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把工作单提示放入纠错草稿框（尚未复制）');
+    await copyTextForAi(text, '已复制只读预提案工作单；它不包含文件内容、确认号或本机绝对路径', '工作单提示');
   }
 }
 
@@ -7072,7 +7087,7 @@ function renderAnnotations(annotations) {
   if (!target) return;
   const labels = new Map((collabGraph?.nodes ?? []).map((node) => [node.id, node.label]));
   target.innerHTML = annotations.length ? annotations.map((annotation) => `
-    <article class="annotation-thread ${annotation.resolved ? 'resolved' : ''} ${annotation.anchorStatus === 'detached' ? 'detached' : ''} ${annotation.anchorStatus === 'outdated' ? 'outdated' : ''}" data-annotation-id="${escapeHtml(annotation.id)}">
+    <article class="annotation-thread ${annotation.resolved ? 'resolved' : ''} ${annotation.anchorStatus === 'detached' ? 'detached' : ''} ${annotation.anchorStatus === 'outdated' ? 'outdated' : ''}" data-annotation-id="${escapeHtml(annotation.id)}" data-focused="${String(!annotation.nodeId || annotation.nodeId === selectedNodeId)}">
       <div class="annotation-thread-head">
         <span class="annotation-thread-meta">${annotation.resolved ? '已解决' : '待讨论'} · <span class="next">${escapeHtml(annotationThreadNextActor(annotation))}</span>${annotation.nodeId ? ` · <span class="target">@ ${escapeHtml(labels.get(annotation.nodeId) || annotation.nodeLabel || annotation.nodeId)}</span>` : ''}${annotation.anchorStatus === 'detached' ? ' · <span class="stale">失锚</span>' : ''}${annotation.anchorStatus === 'outdated' ? ' · <span class="stale">过期</span>' : ''}</span>
         <span>
@@ -7084,9 +7099,14 @@ function renderAnnotations(annotations) {
       ${annotation.anchorStatus === 'detached' ? '<div class="annotation-anchor-note">原节点已删除；请确认讨论是否仍适用于当前图。</div>' : ''}
       ${annotation.anchorStatus === 'outdated' ? `<div class="annotation-anchor-note">节点标签或路径已变化（原：${escapeHtml(annotation.nodeLabel || annotation.nodePath || '未记录')}）；确认重锚后 AI 才能把它当作当前意图。</div>` : ''}
       <div class="annotation-replies">${renderAnnotationReplies(annotation.replies)}</div>
-      <div class="annotation-reply-readonly">线程回复由 AI 工具写入；面板只展示既有只读上下文信号。</div>
+      <form class="annotation-reply-form" data-annotation-reply="${escapeHtml(annotation.id)}">
+        <label class="sr-only" for="reply-${escapeHtml(annotation.id)}">回复这条对象留言</label>
+        <textarea id="reply-${escapeHtml(annotation.id)}" maxlength="2000" placeholder="继续这条线程；AI 会在同一对象上读到你的回复…"></textarea>
+        <button type="submit">回复</button>
+      </form>
+      <div class="annotation-thread-note">人和 AI 的回复按时间保存在同一线程；讨论不批准提案，也不写项目文件。</div>
     </article>
-  `).join('') : historyEmpty('⌖', '还没有批注信号', '在左侧项目图选中节点，再用 <code>添加批注信号</code> 绑定一句轻量纠错；AI 会把它作为只读上下文。');
+  `).join('') : historyEmpty('⌖', '还没有画布留言', '选中画布对象并写下一条留言，AI 会通过 MCP 读取并在同一线程回应。');
   renderCanvasConversation();
   renderCanvasContextStrip();
   syncFocusLabelConversation();
@@ -7097,7 +7117,44 @@ function renderAnnotations(annotations) {
   for (const button of target.querySelectorAll('[data-annotation-anchor]')) {
     button.addEventListener('click', () => reanchorAnnotation(button.dataset.annotationAnchor));
   }
+  for (const form of target.querySelectorAll('[data-annotation-reply]')) {
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitAnnotationReply(form.dataset.annotationReply, form);
+    });
+  }
   updateHistoryCount('annotations', annotations.length, annotations.some((annotation) => !annotation.resolved));
+}
+
+async function submitAnnotationReply(id, form) {
+  const input = form.querySelector('textarea');
+  const body = input?.value.trim();
+  if (!body) return showToast('请先写下要回复的内容');
+  const button = form.querySelector('button');
+  protectCollabInteraction();
+  collabInteractionDepth += 1;
+  if (button) {
+    button.disabled = true;
+    button.classList.add('busy');
+    button.setAttribute('aria-busy', 'true');
+  }
+  try {
+    await collabFetch(`/api/collab/annotations/${encodeURIComponent(id)}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ body, author: 'human' }),
+    });
+    showToast('回复已保存到同一对象线程；等待 AI 读取');
+    refreshCollabSafely();
+  } catch (error) {
+    showToast(`回复失败：${error.message}`);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.classList.remove('busy');
+      button.removeAttribute('aria-busy');
+    }
+    finishCollabInteraction();
+  }
 }
 
 function annotationThreadNextActor(annotation) {
@@ -7526,14 +7583,7 @@ function buildAiContextPrompt() {
 
 async function copyAiContext() {
   const prompt = buildAiContextPrompt();
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读上下文提示；它不包含确认号');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把提示放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读上下文提示；它不包含确认号', '上下文提示');
 }
 
 async function copySharedBrief() {
@@ -7548,14 +7598,7 @@ async function copySharedBrief() {
     '',
     'BRIEF_JSON 不含批准凭据；失锚线程不是当前意图。只有我查看逐行 diff、批准并提供一次性确认号后，才可 apply_visual_proposal。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读共享简报；它不包含确认号');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把简报放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读共享简报；它不包含确认号', '共享简报');
 }
 
 async function copyDecisionTrail() {
@@ -7570,14 +7613,7 @@ async function copyDecisionTrail() {
     '',
     '决策链不含批准凭据；失锚讨论只作历史证据，提案变更行只是有界投影，仍需打开完整逐行 diff。只有我查看逐行 diff、批准并提供一次性确认号后，才可 apply_visual_proposal。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读决策链；它不包含确认号');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把决策链放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读决策链；它不包含确认号', '决策链');
 }
 
 async function copySourceNavigation() {
@@ -7593,14 +7629,7 @@ async function copySourceNavigation() {
     '这些相对 file:line 与 URI 只是可复制提示，不代表我可以批准写入，也不代表服务端已打开文件或执行 IDE 命令。',
     '如需改动项目，先 preflight_visual_proposal，再 create_visual_proposal；等我查看逐行 diff、批准并提供一次性确认号后才可 apply_visual_proposal。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读源码跳转清单；它不包含确认号或绝对路径');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把源码跳转清单放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读源码跳转清单；它不包含确认号或绝对路径', '源码跳转清单');
 }
 
 async function copyCapabilities() {
@@ -7616,14 +7645,7 @@ async function copyCapabilities() {
     '能力清单只是描述性目录，不调用工具、不签发凭据，也不等于我已批准写入。',
     '如需改动项目，先 preflight_visual_proposal，再 create_visual_proposal；等我查看完整逐行 diff、批准并提供一次性确认号后才可 apply_visual_proposal。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读能力清单；它不包含确认号或本机绝对路径');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把能力清单放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读能力清单；它不包含确认号或本机绝对路径', '能力清单');
 }
 
 async function saveGraph() {
@@ -7688,83 +7710,73 @@ async function saveGraph() {
   }
 }
 
-async function sendMessage() {
-  const input = $('#messageInput');
-  const body = input.value.trim();
-  if (!body) return;
-  const button = $('#btnSendMessage');
+const BOARD_NOTE_DRAFT_KEY = 'ai-draw:board-note-draft';
+function clearBoardNoteDraft() {
+  try { localStorage.removeItem(BOARD_NOTE_DRAFT_KEY); } catch {}
+}
+function currentBoardNoteTarget() {
+  const nodes = collabGraph?.nodes || [];
+  const focused = nodes.find((node) => node.id === selectedNodeId);
+  if (focused) return { nodeId: focused.id, label: `节点 · ${focused.label}`, note: '留言会绑定到这个节点' };
+  if (selectedNodeIds.length) return { nodeId: null, label: `范围 · ${selectedNodeIds.length} 个节点`, note: '没有焦点：留言会保存到画布范围' };
+  return { nodeId: null, label: '画布范围', note: '未选中节点：留言会保存到画布范围' };
+}
+function updateNoteContext() {
   const state = $('#intentState');
+  if (!state || state.classList.contains('busy') || state.classList.contains('error') || state.classList.contains('sent')) return;
+  const target = currentBoardNoteTarget();
+  state.textContent = target.label;
+  state.title = `${target.note}；只写共享会话，不写项目文件。`;
+  const input = $('#boardNoteInput');
+  if (input) input.setAttribute('aria-label', `给${target.label}留言`);
+}
+function updateBoardNoteCount() {
+  const input = $('#boardNoteInput');
+  if (!input) return;
+  const label = `${input.value.length} / 2000`;
+  $('#boardNoteCount').textContent = label;
+  $('#boardNoteInputCount').textContent = label;
+  $('#btnSaveBoardNote').classList.toggle('has-draft', input.value.length > 0);
+  updateNoteContext();
+  try {
+    if (input.value) localStorage.setItem(BOARD_NOTE_DRAFT_KEY, input.value);
+    else clearBoardNoteDraft();
+  } catch {}
+}
+
+async function saveBoardNote() {
+  const input = $('#boardNoteInput');
+  const body = input.value.trim();
+  if (!body) return showToast('请先写一句想让 AI 理解的上下文');
+  const button = $('#btnSaveBoardNote');
+  const state = $('#intentState');
+  const target = currentBoardNoteTarget();
   button.disabled = true;
   button.classList.add('busy');
   button.setAttribute('aria-busy', 'true');
   state.className = 'intent-state busy';
-  state.textContent = '正在生成可复制的纠错上下文…';
+  state.textContent = `正在保存到${target.label}…`;
   try {
-    const prompt = [
-      '请先用 get_visual_context 读取当前结构化上下文；下面是一句人工轻量纠错，仅供解释或后续只读预检：',
-      body,
-      '',
-      '这段文本不写入会话、不批准提案、不签发凭据，也不授权项目写入。',
-    ].join('\n');
-    await navigator.clipboard.writeText(prompt);
+    await collabFetch('/api/collab/annotations', {
+      method: 'POST',
+      body: JSON.stringify({ body, nodeId: target.nodeId }),
+    });
     input.value = '';
-    updateMessageCount();
-    clearMessageDraft();
+    updateBoardNoteCount();
+    clearBoardNoteDraft();
     state.className = 'intent-state sent';
-    state.textContent = '✓ 已复制 · 粘贴给 AI 后由工具读取';
-    showToast('纠错上下文已复制；没有写入会话或项目文件');
+    state.textContent = `✓ 已保存到${target.label} · 等待 AI 读取`;
+    showToast('画布留言已写入共享会话；没有写项目文件');
+    refreshCollabSafely();
   } catch (error) {
     state.className = 'intent-state error';
-    state.textContent = '复制失败 · 草稿已保留，可手动选中复制';
-    showToast(`剪贴板不可用；草稿已保留，尚未写入会话：${error.message}`);
+    state.textContent = '保存失败 · 草稿已保留';
+    showToast(`保存留言失败；草稿仍在本机：${error.message}`);
   } finally {
     button.disabled = false;
     button.classList.remove('busy');
     button.removeAttribute('aria-busy');
   }
-}
-
-const MESSAGE_DRAFT_KEY = 'ai-draw:message-draft';
-function clearMessageDraft() {
-  try { localStorage.removeItem(MESSAGE_DRAFT_KEY); } catch {}
-}
-function updateMessageCount() {
-  const input = $('#messageInput');
-  const count = input.value.length;
-  const label = `${count} / 2000`;
-  $('#messageCount').textContent = label;
-  $('#messageInputCount').textContent = label;
-  $('#btnSendMessage').classList.toggle('has-draft', count > 0);
-  const state = $('#intentState');
-  if (state && !state.classList.contains('busy') && !state.classList.contains('error') && !state.classList.contains('sent')) {
-    state.textContent = count ? '本机草稿 · 尚未复制' : '等待轻量纠错';
-  }
-  try {
-    if (count) localStorage.setItem(MESSAGE_DRAFT_KEY, input.value);
-    else clearMessageDraft();
-  } catch {}
-}
-
-const INTENT_PRESETS = {
-  describe: '请先用 get_visual_context 读取当前图与上下文信号，再用中文解释这张项目结构图；只描述，不创建提案或写项目文件。',
-  scope: '请先看我当前选中的节点范围与焦点，只围绕这些模块解释关系；选择范围是只读上下文，不授权写入。',
-  preflight: '请先读取当前意图与图形差异，对候选改动做 preflight_visual_proposal；先不要创建提案，也不要写项目文件。',
-  diff: '请根据当前意图和图形修订生成待审变更提案，先展示完整逐行 diff 与影响摘要；我批准并给确认号前不要写项目文件。',
-};
-function insertIntentPreset(button) {
-  const input = $('#messageInput');
-  const text = INTENT_PRESETS[button.dataset.intentPreset];
-  if (!text) return;
-  const existing = input.value.trim();
-  const next = existing ? `${existing}\n\n${text}` : text;
-  input.value = next.slice(0, 2000);
-  for (const candidate of document.querySelectorAll('.intent-preset')) candidate.classList.toggle('active', candidate === button);
-  updateMessageCount();
-  input.focus();
-  input.setSelectionRange(input.value.length, input.value.length);
-  const state = $('#intentState');
-  state.className = 'intent-state';
-  state.textContent = '已插入意图模板 · 仍在本机草稿';
 }
 
 async function rescanProject() {
@@ -7789,24 +7801,6 @@ async function rescanProject() {
     button.classList.remove('busy');
     button.removeAttribute('aria-busy');
     button.textContent = '重新扫描项目';
-  }
-}
-
-async function addAnnotation() {
-  const input = $('#annotationInput');
-  const body = input.value.trim();
-  if (!body) return showToast('请输入一句轻量纠错');
-  input.value = '';
-  try {
-    const nodeId = selectedNodeId || undefined;
-    await collabFetch('/api/collab/annotations', {
-      method: 'POST',
-      body: JSON.stringify({ body, nodeId }),
-    });
-    showToast(nodeId ? '批注信号已绑定到选中节点' : '批注信号已加入图形');
-    refreshCollabSafely();
-  } catch (error) {
-    showToast(`批注信号失败：${error.message}`);
   }
 }
 
@@ -8004,18 +7998,18 @@ for (const tab of document.querySelectorAll('.history-tab')) {
     next.focus();
   });
 }
-const messageInput = $('#messageInput');
+const boardNoteInput = $('#boardNoteInput');
 try {
-  const savedDraft = localStorage.getItem(MESSAGE_DRAFT_KEY);
+  const savedDraft = localStorage.getItem(BOARD_NOTE_DRAFT_KEY);
   if (savedDraft) {
-    messageInput.value = savedDraft.slice(0, 2000);
-    $('#intentState').textContent = '已恢复本机草稿 · 尚未复制';
+    boardNoteInput.value = savedDraft.slice(0, 2000);
+    $('#intentState').textContent = '已恢复本机草稿 · 尚未保存';
   }
 } catch {}
-messageInput.addEventListener('input', updateMessageCount);
-for (const button of document.querySelectorAll('.intent-preset')) {
-  button.addEventListener('click', () => insertIntentPreset(button));
-}
+boardNoteInput.addEventListener('input', () => {
+  $('#intentState').className = 'intent-state';
+  updateBoardNoteCount();
+});
 $('#btnCloseCollab').addEventListener('click', () => {
   $('#collabShell').hidden = true;
   collabLoadDeferred = false;
@@ -8047,12 +8041,11 @@ $('#btnAddEdge').addEventListener('click', addEdge);
 $('#btnExportSession').addEventListener('click', exportSession);
 $('#btnImportSession').addEventListener('click', () => $('#bundleFileInput').click());
 $('#bundleFileInput').addEventListener('change', importSession);
-$('#btnSendMessage').addEventListener('click', sendMessage);
-$('#messageInput').addEventListener('keydown', (event) => {
-  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') sendMessage();
+$('#btnSaveBoardNote').addEventListener('click', saveBoardNote);
+$('#boardNoteInput').addEventListener('keydown', (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') saveBoardNote();
 });
-updateMessageCount();
-$('#btnAddAnnotation').addEventListener('click', addAnnotation);
+updateBoardNoteCount();
 
 // ── Init ──
 loadList();
