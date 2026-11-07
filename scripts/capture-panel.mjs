@@ -122,31 +122,16 @@ try {
   await page.waitForSelector("#diagramRender svg");
   await page.waitForFunction(() => document.querySelector("#welcomeCard").hidden);
   await page.keyboard.press("f");
-  await page.click("#btnFlowSource");
+  await page.keyboard.press("e");
   await page.waitForFunction(() => document.body.classList.contains("flow-source-open"));
   await new Promise((resolve) => setTimeout(resolve, 450));
   await page.screenshot({ path: path.join(outputDir, "preview-panel.png") });
-  await page.click("#btnFlowSource");
+  await page.keyboard.press("e");
   await page.waitForFunction(() => !document.body.classList.contains("flow-source-open"));
   await new Promise((resolve) => setTimeout(resolve, 260));
   await page.screenshot({ path: path.join(outputDir, "flow-workspace-panel.png") });
-  await page.click('.visual-switch [data-visual="studio"]');
-  await page.waitForFunction(() => document.body.classList.contains("visual-studio"));
   await new Promise((resolve) => setTimeout(resolve, 260));
-  await page.screenshot({ path: path.join(outputDir, "studio-workspace-panel.png") });
-  await page.click('.visual-switch [data-visual="atlas"]');
-  await page.waitForFunction(() => document.body.classList.contains("visual-atlas"));
-  await new Promise((resolve) => setTimeout(resolve, 260));
-  await page.screenshot({ path: path.join(outputDir, "atlas-workspace-panel.png") });
-  await page.click('.visual-switch [data-visual="aurora"]');
-  await page.waitForFunction(() => document.body.classList.contains("visual-aurora"));
-  await page.click("#btnAppearance");
-  await page.waitForFunction(() => !document.querySelector("#appearancePopover").hidden);
-  await page.click('#appearancePopover [data-graph-skin="off"]');
-  await page.waitForFunction(() => document.body.classList.contains("graph-skin-off"));
-  await page.keyboard.press("g");
-  await page.waitForFunction(() => !document.body.classList.contains("graph-skin-off"));
-  await page.keyboard.press("Escape");
+  await page.screenshot({ path: path.join(outputDir, "restrained-workspace-panel.png") });
   await page.keyboard.press("3");
   await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
   await page.waitForSelector("#diagramRender svg");
@@ -156,7 +141,7 @@ try {
   await page.click("#btnCollaborate");
   await page.waitForSelector("#graphEditor .graph-row");
   await page.waitForSelector("#annotationList .annotation-thread");
-  await page.click("#btnCloseCollab");
+  await page.keyboard.press("Escape");
   await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
   await page.waitForFunction(() => {
     const parts = document.querySelector("#canvasObjectIndex").textContent.split("/").map((part) => Number(part.trim()));
@@ -202,7 +187,7 @@ try {
   await page.waitForFunction(() => Number(document.querySelector("#canvasRelationMap").dataset.edges) > 0, { timeout: 5000 });
   await new Promise((resolve) => setTimeout(resolve, 220));
   await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
-  await page.click("#btnCanvasHelp");
+  await page.keyboard.press("h");
   await page.waitForFunction(() => !document.querySelector("#shortcutBackdrop").hidden);
   await page.waitForFunction(() => Number(getComputedStyle(document.querySelector("#shortcutBackdrop")).opacity) >= 0.99);
   await new Promise((resolve) => setTimeout(resolve, 250));
@@ -232,12 +217,12 @@ try {
   });
   await new Promise((resolve) => setTimeout(resolve, 400));
   await page.screenshot({ path: path.join(outputDir, "collaboration-workbench-panel.png") });
-  await page.click("#btnFocusMode");
+  await page.keyboard.press("7");
   await page.waitForFunction(() => document.querySelector("#collabShell").classList.contains("focus-mode"));
   await new Promise((resolve) => setTimeout(resolve, 250));
   await page.screenshot({ path: path.join(outputDir, "collaboration-focus-panel.png") });
-  await page.click("#btnFocusMode");
-  await page.click("#btnCloseCollab");
+  await page.keyboard.press("7");
+  await page.keyboard.press("Escape");
   await page.waitForFunction(() => document.querySelector("#collabShell").hidden);
   await page.keyboard.press("z");
   await page.waitForFunction(() => document.body.classList.contains("zen-workspace"));
@@ -274,7 +259,7 @@ try {
   await new Promise((resolve) => setTimeout(resolve, 350));
   await page.screenshot({ path: path.join(outputDir, "compact-glance-panel.png") });
   await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
-  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/flow-workspace-panel.png, docs/studio-workspace-panel.png, docs/atlas-workspace-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png, docs/zen-workspace-panel.png and docs/compact-glance-panel.png");
+  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/flow-workspace-panel.png, docs/restrained-workspace-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png, docs/zen-workspace-panel.png and docs/compact-glance-panel.png");
 } finally {
   await browser.close();
   await preview.stop().catch(() => {});

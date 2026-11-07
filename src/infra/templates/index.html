@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Draw MCP — Live Editor</title>
+  <title>AI Draw MCP — 上下文工作台</title>
   <script src="/vendor/mermaid-dist/mermaid.min.js"></script>
   <style>
     :root {
@@ -2421,6 +2421,500 @@
     .sidebar.collapsed { width: 0; overflow: hidden; border: none; box-shadow: none; }
     #selTheme:disabled { opacity: 0.45; cursor: not-allowed; }
     .badge-mode { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--surface2); color: var(--accent2); margin-left: 6px; }
+
+    /* Restrained workbench: one visual language, one state surface, canvas first. */
+    :root {
+      --ui-canvas: #0c1320;
+      --ui-panel: #121c2d;
+      --ui-panel-raised: #172438;
+      --ui-line: #2a3a55;
+      --ui-line-strong: #3c5376;
+      --ui-ink: #eef4ff;
+      --ui-muted: #9fb0ca;
+      --ui-accent: #8ab4f8;
+      --ui-accent-soft: rgba(138, 180, 248, .12);
+      --ui-ok: #9ece6a;
+      --ui-warn: #f0a868;
+      --ui-danger: #ff8da1;
+      --ui-radius: 8px;
+      --ui-radius-small: 5px;
+      --ui-shadow: 0 10px 28px rgba(0, 0, 0, .22);
+      --ui-space-1: 4px;
+      --ui-space-2: 8px;
+      --ui-space-3: 12px;
+      --ui-space-4: 16px;
+    }
+    body.theme-light {
+      --ui-canvas: #f4f7fb;
+      --ui-panel: #ffffff;
+      --ui-panel-raised: #f0f4fa;
+      --ui-line: #cfd9e8;
+      --ui-line-strong: #aebed6;
+      --ui-ink: #17243a;
+      --ui-muted: #5f7292;
+      --ui-accent: #3768d8;
+      --ui-accent-soft: rgba(55, 104, 216, .09);
+      --ui-ok: #2f7f4d;
+      --ui-warn: #9a5a0d;
+      --ui-danger: #b43c55;
+      --ui-shadow: 0 8px 22px rgba(39, 58, 94, .12);
+    }
+    body, body.visual-aurora, body.visual-studio, body.visual-atlas,
+    body.ambient-calm, body.visual-aurora.ambient-calm, body.visual-studio.ambient-calm,
+    body.visual-atlas.ambient-calm, body.theme-light, body.visual-aurora.theme-light,
+    body.visual-studio.theme-light, body.visual-atlas.theme-light {
+      --bg: var(--ui-canvas);
+      --surface: var(--ui-panel);
+      --surface2: var(--ui-panel-raised);
+      --border: var(--ui-line);
+      --text: var(--ui-ink);
+      --text-muted: var(--ui-muted);
+      --accent: var(--ui-accent);
+      --accent2: var(--ui-accent);
+      --accent3: var(--ui-accent);
+      --green: var(--ui-ok);
+      --orange: var(--ui-warn);
+      --red: var(--ui-danger);
+      --panel: var(--ui-panel);
+      --glass: var(--ui-panel);
+      --shadow: var(--ui-shadow);
+      --radius: var(--ui-radius);
+      background: var(--ui-canvas);
+      color: var(--ui-ink);
+    }
+    body::before, body.visual-aurora::before, body.visual-studio::before,
+    body.visual-atlas::before, body.visual-aurora .workspace::before { display: none !important; }
+    .header, body.visual-atlas .header, body.theme-light .header,
+    body.ambient-calm .header, body.ambient-calm.theme-light .header {
+      height: var(--header-height);
+      padding: 0 var(--ui-space-3);
+      border-bottom: 1px solid var(--ui-line);
+      background: var(--ui-panel);
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+    .header::after, body.visual-aurora .header::after, body.visual-atlas .header::after,
+    .workspace::before, .flow-rail::before, .flow-rail::after,
+    .welcome-card::before, .welcome-card::after, .welcome-visual::before {
+      display: none !important; content: none !important;
+      background: none !important; background-image: none !important;
+    }
+    .canvas-frame::before, .canvas-frame::after, .canvas-frame-badge,
+    .canvas-object-card::after, .canvas-object-card::before,
+    .canvas-focus-context::before, .canvas-hover-card::before,
+    .canvas-hover-card::after, .collab-shell::before,
+    .collab-journey::before, .collab-journey::after {
+      display: none !important; content: none !important;
+      background: none !important; background-image: none !important;
+    }
+    .brand-wrap { min-width: 184px; gap: var(--ui-space-2); }
+    .brand-mark, body.visual-atlas .brand-mark {
+      width: 28px; height: 28px; border: 1px solid var(--ui-line-strong); border-radius: var(--ui-radius-small);
+      background: var(--ui-accent-soft); color: var(--ui-accent); box-shadow: none; animation: none;
+    }
+    .brand-mark::after { display: none; }
+    .header .brand { font-size: 13px; font-weight: 700; letter-spacing: 0; }
+    .brand-sub, body.visual-atlas .brand-sub {
+      margin-top: 0; font-family: inherit; font-size: 9px; font-weight: 500;
+      letter-spacing: 0; text-transform: none; color: var(--ui-muted);
+    }
+    .context-banner, body.visual-studio .context-banner, body.visual-atlas .context-banner {
+      max-width: min(430px, 30vw); padding: 5px 10px; border: 1px solid var(--ui-line);
+      border-radius: var(--ui-radius-small); background: var(--ui-panel-raised);
+      font-family: inherit; color: var(--ui-muted);
+    }
+    .context-banner::before { content: none; }
+    .context-banner strong { color: var(--ui-ink); font-size: 11px; }
+    .context-banner span { font-size: 9px; }
+    .toolbar, body.visual-atlas .toolbar, body.ambient-calm .toolbar {
+      gap: var(--ui-space-1); padding: var(--ui-space-1); border: 1px solid var(--ui-line);
+      border-radius: var(--ui-radius); background: var(--ui-panel-raised);
+    }
+    .toolbar select, .toolbar button, .toolbar button.primary,
+    body.visual-atlas .toolbar button, body.visual-atlas .toolbar button.primary,
+    body.ambient-calm .toolbar button.primary {
+      height: 28px; padding: 0 10px; border: 1px solid transparent; border-radius: var(--ui-radius-small);
+      background: transparent; color: var(--ui-ink); font-family: inherit; font-size: 11px;
+      font-weight: 600; letter-spacing: 0; text-transform: none; box-shadow: none;
+    }
+    .toolbar button:hover, .toolbar button.primary:hover {
+      transform: none; border-color: var(--ui-line-strong); background: var(--ui-accent-soft);
+    }
+    .toolbar button.primary, #btnRender.primary {
+      background: var(--ui-accent) !important; background-image: none !important;
+      color: #08111f !important; border-color: var(--ui-accent) !important;
+    }
+    body.theme-light .toolbar button.primary, body.theme-light #btnRender.primary { color: #ffffff !important; }
+    .toolbar button.primary::after { display: none !important; }
+    .visual-switch, .view-switch, body.visual-atlas .visual-switch, body.visual-atlas .view-switch {
+      gap: 2px; padding: 2px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius);
+      background: var(--ui-panel);
+    }
+    .visual-switch button, .view-switch button, body.visual-atlas .visual-switch button,
+    body.visual-atlas .view-switch button {
+      height: 24px; padding: 0 8px; border-radius: var(--ui-radius-small); border: 1px solid transparent;
+      background: transparent; color: var(--ui-muted); font-family: inherit; font-size: 10px;
+      font-weight: 600; letter-spacing: 0; text-transform: none; box-shadow: none;
+    }
+    .visual-switch button.active, .view-switch button.active,
+    body.visual-atlas .visual-switch button.active, body.visual-atlas .view-switch button.active {
+      border-color: var(--ui-line-strong); background: var(--ui-accent-soft); color: var(--ui-ink);
+      box-shadow: none;
+    }
+    .visual-switch, .sidebar, .sidebar.collapsed, body.flow-workspace .sidebar:not(.collapsed),
+    body.flow-workspace .sidebar.collapsed, .btn-icon#btnToggleSidebar,
+    .context-banner, .statusbar, .view-switch, .status #wsLabel { display: none !important; }
+    .appearance-group:has([data-visual]) { display: none !important; }
+    .main, body.flow-workspace .main { gap: 0; padding: var(--ui-space-2) !important; }
+    .workspace, body.flow-workspace .workspace, body.flow-workspace.visual-aurora .workspace {
+      border-radius: var(--ui-radius) !important; border-color: var(--ui-line) !important;
+      box-shadow: none !important;
+    }
+    .toolbar { border: 0; background: transparent; padding: 0; }
+    .toolbar > .toolbar-overflow, .toolbar > .appearance-wrap { display: none !important; }
+    #btnRender.primary { display: none !important; }
+    .header .status { margin-left: auto; }
+    .status .dot { display: none !important; }
+    .status #btnCollaborate { height: 28px; padding: 0 12px; }
+    #flowRailMeta { font-size: 10px; }
+    .flow-rail { grid-template-columns: 1fr auto; min-height: 34px; padding: 5px var(--ui-space-3) !important; }
+    .flow-rail-kicker { flex-direction: row; align-items: center; gap: var(--ui-space-2) !important; }
+    .flow-rail-kicker strong::after { content: " · 批准前只读"; color: var(--ui-muted); font-weight: 500; }
+    .flow-rail-actions #btnFlowSource { display: none !important; }
+    .canvas-dock-group[data-group="SHARED"] { display: none !important; }
+    .flow-rail-actions button, .canvas-dock button { min-height: 30px; }
+    .appearance-shortcuts span:nth-of-type(5), .appearance-shortcuts kbd:nth-of-type(5) { display: none; }
+    .status #btnCollaborate, .collab-actions button.primary {
+      border: 1px solid var(--ui-accent); border-radius: var(--ui-radius-small);
+      background: var(--ui-accent) !important; background-image: none !important;
+      color: #08111f !important; box-shadow: none;
+    }
+    body.theme-light .status #btnCollaborate, body.theme-light .collab-actions button.primary { color: #ffffff !important; }
+    .overflow-menu, .appearance-popover, .shortcut-dialog, .command-dialog, .receipt-dialog,
+    .collab-shell, .collab-section, .proposal-card, .chat-item, .intent-composer, .overview-stat,
+    .sidebar, .workspace, .pane, .pane-header, .statusbar,
+    body.theme-light .header, body.theme-light .collab-shell, body.theme-light .sidebar,
+    body.theme-light .workspace, body.theme-light .pane, body.theme-light .collab-section,
+    body.ambient-calm.theme-light .header, body.ambient-calm.theme-light .sidebar,
+    body.ambient-calm.theme-light .workspace, body.ambient-calm.theme-light .pane,
+    body.ambient-calm.theme-light .collab-section {
+      border-color: var(--ui-line) !important; border-radius: var(--ui-radius) !important;
+      background: var(--ui-panel) !important; background-image: none !important;
+      box-shadow: var(--ui-shadow) !important; backdrop-filter: none;
+    }
+    .pane-header, .statusbar, .collab-header, body.visual-atlas .pane-header, body.visual-atlas .statusbar {
+      background: var(--ui-panel-raised) !important; background-image: none !important;
+      color: var(--ui-muted); box-shadow: none !important;
+    }
+    .sidebar-item, .proposal-card, .chat-item, .overview-stat, .intent-composer,
+    .appearance-options button, .collab-actions button, .toolbar button.subtle {
+      border: 1px solid var(--ui-line) !important; border-radius: var(--ui-radius-small) !important;
+      background: var(--ui-panel-raised) !important; background-image: none !important;
+      box-shadow: none !important; transform: none !important;
+    }
+    .sidebar-item:hover, .sidebar-item.active, .appearance-options button.active {
+      border-color: var(--ui-accent) !important; background: var(--ui-accent-soft) !important;
+    }
+    .sidebar-item .badge, .collab-pulse-status, .proposal-badge {
+      border-radius: var(--ui-radius-small) !important; background: var(--ui-accent-soft) !important;
+      background-image: none !important; color: var(--ui-accent) !important; font-weight: 700;
+    }
+    .diagram-icon { border-radius: var(--ui-radius-small) !important; background: var(--ui-accent-soft) !important; color: var(--ui-accent) !important; }
+    .preview-wrap, body.visual-aurora .preview-wrap, body.visual-aurora:not(.ambient-calm):not(.theme-light) .preview-wrap,
+    body.visual-aurora.ambient-calm .preview-wrap, body.visual-studio .preview-wrap,
+    body.visual-atlas .preview-wrap, body.visual-atlas .preview-wrap:not(.dark-bg),
+    body.ambient-calm .preview-wrap, body.theme-light .preview-wrap {
+      background-color: #ffffff !important;
+      background-image: radial-gradient(rgba(99, 132, 191, .16) .8px, transparent .8px) !important;
+      background-size: 22px 22px !important;
+    }
+    .preview-wrap::before { display: none !important; background: none !important; background-image: none !important; }
+    .preview-wrap.dark-bg, body.theme-light .preview-wrap.dark-bg, body.visual-atlas .preview-wrap.dark-bg {
+      background-color: #111c2d !important;
+      background-image: radial-gradient(rgba(138, 180, 248, .14) .8px, transparent .8px) !important;
+      background-size: 22px 22px !important;
+    }
+    .canvas-frame { display: none !important; }
+    .flow-rail {
+      display: grid !important; grid-template-columns: minmax(190px, auto) 1fr auto;
+      min-height: 38px; padding: 6px var(--ui-space-3) !important; gap: var(--ui-space-3);
+      border: 0 !important; border-bottom: 1px solid var(--ui-line) !important;
+      border-radius: 0 !important; background: var(--ui-panel-raised) !important;
+      background-image: none !important; box-shadow: none !important;
+    }
+    .flow-rail-kicker { min-width: 0; gap: 0 !important; }
+    .flow-rail-kicker strong { color: var(--ui-ink); font-size: 10px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+    .flow-rail-kicker span { font-size: 9px; color: var(--ui-muted); }
+    .flow-rail-kicker .flow-rail-safety { display: none; }
+    .flow-rail-steps { display: none !important; }
+    .flow-rail-actions { gap: var(--ui-space-1); }
+    .flow-rail-actions button, body.visual-atlas .flow-rail-actions button {
+      height: 26px; padding: 0 9px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small);
+      background: var(--ui-panel); color: var(--ui-ink); font-family: inherit; font-size: 10px;
+      font-weight: 600; letter-spacing: 0; text-transform: none;
+    }
+    .flow-rail-actions button[aria-pressed="true"], .flow-rail-actions button.primary {
+      border-color: var(--ui-accent); background: var(--ui-accent-soft); color: var(--ui-accent);
+    }
+    .workspace-ribbon, .canvas-dock, .flow-lens, .collab-handoff, .collab-pulse,
+    .collab-pulse-detail, .canvas-object-card, .canvas-hover-card, .canvas-focus-context,
+    .canvas-focus-label, .live-inspector, .canvas-chip, #minimap, .welcome-card,
+    .toast, .zen-exit {
+      border: 1px solid var(--ui-line) !important; border-radius: var(--ui-radius) !important;
+      background: var(--ui-panel) !important; background-image: none !important;
+      box-shadow: var(--ui-shadow) !important; backdrop-filter: none;
+      color: var(--ui-ink); font-family: inherit;
+    }
+    .workspace-ribbon, .collab-handoff, .collab-pulse, .collab-pulse-detail,
+    .canvas-chip, #minimap { display: none !important; }
+    .canvas-thread-layer { display: block !important; }
+    .flow-lens {
+      left: var(--ui-space-3) !important; right: auto !important; top: var(--ui-space-3) !important;
+      width: min(360px, calc(100% - 24px)) !important; min-height: 34px; padding: 6px 8px !important;
+      display: none !important; gap: var(--ui-space-2) !important;
+    }
+    .canvas-dock {
+      left: 50% !important; right: auto !important; bottom: var(--ui-space-3) !important;
+      width: auto !important; max-width: calc(100% - 24px) !important; transform: translateX(-50%);
+      display: flex !important; align-items: center; gap: var(--ui-space-2) !important;
+      padding: 6px var(--ui-space-2) !important;
+    }
+    .canvas-dock-status, .canvas-dock-route, .canvas-dock-route-meta,
+    .canvas-dock-divider, .canvas-dock-group[data-group]::before,
+    .collab-pulse-orbit, .collab-pulse-bars, .collab-pulse-next-chip,
+    .collab-pulse-count, .canvas-relation-map, .canvas-context-strip,
+    .canvas-object-note,
+    .canvas-hover-note, .canvas-hover-kicker, .canvas-focus-context-head,
+    .canvas-focus-context-foot, .canvas-object-kicker, .welcome-orbit-label,
+    .welcome-caption, .welcome-line, .welcome-visual, .welcome-dialog-ribbon,
+    .welcome-live-route, .welcome-journey, .welcome-icon, .welcome-kicker,
+    .welcome-shortcuts { display: none !important; }
+    .canvas-dock-group { gap: var(--ui-space-1) !important; }
+    .canvas-dock-group[data-group] { border: 0; padding: 0; }
+    .canvas-dock button, .canvas-object-actions button, .flow-lens button,
+    .welcome-actions button, .canvas-context-chip {
+      min-height: 28px; border: 1px solid var(--ui-line) !important; border-radius: var(--ui-radius-small) !important;
+      background: var(--ui-panel-raised) !important; background-image: none !important;
+      color: var(--ui-ink) !important; font-family: inherit; font-size: 10px; font-weight: 600;
+      box-shadow: none !important; transform: none !important;
+    }
+    .canvas-dock button.primary, .canvas-object-actions button.primary, .welcome-actions button.primary {
+      border-color: var(--ui-accent) !important; background: var(--ui-accent) !important; color: #08111f !important;
+    }
+    body.theme-light .canvas-dock button.primary, body.theme-light .canvas-object-actions button.primary,
+    body.theme-light .welcome-actions button.primary { color: #ffffff !important; }
+    .canvas-object-card {
+      right: var(--ui-space-3) !important; top: var(--ui-space-3) !important;
+      width: 224px !important; padding: var(--ui-space-3) !important;
+    }
+    .canvas-object-card[data-visible="false"] { display: none !important; }
+    .canvas-object-card strong { display: block; margin: 4px 0; font-size: 12px; }
+    .canvas-object-path { display: block; margin-bottom: var(--ui-space-2); color: var(--ui-muted); font-size: 9px; }
+    .canvas-object-stats { margin-top: var(--ui-space-2); color: var(--ui-muted); font-size: 9px; }
+    .canvas-hover-card, .canvas-focus-context {
+      width: 220px !important; padding: var(--ui-space-2) !important;
+    }
+    .canvas-hover-card strong, .canvas-focus-context strong { display: block; font-size: 11px; }
+    .canvas-hover-metrics, .canvas-focus-context-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ui-space-1); }
+    .canvas-hover-metric, .canvas-focus-context-metric {
+      border: 1px solid var(--ui-line); border-radius: var(--ui-radius-small); background: var(--ui-panel-raised);
+      padding: var(--ui-space-1); text-align: center;
+    }
+    .canvas-focus-label {
+      padding: 4px 8px; border-radius: var(--ui-radius-small); background: var(--ui-panel);
+      color: var(--ui-ink); font-size: 9px; font-weight: 700; letter-spacing: 0;
+    }
+    .canvas-focus-label::before { content: none; }
+    .canvas-focus-halo, .canvas-focus-ripple, .canvas-focus-ring::before { display: none !important; animation: none !important; }
+    .canvas-focus-ring {
+      border: 2px solid var(--ui-accent) !important; border-radius: var(--ui-radius-small) !important;
+      box-shadow: none !important;
+    }
+    .canvas-thread-badge {
+      border: 1px solid var(--ui-warn); border-radius: var(--ui-radius-small) !important;
+      background: var(--ui-panel) !important; box-shadow: var(--ui-shadow) !important; color: var(--ui-warn);
+    }
+    .canvas-thread-badge::before { content: none; }
+    .welcome-card {
+      grid-template-columns: 1fr !important; width: min(520px, calc(100% - 32px)) !important;
+      max-height: calc(100vh - 180px); overflow-y: auto; padding: 0 !important;
+    }
+    .welcome-main { padding: var(--ui-space-4) !important; }
+    .welcome-card h2 { margin: 0 0 var(--ui-space-2); font-size: 20px; letter-spacing: 0; }
+    .welcome-card p { max-width: none; margin-bottom: var(--ui-space-3); font-size: 11px; line-height: 1.65; }
+    .welcome-features { display: none !important; }
+    .welcome-actions { gap: var(--ui-space-1); }
+    .welcome-actions button { padding: 0 10px; }
+    .collab-shell { inset: var(--ui-space-2) !important; }
+    .collab-header, .collab-body, .collab-section, .collab-overview, .health-card,
+    .collab-journey, .journey-step, .overview-stat, .proposal-card, .chat-item,
+    .annotation-thread, .graph-row, .diagnostics-list, .activity-summary,
+    .history-pane, .intent-composer, .receipt-grid, .appearance-shortcuts {
+      background-image: none !important; box-shadow: none !important;
+    }
+    .journey-step.active, .proposal-card.status-pending, .chat-item.ai,
+    body.visual-aurora .journey-step.active, body.ambient-calm .proposal-card.status-pending {
+      border-color: var(--ui-accent) !important; background: var(--ui-accent-soft) !important;
+      box-shadow: none !important;
+    }
+    .dialog-star-track, .welcome-dialog-ribbon, .welcome-live-route,
+    .collab-pulse, .canvas-relation-map, .canvas-dock, .canvas-hover-card,
+    .canvas-focus-context, .canvas-object-card, .flow-lens, .canvas-chip,
+    .canvas-relation-rail-track, .canvas-dock-route-line, .sync-meter {
+      background-image: none !important;
+    }
+    .dialog-star, .flow-lens-orb, .ribbon-orb, .collab-pulse-orbit,
+    .welcome-flow-center {
+      background: var(--ui-panel-raised) !important; background-image: none !important;
+      box-shadow: none !important; animation: none !important;
+    }
+    #diagramRender svg .node rect, #diagramRender svg .node polygon,
+    #diagramRender svg .node path, #diagramRender svg .node circle,
+    #diagramRender svg .node ellipse,
+    body.visual-atlas #diagramRender svg .node rect,
+    body.flow-workspace #diagramRender svg .node rect,
+    body.flow-workspace #diagramRender svg .node polygon,
+    body.flow-workspace #diagramRender svg .node path,
+    body.flow-workspace #diagramRender svg .node circle,
+    body.flow-workspace #diagramRender svg .node ellipse,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .node rect,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .node polygon,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .node path,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .node circle,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .node ellipse {
+      fill: var(--ui-panel-raised) !important; stroke: var(--ui-line-strong) !important;
+      stroke-width: 1.5px !important; filter: none !important; color: var(--ui-ink) !important;
+    }
+    #diagramRender svg * { filter: none !important; }
+    #diagramRender svg .nodeLabel,
+    #diagramRender svg .nodeLabel *,
+    #diagramRender svg .node .label,
+    #diagramRender svg .node .label *,
+    #diagramRender svg .edgeLabel,
+    #diagramRender svg .edgeLabel .label,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .nodeLabel,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .nodeLabel *,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .edgeLabel .label {
+      color: var(--ui-ink) !important; fill: var(--ui-ink) !important;
+      font-family: inherit !important; font-size: 13px !important; font-weight: 650 !important;
+    }
+    #diagramRender svg .edgeLabel,
+    #diagramRender svg .edgeLabel .label,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .edgeLabel,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .edgeLabel .label {
+      background: var(--ui-panel) !important; border: 1px solid var(--ui-line) !important;
+      border-radius: var(--ui-radius-small) !important; box-shadow: none !important;
+      color: var(--ui-ink) !important;
+    }
+    #diagramRender svg .edgeLabel .label foreignObject > div,
+    #diagramRender svg .edgeLabel foreignObject > div {
+      background: var(--ui-panel) !important;
+      border: 1px solid var(--ui-line) !important;
+      border-radius: var(--ui-radius-small) !important;
+      box-shadow: none !important;
+      width: max-content !important; min-width: 0 !important;
+    }
+    body.graph-skin-off #diagramRender svg .node rect,
+    body.graph-skin-off #diagramRender svg .node polygon,
+    body.graph-skin-off #diagramRender svg .node path,
+    body.graph-skin-off #diagramRender svg .node circle,
+    body.graph-skin-off #diagramRender svg .node ellipse,
+    body.flow-workspace.graph-skin-off:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg :is(
+      .node rect, .node polygon, .node path, .node circle, .node ellipse
+    ) {
+      fill: var(--ui-panel-raised) !important; stroke: var(--ui-line-strong) !important;
+      stroke-width: 1.5px !important; filter: none !important;
+    }
+    body.theme-light #diagramRender svg .node rect,
+    body.theme-light #diagramRender svg .node polygon { fill: #ffffff !important; }
+    #diagramRender svg .nodeLabel, body.visual-atlas #diagramRender svg .nodeLabel {
+      color: var(--ui-ink) !important; fill: var(--ui-ink) !important; font-family: inherit !important; font-size: 13px !important; font-weight: 650 !important;
+    }
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .nodeLabel,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .nodeLabel *,
+    body.flow-workspace:is(.visual-aurora, .visual-studio, .visual-atlas) #diagramRender svg .edgeLabel .label,
+    #diagramRender svg .node .label,
+    #diagramRender svg .node .label * {
+      color: var(--ui-ink) !important; fill: var(--ui-ink) !important;
+      font-family: inherit !important; font-size: 13px !important; font-weight: 650 !important;
+    }
+    #diagramRender svg foreignObject,
+    #diagramRender svg foreignObject > *,
+    #diagramRender svg .nodeLabel,
+    #diagramRender svg .node .label {
+      overflow: visible !important; max-width: none !important;
+    }
+    #diagramRender svg .node foreignObject > div,
+    #diagramRender svg .node foreignObject > div > span,
+    #diagramRender svg .edgeLabel foreignObject > div,
+    #diagramRender svg .edgeLabel foreignObject > div > span {
+      width: max-content !important; max-width: none !important; white-space: nowrap !important;
+    }
+    #diagramRender svg .edgePath .path, #diagramRender svg .flowchart-link,
+    body.flow-workspace #diagramRender svg .flowchart-link {
+      stroke: var(--ui-line-strong) !important; stroke-width: 1.5px !important;
+    }
+    #diagramRender svg .edgeLabel, body.visual-atlas #diagramRender svg .edgeLabel {
+      border: 1px solid var(--ui-line) !important; border-radius: var(--ui-radius-small) !important;
+      background: var(--ui-panel) !important; color: var(--ui-ink) !important;
+    }
+    #diagramRender svg .edgeLabel,
+    #diagramRender svg .edgeLabel .label,
+    #diagramRender svg .edgeLabel .label *,
+    #diagramRender svg .edgeLabel foreignObject > div,
+    #diagramRender svg .edgeLabel foreignObject > div * {
+      color: var(--ui-muted) !important; fill: var(--ui-muted) !important;
+      opacity: 1 !important;
+    }
+    #diagramRender svg .edgeLabel foreignObject > div > span {
+      display: inline-block !important; padding: 1px 5px !important;
+      width: max-content !important; max-width: none !important; white-space: nowrap !important;
+    }
+    #previewWrap:not(.dark-bg) #diagramRender svg .edgeLabel,
+    #previewWrap:not(.dark-bg) #diagramRender svg .edgeLabel .label,
+    #previewWrap:not(.dark-bg) #diagramRender svg .edgeLabel foreignObject > div {
+      background: #ffffff !important; border-color: #cfd9e8 !important;
+      color: #5f7292 !important; fill: #5f7292 !important;
+      font-size: 10px !important; font-weight: 600 !important; line-height: 1.35 !important;
+    }
+    #previewWrap:not(.dark-bg) #diagramRender svg .edgeLabel * {
+      color: #5f7292 !important; fill: #5f7292 !important;
+      font-size: 10px !important; font-weight: 600 !important; line-height: 1.35 !important;
+    }
+    #previewWrap.dark-bg #diagramRender svg .edgeLabel,
+    #previewWrap.dark-bg #diagramRender svg .edgeLabel .label,
+    #previewWrap.dark-bg #diagramRender svg .edgeLabel foreignObject > div {
+      background: #121c2d !important; border-color: #2a3a55 !important;
+      color: #eef4ff !important; fill: #eef4ff !important;
+      font-size: 10px !important; font-weight: 600 !important; line-height: 1.35 !important;
+    }
+    #previewWrap.dark-bg #diagramRender svg .edgeLabel * {
+      color: #eef4ff !important; fill: #eef4ff !important;
+      font-size: 10px !important; font-weight: 600 !important; line-height: 1.35 !important;
+    }
+    #diagramRender svg .flowchart-link.is-focus-path, #diagramRender svg .flowchart-link.is-hover-path {
+      stroke: var(--ui-accent) !important; stroke-width: 2px !important;
+    }
+    button:focus-visible, select:focus-visible, input:focus-visible,
+    textarea:focus-visible, summary:focus-visible, .sidebar-item.keyboard-focus {
+      outline: 2px solid var(--ui-accent) !important; outline-offset: 2px;
+    }
+    #codeEditor, body.visual-atlas #codeEditor {
+      background: var(--ui-panel) !important; background-image: none !important;
+      color: var(--ui-ink) !important; caret-color: var(--ui-accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .toast::before { content: none; }
+    .toast { bottom: 64px !important; }
+    @media (max-width: 900px) {
+      .context-banner { display: none !important; }
+      .flow-rail { grid-template-columns: 1fr auto; }
+      .flow-rail-kicker { display: none; }
+      .canvas-object-card { width: min(220px, calc(100% - 24px)) !important; }
+      .canvas-dock { width: calc(100% - 16px) !important; justify-content: center; flex-wrap: wrap; }
+      .canvas-dock-group[data-group="VIEW"] { order: 1; }
+      .canvas-dock-group[data-group="SHARED"] { order: 2; }
+    }
   </style>
 </head>
 <body>
@@ -2430,52 +2924,52 @@
     <span class="brand-mark" aria-hidden="true">AI</span>
     <span><span class="brand">AI Draw MCP</span><span class="brand-sub">MCP-native AI context tool</span></span>
   </div>
-  <div class="context-banner" aria-label="当前图形上下文">
-    <strong id="headerContextTitle">等待图形</strong>
-    <span id="headerContextMeta">LOCAL · READ-ONLY UNTIL APPROVAL</span>
-  </div>
-  <div class="toolbar">
-    <button class="btn-icon" id="btnToggleSidebar" title="Toggle sidebar">☰</button>
-    <div class="visual-switch" role="group" aria-label="视觉系统">
-      <button type="button" class="active" data-visual="aurora" title="Aurora：沉浸式渐变光效">✦ Aurora</button>
-      <button type="button" data-visual="studio" title="Studio：清爽高可读浅色视觉">▤ Studio</button>
-      <button type="button" data-visual="atlas" title="Atlas：工程蓝图式高对比网格视觉">⌗ Atlas</button>
+    <div class="context-banner" aria-label="当前图形上下文" aria-hidden="true">
+      <strong id="headerContextTitle">等待图形</strong>
+      <span id="headerContextMeta">LOCAL · READ-ONLY UNTIL APPROVAL</span>
     </div>
-    <div class="view-switch" role="group" aria-label="工作区视图">
-      <button type="button" class="active" data-view-target="split" title="分屏视图（1）">◫ 分屏</button>
-      <button type="button" data-view-target="source" title="源码视图（2）">⌘ 源码</button>
-      <button type="button" data-view-target="canvas" title="画布视图（3）">◇ 画布</button>
-    </div>
-    <button id="btnRender" class="primary">▶ Render</button>
-    <div class="toolbar-overflow">
-      <button class="btn-icon" id="btnToolbarMore" type="button" title="更多图形操作" aria-label="更多图形操作" aria-expanded="false" aria-controls="toolbarOverflowMenu">⋯</button>
-      <div class="overflow-menu" id="toolbarOverflowMenu" hidden role="menu" aria-label="图形操作">
-        <div class="overflow-menu-title">图形操作 · 本机</div>
-        <label class="overflow-menu-row" for="selTheme"><span>Mermaid 主题</span><select id="selTheme">
-          <option value="default">Default</option>
-          <option value="dark">Dark</option>
-          <option value="forest">Forest</option>
-          <option value="neutral">Neutral</option>
-        </select></label>
-        <button type="button" id="btnExportSvg" class="move-action">下载 SVG <span>↓</span></button>
-        <button type="button" id="btnExportPng" class="move-action">下载 PNG <span>↓</span></button>
-        <button type="button" id="btnCopyId" class="move-action">复制图 ID <span>⧉</span></button>
-        <button type="button" id="btnOpenCommandsHeader" class="move-action">命令面板 <span>?</span></button>
-        <button type="button" id="btnDeleteDiagram" class="move-action danger">删除当前图 <span>⌫</span></button>
+    <div class="toolbar">
+      <button class="btn-icon" id="btnToggleSidebar" title="Toggle sidebar">☰</button>
+      <div class="visual-switch" role="group" aria-label="视觉系统" aria-hidden="true">
+        <button type="button" class="active" data-visual="aurora" title="Aurora：沉浸式渐变光效">✦ Aurora</button>
+        <button type="button" data-visual="studio" title="Studio：清爽高可读浅色视觉">▤ Studio</button>
+        <button type="button" data-visual="atlas" title="Atlas：工程蓝图式高对比网格视觉">⌗ Atlas</button>
       </div>
-    </div>
-    <div class="appearance-wrap">
-      <button class="btn-icon" id="btnAppearance" type="button" title="外观、布局与快捷键" aria-label="外观、布局与快捷键" aria-expanded="false" aria-controls="appearancePopover">⚙</button>
+      <div class="view-switch" role="group" aria-label="工作区视图" aria-hidden="true">
+        <button type="button" class="active" data-view-target="split" title="分屏视图（1）">◫ 分屏</button>
+        <button type="button" data-view-target="source" title="源码视图（2）">⌘ 源码</button>
+        <button type="button" data-view-target="canvas" title="画布视图（3）">◇ 画布</button>
+      </div>
+      <button id="btnRender" class="primary">▶ Render</button>
+      <div class="toolbar-overflow">
+        <button class="btn-icon" id="btnToolbarMore" type="button" title="更多图形操作" aria-label="更多图形操作" aria-expanded="false" aria-controls="toolbarOverflowMenu">⋯</button>
+        <div class="overflow-menu" id="toolbarOverflowMenu" hidden role="menu" aria-label="图形操作">
+          <div class="overflow-menu-title">图形操作 · 本机</div>
+          <label class="overflow-menu-row" for="selTheme"><span>Mermaid 主题</span><select id="selTheme">
+            <option value="default">Default</option>
+            <option value="dark">Dark</option>
+            <option value="forest">Forest</option>
+            <option value="neutral">Neutral</option>
+          </select></label>
+          <button type="button" id="btnExportSvg" class="move-action">下载 SVG <span>↓</span></button>
+          <button type="button" id="btnExportPng" class="move-action">下载 PNG <span>↓</span></button>
+          <button type="button" id="btnCopyId" class="move-action">复制图 ID <span>⧉</span></button>
+          <button type="button" id="btnOpenCommandsHeader" class="move-action">命令面板 <span>?</span></button>
+          <button type="button" id="btnDeleteDiagram" class="move-action danger">删除当前图 <span>⌫</span></button>
+        </div>
+      </div>
+      <div class="appearance-wrap">
+        <button class="btn-icon" id="btnAppearance" type="button" title="外观、布局与快捷键" aria-label="外观、布局与快捷键" aria-expanded="false" aria-controls="appearancePopover">⚙</button>
       <div class="appearance-popover" id="appearancePopover" hidden role="dialog" aria-label="外观设置">
         <div class="appearance-title">工作台外观 <span>本机偏好</span></div>
-        <div class="appearance-group">
-          <span class="appearance-label">视觉系统</span>
-          <div class="appearance-options" role="group" aria-label="视觉系统">
-            <button type="button" data-visual="aurora">✦ Aurora</button>
-            <button type="button" data-visual="studio">▤ Studio</button>
-            <button type="button" data-visual="atlas">⌗ Atlas</button>
+          <div class="appearance-group">
+            <span class="appearance-label">视觉系统</span>
+            <div class="appearance-options" role="group" aria-label="视觉系统">
+              <button type="button" data-visual="aurora">✦ Aurora</button>
+              <button type="button" data-visual="studio">▤ Studio</button>
+              <button type="button" data-visual="atlas">⌗ Atlas</button>
+            </div>
           </div>
-        </div>
         <div class="appearance-group">
           <span class="appearance-label">工作台布局</span>
           <div class="appearance-options" role="group" aria-label="工作台布局">
@@ -2544,7 +3038,7 @@
           <span>Classic / Flow 布局</span><kbd>B</kbd>
           <span>增强 / 原色图形皮肤</span><kbd>G</kbd>
           <span>显示 / 隐藏节点悬停速览</span><kbd>P</kbd>
-          <span>循环切换 Aurora / Studio / Atlas</span><kbd>V</kbd>
+          <span>统一视觉系统</span><kbd>V</kbd>
           <span>项目图 / 上下文 / 提案</span><kbd>4 / 5 / 6</kbd>
           <span>命令面板</span><kbd>? · Esc</kbd>
           <span>Flow 源码抽屉</span><kbd>E</kbd>
@@ -2562,7 +3056,7 @@
   <div class="status">
     <button id="btnCollaborate" title="打开上下文审阅台（C）">⌁ 审阅台</button>
     <span class="dot" id="wsStatus"></span>
-    <span id="wsLabel">Connecting...</span>
+    <span id="wsLabel" aria-live="polite">连接中…</span>
   </div>
 </div>
 
@@ -2783,7 +3277,7 @@
             <button type="button" class="collab-pulse-open" id="btnCollabPulseOpen">⌁ 打开上下文审阅台 · C</button>
             <div class="collab-pulse-detail-foot">这里只汇总既有只读状态；批准前不会签发凭据或写项目文件。</div>
           </section>
-          <aside class="canvas-object-card" id="canvasObjectCard" aria-label="当前画布对象">
+          <aside class="canvas-object-card" id="canvasObjectCard" data-visible="false" aria-label="当前画布对象">
             <div class="canvas-object-head"><span class="canvas-object-kicker">Focus · read only</span><span class="canvas-object-index" id="canvasObjectIndex">0 / 0</span></div>
             <strong id="canvasObjectLabel">等待项目结构图</strong>
             <code class="canvas-object-path" id="canvasObjectPath">选中节点后作为 AI 的只读上下文</code>
@@ -5999,6 +6493,7 @@ function renderCanvasObject() {
   const node = nodes[current];
   const relatedCount = relatedCanvasNodeIds(node?.id).length;
   const state = focusConversationState(node?.id);
+  $('#canvasObjectCard').dataset.visible = String(Boolean(node));
   $('#canvasObjectIndex').textContent = nodes.length ? `${current + 1} / ${nodes.length}` : '0 / 0';
   $('#canvasObjectLabel').textContent = node?.label || '等待项目结构图';
   $('#canvasObjectPath').textContent = node?.path || '选中节点后作为 AI 的只读上下文';
