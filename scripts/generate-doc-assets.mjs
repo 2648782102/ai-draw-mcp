@@ -22,75 +22,55 @@ const defs = `<defs>
 </defs>`;
 
 const loopDiagram = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
-<title id="title">AI Draw MCP 结构化上下文工具链</title>
-<desc id="desc">AI 通过 MCP 工具扫描项目并生成结构化上下文，人做轻量纠错或审阅提案，AI 读取上下文并凭人工凭据安全写入，再次扫描保持图与代码一致。</desc>
+<title id="title">AI Draw MCP 人类与 AI 共享项目画布</title>
+<desc id="desc">AI 通过 MCP 扫描项目并展示项目图，人类在同一画布编辑结构、选择范围和添加对象批注，AI 读取并回应。代码变更仍须完整 diff、人工批准和一次性确认号。</desc>
 ${defs}
 <rect width="1200" height="520" fill="url(#bg)"/>
-${label(600, 54, "AI Draw MCP · AI 可调用的结构化上下文工具链", 26, "#ffffff", "700")}
-${label(600, 84, "本地优先 · MCP stdio · 一次性人工批准 · 失败自动回滚", 14, "#93a4c3", "400")}
+${label(600, 54, "AI Draw MCP · 人类与 AI 共享的项目画布", 26, "#ffffff", "700")}
+${label(600, 84, "本机优先 · 共享图形上下文 · MCP 接入 · 人工批准", 14, "#93a4c3", "400")}
 ${rect(60, 135, 200, 92, "#162842")}${label(160, 170, "AI", 20, "#7aa2f7")}${label(160, 198, "scan_project", 14, "#d8e2f5")}
-${rect(310, 135, 200, 92, "#162842")}${label(410, 170, "项目结构图", 18, "#ffffff")}${label(410, 198, "VisualGraph", 13, "#93a4c3", "400")}
-${rect(560, 135, 200, 92, "#213252")}${label(660, 170, "人 · 薄辅助层", 18, "#9ece6a")}${label(660, 198, "纠错 / 上下文信号", 13, "#d8e2f5")}
-${rect(810, 135, 200, 92, "#162842")}${label(910, 170, "AI", 20, "#7aa2f7")}${label(910, 198, "get_visual_context", 13, "#d8e2f5")}
+${rect(310, 135, 200, 92, "#162842")}${label(410, 170, "共享项目图", 18, "#ffffff")}${label(410, 198, "结构 · 证据 · 修订", 13, "#93a4c3", "400")}
+${rect(560, 135, 200, 92, "#213252")}${label(660, 170, "人类", 18, "#9ece6a")}${label(660, 198, "编辑 · 选择 · 对象批注", 13, "#d8e2f5")}
+${rect(810, 135, 200, 92, "#162842")}${label(910, 170, "AI", 20, "#7aa2f7")}${label(910, 198, "读取 · 解释 · 更新", 13, "#d8e2f5")}
 ${rect(310, 330, 200, 92, "#2b2350")}${label(410, 365, "变更提案", 18, "#bb9af7")}${label(410, 393, "逐行 diff + 影响摘要", 12, "#d8e2f5")}
 ${rect(560, 330, 200, 92, "#203b32")}${label(660, 365, "人类批准", 18, "#9ece6a")}${label(660, 393, "一次性确认号", 13, "#d8e2f5")}
 ${rect(810, 330, 200, 92, "#162842")}${label(910, 365, "AI", 20, "#7aa2f7")}${label(910, 393, "apply_visual_proposal", 12, "#d8e2f5")}
 ${arrow(260, 181, 310, 181)}${arrow(510, 181, 560, 181)}${arrow(760, 181, 810, 181)}
 ${arrow(910, 227, 910, 285)}${arrow(810, 330, 760, 330)}${arrow(560, 330, 510, 330)}${arrow(310, 330, 260, 330)}
 ${arrow(160, 330, 160, 227)}
-${label(1010, 180, "读取机器可读上下文投影", 14, "#93a4c3", "400", "start")}
-${label(1010, 370, "SHA-256 内容哈希", 14, "#93a4c3", "400", "start")}
-${label(1010, 395, "路径安全 / 原子写入 / 回滚", 13, "#93a4c3", "400", "start")}
-${label(600, 478, "解决批注线程 ≠ 批准变更 · 时间线只是只读派生视图 · 项目写入始终需要人类确认号", 13, "#f0a868", "500")}
+${label(600, 478, "画布沟通 ≠ 项目写入授权 · 完整 diff 与人工批准后才可应用提案", 13, "#f0a868", "500")}
 </svg>`;
 
 const workbenchDiagram = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
-<title id="title">上下文审阅台概念预览</title>
-<desc id="desc">三栏工作台：项目图节点编辑、活动时间线与节点批注线程、变更提案与人工批准。</desc>
+<title id="title">AI 与人类共享项目画布的交互方向</title>
+<desc id="desc">目标工作区以项目图为中心。选择图形对象后，旁边显示来源证据、人类意图、AI 回应和关联提案；代码写入仍需人工批准。</desc>
 ${defs}
 <rect width="1200" height="620" fill="url(#bg)"/>
 <rect x="24" y="24" width="1152" height="572" rx="16" fill="#111a2c" stroke="#2b3a55" stroke-width="1.5"/>
 <rect x="24" y="24" width="1152" height="48" rx="16" fill="#18243a"/>
-${label(48, 54, "上下文审阅台", 17, "#ffffff", "700", "start")}
-${label(260, 54, "session · revision · workspace", 12, "#93a4c3", "400", "start")}
-${label(1148, 54, "💬 协作", 13, "#d8e2f5", "600", "end")}
-<rect x="40" y="88" width="360" height="492" rx="10" fill="#0e1727" stroke="#2b3a55"/>
-<rect x="40" y="88" width="360" height="34" rx="10" fill="#17243a"/>
-${label(58, 110, "项目图 · 节点编辑", 13, "#ffffff", "600", "start")}
-${rect(58, 138, 150, 48, "#1d3152")}${label(133, 168, "src / tools", 13, "#d8e2f5")}
-${rect(238, 138, 145, 48, "#1d3152")}${label(310, 168, "src / domain", 13, "#d8e2f5")}
-${rect(148, 220, 150, 48, "#203b32")}${label(223, 250, "shared / 公共层", 12, "#d8e2f5")}
-<path d="M 133 186 L 223 220" stroke="#7aa2f7" stroke-width="2" fill="none"/>
-<path d="M 310 186 L 223 220" stroke="#7aa2f7" stroke-width="2" fill="none"/>
-${label(58, 310, "+ 节点   + 连线   保存图形", 12, "#93a4c3", "400", "start")}
-${label(58, 345, "选中节点后批注会绑定到它", 12, "#93a4c3", "400", "start")}
-${label(58, 380, "图形修订通过 WebSocket 同步", 12, "#93a4c3", "400", "start")}
-<rect x="416" y="88" width="360" height="492" rx="10" fill="#0e1727" stroke="#2b3a55"/>
-<rect x="416" y="88" width="360" height="34" rx="10" fill="#17243a"/>
-${label(434, 110, "时间线 · 上下文信号 · 批注", 13, "#ffffff", "600", "start")}
-${label(434, 144, "活动时间线 · 12 个派生事件 · 下一棒 AI", 11, "#f0a868", "500", "start")}
-${rect(434, 158, 324, 42, "#17243a")}${label(452, 184, "批注 → 回复 → 提案 → 批准 → 应用", 12, "#d8e2f5", "500", "start")}
-${rect(434, 212, 324, 42, "#17243a")}${label(452, 238, "消息 / 线程状态 / 提案生命周期", 11, "#93a4c3", "400", "start")}
-${rect(434, 278, 324, 96, "#213252")}${label(452, 304, "@ shared · 待讨论 · 等待 AI 回复", 11, "#9ece6a", "500", "start")}
-${label(452, 330, "把 utils 抽成公共层", 13, "#ffffff", "600", "start")}
-${label(452, 354, "AI：我会在提案里更新 import", 11, "#93a4c3", "400", "start")}
-${label(452, 392, "回复这条批注，AI 会读取…", 11, "#93a4c3", "400", "start")}
-${label(434, 442, "解决 / 重开只是对话状态", 11, "#f0a868", "500", "start")}
-${label(434, 466, "不等于批准变更", 11, "#f0a868", "500", "start")}
-<rect x="792" y="88" width="368" height="492" rx="10" fill="#0e1727" stroke="#2b3a55"/>
-<rect x="792" y="88" width="368" height="34" rx="10" fill="#17243a"/>
-${label(810, 110, "变更提案 · 人工确认", 13, "#ffffff", "600", "start")}
-${rect(810, 138, 332, 74, "#1d2f4c")}${label(828, 164, "提案：目录迁移与 import 更新", 13, "#ffffff", "600", "start")}
-${label(828, 188, "rev 4 · hash 8f3c… · 2 files", 11, "#93a4c3", "400", "start")}
-${rect(810, 226, 332, 54, "#17243a")}${label(828, 258, "2 files · +18 / −4 lines · safe paths only", 11, "#9ece6a", "500", "start")}
-${rect(810, 294, 332, 126, "#111c30")}${label(828, 320, "查看逐行差异", 12, "#d8e2f5", "600", "start")}
-${label(828, 348, '- import { x } from "../utils"', 11, "#ff9b95", "400", "start")}
-${label(828, 372, '+ import { x } from "../shared"', 11, "#9be29f", "400", "start")}
-${label(828, 400, "批准只签发一次性凭据，不写文件", 11, "#f0a868", "500", "start")}
-${rect(828, 442, 140, 38, "#203b32")}${label(898, 466, "批准", 13, "#9ece6a")}
-${rect(986, 442, 140, 38, "#3a2028")}${label(1056, 466, "拒绝", 13, "#ff9b95")}
-${label(810, 520, "确认号 → apply_visual_proposal", 11, "#93a4c3", "400", "start")}
-${label(810, 546, "失败自动回滚", 11, "#93a4c3", "400", "start")}
+${label(48, 54, "共享项目画布", 17, "#ffffff", "700", "start")}
+${label(250, 54, "AI 项目理解 ↔ 人类意图 · 同会话可追溯", 12, "#93a4c3", "400", "start")}
+${label(1148, 54, "本机项目 · rev 8", 12, "#d8e2f5", "600", "end")}
+<rect x="40" y="88" width="760" height="492" rx="10" fill="#0e1727" stroke="#2b3a55"/>
+${label(60, 116, "项目结构", 13, "#ffffff", "600", "start")}
+${rect(100, 160, 190, 58, "#1d3152")}${label(195, 194, "src / tools", 14, "#d8e2f5")}
+${rect(430, 160, 190, 58, "#213252", "#7aa2f7")}${label(525, 194, "src / domain", 14, "#ffffff")}
+${rect(260, 320, 190, 58, "#1d3152")}${label(355, 354, "src / infra", 14, "#d8e2f5")}
+<path d="M 290 190 C 340 190 365 190 430 190" stroke="#7aa2f7" stroke-width="2" fill="none"/>
+<path d="M 525 218 C 525 275 430 285 390 320" stroke="#7aa2f7" stroke-width="2" fill="none"/>
+${rect(476, 238, 285, 58, "#203b32")}${label(494, 261, "人 · 这个模块负责会话状态校验", 11, "#d8e2f5", "500", "start")}${label(494, 282, "绑定到 src / domain · rev 8", 10, "#9ece6a", "400", "start")}
+${label(60, 540, "点击对象查看证据并补充意图；图形变化保留为新修订", 11, "#93a4c3", "400", "start")}
+<rect x="816" y="88" width="344" height="492" rx="10" fill="#0e1727" stroke="#2b3a55"/>
+<rect x="816" y="88" width="344" height="38" rx="10" fill="#17243a"/>
+${label(836, 112, "src / domain", 14, "#ffffff", "600", "start")}
+${label(836, 151, "源码证据", 11, "#93a4c3", "600", "start")}
+${rect(836, 162, 304, 42, "#17243a")}${label(850, 188, "src/domain/session-store.ts · line 42", 10, "#d8e2f5", "400", "start")}
+${label(836, 228, "围绕此对象", 11, "#93a4c3", "600", "start")}
+${rect(836, 239, 304, 78, "#203b32")}${label(850, 262, "人 · 这个模块负责会话状态校验", 11, "#9ece6a", "500", "start")}${label(850, 286, "请保留批准前的提案校验。", 12, "#ffffff", "500", "start")}${label(850, 306, "选中 src / domain · rev 8", 10, "#93a4c3", "400", "start")}
+${rect(836, 326, 304, 78, "#213252")}${label(850, 349, "AI · 已读取并回应", 11, "#7aa2f7", "500", "start")}${label(850, 373, "我会保留此边界，并检查关联调用。", 11, "#ffffff", "500", "start")}${label(850, 393, "关联 2 个节点 · 1 条源码证据", 10, "#93a4c3", "400", "start")}
+${rect(836, 412, 304, 32, "#243247")}${label(850, 433, "继续回复此线程 · 人类可继续沟通", 11, "#9ece6a", "500", "start")}
+${rect(836, 454, 304, 76, "#1d2f4c")}${label(850, 477, "相关提案 · 2 个文件", 11, "#ffffff", "600", "start")}${label(850, 500, "查看完整 diff 与影响摘要", 11, "#d8e2f5", "400", "start")}${label(850, 522, "人类批准后才可应用", 10, "#f0a868", "500", "start")}
+${label(836, 556, "交流与批注不会授权项目写入", 10, "#93a4c3", "400", "start")}
 </svg>`;
 
 const assets = [

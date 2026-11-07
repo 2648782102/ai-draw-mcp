@@ -15,7 +15,7 @@ const repo = "2648782102/ai-draw-mcp";
 const api = "https://api.github.com";
 
 const expected = {
-  description: "MCP-native AI context tool: visualize a codebase as structured, machine-readable context, then collect lightweight human corrections and approval-gated changes.",
+  description: "Local-first visual communication board where people and AI share and refine a software project model; code changes remain human-approved.",
   homepage: "https://github.com/2648782102/ai-draw-mcp#readme",
   topics: [
     "mcp",
@@ -104,7 +104,7 @@ async function releaseNotes(tag) {
   const body = changelog.slice(start, next < 0 ? undefined : next).trim();
   return {
     tag_name: tag,
-    name: `${tag} — MCP-native AI context tool`,
+    name: `${tag} — AI-human visual communication board`,
     body: `${body}\n\nFull documentation: https://github.com/${repo}#readme`,
     draft: false,
     prerelease: version.includes("-"),

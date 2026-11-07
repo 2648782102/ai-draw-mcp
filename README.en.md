@@ -1,8 +1,10 @@
 # AI Draw MCP (English Quickstart)
 
-AI Draw MCP is an MCP-native context tool for AI coding agents. An AI calls stdio tools directly to scan a codebase, render Mermaid/SVG, and exchange versioned, machine-readable visual context. The local browser panel is intentionally thin: a person can inspect the AI's understanding, make lightweight visual corrections, attach bounded context signals, review a full line diff, and explicitly authorize a project write.
+AI Draw MCP is a local-first visual communication board for people and AI coding agents working on a software project. The AI connects through MCP stdio and makes its project understanding visible on a shared, editable graph. A person corrects structure, selects scope, and attaches intent to visual objects; the AI reads those changes and responds in the same board context.
 
-It is not a chat product, hosted whiteboard, or human/AI workflow application. Messages, annotations, and activity timelines remain bounded context signals that an AI can read; they are not a conversation state machine or a "next actor" queue. Only a human-reviewed diff, explicit approval, and a one-time receipt can let `apply_visual_proposal` write project files.
+The graph is the shared context, while MCP is the AI access channel and the repository remains the source of truth for code. Project writes still require a proposal, full diff review, explicit human approval, and a one-time receipt. See the [product direction and delivery plan](docs/PRODUCT_DIRECTION.md) and [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md).
+
+The current `0.3.4` implementation supports project scans, graph editing, scoped board notes, persistent node annotations, AI replies in annotation threads, human replies in the same anchored thread, and approval-gated proposals. Copyable AI context remains a separate read-only utility rather than the primary communication path.
 
 ![Collaboration loop](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-loop.svg)
 
@@ -12,9 +14,10 @@ The detailed Chinese README is [`README.md`](README.md). The full documentation 
 
 ```text
 AI: scan_project → editable VisualGraph
-Human: edit node path/group and edge semantics / reply in annotation threads / send a message
+Human: edit graph structure / select scope / attach an object note
 AI: get_agent_workflow → eight ordered steps, readiness blockers, and explicit write boundaries
 AI: get_visual_context → intentByNode + annotationThreads.nextActor + staleThreads + graphDiffs + activityTimeline + diagnostics
+AI: reply_to_visual_context → answer in the existing anchored annotation thread
 AI: get_decision_trail → optional bounded chronology of human intent, graph revisions, proposal stages, and evidence gaps
 AI: list_change_templates → optional read-only draft for common intents
 AI: preflight_visual_proposal → safe paths + existing/new files + duplicate/no-op content
@@ -41,7 +44,7 @@ npm run doctor
 node examples/collab-demo.mjs
 ```
 
-Point your MCP stdio host at `dist/index.js`, set `OUTPUT_DIR` to an absolute path, and set `AI_DRAW_WORKSPACE_ROOT` to the repository the AI should scan. Then open `http://127.0.0.1:3399/` and inspect the local context panel.
+Point your MCP stdio host at `dist/index.js`, set `OUTPUT_DIR` to an absolute path, and set `AI_DRAW_WORKSPACE_ROOT` to the repository the AI should scan. Then open `http://127.0.0.1:3399/` to view the shared project board.
 
 ### npm / npx (older published `0.2.0`)
 
@@ -64,23 +67,13 @@ npm run test:examples:workflow
 
 If Chrome is outside Puppeteer's cache, set `PUPPETEER_EXECUTABLE_PATH`. CI and hardened Linux environments may also need `MERMAID_CHROME_NO_SANDBOX=1`.
 
-## Panel appearance
+## Panel direction and current baseline
 
-The local preview panel is a thin assistive surface over AI-generated structured context. It now uses one restrained visual system: one semantic palette, one accent, consistent radii and spacing, flat surfaces, and a visible focus outline shared by the dark and light themes. The default view keeps only the brand, one compact context status line, the graph canvas, first-run actions, a small zoom dock, and the review-desk entry. The diagram library, duplicate status rails, decorative overlays, and legacy skin switchers are visually collected; legacy class names remain compatibility hooks rather than three parallel product appearances. See [ADR 0021](docs/ADR/0021-restrained-visual-system.md).
+The current local panel opens on a full shared canvas. Its contextual inspector shows the focused object's ordered human/AI thread and accepts a note or reply in place; the project workbench remains a secondary surface for graph editing, derived projections, and proposal review. The target interaction diagrams above are concepts, not screenshots of shipped UI. See [product direction](docs/PRODUCT_DIRECTION.md), [ADR 0021](docs/ADR/0021-restrained-visual-system.md), and [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md).
 
-Existing messages, annotations, and activity records remain bounded context signals; the panel has no chat composer and no next-actor workflow. Lower-frequency local preferences remain reachable through the command palette and keyboard shortcuts: `?` opens commands, `C` opens the review desk, `E` toggles the source drawer, `G` toggles the graph skin, `Z` toggles the immersive workspace, and `H` opens shortcut help. These preferences affect only local CSS/DOM presentation and never change MCP tools, the version 1 contract, `focus` / `viewport`, full line-diff review, one-time approval receipts, or the project-write gate.
+![Current shared board](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/shared-board-panel.png)
 
-![Flow canvas-first workspace](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/flow-workspace-panel.png)
-
-![First-run collaboration loop](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/welcome-panel.png)
-
-![Restrained workbench](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/restrained-workspace-panel.png)
-
-The first-run card explains only that an AI generates structured context through MCP tools, a person can make lightweight corrections or review a diff, and a project write still requires explicit human approval and a one-time receipt. Reproducible screenshots are generated by `npm run ui:shots` in a temporary example session; they do not imply that repository files were changed automatically.
-
-![Immersive workspace](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/zen-workspace-panel.png)
-
-![Narrow-screen object glance](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/compact-glance-panel.png)
+This is the reproducible canonical shared-board capture. Other layout captures remain reproducible development artifacts, not parallel product definitions.
 
 ## Safety model
 

@@ -1,8 +1,8 @@
-# ADR 0021: One restrained visual system for the thin panel
+# ADR 0021: One restrained visual system for the panel
 
 ## Status
 
-Accepted
+Superseded by [ADR 0022](0022-shared-visual-board-is-the-product.md) for product hierarchy. This ADR records the shipped 0.3.x presentation baseline. Its semantic tokens and visual consistency remain useful; the thin-panel information hierarchy is no longer the product target.
 
 ## Context
 

@@ -6,17 +6,17 @@
 
 ## 项目是什么
 
-`ai-draw-mcp` 是本机优先、**给 IDE 里的 AI 直接调用的 MCP 上下文工具**。MCP stdio 与 26 个工具是产品主入口；`VisualGraph`、只读投影、源码证据、焦点/选择、批注/消息与逐行 diff 都是 AI 可精确消费的上下文信号。本地浏览器面板是薄辅助层，只用于让人查看 AI 的理解、轻量纠错、审阅 diff 与人工批准；不得把它做成聊天、协作或「下一棒」强主体应用，详见 [ADR 0020](docs/ADR/0020-mcp-tool-is-the-primary-product.md)。
+`ai-draw-mcp` 是一个本机优先的**AI 与人类项目沟通画板**。共享项目图是双方交流项目理解与意图的主要工作区；MCP stdio 是 AI 访问图形、证据、焦点/选择、批注和提案的接入方式。人类在画布中改图、选范围、附加上下文；AI 读取这些变化并在同一会话回应。产品定义与落地顺序见 [docs/PRODUCT_DIRECTION.md](docs/PRODUCT_DIRECTION.md) 与 [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md)。
 
 AI 主循环：
 
 ```text
-AI 调用 MCP 工具 → 生成/更新结构化上下文 → 人可选轻量纠错或审阅 → AI 读取 version 1 投影 → AI 预检并创建提案 → 人批准并给确认号 → AI 凭凭据安全写入 → 再扫描
+AI 经 MCP 扫描并更新共享画布 → 人在图上纠错、选择范围或添加上下文 → AI 读取同一会话并回应 → 需要改代码时 AI 建提案 → 人审完整 diff 并批准 → AI 凭一次性确认号安全写入 → 再扫描并更新画布
 ```
 
-消息与批注保留为兼容的只读上下文信号，不新增对话状态机，也不要求人走完某套协作流程。
+沟通应锚定在图节点、关系、选区或画布范围，并保留作者与修订上下文。面板主输入把人的留言写入现有 annotation 契约：有焦点时绑定节点，没有焦点时留在画布范围；每条线程都可就地续答。AI 用 `get_visual_context` / `reply_to_visual_context` 读取并在同一线程回应。剪贴板只读投影是辅助工具，不是沟通主路径。优先复用 version 1 会话、消息、批注与图形修订契约，避免为同一意图增加重复状态或强制工作流。
 
-安全底线：**AI 不得绕过提案、人工批准与一次性确认号直接修改项目文件**。所有项目写入都经过 `src/domain/path-safety.ts` 和 `SessionStore.applyProposal()`。
+安全底线：**画布沟通和 AI 回复都不构成项目写入授权**。AI 不得绕过提案、人工批准与一次性确认号直接修改项目文件。所有项目写入都经过 `src/domain/path-safety.ts` 和 `SessionStore.applyProposal()`。
 
 ---
 
@@ -86,7 +86,9 @@ scripts/generate-doc-assets.mjs 版本化 README 概念图；`npm run docs:asset
 docs/ARCHITECTURE.md          架构、协议、安全模型
 docs/README.md                文档地图
 docs/COMPETITIVE_RESEARCH.md  同类产品调研与定位
-docs/zen-workspace-panel.png   可复现的沉浸工作区截图；由 `npm run ui:shots` 生成
+docs/collaboration-loop.svg    README 概念图：共享画布闭环；由版本化脚本生成
+docs/collaboration-workbench.svg 目标画布交互概念图；不是当前界面截图
+docs/restrained-workspace-panel.png 当前 0.3.x 界面基线截图
 docs/DEPENDENCY_MAINTENANCE.md 依赖升级、CI 验证与重大版本决策记录
 docs/LAUNCH_KIT.md            GitHub/Release/社区宣发模板
 docs/GOVERNANCE.md             开源治理、维护清单与元数据漂移证据
@@ -161,9 +163,9 @@ ROADMAP.md                   产品路线图与非目标
 
 `POST /api/collab/focus` 只接受 `confirmedBy: "human"` 的本机面板选择，服务端写入 version 1 `SessionFocus`；节点删除后清除焦点，图修订会刷新仍存在节点的标签/路径/分组。`get_visual_context.focus`、诊断和 bundle 只读暴露它，bundle 导入会严格校验结构并丢弃失锚焦点。焦点不产生消息、不进入时间线、不签发凭据，也不解决线程或创建提案。
 
-面板「复制给 AI 的上下文」按钮只从已加载数据生成一段提示文本，不调用写端点、不发送消息、不修改会话；剪贴板失败时文本只进入本机纠错草稿框，等待人工复制。
+面板「复制给 AI 的上下文」按钮只从已加载数据生成一段提示文本，不调用写端点、不发送消息、不修改会话；剪贴板失败时文本只进入独立的只读复制框，等待人工复制。
 
-面板「复制共享简报」按钮只复制 `GET /api/collab/brief` 返回的 `BRIEF_JSON`，不调用写端点、不发送消息、不修改会话、不签发凭据；剪贴板失败时文本只进入本机纠错草稿框，等待人工复制。
+面板「复制共享简报」按钮只复制 `GET /api/collab/brief` 返回的 `BRIEF_JSON`，不调用写端点、不发送消息、不修改会话、不签发凭据；剪贴板失败时文本只进入独立的只读复制框，等待人工复制。
 
 节点批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`。节点标签或路径变化后线程标记为 `outdated`，节点删除后标记为 `detached`；`staleThreads` 与活动时间线 `annotation_anchor` 事件会提示 AI 不要把旧讨论当成当前意图。`outdated` 线程必须由人在面板点击「确认重锚」或调用 `/api/collab/annotations/:id/anchor`（`confirmedBy: "human"`）才能恢复；`detached` 线程保留原 `nodeId` 供审计，不得自动重锚。
 

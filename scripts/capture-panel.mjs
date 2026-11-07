@@ -98,6 +98,13 @@ async function seedProposalCard() {
       body: JSON.stringify({ nodeId: focusNode.id, body: "请解释这个对象与相邻模块的关系，先不要写文件。" }),
     });
     if (!annotationResponse.ok) throw new Error(`Unable to seed focused annotation: HTTP ${annotationResponse.status}`);
+    const thread = await annotationResponse.json();
+    const replyResponse = await fetch(`${base}/api/collab/annotations/${encodeURIComponent(thread.annotation.id)}/reply`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ author: "ai", body: "这个对象连接项目入口与基础设施；改动会先生成完整 diff，不会直接写文件。" }),
+    });
+    if (!replyResponse.ok) throw new Error(`Unable to seed AI reply: HTTP ${replyResponse.status}`);
   }
 }
 
@@ -119,9 +126,13 @@ try {
   await new Promise((resolve) => setTimeout(resolve, 350));
   await page.screenshot({ path: path.join(outputDir, "welcome-panel.png") });
   await page.goto(`${base}/diagram/${scanResult.id}`, { waitUntil: "networkidle2" });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "networkidle2" });
   await page.waitForSelector("#diagramRender svg");
   await page.waitForFunction(() => document.querySelector("#welcomeCard").hidden);
   await page.keyboard.press("f");
+  await page.keyboard.press("3");
+  await page.waitForFunction(() => document.querySelector("#workspace").dataset.view === "canvas");
   await page.keyboard.press("e");
   await page.waitForFunction(() => document.body.classList.contains("flow-source-open"));
   await new Promise((resolve) => setTimeout(resolve, 450));
@@ -187,6 +198,11 @@ try {
   await page.waitForFunction(() => Number(document.querySelector("#canvasRelationMap").dataset.edges) > 0, { timeout: 5000 });
   await new Promise((resolve) => setTimeout(resolve, 220));
   await page.screenshot({ path: path.join(outputDir, "canvas-workbench-panel.png") });
+  await page.mouse.move(20, 20);
+  await page.waitForFunction(() => document.querySelector("#canvasHoverCard").dataset.visible === "false");
+  await page.waitForFunction(() => document.querySelectorAll("#canvasBoardThread .canvas-board-entry.ai").length > 0, { timeout: 5000 });
+  await new Promise((resolve) => setTimeout(resolve, 260));
+  await page.screenshot({ path: path.join(outputDir, "shared-board-panel.png") });
   await page.keyboard.press("h");
   await page.waitForFunction(() => !document.querySelector("#shortcutBackdrop").hidden);
   await page.waitForFunction(() => Number(getComputedStyle(document.querySelector("#shortcutBackdrop")).opacity) >= 0.99);
@@ -259,7 +275,7 @@ try {
   await new Promise((resolve) => setTimeout(resolve, 350));
   await page.screenshot({ path: path.join(outputDir, "compact-glance-panel.png") });
   await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
-  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/flow-workspace-panel.png, docs/restrained-workspace-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png, docs/zen-workspace-panel.png and docs/compact-glance-panel.png");
+  console.log("✅ Captured docs/welcome-panel.png, docs/preview-panel.png, docs/flow-workspace-panel.png, docs/restrained-workspace-panel.png, docs/shared-board-panel.png, docs/canvas-workbench-panel.png, docs/canvas-shortcuts-panel.png, docs/collaboration-workbench-panel.png, docs/collaboration-focus-panel.png, docs/zen-workspace-panel.png and docs/compact-glance-panel.png");
 } finally {
   await browser.close();
   await preview.stop().catch(() => {});

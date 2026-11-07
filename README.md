@@ -1,10 +1,10 @@
 # AI Draw MCP
 
-> 给 IDE 里的 AI 一套可直接调用的可视化上下文工具 — AI 把项目理解成可编辑结构图，人只做轻量纠错、审阅与批准；项目变更始终由 AI 凭人工凭据执行。
+> 一个本机优先的 AI 与人类项目沟通画板：AI 通过 MCP 把项目理解呈现在共享画布上，人通过图形编辑、选择和对象批注表达意图；项目文件变更仍须人工审阅与批准。
 
-AI 通过 MCP stdio 直接调用 26 个工具：扫描项目、生成 Mermaid/SVG、读取版本化 `VisualGraph`、焦点/多选、源码证据、只读投影与变更提案。**主入口是 AI，浏览器面板只是薄辅助层**：让人看一眼 AI 的理解，改图或补充节点级信号，必要时审阅完整 diff 并授权写入。
+AI 通过 MCP stdio 访问共享项目图、源码证据、人的焦点/选择与画布上下文；人通过本机浏览器画布查看并纠正 AI 的理解。节点、关系、批注和修订共同承载双方围绕项目的交流，AI 可读取人的视觉意图并在同一会话中回应。
 
-这不是聊天/协作应用，也不是托管白板。消息、批注与活动时间线只作为 AI 可读取的上下文信号存在，不构成「下一棒」或必须走完的对话流程；**只有人类审阅逐行 diff、批准并交给 AI 一次性确认号后，项目文件才会改变**。
+产品定义与后续演进计划见 [产品方向](docs/PRODUCT_DIRECTION.md)。当前 `0.3.4` 已支持项目扫描、图形编辑、选择、给当前对象/范围写画布留言、在同一锚定线程里继续回复、AI 读取并回应，以及提案审批。画布沟通本身不授权写入：**只有人类审阅完整 diff、明确批准并签发一次性确认号后，AI 才能应用提案修改项目文件**。
 
 > **30 秒阅读**：[快速开始](#快速开始) · [工具列表](#工具列表) · [安全模型与完整文档](docs/ARCHITECTURE.md)。仓库当前源码与 GitHub Release 为 `0.3.4`；npm `ai-draw-mcp` 仍为 `0.2.0`，体验当前版本请优先从源码安装，详见下方版本说明。
 
@@ -24,58 +24,22 @@ AI 通过 MCP stdio 直接调用 26 个工具：扫描项目、生成 Mermaid/SV
 
 ## 预览
 
-### 双向协作闭环
+### 共享画布闭环
 
 ![AI Draw MCP 双向协作闭环](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-loop.svg)
 
-### 上下文审阅台概念
+### 当前共享画板（0.3.x）
 
-![AI Draw MCP 上下文审阅台概念预览](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-workbench.svg)
+![AI Draw MCP 共享画板](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/shared-board-panel.png)
 
-> 概念图由 [`scripts/generate-doc-assets.mjs`](scripts/generate-doc-assets.mjs) 可复现生成；要改文案或布局，请改脚本并运行 `npm run docs:assets`。
-
-### 实际预览面板
-
-![AI Draw MCP 新版预览面板](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/preview-panel.png)
-
-![AI Draw MCP Flow 画布优先工作台](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/flow-workspace-panel.png)
-
-![AI Draw MCP 首用协作闭环](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/welcome-panel.png)
-
-![AI Draw MCP 克制工作台](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/restrained-workspace-panel.png)
-
-当前面板使用一套克制的扁平视觉系统：单一语义色板、一致的圆角与间距、明确焦点描边，以及浅色/深色共用令牌。默认视图只保留品牌、一条上下文状态栏、主画布、首用动作、底部缩放条和「审阅台」入口；图表库、重复状态条、装饰浮层与旧皮肤切换都从视觉上收起，让 AI 生成的结构上下文与人工审阅材料成为唯一焦点。旧视觉类名仅作本机兼容，不再代表三套并列产品外观，设计边界见 [ADR 0021](docs/ADR/0021-restrained-visual-system.md)。
-
-低频偏好仍可通过命令面板与键盘快捷键到达：`?` 打开命令面板，`C` 打开上下文审阅台，`E` 展开源码抽屉，`G` 切换图形皮肤，`Z` 切换沉浸视图，`H` 查看快捷键。所有外观偏好只写本机 `localStorage`，不改 MCP 工具、version 1 协议、会话焦点/视口、完整逐行 diff、一次性确认号或项目写入闸门。批准按钮仍只在完整 diff 与影响摘要可见后启用，且必须人工确认。
-
-![AI Draw MCP 沉浸工作区](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/zen-workspace-panel.png)
-
-首用卡只解释「AI 通过 MCP 工具生成结构化上下文 → 人轻量纠错或审阅 diff → 写入仍需人工批准与一次性确认号」；既有消息、批注与活动记录仅作为可查看的上下文信号，不构成聊天发送或下一棒流程。可复现截图由 `npm run ui:shots` 在临时示例会话中生成，不代表仓库文件被自动修改。
-
-![AI Draw MCP 画布工作区](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/canvas-workbench-panel.png)
-
-画布工作区截图由 `npm run ui:shots` 使用临时示例项目可复现生成：AI 扫描出的目录与文件成为结构化上下文，人在本机视图里选中对象、查看证据、审阅 diff 或批准提案。对象卡、节点徽标、只读上下文复制和底部操作条都是同一套扁平语义表面的派生视图，不修改 Mermaid 输出、会话快照、`focus` / `viewport`、批准凭据或项目文件。
-
-快捷键帮助由 `H` / `?` 或命令面板打开，明确「只读上下文 + 人工确认」边界；`Esc` 或点击卡片外部关闭。
-
-### 上下文审阅台
-
-![AI Draw MCP 上下文审阅台](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-workbench-panel.png)
-
-上下文审阅台把「项目图 / 上下文信号 / 变更提案」分成三张信息卡：项目图供人轻量纠错，上下文卡只读展示历史消息、批注、差异与投影，提案卡集中呈现路径、影响摘要、完整逐行 diff 和人工批准。纠错草稿只复制到剪贴板交给 AI，不写入会话、不发送消息；面板不提供聊天线程回复。批准后会弹出一次性确认号卡片，四个凭据字段可逐项阅读或一键完整复制，并明确仍需交给 AI 调用 `apply_visual_proposal`；它不替用户调用工具，也不自动写项目文件。展开 diff 会显示加载中 / 已加载 / 加载失败状态，批准按钮从「先审阅 diff」温和切换为「批准并签发确认号」；进度到 100% 只代表材料已核对，不会自动批准或写文件。后台同步按提案签名复用 DOM，并在指针交互期间延后重绘，避免正在点击的审批按钮被刷新替换。截图由 `npm run ui:shots` 使用临时会话示例可复现生成，不代表仓库文件被自动修改。
-
-![AI Draw MCP 协作专注模式](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-focus-panel.png)
-
-![AI Draw MCP 窄屏对象速览](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/compact-glance-panel.png)
-
-点击「◎ 专注」、按 `7` 或在命令面板搜索「专注」，会暂时隐藏概览统计、健康卡和流程条，把三栏内容放大；偏好保存在本机，`7` 或顶栏按钮可随时恢复。专注模式只改本机布局，不改变会话、提案状态或写入闸门。
+界面沿用克制视觉系统。这是可复现的当前共享画板：默认全画布、首用可直接扫描、右侧对象卡显示有序的人 / AI 线程并支持就地留言。闭环概念图与后续阶段见 [产品方向](docs/PRODUCT_DIRECTION.md) 与 [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md)。其他布局截图留在仓库作为可复现的历史开发资产，不再并列充当产品入口。
 
 ---
 
 ## 功能
 
 - **26 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_capabilities`、`get_selection_scope`、`get_selection_workorder`、`get_visual_context`、`get_shared_brief`、`get_decision_trail`、`get_node_context`、`get_source_navigation`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
-- **上下文审阅台** — 项目结构扫描、节点/连线的轻量纠错、绑定批注信号、只读上下文投影、逐行 diff 审阅与提案批准；不提供聊天发送，WebSocket 实时同步给 AI 和面板
+- **共享画布** — 默认全画布展示 AI 扫描的项目结构，支持节点/连线纠错、焦点/多选；右侧对象卡显示锚定到该对象的人 / AI 有序线程，并可直接留言或继续回复
 - **有界图形撤销 / 重做** — 12 步视觉状态历史，人类确认后恢复节点/连线/批注为一次新图形修订；不回退项目文件、提案状态或一次性批准凭据
 - **只读源码证据** — 扫描时为源码/文档节点记录少量 `file:line` 定义、导入或标题线索，AI 与面板可引用代码位置；证据不自动改代码、不扩大提案路径，也不签发批准凭据
 - **有界多选范围** — 面板复选框最多选择 24 个节点；`get_selection_scope` 与 `SELECTION_SCOPE_JSON` 把「这几个模块」投影成节点、内部连线和安全相对 `file:line` 证据。选择范围只表达意图，不签发凭据、不改变图修订或授权项目写入，详见 [ADR 0018](docs/ADR/0018-human-selection-is-read-only-scope.md)
@@ -102,6 +66,7 @@ AI 通过 MCP stdio 直接调用 26 个工具：扫描项目、生成 Mermaid/SV
 | 文档 | 内容 |
 |------|------|
 | [README.en.md](README.en.md) | English quickstart：最短安装、协作闭环与安全边界 |
+| [docs/PRODUCT_DIRECTION.md](docs/PRODUCT_DIRECTION.md) | 产品定义、当前差距、分阶段计划与验收标准 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构、状态模型、活动时间线、REST/WebSocket 协议、安全边界 |
 | [docs/README.md](docs/README.md) | 文档地图：按读者与用途查找全部资料 |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | 首用自检、常见故障与 FAQ（含一次性确认号失效） |
@@ -120,7 +85,7 @@ AI 通过 MCP stdio 直接调用 26 个工具：扫描项目、生成 Mermaid/SV
 | [VERSIONING.md](VERSIONING.md) / [RELEASING.md](RELEASING.md) | 版本与发布策略 |
 | [examples/](examples/README.md) | MCP 配置、Mermaid/SVG、端到端协作演示 |
 
-> 本项目不是托管白板，也不是「AI 自动改代码」按钮；它是本地优先、需要人类审阅与一次性批准的可视化协作协议。非目标与未来方向见 [ROADMAP.md](ROADMAP.md)。
+> 本项目是本机优先的项目沟通画板，不是托管白板或「AI 自动改代码」按钮；AI 与人可以围绕同一张项目图交流，项目文件变更仍须人类审阅与一次性批准。非目标与未来方向见 [ROADMAP.md](ROADMAP.md)。
 
 ---
 
@@ -128,10 +93,10 @@ AI 通过 MCP stdio 直接调用 26 个工具：扫描项目、生成 Mermaid/SV
 
 ```text
 AI: scan_project → 生成项目结构图
-人: 可选在「⌁ 审阅台」里改名 / 添加批注信号 / 复制纠错上下文
+人: 在共享画布上改名 / 选择范围 / 添加对象批注
 AI: get_agent_workflow → 读取八步顺序契约与 blocked 就绪提示
 AI: get_visual_context → 理解意图与活动时间线
-AI: reply_to_visual_context → 在面板里回信、回复节点批注线程并标记已处理
+AI: reply_to_visual_context → 在同一对象批注线程回复
 AI: list_change_templates → 可选：把常见意图展开成只读候选草稿
 AI: preflight_visual_proposal → 只读检查路径/文件状态/重复内容
 AI: create_visual_proposal → 生成变更提案
@@ -158,7 +123,7 @@ AI: 再次 scan_project → 保留人工布局/批注/焦点并让图与代码�
 
 > **当前焦点**：人在面板选中节点后，服务端会记录 version 1 `SessionFocus`，把节点 ID、当前标签/路径/分组与图形修订交给 `get_visual_context.focus`、诊断和会话 bundle。AI 能据此理解「这个模块」「这里」指的是哪个对象；节点删除后焦点自动清除。焦点只是注意力上下文，不签发批准凭据、不解决线程、不创建提案，也不授权项目写入。
 
-> **复制给 AI 的上下文**：面板的「复制给 AI 的上下文」按钮会生成包含会话 ID、工作区、图形修订、当前焦点、最近图形差异的字段级摘要、诊断信号与下一步的只读提示，并明确要求 AI 先 `get_visual_context`、先预检、等人批准后再应用。按钮只复制到剪贴板或在不可用时放入本机纠错草稿框，不写会话、不发送消息、不签发确认号。
+> **复制给 AI 的上下文**：面板的「复制给 AI 的上下文」按钮会生成包含会话 ID、工作区、图形修订、当前焦点、最近图形差异的字段级摘要、诊断信号与下一步的只读提示，并明确要求 AI 先 `get_visual_context`、先预检、等人批准后再应用。按钮只复制到剪贴板；剪贴板不可用时，文本只进入独立的只读复制框，不写会话、不发送消息、不签发确认号。
 
 > **图形修订差异**：每次保存图形会记录字段级 `graphDiffs`（节点/连线增删、`label` / `kind` / `path` / `group` / 连线端点变化）；AI 通过 `get_visual_context.graphDiffs` 精确读取人改了哪张图，而不是从聊天文本猜测。面板可展开最近修订逐项查看字段前后值，活动时间线也会合并 `graph_diff` 派生事件。差异只是审计上下文，不自动生成或批准项目变更。
 
@@ -319,7 +284,7 @@ npm install -g ai-draw-mcp
 | 右下角小地图 | 点击/拖拽跳转视口 |
 | `Ctrl+Enter` | 手动触发重新渲染 |
 | `Ctrl+S` | 保存当前编辑到磁盘 |
-| `⌁ 审阅台` | 打开薄辅助面板：纠错图/批注信号、复制上下文、审阅 diff、批准提案 |
+| `◫ 工作台` | 打开次级工作台：编辑结构图、查看完整对象线程、审阅 diff、批准提案 |
 
 ---
 
@@ -333,7 +298,7 @@ npm install -g ai-draw-mcp
 
 **面板空白 / JS 报错**：重启 MCP（Cursor 设置里把 `ai-draw` 关掉再开启），再刷新面板页。
 
-**上下文审阅台没有图**：让 AI 调用 `scan_project`，或检查 `AI_DRAW_WORKSPACE_ROOT` 是否指向正确项目。
+**项目工作台没有图**：点击首屏「扫描当前项目」，或检查 `AI_DRAW_WORKSPACE_ROOT` 是否指向正确项目。
 
 **提案无法应用**：确认由人类点击批准；检查目标路径是否属于 `.git`、`node_modules`、`dist`、`.env*` 或锁文件等受保护范围。
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Draw MCP — 上下文工作台</title>
+  <title>AI Draw MCP — 共享项目画板</title>
   <script src="/vendor/mermaid-dist/mermaid.min.js"></script>
   <style>
     :root {
@@ -1156,7 +1156,8 @@
     .collab-shell.focus-mode .collab-body { grid-template-columns: 1.02fr 1.18fr .95fr; padding-top: 8px; }
     .collab-shell.focus-mode .collab-section { padding: 12px; }
     .focus-badge { display: none; align-items: center; gap: 5px; margin-left: 8px; padding: 3px 8px; border: 1px solid rgba(158,206,106,.5); border-radius: 999px; background: rgba(158,206,106,.10); color: var(--green); font-size: 9px; font-weight: 800; white-space: nowrap; }
-    .collab-shell.focus-mode .focus-badge { display: inline-flex; }
+    .collab-shell.focus-mode .focus-badge,
+    .collab-shell[data-details="closed"] .focus-badge { display: inline-flex; }
     .focus-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
     #btnFocusMode { width: auto; padding: 0 9px; white-space: nowrap; }
     #btnFocusMode[aria-pressed="true"] { border-color: rgba(158,206,106,.58); background: rgba(158,206,106,.14); color: var(--green); }
@@ -1570,6 +1571,7 @@
       .workspace.welcome .canvas-hover-card, .workspace:not([data-view="canvas"]) .canvas-hover-card,
       #collabShell:not([hidden]) ~ * .canvas-hover-card { display: none !important; }
       body:has(.canvas-hover-card[data-visible="true"]) .canvas-object-card { display: none !important; }
+      body:has(.canvas-hover-card[data-visible="true"]) .canvas-object-card[data-visible="true"] { display: block !important; }
       body:has(.canvas-hover-card[data-visible="true"]) .toast { opacity: 0 !important; }
     }
     body.visual-aurora .canvas-object-card { border-color: rgba(61,219,217,.48); box-shadow: 0 18px 46px rgba(0,0,0,.44), 0 0 28px rgba(61,219,217,.08), inset 0 1px 0 rgba(255,255,255,.06); }
@@ -1738,12 +1740,10 @@
     body.visual-studio .canvas-relation-node, body.theme-light .canvas-relation-node { background: rgba(245,249,255,.85); }
     body.visual-atlas .canvas-relation-map { border-radius: 3px; background: rgba(9,20,22,.88); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     body.visual-atlas .canvas-relation-rail, body.visual-atlas .canvas-relation-node, body.visual-atlas .canvas-relation-more, body.visual-atlas .canvas-relation-rail-track { border-radius: 2px; }
-    .canvas-object-conversation { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 5px; padding: 5px 7px; border: 1px solid rgba(240,168,104,.32); border-radius: 8px; background: rgba(240,168,104,.08); color: var(--text-muted); font-size: 8px; }
-    .canvas-object-conversation[data-state="clear"] { border-color: rgba(158,206,106,.34); background: rgba(158,206,106,.08); }
-    .canvas-object-conversation[data-state="blocked"] { border-color: rgba(255,107,107,.38); background: rgba(255,107,107,.08); }
-    .canvas-object-conversation strong { color: var(--text); }
-    .canvas-object-conversation button { height: 20px; padding: 0 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); color: var(--text); font-size: 8px; cursor: pointer; white-space: nowrap; }
-    .canvas-object-conversation button:hover { border-color: var(--accent); }
+    .canvas-object-conversation {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
     .canvas-context-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-top: 6px; padding-top: 7px; border-top: 1px solid var(--border); }
     .canvas-context-chip { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; padding: 5px 4px; border: 1px solid var(--border); border-radius: 8px; background: rgba(122,162,247,.06); color: var(--text-muted); font-size: 7px; text-align: left; cursor: pointer; transition: transform .15s, border-color .15s, background .15s; }
     .canvas-context-chip:hover { transform: translateY(-1px); border-color: rgba(61,219,217,.55); background: rgba(61,219,217,.10); }
@@ -2038,16 +2038,12 @@
     .intent-state.busy::before { background: var(--orange); animation: spin .7s linear infinite; }
     .intent-state.error::before { background: var(--red); }
     .intent-state.sent::before { background: var(--accent); }
-    .intent-presets { display: flex; gap: 4px; flex-wrap: wrap; padding: 7px 10px 0; }
-    .intent-preset { padding: 4px 8px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text-muted); font-size: 9px; cursor: pointer; }
-    .intent-preset:hover { border-color: rgba(122,162,247,.6); color: var(--text); }
-    .intent-preset.active { border-color: rgba(122,162,247,.72); background: rgba(122,162,247,.14); color: var(--text); }
     .intent-composer .input-row textarea { height: 68px; padding: 9px 10px 23px; border: none; border-radius: 0; background: transparent; box-shadow: none; }
     .intent-composer .input-row textarea:focus { box-shadow: inset 0 0 0 1px rgba(122,162,247,.38); }
     .intent-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 9px; }
     .intent-foot .draft-note { display: inline-flex; align-items: center; gap: 4px; }
     .intent-foot code { color: var(--accent); font-size: 9px; }
-    #btnSendMessage.has-draft { box-shadow: 0 0 0 2px rgba(122,162,247,.14); }
+    #btnSaveBoardNote.has-draft { box-shadow: 0 0 0 2px rgba(122,162,247,.14); }
     .safety-note { margin-top: 10px; padding: 10px; border: 1px solid rgba(240,168,104,.28); border-radius: 9px; background: rgba(240,168,104,.06); color: var(--text-muted); font-size: 10px; line-height: 1.55; }
     .safety-note strong { display: block; color: var(--orange); margin-bottom: 4px; }
     .collab-section:last-child { border-right: 0; }
@@ -2292,9 +2288,16 @@
     .annotation-reply.human { border-left: 2px solid var(--green); }
     .annotation-reply .meta { display: block; color: var(--text-muted); font-size: 9px; margin-bottom: 2px; }
     .annotation-empty { color: var(--text-muted); font-size: 9px; padding: 3px 0; }
-    .annotation-reply-readonly { margin-top: 6px; color: var(--text-muted); font-size: 9px; line-height: 1.45; }
+    .annotation-reply-form { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-top: 7px; }
+    .annotation-reply-form textarea { min-height: 36px; max-height: 90px; resize: vertical; font-size: 10px; }
+    .annotation-reply-form button { height: auto; min-height: 30px; align-self: end; padding: 0 10px; }
+    .annotation-thread-note { margin-top: 6px; color: var(--text-muted); font-size: 9px; line-height: 1.45; }
     .annotation-anchor-note { color: var(--orange); font-size: 9px; margin-top: 4px; }
-    #annotationList { flex: 0 0 220px; max-height: 220px; }
+    .annotation-thread[data-focused="true"] { border-color: var(--accent); }
+    #annotationList { max-height: none; }
+    #copyFallback { display: none; margin-top: 8px; }
+    #copyFallback[data-visible="true"] { display: grid; gap: 5px; }
+    #copyFallback textarea { min-height: 54px; max-height: 130px; font-size: 10px; }
     .proposal-facts { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 7px; }
     .proposal-facts code { font-size: 9px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); color: var(--text-muted); }
     .proposal-actions { display: flex; gap: 6px; margin-top: 8px; }
@@ -2396,8 +2399,8 @@
       .journey-step + .journey-step::before { display: none; }
       .proposal-impact .impact-grid { grid-template-columns: repeat(2, 1fr); }
       .proposal-actions { flex-direction: column; }
-      .intent-presets { flex-wrap: nowrap; overflow-x: auto; }
-      .intent-preset { flex: 0 0 auto; }
+      .annotation-reply-form { grid-template-columns: 1fr; }
+      .annotation-reply-form button { justify-self: end; min-width: 72px; }
       .intent-foot span:last-child { display: none; }
       .welcome-card { grid-template-columns: 1fr; width: min(480px, calc(100% - 24px)); max-height: calc(100vh - 120px); overflow-y: auto; }
       .welcome-visual { display: none; }
@@ -2579,17 +2582,18 @@
     #flowRailMeta { font-size: 10px; }
     .flow-rail { grid-template-columns: 1fr auto; min-height: 34px; padding: 5px var(--ui-space-3) !important; }
     .flow-rail-kicker { flex-direction: row; align-items: center; gap: var(--ui-space-2) !important; }
-    .flow-rail-kicker strong::after { content: " · 批准前只读"; color: var(--ui-muted); font-weight: 500; }
+    .flow-rail-kicker strong::after { content: none; }
     .flow-rail-actions #btnFlowSource { display: none !important; }
     .canvas-dock-group[data-group="SHARED"] { display: none !important; }
     .flow-rail-actions button, .canvas-dock button { min-height: 30px; }
     .appearance-shortcuts span:nth-of-type(5), .appearance-shortcuts kbd:nth-of-type(5) { display: none; }
-    .status #btnCollaborate, .collab-actions button.primary {
+    .status #btnCollaborate, .collab-actions button.primary, .flow-rail-actions button.primary, #btnBoardRescan {
       border: 1px solid var(--ui-accent); border-radius: var(--ui-radius-small);
       background: var(--ui-accent) !important; background-image: none !important;
       color: #08111f !important; box-shadow: none;
     }
-    body.theme-light .status #btnCollaborate, body.theme-light .collab-actions button.primary { color: #ffffff !important; }
+    body.theme-light .status #btnCollaborate, body.theme-light .collab-actions button.primary,
+    body.theme-light .flow-rail-actions button.primary, body.theme-light #btnBoardRescan { color: #ffffff !important; }
     .overflow-menu, .appearance-popover, .shortcut-dialog, .command-dialog, .receipt-dialog,
     .collab-shell, .collab-section, .proposal-card, .chat-item, .intent-composer, .overview-stat,
     .sidebar, .workspace, .pane, .pane-header, .statusbar,
@@ -2636,13 +2640,15 @@
     }
     .canvas-frame { display: none !important; }
     .flow-rail {
-      display: grid !important; grid-template-columns: minmax(190px, auto) 1fr auto;
-      min-height: 38px; padding: 6px var(--ui-space-3) !important; gap: var(--ui-space-3);
+      display: grid !important; grid-template-columns: minmax(0, 1fr) auto;
+      min-height: 38px; padding: 6px var(--ui-space-3) !important; gap: var(--ui-space-2);
       border: 0 !important; border-bottom: 1px solid var(--ui-line) !important;
       border-radius: 0 !important; background: var(--ui-panel-raised) !important;
       background-image: none !important; box-shadow: none !important;
     }
-    .flow-rail-kicker { min-width: 0; gap: 0 !important; }
+    .flow-rail-kicker { min-width: 0; gap: 0 !important; display: flex; align-items: baseline; }
+    .flow-rail-kicker strong { font-size: 11px; }
+    .flow-rail-kicker #flowRailMeta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .flow-rail-kicker strong { color: var(--ui-ink); font-size: 10px; font-weight: 700; letter-spacing: 0; text-transform: none; }
     .flow-rail-kicker span { font-size: 9px; color: var(--ui-muted); }
     .flow-rail-kicker .flow-rail-safety { display: none; }
@@ -2653,9 +2659,7 @@
       background: var(--ui-panel); color: var(--ui-ink); font-family: inherit; font-size: 10px;
       font-weight: 600; letter-spacing: 0; text-transform: none;
     }
-    .flow-rail-actions button[aria-pressed="true"], .flow-rail-actions button.primary {
-      border-color: var(--ui-accent); background: var(--ui-accent-soft); color: var(--ui-accent);
-    }
+    .flow-rail-actions button[aria-pressed="true"] { border-color: var(--ui-accent); background: var(--ui-accent-soft); color: var(--ui-accent); }
     .workspace-ribbon, .canvas-dock, .flow-lens, .collab-handoff, .collab-pulse,
     .collab-pulse-detail, .canvas-object-card, .canvas-hover-card, .canvas-focus-context,
     .canvas-focus-label, .live-inspector, .canvas-chip, #minimap, .welcome-card,
@@ -2705,10 +2709,41 @@
     body.theme-light .welcome-actions button.primary { color: #ffffff !important; }
     .canvas-object-card {
       right: var(--ui-space-3) !important; top: var(--ui-space-3) !important;
-      width: 224px !important; padding: var(--ui-space-3) !important;
+      width: 300px !important; max-height: calc(100% - 148px) !important; overflow-y: auto;
+      padding: var(--ui-space-3) !important;
     }
     .canvas-object-card[data-visible="false"] { display: none !important; }
     .canvas-object-card strong { display: block; margin: 4px 0; font-size: 12px; }
+    .canvas-board-note {
+      display: grid; gap: var(--ui-space-2); margin-top: var(--ui-space-3);
+      padding-top: var(--ui-space-3); border-top: 1px solid var(--ui-line);
+    }
+    .canvas-board-head {
+      display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2);
+      color: var(--ui-ink); font-size: 11px; font-weight: 700;
+    }
+    .canvas-board-head button {
+      min-height: 24px; padding: 0 8px; border: 1px solid var(--ui-line);
+      border-radius: var(--ui-radius-small); background: var(--ui-panel-raised);
+      color: var(--ui-muted); font: inherit; font-size: 9px; font-weight: 600; cursor: pointer;
+    }
+    .canvas-board-head button:hover, .canvas-board-head button:focus-visible {
+      border-color: var(--ui-accent); color: var(--ui-ink);
+    }
+    .canvas-board-thread {
+      display: grid; gap: var(--ui-space-1); max-height: 190px; overflow-y: auto;
+      padding: var(--ui-space-2); border: 1px solid var(--ui-line);
+      border-radius: var(--ui-radius-small); background: var(--ui-panel-raised);
+    }
+    .canvas-board-entry { display: grid; gap: 2px; font-size: 10px; line-height: 1.45; }
+    .canvas-board-entry + .canvas-board-entry { padding-top: var(--ui-space-1); border-top: 1px solid var(--ui-line); }
+    .canvas-board-entry-meta { color: var(--ui-muted); font-size: 9px; }
+    .canvas-board-entry.ai { border-left: 2px solid var(--ui-accent); padding-left: var(--ui-space-2); }
+    .canvas-board-entry.human { border-left: 2px solid var(--ui-ok); padding-left: var(--ui-space-2); }
+    .canvas-board-empty { color: var(--ui-muted); font-size: 10px; line-height: 1.5; }
+    .canvas-board-note textarea { min-height: 62px; max-height: 150px; resize: vertical; }
+    .canvas-board-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-2); }
+    .canvas-board-actions span { color: var(--ui-muted); font-size: 9px; }
     .canvas-object-path { display: block; margin-bottom: var(--ui-space-2); color: var(--ui-muted); font-size: 9px; }
     .canvas-object-stats { margin-top: var(--ui-space-2); color: var(--ui-muted); font-size: 9px; }
     .canvas-hover-card, .canvas-focus-context {
@@ -2745,7 +2780,19 @@
     .welcome-features { display: none !important; }
     .welcome-actions { gap: var(--ui-space-1); }
     .welcome-actions button { padding: 0 10px; }
-    .collab-shell { inset: var(--ui-space-2) !important; }
+    .collab-shell { inset: 68px var(--ui-space-2) var(--ui-space-2) !important; }
+    .collab-overview, .health-card, .collab-journey { display: none !important; }
+    .collab-shell[data-details="open"]:not(.focus-mode) .collab-overview,
+    .collab-shell[data-details="open"]:not(.focus-mode) .health-card,
+    .collab-shell[data-details="open"]:not(.focus-mode) .collab-journey { display: flex !important; }
+    .collab-shell[data-details="open"]:not(.focus-mode) .collab-journey { display: grid !important; }
+    .collab-shell .collab-header { padding-right: var(--ui-space-2); }
+    .collab-shell .collab-header > div:first-child { display: flex; align-items: center; gap: var(--ui-space-2); min-width: 0; }
+    .collab-shell .collab-header > div:first-child > * { margin-left: 0; }
+    .collab-shell .collab-header .collab-kicker,
+    .collab-shell .collab-header .shortcut-hint { display: none !important; }
+    .collab-shell.focus-mode .focus-badge,
+    .collab-shell[data-details="closed"] .focus-badge { display: inline-flex !important; }
     .collab-header, .collab-body, .collab-section, .collab-overview, .health-card,
     .collab-journey, .journey-step, .overview-stat, .proposal-card, .chat-item,
     .annotation-thread, .graph-row, .diagnostics-list, .activity-summary,
@@ -2907,13 +2954,28 @@
     .toast::before { content: none; }
     .toast { bottom: 64px !important; }
     @media (max-width: 900px) {
+      .collab-shell { top: 56px !important; }
       .context-banner { display: none !important; }
       .flow-rail { grid-template-columns: 1fr auto; }
       .flow-rail-kicker { display: none; }
-      .canvas-object-card { width: min(220px, calc(100% - 24px)) !important; }
+      .canvas-object-card { width: min(300px, calc(100% - 24px)) !important; }
       .canvas-dock { width: calc(100% - 16px) !important; justify-content: center; flex-wrap: wrap; }
       .canvas-dock-group[data-group="VIEW"] { order: 1; }
       .canvas-dock-group[data-group="SHARED"] { order: 2; }
+    }
+    @media (max-width: 620px) {
+      .flow-rail-actions #btnBoardRescan { font-size: 0 !important; padding: 0 8px !important; }
+      .flow-rail-actions #btnBoardRescan::before { content: '↻'; font-size: 14px; }
+      .flow-rail-actions #btnFlowCollab { font-size: 0 !important; padding: 0 8px !important; }
+      .flow-rail-actions #btnFlowCollab::before { content: '◫'; font-size: 13px; }
+      .canvas-object-card {
+        left: var(--ui-space-2) !important; right: var(--ui-space-2) !important;
+        top: auto !important; bottom: 64px !important; width: auto !important; max-height: 46vh !important;
+      }
+      .canvas-board-thread { max-height: 110px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
     }
   </style>
 </head>
@@ -2922,7 +2984,7 @@
 <div class="header">
   <div class="brand-wrap">
     <span class="brand-mark" aria-hidden="true">AI</span>
-    <span><span class="brand">AI Draw MCP</span><span class="brand-sub">MCP-native AI context tool</span></span>
+    <span><span class="brand">AI Draw MCP</span><span class="brand-sub">人与 AI 的共享项目画板</span></span>
   </div>
     <div class="context-banner" aria-label="当前图形上下文" aria-hidden="true">
       <strong id="headerContextTitle">等待图形</strong>
@@ -2936,9 +2998,9 @@
         <button type="button" data-visual="atlas" title="Atlas：工程蓝图式高对比网格视觉">⌗ Atlas</button>
       </div>
       <div class="view-switch" role="group" aria-label="工作区视图" aria-hidden="true">
-        <button type="button" class="active" data-view-target="split" title="分屏视图（1）">◫ 分屏</button>
+        <button type="button" data-view-target="split" title="分屏视图（1）">◫ 分屏</button>
         <button type="button" data-view-target="source" title="源码视图（2）">⌘ 源码</button>
-        <button type="button" data-view-target="canvas" title="画布视图（3）">◇ 画布</button>
+        <button type="button" class="active" data-view-target="canvas" title="画布视图（3）">◇ 画布</button>
       </div>
       <button id="btnRender" class="primary">▶ Render</button>
       <div class="toolbar-overflow">
@@ -3044,7 +3106,7 @@
           <span>Flow 源码抽屉</span><kbd>E</kbd>
           <span>专注模式</span><kbd>7</kbd>
           <span>沉浸工作区</span><kbd>Z</kbd>
-          <span>上下文审阅台</span><kbd>C · Esc</kbd>
+          <span>项目工作台</span><kbd>C · Esc</kbd>
           <span>适应窗口 / 重置缩放</span><kbd>F / 0</kbd>
           <span>上一个 / 下一个节点</span><kbd>[ / ]</kbd>
           <span>快捷键帮助</span><kbd>H</kbd>
@@ -3054,7 +3116,7 @@
     </div>
   </div>
   <div class="status">
-    <button id="btnCollaborate" title="打开上下文审阅台（C）">⌁ 审阅台</button>
+    <button id="btnCollaborate" title="打开项目工作台（C）">◫ 工作台</button>
     <span class="dot" id="wsStatus"></span>
     <span id="wsLabel" aria-live="polite">连接中…</span>
   </div>
@@ -3068,16 +3130,16 @@
     <div class="sidebar-resize" id="sidebarResize"></div>
   </aside>
 
-  <div class="workspace" id="workspace" data-view="split">
-    <div class="flow-rail" id="flowRail" aria-label="AI 上下文工具状态" style="--flow-progress: 0%" data-progress-label="0 / 4 READY · 0%">
-      <div class="flow-rail-kicker"><strong>MCP CONTEXT TOOL</strong><span id="flowRailMeta">0 待审 · 0 上下文信号 · 0 批注</span><span class="flow-rail-safety">LOCAL · 批准前只读</span></div>
+  <div class="workspace" id="workspace" data-view="canvas">
+    <div class="flow-rail" id="flowRail" aria-label="共享画板状态" style="--flow-progress: 0%" data-progress-label="0 / 4 READY · 0%">
+      <div class="flow-rail-kicker"><strong id="boardContextTitle">等待 AI 扫描项目</strong><span id="flowRailMeta">选中画布对象即可留言 · 批准前只读</span><span class="flow-rail-safety">LOCAL · 批准前只读</span></div>
       <div class="flow-rail-steps" aria-label="工具上下文阶段">
         <button type="button" class="flow-step" data-flow-stage="scan" data-state="idle"><span class="flow-step-icon">◇</span><span class="flow-step-copy"><strong>AI 生成结构</strong><small>MCP 扫描项目</small></span><span class="flow-step-state">○</span></button>
         <button type="button" class="flow-step" data-flow-stage="edit" data-state="idle"><span class="flow-step-icon">✎</span><span class="flow-step-copy"><strong>人轻量纠错</strong><small>改图 / 批注信号</small></span><span class="flow-step-state">○</span></button>
         <button type="button" class="flow-step" data-flow-stage="context" data-state="idle"><span class="flow-step-icon">⌁</span><span class="flow-step-copy"><strong>AI 读取上下文</strong><small>机器可读投影</small></span><span class="flow-step-state">○</span></button>
         <button type="button" class="flow-step" data-flow-stage="review" data-state="idle"><span class="flow-step-icon">✓</span><span class="flow-step-copy"><strong>人工批准</strong><small>逐行 diff 后确认</small></span><span class="flow-step-state">○</span></button>
       </div>
-      <div class="flow-rail-actions"><button type="button" id="btnFlowSource" aria-pressed="false" title="展开或收起本机源码抽屉（E）">⌘ 源码</button><button type="button" id="btnFlowCollab" class="primary" title="打开上下文审阅台（C）">⌁ 审阅台</button></div>
+      <div class="flow-rail-actions"><button type="button" id="btnBoardRescan" class="primary" title="只读扫描项目并刷新共享结构图">↻ 扫描项目</button><button type="button" id="btnFlowSource" aria-pressed="false" title="展开或收起本机源码抽屉（E）">⌘ 源码</button><button type="button" id="btnFlowCollab" title="打开项目图、上下文与变更审阅（C）">◫ 打开工作台</button></div>
     </div>
     <div class="panes">
       <div class="pane" id="editorPane">
@@ -3112,7 +3174,7 @@
           <div class="canvas-focus-halo" id="canvasFocusHalo" data-visible="false" aria-hidden="true"></div>
           <div class="canvas-focus-ring" id="canvasFocusRing" data-focus-node-id="" aria-hidden="true"></div>
           <div class="canvas-focus-ripple" id="canvasFocusRipple" data-active="false" data-triggered-by="" aria-hidden="true"></div>
-          <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" data-has-context="false" title="悬停查看当前对象只读上下文；点击打开上下文审阅台" aria-hidden="true"></div>
+            <div class="canvas-focus-label" id="canvasFocusLabel" data-visible="false" data-has-context="false" title="悬停查看当前对象只读上下文；点击打开项目工作台" aria-hidden="true"></div>
           <div class="canvas-focus-context" id="canvasFocusContext" data-visible="false" aria-hidden="true">
             <div class="canvas-focus-context-head">焦点上下文 · 只读<span>悬停胶囊展开</span></div>
             <strong id="canvasFocusContextLabel">等待项目结构图</strong>
@@ -3122,7 +3184,7 @@
               <span class="canvas-focus-context-metric"><b id="canvasFocusContextThreads">0</b><span>开放讨论</span></span>
               <span class="canvas-focus-context-metric"><b id="canvasFocusContextEvidence">0</b><span>源码证据</span></span>
             </div>
-            <div class="canvas-focus-context-foot">点击「当前焦点」胶囊只打开上下文审阅台；不发布焦点、不批准提案、不写项目文件。</div>
+            <div class="canvas-focus-context-foot">点击「当前焦点」胶囊只打开项目工作台；不发布焦点、不批准提案、不写项目文件。</div>
           </div>
           <div class="canvas-hover-card" id="canvasHoverCard" data-visible="false" data-node-id="" aria-hidden="true">
             <div class="canvas-hover-head"><span class="canvas-hover-kicker">Object glance · read only</span><span class="canvas-hover-focus" id="canvasHoverFocus">悬停</span></div>
@@ -3138,19 +3200,20 @@
           <div class="canvas-thread-layer" id="canvasThreadLayer" aria-label="图形节点上的只读讨论标记"></div>
           <div class="welcome-card" id="welcomeCard">
             <div class="welcome-main">
-              <span class="welcome-kicker">LOCAL-FIRST · MCP-NATIVE AI TOOL</span>
+              <span class="welcome-kicker">LOCAL-FIRST · SHARED VISUAL BOARD</span>
               <div class="welcome-icon" aria-hidden="true">◇</div>
-              <h2>让 AI 用结构图表达项目理解</h2>
-              <p>AI 通过 MCP 工具生成机器可读的上下文；人只在需要时轻量纠错、补充节点信号或审阅 diff。面板不是聊天应用，项目写入仍须人工批准与一次性确认号。</p>
+              <h2>和 AI 在同一张图上理解项目</h2>
+              <p>先扫描当前项目，让 AI 把结构画到画布；点选任意对象即可留言、查看 AI 的回应并继续同一条线程。需要改代码时，仍要审阅完整 diff 并明确批准。</p>
               <div class="welcome-features">
-                <div class="welcome-feature"><strong>1 / 2 / 3</strong><span>分屏 · 源码 · 画布</span></div>
-                <div class="welcome-feature"><strong>4 / 5 / 6</strong><span>结构 · 上下文 · 提案</span></div>
-                <div class="welcome-feature"><strong>C / Esc</strong><span>进入 / 离开审阅台</span></div>
+                <div class="welcome-feature"><strong>1</strong><span>扫描项目，生成共享结构图</span></div>
+                <div class="welcome-feature"><strong>2</strong><span>点选对象，留下你的理解或疑问</span></div>
+                <div class="welcome-feature"><strong>3</strong><span>AI 在同一线程回应；改动仍需批准</span></div>
               </div>
               <div class="welcome-actions">
-                <button type="button" class="primary" id="btnLoadExample">载入示例图形</button>
-                <button type="button" id="btnOpenCollabWelcome">打开上下文审阅台</button>
-                <button type="button" id="btnOpenCommandsWelcome">⌘ 命令面板</button>
+                <button type="button" class="primary" id="btnWelcomeRescan">扫描当前项目</button>
+                <button type="button" id="btnLoadExample">载入示例图形</button>
+                <button type="button" id="btnOpenCollabWelcome">工作台与变更审阅</button>
+                <button type="button" id="btnOpenCommandsWelcome" hidden>⌘ 命令面板</button>
               </div>
               <div class="welcome-journey" id="welcomeJourney" aria-label="AI 上下文工具链">
                 <div class="welcome-journey-step active" data-welcome-step="scan"><strong>AI 扫描</strong><span>生成结构</span></div>
@@ -3220,7 +3283,7 @@
             <button type="button" id="btnCanvasBackdrop" aria-pressed="false" title="切换画布背景">◐ 背景</button>
             <div class="canvas-dock-divider" aria-hidden="true"></div>
             <div class="canvas-dock-group" data-group="SHARED">
-              <button type="button" id="btnCanvasCollab" class="primary" title="打开上下文审阅台 (C)">⌁ 审阅台</button>
+              <button type="button" id="btnCanvasCollab" title="打开项目图、上下文与变更审阅 (C)">◫ 工作台</button>
               <button type="button" id="btnCanvasCommands" title="打开命令面板 (?)">⌘</button>
               <button type="button" id="btnCanvasHelp" title="快捷键与画布手势 (H)">? 帮助</button>
             </div>
@@ -3250,12 +3313,12 @@
               <span>待审<strong id="handoffProposals">0</strong></span>
               <span>批注<strong id="handoffAnnotations">0</strong></span>
             </div>
-            <div class="collab-handoff-next"><span id="handoffNext">读取结构化上下文，等待 AI 工具调用。</span><button type="button" id="btnHandoffOpen" aria-label="打开上下文审阅台">⌁ 审阅台 · C</button></div>
+            <div class="collab-handoff-next"><span id="handoffNext">读取结构化上下文，等待 AI 工具调用。</span><button type="button" id="btnHandoffOpen" aria-label="打开项目工作台">◫ 工作台 · C</button></div>
           </section>
           <button type="button" class="collab-pulse" id="btnCollabPulse" data-state="ready" aria-expanded="false" aria-controls="collabPulseDetail" title="展开只读协作速览；再次点击按钮可收起" aria-label="展开只读协作速览">
             <span class="collab-pulse-orbit" id="collabPulseOrbit" aria-hidden="true"><span class="collab-pulse-orbit-ring-label" id="collabPulseOrbitLabel">0</span></span>
             <span class="collab-pulse-main">
-              <span class="collab-pulse-top"><span class="collab-pulse-copy"><strong>上下文信号仪表</strong><span id="collabPulseHint">点击查看结构化上下文 · C</span></span><span class="collab-pulse-status" id="collabPulseStatus">Ready</span></span>
+              <span class="collab-pulse-top"><span class="collab-pulse-copy"><strong>共享画板状态</strong><span id="collabPulseHint">点击查看结构化上下文 · C</span></span><span class="collab-pulse-status" id="collabPulseStatus">Ready</span></span>
               <span class="collab-pulse-bars" aria-hidden="true">
                 <span class="collab-pulse-bar" id="collabPulseMessageBar"></span>
                 <span class="collab-pulse-bar" id="collabPulseProposalBar"></span>
@@ -3274,7 +3337,7 @@
             </div>
             <div class="collab-pulse-dialog"><div class="dialog-star-track compact" id="pulseDialogTrack" aria-label="既有上下文信号轨迹"></div><span id="pulseDialogMeta">上下文 <b>0</b> 条</span></div>
             <div class="collab-pulse-next"><strong>下一步</strong><span id="collabPulseNext">读取共享上下文，等待人工审阅。</span></div>
-            <button type="button" class="collab-pulse-open" id="btnCollabPulseOpen">⌁ 打开上下文审阅台 · C</button>
+          <button type="button" class="collab-pulse-open" id="btnCollabPulseOpen">◫ 打开工作台 · C</button>
             <div class="collab-pulse-detail-foot">这里只汇总既有只读状态；批准前不会签发凭据或写项目文件。</div>
           </section>
           <aside class="canvas-object-card" id="canvasObjectCard" data-visible="false" aria-label="当前画布对象">
@@ -3296,10 +3359,23 @@
               <div class="canvas-relation-nodes" id="canvasRelationNodes"><div class="canvas-relation-empty">选中节点后显示相邻对象</div></div>
               <div class="canvas-relation-foot">点击相邻对象同步既有只读焦点 · 不批准或写文件</div>
             </div>
-            <div class="canvas-object-conversation" id="canvasObjectConversation" data-state="clear">
+            <div class="canvas-object-conversation sr-only" id="canvasObjectConversation" data-state="clear">
               <span id="canvasConversationSummary">上下文 · 暂无绑定批注</span>
-              <button type="button" id="btnCanvasOpenConversation" title="进入上下文审阅台查看当前对象">⌁ 上下文</button>
+              <span id="canvasConversationFallback">在工作台查看完整对象线程</span>
             </div>
+            <section class="canvas-board-note" aria-label="当前对象留言">
+              <div class="canvas-board-head">
+                <span>对象线程</span>
+                <button type="button" id="btnCanvasOpenConversation" title="在工作台里查看完整对象线程">◫ 完整线程</button>
+              </div>
+              <div class="canvas-board-thread" id="canvasBoardThread" aria-live="polite"></div>
+              <label class="sr-only" for="canvasBoardNoteInput">给当前对象留言</label>
+              <textarea id="canvasBoardNoteInput" maxlength="2000" placeholder="告诉 AI 这个对象应如何理解，或继续上面的线程…"></textarea>
+              <div class="canvas-board-actions">
+                <span id="canvasBoardNoteState">留言只写入共享画板，不写项目文件</span>
+                <button type="button" class="primary" id="btnCanvasBoardNote">保存到线程</button>
+              </div>
+            </section>
             <div class="canvas-context-strip" id="canvasContextStrip" aria-label="当前对象只读上下文">
               <button type="button" class="canvas-context-chip" id="btnCanvasEvidence" data-ready="false"><strong id="canvasEvidenceCount">—</strong><span>源码证据</span></button>
               <button type="button" class="canvas-context-chip" id="btnCanvasReview" data-ready="false"><strong id="canvasReviewState">—</strong><span>审阅就绪</span></button>
@@ -3356,7 +3432,7 @@
         <div class="shortcut-row"><span>切换增强 / 原色图形皮肤</span><kbd>G</kbd></div>
         <div class="shortcut-row"><span>显示 / 隐藏节点悬停速览</span><kbd>P</kbd></div>
         <div class="shortcut-row"><span>项目图 / 上下文 / 提案</span><kbd>4 / 5 / 6</kbd></div>
-        <div class="shortcut-row"><span>上下文审阅台 / 专注模式</span><kbd>C / 7</kbd></div>
+        <div class="shortcut-row"><span>项目工作台 / 专注模式</span><kbd>C / 7</kbd></div>
         <div class="shortcut-row"><span>沉浸工作区</span><kbd>Z</kbd></div>
       </div>
       <div class="shortcut-group"><h4>画布</h4>
@@ -3419,15 +3495,16 @@
   </section>
 </div>
 
-<div class="collab-shell" id="collabShell" data-tab="graph" hidden>
+<div class="collab-shell" id="collabShell" data-tab="graph" data-details="closed" hidden>
   <div class="collab-header">
     <div>
-      <strong>上下文审阅台</strong><span class="focus-badge">专注模式 · 概览已隐藏</span>
+      <strong>项目工作台</strong><span class="focus-badge">专注模式 · 概览已隐藏</span>
       <span class="collab-kicker">LOCAL · READ-ONLY UNTIL APPROVAL</span>
       <span id="collabMeta">等待同步…</span>
       <span class="shortcut-hint">Esc 关闭 · C 打开</span>
     </div>
     <div class="collab-header-actions">
+      <button id="btnBoardDetails" type="button" aria-pressed="false" title="显示或隐藏概览与状态信息">显示概览</button>
       <button id="btnFocusMode" type="button" aria-pressed="false" title="专注模式：隐藏概览、健康卡与流程条（7）">◎ 专注</button>
       <button id="btnCommandHint" class="shortcut-hint" title="打开命令面板与快捷键（?）">⌘ 命令</button>
       <button id="btnCloseCollab" title="关闭（Esc）">✕</button>
@@ -3435,7 +3512,6 @@
   </div>
   <div class="collab-overview">
     <span class="overview-stat"><span class="pulse"></span><strong>Live</strong> 本地连接</span>
-    <span class="overview-stat">工具 <strong>26</strong></span>
     <span class="overview-stat">图修订 <strong id="overviewRevision">—</strong></span>
     <span class="overview-stat">选择 <strong id="overviewSelection">0 / 24</strong></span>
     <span class="overview-stat">活动 <strong id="overviewActivity">0</strong></span>
@@ -3446,15 +3522,15 @@
     <div class="health-main"><strong id="healthTitle">协作状态载入中</strong><span id="healthDetail">正在读取只读诊断、审阅就绪与下一步动作。</span></div>
     <div class="health-progress"><div class="health-progress-track"><div class="health-progress-fill" id="healthProgressFill"></div></div><span id="healthProgressLabel">0 / 4 步</span></div>
   </div>
-  <nav class="collab-journey" id="collabJourney" aria-label="双向协作流程">
+  <nav class="collab-journey" id="collabJourney" aria-label="画板连接流程">
     <button class="journey-step active" type="button" data-journey="graph" data-journey-tab="graph" data-state="idle" aria-current="step" title="让 AI 扫描项目，获得可编辑的结构图">
       <span class="journey-icon" aria-hidden="true">◇</span>
-      <span class="journey-copy"><strong>1 · 看见结构</strong><span data-journey-hint="graph">扫描项目 · 生成结构图</span><span class="journey-cta">进入项目图 →</span></span>
+      <span class="journey-copy"><strong>1 · 看见结构</strong><span data-journey-hint="graph">扫描项目 · 生成结构图</span><span class="journey-cta">编辑项目图 →</span></span>
       <span class="journey-state" data-journey-state="graph">○</span>
     </button>
     <button class="journey-step" type="button" data-journey="dialog" data-journey-tab="dialog" data-state="idle" title="修改节点、批注并告诉 AI 你的意图">
       <span class="journey-icon" aria-hidden="true">↔</span>
-      <span class="journey-copy"><strong>2 · 补充上下文</strong><span data-journey-hint="dialog">轻量纠错 · 上下文信号</span><span class="journey-cta">打开上下文视图 →</span></span>
+      <span class="journey-copy"><strong>2 · 沟通对象</strong><span data-journey-hint="dialog">画布留言 · 线程回复</span><span class="journey-cta">查看对象线程 →</span></span>
       <span class="journey-state" data-journey-state="dialog">○</span>
     </button>
     <button class="journey-step" type="button" data-journey="proposals" data-journey-tab="proposals" data-state="idle" title="查看 AI 生成的逐行差异与影响摘要">
@@ -3470,7 +3546,7 @@
   </nav>
   <div class="collab-tabs" role="tablist" aria-label="上下文审阅区">
     <button class="collab-tab active" type="button" data-tab-target="graph" role="tab" aria-selected="true" aria-controls="collabSectionGraph">◇ 项目图</button>
-    <button class="collab-tab" type="button" data-tab-target="dialog" role="tab" aria-selected="false" aria-controls="collabSectionDialog">⌁ 上下文</button>
+    <button class="collab-tab" type="button" data-tab-target="dialog" role="tab" aria-selected="false" aria-controls="collabSectionDialog">⌁ 对象线程</button>
     <button class="collab-tab" type="button" data-tab-target="proposals" role="tab" aria-selected="false" aria-controls="collabSectionProposals">✓ 提案</button>
   </div>
   <div class="collab-body">
@@ -3527,12 +3603,12 @@
       </div>
     </section>
     <section class="collab-section" id="collabSectionDialog" role="tabpanel" aria-label="上下文信号与批注">
-      <h3><span class="section-icon" aria-hidden="true">⌁</span>上下文信号与批注</h3>
+      <h3><span class="section-icon" aria-hidden="true">⌁</span>画布留言与对象线程</h3>
       <div class="section-scroll">
       <div class="history-tabs" role="tablist" aria-label="上下文历史视图">
         <button class="history-tab active" type="button" data-history-target="chat" role="tab" aria-selected="true" aria-controls="historyPaneChat">信号 <span class="history-tab-count" data-history-count="chat">0</span></button>
         <button class="history-tab" type="button" data-history-target="activity" role="tab" aria-selected="false" aria-controls="historyPaneActivity">活动 <span class="history-tab-count" data-history-count="activity">0</span></button>
-        <button class="history-tab" type="button" data-history-target="annotations" role="tab" aria-selected="false" aria-controls="historyPaneAnnotations">批注 <span class="history-tab-count" data-history-count="annotations">0</span></button>
+        <button class="history-tab" type="button" data-history-target="annotations" role="tab" aria-selected="false" aria-controls="historyPaneAnnotations">对象线程 <span class="history-tab-count" data-history-count="annotations">0</span></button>
         <button class="history-tab" type="button" data-history-target="diffs" role="tab" aria-selected="false" aria-controls="historyPaneDiffs">差异 <span class="history-tab-count" data-history-count="diffs">0</span></button>
       </div>
       <div class="history-pane active" id="historyPaneChat" data-history-pane="chat" role="tabpanel" aria-label="上下文信号"><div class="chat-log" id="chatLog"></div></div>
@@ -3565,24 +3641,17 @@
       </details>
       </div>
       <div class="section-dock">
-      <div class="dock-label"><span>纠错上下文 · ⌘/Ctrl + Enter 复制</span><span id="messageCount">0 / 2000</span></div>
+      <div class="dock-label"><span>给当前范围留言 · ⌘/Ctrl + Enter 保存</span><span id="boardNoteCount">0 / 2000</span></div>
       <div class="intent-composer">
-        <div class="intent-head"><strong>纠错草稿 <span class="badge-mode">只复制 · 不发送</span></strong><span class="intent-state" id="intentState">本机草稿 · 尚未复制</span></div>
-        <div class="intent-presets" aria-label="快捷意图">
-          <button class="intent-preset" type="button" data-intent-preset="describe">解释这张图</button>
-          <button class="intent-preset" type="button" data-intent-preset="scope">只看选中模块</button>
-          <button class="intent-preset" type="button" data-intent-preset="preflight">先做只读预检</button>
-          <button class="intent-preset" type="button" data-intent-preset="diff">生成待审提案</button>
-        </div>
+        <div class="intent-head"><strong>画布留言 <span class="badge-mode">锚定对象 · 写入会话</span></strong><span class="intent-state" id="intentState">未选中对象</span></div>
         <div class="input-row">
-          <textarea id="messageInput" maxlength="2000" placeholder="留下一句轻量纠错或补充说明，复制给 AI 读取…"></textarea>
-          <span class="input-count" id="messageInputCount">0 / 2000</span>
+          <textarea id="boardNoteInput" maxlength="2000" placeholder="写下想让 AI 理解的事；选中节点后会绑定到该对象…"></textarea>
+          <span class="input-count" id="boardNoteInputCount">0 / 2000</span>
         </div>
-        <div class="intent-foot"><span class="draft-note">◇ 复制后交给 AI · 不写入会话 · 不授权写入</span><span><code>get_visual_context</code> 后再预检 / 提案</span></div>
+        <div class="intent-foot"><span class="draft-note">◇ 留言与回复保留在同一对象线程 · 不授权项目写入</span><span><code>get_visual_context</code> 读取</span></div>
       </div>
       <div class="collab-actions">
-        <button id="btnSendMessage" class="primary">复制给 AI</button>
-        <button id="btnAddAnnotation">添加批注信号</button>
+        <button id="btnSaveBoardNote" class="primary">保存到对象线程</button>
         <button id="btnCopyAiContext" class="subtle" title="复制只读提示，不写入会话、不签发凭据">复制给 AI 的上下文</button>
         <button id="btnCopySharedBrief" class="subtle" title="复制紧凑只读 BRIEF_JSON，不写入会话、不签发凭据">复制共享简报</button>
       </div>
@@ -3592,7 +3661,10 @@
         <button id="btnCopyCapabilities" class="subtle" title="复制只读 CAPABILITIES_JSON，不调用工具、不写入会话、不签发凭据">复制能力清单</button>
         <button id="btnDialogMore" class="dock-toggle" type="button">更多 ⌄</button>
       </div>
-      <input id="annotationInput" placeholder="一句轻量纠错；先选中左侧节点即可绑定" />
+      <div id="copyFallback" data-visible="false" aria-live="polite">
+        <label for="copyFallbackInput">剪贴板不可用 · 手动复制这段只读文本</label>
+        <textarea id="copyFallbackInput" readonly></textarea>
+      </div>
       </div>
     </section>
     <section class="collab-section" id="collabSectionProposals" role="tabpanel" aria-label="变更提案">
@@ -3623,8 +3695,9 @@ const PREFS_DEFAULT = {
   splitPct: 50,          // editor pane width %
   theme: 'default',
   darkBg: false,
-  viewMode: 'split',
+  viewMode: 'canvas',
   focusMode: false,
+  boardDetailsOpen: false,
   zenWorkspace: false,
   ambient: 'calm',
   uiTheme: 'dark',
@@ -3677,7 +3750,8 @@ function applyPrefs() {
   $('#collabShell').classList.toggle('focus-mode', prefs.focusMode === true);
   $('#btnFocusMode').setAttribute('aria-pressed', String(prefs.focusMode === true));
   $('#btnFocusMode').textContent = prefs.focusMode ? '◉ 退出专注' : '◎ 专注';
-  setWorkspaceView(prefs.viewMode || 'split', false);
+  setBoardDetailsOpen(Boolean(prefs.boardDetailsOpen), false);
+  setWorkspaceView(prefs.viewMode || 'canvas', false);
   syncAppearanceControls();
   syncGraphSkin();
 }
@@ -3689,6 +3763,17 @@ function setFocusMode(enabled) {
   $('#btnFocusMode').textContent = prefs.focusMode ? '◉ 退出专注' : '◎ 专注';
   savePrefs();
   showToast(prefs.focusMode ? '已开启专注模式 · 概览与流程条暂时隐藏' : '已退出专注模式 · 恢复全部概览');
+}
+
+function setBoardDetailsOpen(open, persist = true) {
+  prefs.boardDetailsOpen = Boolean(open);
+  const shell = $('#collabShell');
+  shell.dataset.details = prefs.boardDetailsOpen ? 'open' : 'closed';
+  const button = $('#btnBoardDetails');
+  button.setAttribute('aria-pressed', String(prefs.boardDetailsOpen));
+  button.textContent = prefs.boardDetailsOpen ? '隐藏概览' : '显示概览';
+  shell.classList.toggle('focus-mode', prefs.focusMode === true);
+  if (persist) savePrefs();
 }
 
 function applyVisualSystem(system, persist = true) {
@@ -3819,7 +3904,7 @@ function toggleFlowSource() {
 function openFlowStage(stage) {
   if (stage === 'scan' || stage === 'edit') {
     setWorkspaceView('canvas');
-    showToast(stage === 'scan' ? '画布已聚焦 · 让 AI 调用 scan_project 生成结构图' : '画布已聚焦 · 点击节点或进入上下文审阅台补充纠错信号');
+    showToast(stage === 'scan' ? '画布已聚焦 · 点击「扫描项目」刷新共享结构图' : '画布已聚焦 · 选中对象并在右侧留言');
     return;
   }
   openCollab();
@@ -3923,7 +4008,8 @@ function setZenWorkspace(enabled) {
 
 function setWorkspaceView(view, persist = true) {
   const allowed = new Set(['split', 'source', 'canvas']);
-  const next = allowed.has(view) ? view : 'split';
+  const next = allowed.has(view) ? view : 'canvas';
+  const previous = $('#workspace').dataset.view;
   $('#workspace').dataset.view = next;
   for (const button of document.querySelectorAll('.view-switch button')) {
     button.classList.toggle('active', button.dataset.viewTarget === next);
@@ -3935,13 +4021,10 @@ function setWorkspaceView(view, persist = true) {
   if (next !== 'canvas') hideCanvasHoverCard();
   positionFocusRing();
   syncGraphSkin();
+  if (next === 'canvas' && previous !== 'canvas' && typeof fitCanvasWithObjectCard === 'function') {
+    fitCanvasWithObjectCard();
+  }
 }
-
-loadPrefs();
-// Apply theme before initializing mermaid
-mermaid.initialize({ startOnLoad: false, theme: prefs.theme || 'default', securityLevel: 'loose' });
-applyPrefs();
-// ────────────────────────────────────────────────────────────────
 
 // ── Zoom / Pan ──────────────────────────────────────────────────
 let zScale = 1, zX = 0, zY = 0;
@@ -4361,18 +4444,36 @@ function fitView() {
   const wrap = $('#previewWrap');
   const render = $('#diagramRender');
   const svg = render.querySelector('svg');
-  if (!svg) { resetView(); return; }
+  if (!svg) { zScale = 1; zX = 0; zY = 0; applyTransform(); return; }
   const { width: svgW, height: svgH } = naturalSvgSize(svg);
-  if (!svgW || !svgH) { resetView(); return; }
+  if (!svgW || !svgH) { zScale = 1; zX = 0; zY = 0; applyTransform(); return; }
   const canvasMode = $('#workspace').dataset.view === 'canvas';
-  const padW = wrap.clientWidth - (canvasMode ? 92 : 64);
+  const objectCard = $('#canvasObjectCard');
+  const objectCardVisible = canvasMode && objectCard?.dataset.visible === 'true'
+    && window.getComputedStyle(objectCard).display !== 'none';
+  const objectCardRect = objectCardVisible ? objectCard.getBoundingClientRect() : null;
+  const wrapRect = wrap.getBoundingClientRect();
+  const rightInset = objectCardRect ? Math.max(0, wrapRect.right - objectCardRect.left) : 0;
+  const padW = wrap.clientWidth - (canvasMode ? 92 : 64) - rightInset;
   const padH = wrap.clientHeight - (canvasMode ? 128 : 96);
   const newScale = Math.min(padW / svgW, padH / svgH, 3.2);
   zScale = Math.max(0.05, newScale);
-  zX = (wrap.clientWidth  - svgW * zScale) / 2;
+  const leftInset = 46;
+  const availableWidth = Math.max(1, wrap.clientWidth - leftInset - rightInset);
+  zX = leftInset + (availableWidth - svgW * zScale) / 2;
   zY = (wrap.clientHeight - svgH * zScale) / 2 - (canvasMode ? 16 : 0);
   applyTransform();
 }
+
+function fitCanvasWithObjectCard() {
+  if ($('#workspace').dataset.view === 'canvas') fitView();
+}
+
+loadPrefs();
+// Apply theme before initializing mermaid
+mermaid.initialize({ startOnLoad: false, theme: prefs.theme || 'default', securityLevel: 'loose' });
+applyPrefs();
+// ────────────────────────────────────────────────────────────────
 
 const previewWrap = $('#previewWrap');
 const panOverlay  = $('#panOverlay');
@@ -4570,6 +4671,10 @@ $('#btnCanvasOpenNode').addEventListener('click', () => { openCollab(); setColla
 $('#btnCanvasRelatedNode').addEventListener('click', stepRelatedCanvasFocus);
 $('#btnCanvasCopyFocus').addEventListener('click', copyCanvasFocusContext);
 $('#btnCanvasOpenConversation').addEventListener('click', openFocusConversation);
+$('#btnCanvasBoardNote').addEventListener('click', saveCanvasBoardNote);
+$('#canvasBoardNoteInput').addEventListener('keydown', (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') saveCanvasBoardNote();
+});
 $('#btnCanvasEvidence').addEventListener('click', () => openContextDrawer('evidence'));
 $('#btnCanvasReview').addEventListener('click', () => openContextDrawer('review'));
 $('#btnCanvasDecision').addEventListener('click', copyDecisionTrail);
@@ -5305,13 +5410,13 @@ const COMMANDS = [
   { group: '工作区视图', icon: '⌘', title: '展开 / 收起 Flow 源码抽屉', hint: '显示或隐藏画布旁边的本机源码编辑器', shortcut: 'E', keys: '源码 抽屉 flow source editor', run: () => toggleFlowSource() },
   { group: '工作区视图', icon: '◧', title: '切换上下文速览', hint: '展开或收起实时只读对象上下文', shortcut: 'I', keys: '速览 上下文 inspector 侧栏', run: () => setInspectorOpen(!prefs.inspectorOpen) },
   { group: '外观与帮助', icon: '◈', title: '切换视觉氛围', hint: '在鲜明品牌渐变与静谧低干扰配色间切换', shortcut: '', keys: '氛围 鲜明 静谧 ambient theme', run: () => setAmbient(prefs.ambient === 'calm' ? 'vivid' : 'calm') },
-  { group: '上下文工具', icon: '⌁', title: '打开上下文审阅台', hint: '查看 AI 上下文与轻量纠错入口', shortcut: 'C', keys: '上下文 审阅 workbench', run: () => openCollab() },
+  { group: '项目画板', icon: '◫', title: '打开项目工作台', hint: '查看结构图、对象线程与变更审阅', shortcut: 'C', keys: '上下文 画板 结构 审阅 workbench', run: () => openCollab() },
   { group: '协作流程', icon: '✎', title: '查看项目结构图', hint: '打开 Flow 工作台并展开源码抽屉，再进入项目图', shortcut: '', keys: 'flow 项目图 结构 graph scan', run: () => { applyLayoutSystem('flow'); applyFlowSourceOpen(true); openCollab(); setCollabTab('graph'); } },
   { group: '协作流程', icon: '◇', title: '查看项目结构图', hint: '切到节点编辑与扫描流程', shortcut: '4', keys: '项目图 结构 graph scan', run: () => { openCollab(); setCollabTab('graph'); } },
-  { group: '上下文工具', icon: '⌁', title: '查看上下文信号', hint: '切到消息、批注与活动时间线', shortcut: '5', keys: '上下文 消息 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
+  { group: '项目画板', icon: '⌁', title: '查看对象线程', hint: '查看和继续绑定在画布对象上的交流', shortcut: '5', keys: '对象 线程 留言 批注 chat', run: () => { openCollab(); setCollabTab('dialog'); } },
   { group: '协作流程', icon: '✓', title: '查看变更提案', hint: '切到逐行 diff 与人工批准', shortcut: '6', keys: '提案 diff 批准 proposal', run: () => { openCollab(); setCollabTab('proposals'); } },
   { group: '协作流程', icon: '◇', title: '载入示例图形', hint: '只写入本机编辑器并渲染预览', shortcut: '', keys: '示例 demo mermaid', run: () => loadExampleDiagram() },
-  { group: '协作流程', icon: '↔', title: '解释这张图', hint: '把只读结构说明插入意图草稿，不发送', shortcut: '', keys: '意图 模板 解释 结构', run: () => { openCollab(); setCollabTab('dialog'); insertIntentPreset(document.querySelector('[data-intent-preset="describe"]')); } },
+  { group: '项目画板', icon: '✎', title: '给当前对象留言', hint: '在画布右侧对象卡里继续这条线程', shortcut: '', keys: '留言 画板 对象 批注 意图 节点', run: () => { setWorkspaceView('canvas'); $('#canvasBoardNoteInput')?.focus(); } },
   { group: '协作流程', icon: '→', title: '切换下一个节点', hint: '把只读焦点移到下一个项目结构节点', shortcut: ']', keys: '节点 焦点 next object', run: () => stepCanvasFocus(1) },
   { group: '协作流程', icon: '↗', title: '跳到关联对象', hint: '沿真实连线切换当前只读焦点', shortcut: '', keys: '关联 相邻 边 edge 对象', run: () => stepRelatedCanvasFocus() },
   { group: '协作流程', icon: '⧉', title: '复制焦点上下文', hint: '复制当前节点的只读上下文提示给 AI', shortcut: '', keys: '复制 焦点 上下文 context', run: () => copyCanvasFocusContext() },
@@ -5561,6 +5666,9 @@ function connectWs() {
       } else if (['graph_updated', 'chat_message', 'proposal_created', 'proposal_updated', 'session_updated'].includes(msg.type)) {
         schedulePulseLoad();
       }
+      if (msg.type === 'graph_updated' && $('#collabShell').hidden) {
+        window.setTimeout(() => loadCollab(), 120);
+      }
     } catch {}
   };
 }
@@ -5710,7 +5818,7 @@ function renderCollabPulse() {
   }
   if (orbitLabel) orbitLabel.textContent = attention > 0 ? String(attention) : '✓';
   if (nextChip) nextChip.textContent = nextAction || (pendingProposals ? '展开完整逐行 diff，再由人工确认。' : '打开工作台，继续编辑结构图或表达意图。');
-  pulse.title = `打开上下文审阅台（C）· ${attention} 项只读上下文信号；批准前始终只读`;
+  pulse.title = `打开项目工作台（C）· ${attention} 项只读上下文信号；批准前始终只读`;
   const setMetric = (selector, value) => { const target = $(selector); if (target) target.textContent = String(value); };
   const setPulseBar = (selector, value, color) => {
     const target = $(selector);
@@ -5728,6 +5836,11 @@ function renderCollabPulse() {
   renderCollabHandoff({ pendingMessages, pendingProposals, openAnnotations, nextAction, nextActor: diagnostics?.activity?.nextActor });
   renderDialogStarTrack();
   renderFlowRail({ pendingMessages, pendingProposals, openAnnotations });
+  const boardTitle = $('#boardContextTitle');
+  if (boardTitle) {
+    const nodes = Array.isArray(graph?.nodes) ? graph.nodes.length : 0;
+    boardTitle.textContent = nodes ? `共享结构图 · ${nodes} 个对象` : '等待 AI 扫描项目';
+  }
   if (!$('#welcomeCard')?.hidden) {
     renderWelcomeJourney({ pendingProposals, attention, hasGraph: Boolean(graph?.nodes?.length) });
   }
@@ -5843,7 +5956,9 @@ function renderFlowRail({ pendingMessages = 0, pendingProposals = 0, openAnnotat
   }
   rail.style.setProperty('--flow-progress', `${progress}%`);
   rail.dataset.progressLabel = `${completed} / 4 READY · ${progress}%`;
-  $('#flowRailMeta').textContent = `${proposals} 待审 · ${messages} 上下文信号 · ${annotations} 批注`;
+  $('#flowRailMeta').textContent = nodes
+    ? `${nodes} 个对象 · ${annotations} 条对象留言${proposals ? ` · ${proposals} 个变更待审` : ''} · 批准前只读`
+    : '选中画布对象即可留言 · 批准前只读';
 }
 
 function renderWelcomeJourney({ pendingProposals, attention, hasGraph }) {
@@ -6053,7 +6168,7 @@ function setCollabTab(target) {
     tab.tabIndex = active ? 0 : -1;
   }
   renderJourney();
-  if (next === 'graph') { renderCanvasConversation(); renderCanvasContextStrip(); }
+  if (next === 'graph') { renderCanvasBoardThread(); renderCanvasContextStrip(); }
   renderInspector();
 }
 
@@ -6121,6 +6236,7 @@ function renderSelectionSummary() {
   target.title = '多选范围最多 24 个节点；保存图形、导入会话或节点删除后会自动清除失锚 ID。它不签发批准凭据，也不写项目文件。';
   updateOverview();
   updateGraphToolbarSelection();
+  updateNoteContext();
 }
 
 function updateGraphToolbarSelection() {
@@ -6181,6 +6297,7 @@ function renderFocus(focus = null) {
     : '当前焦点 · 未选中节点；选中后 AI 会知道你正在指哪个对象';
   target.title = '选中状态只是只读上下文，不签发批准凭据，也不自动创建或应用提案。';
   renderCanvasObject();
+  updateNoteContext();
 }
 
 function setCanvasFocusNode(nodeId, publish = true) {
@@ -6190,6 +6307,7 @@ function setCanvasFocusNode(nodeId, publish = true) {
   renderGraphEditor();
   renderFocus();
   renderCanvasObject();
+  updateNoteContext();
   if (previousNodeId !== nodeId && $('#workspace').dataset.view === 'canvas') playFocusRipple();
   if (publish) publishFocus(nodeId);
 }
@@ -6306,6 +6424,27 @@ function stepRelatedCanvasFocus() {
   setCanvasFocusNode(nextId);
 }
 
+async function copyTextForAi(text, successMessage, label = '只读提示') {
+  try {
+    await navigator.clipboard.writeText(text);
+    const fallback = $('#copyFallback');
+    if (fallback) fallback.dataset.visible = 'false';
+    showToast(successMessage);
+    return true;
+  } catch {
+    const fallback = $('#copyFallback');
+    const input = $('#copyFallbackInput');
+    if (fallback && input) {
+      input.value = text;
+      fallback.dataset.visible = 'true';
+      input.focus();
+      input.select();
+    }
+    showToast(`剪贴板不可用；${label}已放入下方只读文本框`);
+    return false;
+  }
+}
+
 async function copyCanvasFocusContext() {
   const node = (collabGraph?.nodes || []).find((item) => item.id === selectedNodeId);
   if (!node) return showToast('先让 AI 扫描项目，并在画布上选中一个对象');
@@ -6321,14 +6460,7 @@ async function copyCanvasFocusContext() {
     '',
     '请先解释这个对象及相邻关系；如需改变项目文件，仍须 preflight_visual_proposal、完整逐行 diff、人工批准与一次性确认号。此提示不含批准凭据，也不授权写入。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读焦点上下文；不含确认号、绝对路径或写入授权');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把只读焦点提示放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读焦点上下文；不含确认号、绝对路径或写入授权', '只读焦点提示');
 }
 
 function focusConversationThreads(nodeId = selectedNodeId) {
@@ -6344,11 +6476,14 @@ function focusConversationState(nodeId = selectedNodeId) {
   return { total: threads.length, open: openThreads.length, blocked: blockedThreads.length, nextActor };
 }
 
-function renderCanvasConversation() {
+function renderCanvasBoardThread() {
   const card = $('#canvasObjectConversation');
   const summary = $('#canvasConversationSummary');
   const button = $('#btnCanvasOpenConversation');
-  if (!card || !summary || !button) return;
+  const thread = $('#canvasBoardThread');
+  const input = $('#canvasBoardNoteInput');
+  const save = $('#btnCanvasBoardNote');
+  if (!card || !summary || !button || !thread || !input || !save) return;
   const state = focusConversationState();
   card.dataset.state = state.blocked ? 'blocked' : state.open ? 'pending' : 'clear';
   card.dataset.openThreads = String(state.open);
@@ -6357,7 +6492,25 @@ function renderCanvasConversation() {
   else if (state.blocked) summary.innerHTML = `上下文 · <strong>${state.blocked}</strong> 条批注需重锚`;
   else if (state.open) summary.innerHTML = `上下文 · <strong>${state.open}</strong> 条开放信号`;
   else summary.textContent = '上下文 · 批注已全部解决';
-  button.disabled = !state.total;
+  button.disabled = false;
+  const node = (collabGraph?.nodes || []).find((item) => item.id === selectedNodeId);
+  const threads = focusConversationThreads(selectedNodeId);
+  const entries = threads.flatMap((annotation) => [
+    { author: annotation.author, body: annotation.body, createdAt: annotation.createdAt, stale: annotation.anchorStatus !== 'anchored' },
+    ...(annotation.replies || []).map((reply) => ({ author: reply.author, body: reply.body, createdAt: reply.createdAt, stale: false })),
+  ]);
+  const recent = entries.slice(-8);
+  thread.innerHTML = recent.length
+    ? recent.map((entry) => `
+      <div class="canvas-board-entry ${entry.author === 'ai' ? 'ai' : 'human'}">
+        <span class="canvas-board-entry-meta">${entry.author === 'ai' ? 'AI' : '人'} · ${escapeHtml(entry.createdAt || '')}${entry.stale ? ' · 锚点需确认' : ''}</span>
+        <span>${escapeHtml(entry.body)}</span>
+      </div>`).join('')
+    : '<div class="canvas-board-empty">还没有关于这个对象的留言。写下第一句，AI 会通过 MCP 在同一线程读到并回应。</div>';
+  input.disabled = !node;
+  save.disabled = !node;
+  input.placeholder = node ? `告诉 AI「${node.label}」应如何理解，或继续上面的线程…` : '先选中画布中的一个对象，再写留言';
+  $('#canvasBoardNoteState').textContent = node ? `绑定到 ${node.label} · 不写项目文件` : '选中对象后可留言';
 }
 
 function renderCanvasContextStrip() {
@@ -6423,14 +6576,12 @@ function openCollabFromCanvas(tab, afterOpen) {
 
 function openFocusConversation() {
   const state = focusConversationState();
-  if (!state.total) return showToast('当前对象还没有绑定批注信号；可先在项目图栏添加轻量纠错');
   openCollabFromCanvas('dialog', () => {
     const annotationsTab = document.querySelector('[data-history-target="annotations"]');
     if (annotationsTab) setHistoryTab(annotationsTab);
+    $('#boardNoteInput')?.focus();
   });
-  const firstThread = $('#annotationList').querySelector('.annotation-thread');
-  if (firstThread) firstThread.scrollIntoView({ block: 'center' });
-  showToast('已定位当前对象的批注；讨论状态不等于批准或写入授权');
+  showToast(state.total ? '已定位当前对象的线程；讨论状态不等于批准或写入授权' : '当前对象还没有留言；可在工作台写下第一条');
 }
 
 function openCanvasThreadBadge(nodeId) {
@@ -6494,6 +6645,7 @@ function renderCanvasObject() {
   const relatedCount = relatedCanvasNodeIds(node?.id).length;
   const state = focusConversationState(node?.id);
   $('#canvasObjectCard').dataset.visible = String(Boolean(node));
+  fitCanvasWithObjectCard();
   $('#canvasObjectIndex').textContent = nodes.length ? `${current + 1} / ${nodes.length}` : '0 / 0';
   $('#canvasObjectLabel').textContent = node?.label || '等待项目结构图';
   $('#canvasObjectPath').textContent = node?.path || '选中节点后作为 AI 的只读上下文';
@@ -6521,7 +6673,7 @@ function renderCanvasObject() {
       : '等待只读焦点';
     lens.title = node ? `${node.label} · 只读焦点；不签发凭据、不批准提案、不写项目文件` : 'Flow 只读画布焦点';
   }
-  renderCanvasConversation();
+  renderCanvasBoardThread();
   renderCanvasRelationMap();
   renderCanvasDockRoute();
   renderCanvasContextStrip();
@@ -6727,8 +6879,9 @@ function renderSelectionWorkorder(workorder) {
 }
 
 async function copySelectionScope() {
+  let scope = collabSelectionScope;
   try {
-    const scope = collabSelectionScope || await loadSelectionScope();
+    scope = scope || await loadSelectionScope();
     const prompt = [
       '请调用 get_selection_scope 读取同一份 version 1 SELECTION_SCOPE_JSON；下面是面板已加载的只读选择范围：',
       scope.copyText,
@@ -6736,19 +6889,20 @@ async function copySelectionScope() {
       `SELECTION_SCOPE_JSON: ${JSON.stringify(scope)}`,
       '选择范围只是人类注意力上下文；请再用 get_visual_context 读取完整会话，创建提案前先 preflight_visual_proposal。',
     ].join('\n');
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读选择范围；它不包含确认号或本机绝对路径');
+    await copyTextForAi(prompt, '已复制只读选择范围；它不包含确认号或本机绝对路径', '选择范围提示');
   } catch {
-    const scope = collabSelectionScope;
-    $('#messageInput').value = scope ? `请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。\n${scope.copyText}` : '请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。';
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把选择范围提示放入纠错草稿框（尚未复制）');
+    const text = scope ? `请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。\n${scope.copyText}` : '请调用 get_selection_scope 读取当前选择范围；这是只读上下文，不授权写入。';
+    await copyTextForAi(text, '已复制只读选择范围；它不包含确认号或本机绝对路径', '选择范围提示');
   }
 }
 
 async function copySelectionWorkorder() {
+  let workorder = collabSelectionWorkorder;
   try {
-    const workorder = collabSelectionWorkorder || (await loadSelectionScope(), collabSelectionWorkorder);
+    if (!workorder) {
+      await loadSelectionScope();
+      workorder = collabSelectionWorkorder;
+    }
     const prompt = [
       '请调用 get_selection_workorder 读取同一份 version 1 SELECTION_WORKORDER_JSON；下面是面板已加载的只读预提案工作单：',
       workorder.copyText,
@@ -6756,15 +6910,12 @@ async function copySelectionWorkorder() {
       `SELECTION_WORKORDER_JSON: ${JSON.stringify(workorder)}`,
       '工作单不含文件内容、逐行 diff 或批准凭据；请先用 get_visual_context 读取完整会话，讨论缺口后再显式起草 changes，并先调用 preflight_visual_proposal。',
     ].join('\n');
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读预提案工作单；它不包含文件内容、确认号或本机绝对路径');
+    await copyTextForAi(prompt, '已复制只读预提案工作单；它不包含文件内容、确认号或本机绝对路径', '工作单提示');
   } catch {
-    const workorder = collabSelectionWorkorder;
-    $('#messageInput').value = workorder
+    const text = workorder
       ? `请调用 get_selection_workorder 读取当前预提案工作单；这是只读清单，不授权写入。\n${workorder.copyText}`
       : '请调用 get_selection_workorder 读取当前预提案工作单；这是只读清单，不授权写入。';
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把工作单提示放入纠错草稿框（尚未复制）');
+    await copyTextForAi(text, '已复制只读预提案工作单；它不包含文件内容、确认号或本机绝对路径', '工作单提示');
   }
 }
 
@@ -7072,7 +7223,7 @@ function renderAnnotations(annotations) {
   if (!target) return;
   const labels = new Map((collabGraph?.nodes ?? []).map((node) => [node.id, node.label]));
   target.innerHTML = annotations.length ? annotations.map((annotation) => `
-    <article class="annotation-thread ${annotation.resolved ? 'resolved' : ''} ${annotation.anchorStatus === 'detached' ? 'detached' : ''} ${annotation.anchorStatus === 'outdated' ? 'outdated' : ''}" data-annotation-id="${escapeHtml(annotation.id)}">
+    <article class="annotation-thread ${annotation.resolved ? 'resolved' : ''} ${annotation.anchorStatus === 'detached' ? 'detached' : ''} ${annotation.anchorStatus === 'outdated' ? 'outdated' : ''}" data-annotation-id="${escapeHtml(annotation.id)}" data-focused="${String(!annotation.nodeId || annotation.nodeId === selectedNodeId)}">
       <div class="annotation-thread-head">
         <span class="annotation-thread-meta">${annotation.resolved ? '已解决' : '待讨论'} · <span class="next">${escapeHtml(annotationThreadNextActor(annotation))}</span>${annotation.nodeId ? ` · <span class="target">@ ${escapeHtml(labels.get(annotation.nodeId) || annotation.nodeLabel || annotation.nodeId)}</span>` : ''}${annotation.anchorStatus === 'detached' ? ' · <span class="stale">失锚</span>' : ''}${annotation.anchorStatus === 'outdated' ? ' · <span class="stale">过期</span>' : ''}</span>
         <span>
@@ -7084,10 +7235,15 @@ function renderAnnotations(annotations) {
       ${annotation.anchorStatus === 'detached' ? '<div class="annotation-anchor-note">原节点已删除；请确认讨论是否仍适用于当前图。</div>' : ''}
       ${annotation.anchorStatus === 'outdated' ? `<div class="annotation-anchor-note">节点标签或路径已变化（原：${escapeHtml(annotation.nodeLabel || annotation.nodePath || '未记录')}）；确认重锚后 AI 才能把它当作当前意图。</div>` : ''}
       <div class="annotation-replies">${renderAnnotationReplies(annotation.replies)}</div>
-      <div class="annotation-reply-readonly">线程回复由 AI 工具写入；面板只展示既有只读上下文信号。</div>
+      <form class="annotation-reply-form" data-annotation-reply="${escapeHtml(annotation.id)}">
+        <label class="sr-only" for="reply-${escapeHtml(annotation.id)}">回复这条对象留言</label>
+        <textarea id="reply-${escapeHtml(annotation.id)}" maxlength="2000" placeholder="继续这条线程；AI 会在同一对象上读到你的回复…"></textarea>
+        <button type="submit">回复</button>
+      </form>
+      <div class="annotation-thread-note">人和 AI 的回复按时间保存在同一线程；讨论不批准提案，也不写项目文件。</div>
     </article>
-  `).join('') : historyEmpty('⌖', '还没有批注信号', '在左侧项目图选中节点，再用 <code>添加批注信号</code> 绑定一句轻量纠错；AI 会把它作为只读上下文。');
-  renderCanvasConversation();
+  `).join('') : historyEmpty('⌖', '还没有画布留言', '选中画布对象并写下一条留言，AI 会通过 MCP 读取并在同一线程回应。');
+  renderCanvasBoardThread();
   renderCanvasContextStrip();
   syncFocusLabelConversation();
 
@@ -7097,7 +7253,44 @@ function renderAnnotations(annotations) {
   for (const button of target.querySelectorAll('[data-annotation-anchor]')) {
     button.addEventListener('click', () => reanchorAnnotation(button.dataset.annotationAnchor));
   }
+  for (const form of target.querySelectorAll('[data-annotation-reply]')) {
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitAnnotationReply(form.dataset.annotationReply, form);
+    });
+  }
   updateHistoryCount('annotations', annotations.length, annotations.some((annotation) => !annotation.resolved));
+}
+
+async function submitAnnotationReply(id, form) {
+  const input = form.querySelector('textarea');
+  const body = input?.value.trim();
+  if (!body) return showToast('请先写下要回复的内容');
+  const button = form.querySelector('button');
+  protectCollabInteraction();
+  collabInteractionDepth += 1;
+  if (button) {
+    button.disabled = true;
+    button.classList.add('busy');
+    button.setAttribute('aria-busy', 'true');
+  }
+  try {
+    await collabFetch(`/api/collab/annotations/${encodeURIComponent(id)}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ body, author: 'human' }),
+    });
+    showToast('回复已保存到同一对象线程；等待 AI 读取');
+    refreshCollabSafely();
+  } catch (error) {
+    showToast(`回复失败：${error.message}`);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.classList.remove('busy');
+      button.removeAttribute('aria-busy');
+    }
+    finishCollabInteraction();
+  }
 }
 
 function annotationThreadNextActor(annotation) {
@@ -7526,14 +7719,7 @@ function buildAiContextPrompt() {
 
 async function copyAiContext() {
   const prompt = buildAiContextPrompt();
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读上下文提示；它不包含确认号');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把提示放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读上下文提示；它不包含确认号', '上下文提示');
 }
 
 async function copySharedBrief() {
@@ -7548,14 +7734,7 @@ async function copySharedBrief() {
     '',
     'BRIEF_JSON 不含批准凭据；失锚线程不是当前意图。只有我查看逐行 diff、批准并提供一次性确认号后，才可 apply_visual_proposal。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读共享简报；它不包含确认号');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把简报放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读共享简报；它不包含确认号', '共享简报');
 }
 
 async function copyDecisionTrail() {
@@ -7570,14 +7749,7 @@ async function copyDecisionTrail() {
     '',
     '决策链不含批准凭据；失锚讨论只作历史证据，提案变更行只是有界投影，仍需打开完整逐行 diff。只有我查看逐行 diff、批准并提供一次性确认号后，才可 apply_visual_proposal。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读决策链；它不包含确认号');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把决策链放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读决策链；它不包含确认号', '决策链');
 }
 
 async function copySourceNavigation() {
@@ -7593,14 +7765,7 @@ async function copySourceNavigation() {
     '这些相对 file:line 与 URI 只是可复制提示，不代表我可以批准写入，也不代表服务端已打开文件或执行 IDE 命令。',
     '如需改动项目，先 preflight_visual_proposal，再 create_visual_proposal；等我查看逐行 diff、批准并提供一次性确认号后才可 apply_visual_proposal。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读源码跳转清单；它不包含确认号或绝对路径');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把源码跳转清单放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读源码跳转清单；它不包含确认号或绝对路径', '源码跳转清单');
 }
 
 async function copyCapabilities() {
@@ -7616,14 +7781,7 @@ async function copyCapabilities() {
     '能力清单只是描述性目录，不调用工具、不签发凭据，也不等于我已批准写入。',
     '如需改动项目，先 preflight_visual_proposal，再 create_visual_proposal；等我查看完整逐行 diff、批准并提供一次性确认号后才可 apply_visual_proposal。',
   ].join('\n');
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('已复制只读能力清单；它不包含确认号或本机绝对路径');
-  } catch {
-    $('#messageInput').value = prompt;
-    $('#messageInput').focus();
-    showToast('剪贴板不可用，已把能力清单放入纠错草稿框（尚未复制）');
-  }
+  await copyTextForAi(prompt, '已复制只读能力清单；它不包含确认号或本机绝对路径', '能力清单');
 }
 
 async function saveGraph() {
@@ -7688,35 +7846,68 @@ async function saveGraph() {
   }
 }
 
-async function sendMessage() {
-  const input = $('#messageInput');
-  const body = input.value.trim();
-  if (!body) return;
-  const button = $('#btnSendMessage');
+const BOARD_NOTE_DRAFT_KEY = 'ai-draw:board-note-draft';
+function clearBoardNoteDraft() {
+  try { localStorage.removeItem(BOARD_NOTE_DRAFT_KEY); } catch {}
+}
+function currentBoardNoteTarget() {
+  const nodes = collabGraph?.nodes || [];
+  const focused = nodes.find((node) => node.id === selectedNodeId);
+  if (focused) return { nodeId: focused.id, label: `节点 · ${focused.label}`, note: '留言会绑定到这个节点' };
+  if (selectedNodeIds.length) return { nodeId: null, label: `范围 · ${selectedNodeIds.length} 个节点`, note: '没有焦点：留言会保存到画布范围' };
+  return { nodeId: null, label: '画布范围', note: '未选中节点：留言会保存到画布范围' };
+}
+function updateNoteContext() {
   const state = $('#intentState');
+  if (!state || state.classList.contains('busy') || state.classList.contains('error') || state.classList.contains('sent')) return;
+  const target = currentBoardNoteTarget();
+  state.textContent = target.label;
+  state.title = `${target.note}；只写共享会话，不写项目文件。`;
+  const input = $('#boardNoteInput');
+  if (input) input.setAttribute('aria-label', `给${target.label}留言`);
+}
+function updateBoardNoteCount() {
+  const input = $('#boardNoteInput');
+  if (!input) return;
+  const label = `${input.value.length} / 2000`;
+  $('#boardNoteCount').textContent = label;
+  $('#boardNoteInputCount').textContent = label;
+  $('#btnSaveBoardNote').classList.toggle('has-draft', input.value.length > 0);
+  updateNoteContext();
+  try {
+    if (input.value) localStorage.setItem(BOARD_NOTE_DRAFT_KEY, input.value);
+    else clearBoardNoteDraft();
+  } catch {}
+}
+
+async function saveBoardNote() {
+  const input = $('#boardNoteInput');
+  const body = input.value.trim();
+  if (!body) return showToast('请先写一句想让 AI 理解的上下文');
+  const button = $('#btnSaveBoardNote');
+  const state = $('#intentState');
+  const target = currentBoardNoteTarget();
   button.disabled = true;
   button.classList.add('busy');
   button.setAttribute('aria-busy', 'true');
   state.className = 'intent-state busy';
-  state.textContent = '正在生成可复制的纠错上下文…';
+  state.textContent = `正在保存到${target.label}…`;
   try {
-    const prompt = [
-      '请先用 get_visual_context 读取当前结构化上下文；下面是一句人工轻量纠错，仅供解释或后续只读预检：',
-      body,
-      '',
-      '这段文本不写入会话、不批准提案、不签发凭据，也不授权项目写入。',
-    ].join('\n');
-    await navigator.clipboard.writeText(prompt);
+    await collabFetch('/api/collab/annotations', {
+      method: 'POST',
+      body: JSON.stringify({ body, nodeId: target.nodeId }),
+    });
     input.value = '';
-    updateMessageCount();
-    clearMessageDraft();
+    updateBoardNoteCount();
+    clearBoardNoteDraft();
     state.className = 'intent-state sent';
-    state.textContent = '✓ 已复制 · 粘贴给 AI 后由工具读取';
-    showToast('纠错上下文已复制；没有写入会话或项目文件');
+    state.textContent = `✓ 已保存到${target.label} · 等待 AI 读取`;
+    showToast('画布留言已写入共享会话；没有写项目文件');
+    refreshCollabSafely();
   } catch (error) {
     state.className = 'intent-state error';
-    state.textContent = '复制失败 · 草稿已保留，可手动选中复制';
-    showToast(`剪贴板不可用；草稿已保留，尚未写入会话：${error.message}`);
+    state.textContent = '保存失败 · 草稿已保留';
+    showToast(`保存留言失败；草稿仍在本机：${error.message}`);
   } finally {
     button.disabled = false;
     button.classList.remove('busy');
@@ -7724,47 +7915,40 @@ async function sendMessage() {
   }
 }
 
-const MESSAGE_DRAFT_KEY = 'ai-draw:message-draft';
-function clearMessageDraft() {
-  try { localStorage.removeItem(MESSAGE_DRAFT_KEY); } catch {}
-}
-function updateMessageCount() {
-  const input = $('#messageInput');
-  const count = input.value.length;
-  const label = `${count} / 2000`;
-  $('#messageCount').textContent = label;
-  $('#messageInputCount').textContent = label;
-  $('#btnSendMessage').classList.toggle('has-draft', count > 0);
-  const state = $('#intentState');
-  if (state && !state.classList.contains('busy') && !state.classList.contains('error') && !state.classList.contains('sent')) {
-    state.textContent = count ? '本机草稿 · 尚未复制' : '等待轻量纠错';
-  }
+async function saveCanvasBoardNote() {
+  const input = $('#canvasBoardNoteInput');
+  const button = $('#btnCanvasBoardNote');
+  const state = $('#canvasBoardNoteState');
+  const body = input.value.trim();
+  const node = (collabGraph?.nodes || []).find((item) => item.id === selectedNodeId);
+  if (!node) return showToast('先在画布上选中一个对象，再保存留言');
+  if (!body) return showToast('请先写一句想让 AI 理解的上下文');
+  button.disabled = true;
+  button.classList.add('busy');
+  button.setAttribute('aria-busy', 'true');
+  state.textContent = '正在写入对象线程…';
   try {
-    if (count) localStorage.setItem(MESSAGE_DRAFT_KEY, input.value);
-    else clearMessageDraft();
-  } catch {}
-}
-
-const INTENT_PRESETS = {
-  describe: '请先用 get_visual_context 读取当前图与上下文信号，再用中文解释这张项目结构图；只描述，不创建提案或写项目文件。',
-  scope: '请先看我当前选中的节点范围与焦点，只围绕这些模块解释关系；选择范围是只读上下文，不授权写入。',
-  preflight: '请先读取当前意图与图形差异，对候选改动做 preflight_visual_proposal；先不要创建提案，也不要写项目文件。',
-  diff: '请根据当前意图和图形修订生成待审变更提案，先展示完整逐行 diff 与影响摘要；我批准并给确认号前不要写项目文件。',
-};
-function insertIntentPreset(button) {
-  const input = $('#messageInput');
-  const text = INTENT_PRESETS[button.dataset.intentPreset];
-  if (!text) return;
-  const existing = input.value.trim();
-  const next = existing ? `${existing}\n\n${text}` : text;
-  input.value = next.slice(0, 2000);
-  for (const candidate of document.querySelectorAll('.intent-preset')) candidate.classList.toggle('active', candidate === button);
-  updateMessageCount();
-  input.focus();
-  input.setSelectionRange(input.value.length, input.value.length);
-  const state = $('#intentState');
-  state.className = 'intent-state';
-  state.textContent = '已插入意图模板 · 仍在本机草稿';
+    const thread = focusConversationThreads(node.id).find((annotation) => !annotation.resolved && annotation.anchorStatus === 'anchored');
+    const url = thread
+      ? `/api/collab/annotations/${encodeURIComponent(thread.id)}/reply`
+      : '/api/collab/annotations';
+    await collabFetch(url, {
+      method: 'POST',
+      body: JSON.stringify(thread ? { body, author: 'human' } : { body, nodeId: node.id }),
+    });
+    input.value = '';
+    state.textContent = '已保存 · 等待 AI 读取';
+    showToast('留言已写入对象线程；没有写项目文件');
+    await loadCollabPulse();
+    await loadCollab();
+  } catch (error) {
+    state.textContent = '保存失败 · 草稿仍在输入框';
+    showToast(`保存留言失败：${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.classList.remove('busy');
+    button.removeAttribute('aria-busy');
+  }
 }
 
 async function rescanProject() {
@@ -7792,21 +7976,28 @@ async function rescanProject() {
   }
 }
 
-async function addAnnotation() {
-  const input = $('#annotationInput');
-  const body = input.value.trim();
-  if (!body) return showToast('请输入一句轻量纠错');
-  input.value = '';
+async function rescanBoardProject(button) {
+  if (!button || button.disabled) return;
+  const previous = button.textContent;
+  button.disabled = true;
+  button.classList.add('busy');
+  button.setAttribute('aria-busy', 'true');
+  button.textContent = '扫描中…';
   try {
-    const nodeId = selectedNodeId || undefined;
-    await collabFetch('/api/collab/annotations', {
+    const result = await collabFetch('/api/collab/rescan', {
       method: 'POST',
-      body: JSON.stringify({ body, nodeId }),
+      body: JSON.stringify({ confirmedBy: 'human', render: true }),
     });
-    showToast(nodeId ? '批注信号已绑定到选中节点' : '批注信号已加入图形');
-    refreshCollabSafely();
+    if (result.diagramId) await loadDiagram(result.diagramId);
+    await loadCollabPulse();
+    showToast(`共享结构图已更新 · rev ${result.graphRevision}`);
   } catch (error) {
-    showToast(`批注信号失败：${error.message}`);
+    showToast(`扫描项目失败：${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.classList.remove('busy');
+    button.removeAttribute('aria-busy');
+    button.textContent = previous;
   }
 }
 
@@ -7893,6 +8084,9 @@ function openCollab() {
 }
 $('#btnCollaborate').addEventListener('click', openCollab);
 $('#btnCollaborate').setAttribute('aria-controls', 'collabShell');
+$('#btnBoardDetails').addEventListener('click', () => setBoardDetailsOpen(!prefs.boardDetailsOpen));
+$('#btnBoardRescan').addEventListener('click', (event) => rescanBoardProject(event.currentTarget));
+$('#btnWelcomeRescan').addEventListener('click', (event) => rescanBoardProject(event.currentTarget));
 $('#collabShell').addEventListener('pointerdown', protectCollabInteraction, true);
 for (const tab of document.querySelectorAll('.collab-tab')) {
   tab.addEventListener('click', () => setCollabTab(tab.dataset.tabTarget));
@@ -8004,18 +8198,18 @@ for (const tab of document.querySelectorAll('.history-tab')) {
     next.focus();
   });
 }
-const messageInput = $('#messageInput');
+const boardNoteInput = $('#boardNoteInput');
 try {
-  const savedDraft = localStorage.getItem(MESSAGE_DRAFT_KEY);
+  const savedDraft = localStorage.getItem(BOARD_NOTE_DRAFT_KEY);
   if (savedDraft) {
-    messageInput.value = savedDraft.slice(0, 2000);
-    $('#intentState').textContent = '已恢复本机草稿 · 尚未复制';
+    boardNoteInput.value = savedDraft.slice(0, 2000);
+    $('#intentState').textContent = '已恢复本机草稿 · 尚未保存';
   }
 } catch {}
-messageInput.addEventListener('input', updateMessageCount);
-for (const button of document.querySelectorAll('.intent-preset')) {
-  button.addEventListener('click', () => insertIntentPreset(button));
-}
+boardNoteInput.addEventListener('input', () => {
+  $('#intentState').className = 'intent-state';
+  updateBoardNoteCount();
+});
 $('#btnCloseCollab').addEventListener('click', () => {
   $('#collabShell').hidden = true;
   collabLoadDeferred = false;
@@ -8047,12 +8241,11 @@ $('#btnAddEdge').addEventListener('click', addEdge);
 $('#btnExportSession').addEventListener('click', exportSession);
 $('#btnImportSession').addEventListener('click', () => $('#bundleFileInput').click());
 $('#bundleFileInput').addEventListener('change', importSession);
-$('#btnSendMessage').addEventListener('click', sendMessage);
-$('#messageInput').addEventListener('keydown', (event) => {
-  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') sendMessage();
+$('#btnSaveBoardNote').addEventListener('click', saveBoardNote);
+$('#boardNoteInput').addEventListener('keydown', (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') saveBoardNote();
 });
-updateMessageCount();
-$('#btnAddAnnotation').addEventListener('click', addAnnotation);
+updateBoardNoteCount();
 
 // ── Init ──
 loadList();
