@@ -8,11 +8,11 @@ This roadmap sequences work toward the product contract in [docs/PRODUCT_DIRECTI
 - Local browser canvas with project scanning, editable nodes and edges, focus, selection, annotations, AI-readable context, and proposal review.
 - Version 1 session, graph, annotation, and proposal contracts with source evidence, graph diffs, and bounded read-only projections.
 - Shared board notes persist; people and AI can reply in the same anchored thread. Copyable AI context is a separate read-only utility.
-- The current panel still foregrounds MCP tool status and review flow. README now shows one target concept and one current interface baseline; older captures remain development artifacts.
+- The default panel is the shared canvas with a contextual object thread. The project workbench, derived status cards, and review flow are secondary surfaces; `docs/shared-board-panel.png` is the canonical shared-board capture and older captures remain development artifacts.
 
 ## Phase 0 — Product contract
 
-Define the board as the shared communication surface, record the decision in ADR 0022, and align public and contributor-facing descriptions. **Status: complete; product implementation continues in Phase 1.**
+Define the board as the shared communication surface, record the decision in ADR 0022, and align public and contributor-facing descriptions. **Status: complete.**
 
 ## Phase 1 — Shared communication loop
 
@@ -22,7 +22,7 @@ Define the board as the shared communication surface, record the decision in ADR
 - Remove or redirect the separate clipboard-only composer; reuse session and annotation contracts instead of adding a second message store or conversation state machine.
 - Preserve the distinction between discussion and project-write approval.
 
-**Status:** implemented with the existing version 1 annotation and reply contracts, an in-thread human reply control, a persistent ordered exchange, and a browser regression. No code changes without a separate approved proposal.
+**Status:** complete. Implemented with the existing version 1 annotation and reply contracts, an in-thread human reply control, a persistent ordered exchange, and a browser regression. No code changes without a separate approved proposal.
 
 ## Phase 2 — Canvas-first experience
 
@@ -31,7 +31,9 @@ Define the board as the shared communication surface, record the decision in ADR
 - Keep proposal diff review in a focused secondary surface linked to its originating visual intent.
 - Rewrite first-run guidance and publish one canonical screenshot of the shared loop.
 
-**Acceptance:** a new user can see the AI's project understanding, correct it on the canvas, and locate the related AI response and proposal without learning tool names or following a fixed sequence.
+**Status:** implemented. The canvas is the default view; the contextual inspector shows ordered human/AI notes and accepts an in-place reply; first-run guidance can scan the project directly; review opens in a focused secondary workbench. `docs/shared-board-panel.png` is the canonical screenshot.
+
+**Acceptance:** a new user can see the AI's project understanding, correct it on the canvas, and locate the related AI response and proposal without learning tool names or following a fixed sequence. Keyboard and narrow-screen behavior remain covered by browser regressions.
 
 ## Phase 3 — Trustworthy project context
 

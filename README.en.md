@@ -69,11 +69,11 @@ If Chrome is outside Puppeteer's cache, set `PUPPETEER_EXECUTABLE_PATH`. CI and 
 
 ## Panel direction and current baseline
 
-The current local panel has a consistent semantic palette and spacing system, while its information hierarchy still reflects the previous tool-first direction. The target interaction diagrams above are concepts, not screenshots of shipped UI. See [product direction](docs/PRODUCT_DIRECTION.md), [ADR 0021](docs/ADR/0021-restrained-visual-system.md), and [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md).
+The current local panel opens on a full shared canvas. Its contextual inspector shows the focused object's ordered human/AI thread and accepts a note or reply in place; the project workbench remains a secondary surface for graph editing, derived projections, and proposal review. The target interaction diagrams above are concepts, not screenshots of shipped UI. See [product direction](docs/PRODUCT_DIRECTION.md), [ADR 0021](docs/ADR/0021-restrained-visual-system.md), and [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md).
 
-![Current 0.3.x panel baseline](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/restrained-workspace-panel.png)
+![Current shared board](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/shared-board-panel.png)
 
-This image records the current implementation baseline only. Other layout captures remain reproducible development artifacts, not parallel product definitions.
+This is the reproducible canonical shared-board capture. Other layout captures remain reproducible development artifacts, not parallel product definitions.
 
 ## Safety model
 

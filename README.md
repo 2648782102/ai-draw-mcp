@@ -28,24 +28,18 @@ AI 通过 MCP stdio 访问共享项目图、源码证据、人的焦点/选择�
 
 ![AI Draw MCP 双向协作闭环](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-loop.svg)
 
-### 画布交互方向概念
+### 当前共享画板（0.3.x）
 
-![AI Draw MCP 共享画布交互方向](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/collaboration-workbench.svg)
+![AI Draw MCP 共享画板](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/shared-board-panel.png)
 
-这是目标交互概念，不是当前界面截图。概念图由 [`scripts/generate-doc-assets.mjs`](scripts/generate-doc-assets.mjs) 可复现生成；要改文案或布局，请改脚本并运行 `npm run docs:assets`。
-
-### 当前界面基线（0.3.x）
-
-![AI Draw MCP 克制工作台](https://raw.githubusercontent.com/2648782102/ai-draw-mcp/master/docs/restrained-workspace-panel.png)
-
-该截图只记录当前 `0.3.x` 的视觉基线；目标交互与现状差距、实施顺序和验收条件见 [产品方向](docs/PRODUCT_DIRECTION.md) 与 [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md)。其他布局截图留在仓库作为可复现的历史开发资产，不再并列充当产品入口。
+界面沿用克制视觉系统。这是可复现的当前共享画板：默认全画布、首用可直接扫描、右侧对象卡显示有序的人 / AI 线程并支持就地留言。闭环概念图与后续阶段见 [产品方向](docs/PRODUCT_DIRECTION.md) 与 [ADR 0022](docs/ADR/0022-shared-visual-board-is-the-product.md)。其他布局截图留在仓库作为可复现的历史开发资产，不再并列充当产品入口。
 
 ---
 
 ## 功能
 
 - **26 个 MCP 工具** — 原有 11 个绘图/管理工具，加上 `scan_project`、`get_capabilities`、`get_selection_scope`、`get_selection_workorder`、`get_visual_context`、`get_shared_brief`、`get_decision_trail`、`get_node_context`、`get_source_navigation`、`get_agent_workflow`、`reply_to_visual_context`、`preflight_visual_proposal`、`list_change_templates`、`create_visual_proposal`、`apply_visual_proposal`
-- **共享画布** — 展示 AI 扫描的项目结构，支持节点/连线纠错、焦点/多选、锚定到当前对象或画布范围的留言，以及人与 AI 在同一线程中的有序回复；后续会把画布进一步收束为默认主工作区
+- **共享画布** — 默认全画布展示 AI 扫描的项目结构，支持节点/连线纠错、焦点/多选；右侧对象卡显示锚定到该对象的人 / AI 有序线程，并可直接留言或继续回复
 - **有界图形撤销 / 重做** — 12 步视觉状态历史，人类确认后恢复节点/连线/批注为一次新图形修订；不回退项目文件、提案状态或一次性批准凭据
 - **只读源码证据** — 扫描时为源码/文档节点记录少量 `file:line` 定义、导入或标题线索，AI 与面板可引用代码位置；证据不自动改代码、不扩大提案路径，也不签发批准凭据
 - **有界多选范围** — 面板复选框最多选择 24 个节点；`get_selection_scope` 与 `SELECTION_SCOPE_JSON` 把「这几个模块」投影成节点、内部连线和安全相对 `file:line` 证据。选择范围只表达意图，不签发凭据、不改变图修订或授权项目写入，详见 [ADR 0018](docs/ADR/0018-human-selection-is-read-only-scope.md)
@@ -290,7 +284,7 @@ npm install -g ai-draw-mcp
 | 右下角小地图 | 点击/拖拽跳转视口 |
 | `Ctrl+Enter` | 手动触发重新渲染 |
 | `Ctrl+S` | 保存当前编辑到磁盘 |
-| `⌁ 审阅台` | 打开薄辅助面板：纠错图/批注信号、复制上下文、审阅 diff、批准提案 |
+| `◫ 工作台` | 打开次级工作台：编辑结构图、查看完整对象线程、审阅 diff、批准提案 |
 
 ---
 
@@ -304,7 +298,7 @@ npm install -g ai-draw-mcp
 
 **面板空白 / JS 报错**：重启 MCP（Cursor 设置里把 `ai-draw` 关掉再开启），再刷新面板页。
 
-**上下文审阅台没有图**：让 AI 调用 `scan_project`，或检查 `AI_DRAW_WORKSPACE_ROOT` 是否指向正确项目。
+**项目工作台没有图**：点击首屏「扫描当前项目」，或检查 `AI_DRAW_WORKSPACE_ROOT` 是否指向正确项目。
 
 **提案无法应用**：确认由人类点击批准；检查目标路径是否属于 `.git`、`node_modules`、`dist`、`.env*` 或锁文件等受保护范围。
 

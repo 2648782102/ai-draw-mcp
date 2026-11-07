@@ -13,7 +13,7 @@ Start with the [main README](../README.md) for installation and the product over
 | [COMPETITIVE_RESEARCH.md](COMPETITIVE_RESEARCH.md) | Maintainers, contributors | Market map, positioning, and product lessons from Mermaid/whiteboard/MCP tools |
 | [collaboration-loop.svg](collaboration-loop.svg) | Everyone | Product concept: shared board loop and human approval boundary |
 | [collaboration-workbench.svg](collaboration-workbench.svg) | Everyone | Target canvas interaction concept; not a screenshot of shipped UI |
-| [restrained-workspace-panel.png](restrained-workspace-panel.png) | Everyone | Single current `0.3.x` interface baseline screenshot |
+| [shared-board-panel.png](shared-board-panel.png) | Everyone | Canonical current `0.3.x` shared-board screenshot |
 | [DEPENDENCY_MAINTENANCE.md](DEPENDENCY_MAINTENANCE.md) | Maintainers | Dependabot policy, verification order, and major-version decisions |
 | [LAUNCH_KIT.md](LAUNCH_KIT.md) | Maintainers | Copy for GitHub About, releases, Show HN, X/Mastodon, and Chinese communities |
 | [GOVERNANCE.md](GOVERNANCE.md) | Maintainers, contributors | Public surfaces, maintainer checklist, and observed metadata drift |

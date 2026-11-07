@@ -209,7 +209,14 @@ describe("canvas focus interaction", () => {
       await page.keyboard.press("0");
       await page.keyboard.press("f");
 
-      await page.mouse.click(target.x, target.y);
+      const refreshedTarget = await page.evaluate((label) => {
+        const group = [...document.querySelectorAll("#diagramRender svg g.nodes > g.node")]
+          .find((element) => element.textContent.replace(/\s+/g, " ").trim() === label);
+        const rect = group?.querySelector("rect.basic.label-container, rect, polygon, path, ellipse, circle")?.getBoundingClientRect();
+        return rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null;
+      }, target.label);
+      expect(refreshedTarget).toBeTruthy();
+      await page.mouse.click(refreshedTarget.x, refreshedTarget.y);
       await page.waitForFunction((label) => document.querySelector("#canvasObjectLabel").textContent.trim() === label, { timeout: 5000 }, target.label);
       await page.waitForFunction(() => getComputedStyle(document.querySelector("#canvasFocusRing")).display === "block");
       const focus = await page.evaluate(() => {

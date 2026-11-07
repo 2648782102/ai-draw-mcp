@@ -57,7 +57,7 @@ The loop can pause or repeat at any point. Reading, correcting, and discussing t
 
 ## Current implementation gap
 
-The repository already has project scanning, editable graphs, selection and focus, persistent board notes with human replies, AI replies in the same annotation threads, proposals, full diff review, and the approval gate. The primary human input now saves a note to the focused object or current board scope instead of copying a draft, and every thread has an in-place human reply control. Copyable read-only context remains a separate utility. The panel's default information hierarchy and first-run path still carry legacy tool-status and review-flow framing; Phase 2 continues that canvas-first cleanup. This document and ADR 0022 set the product direction; the phases below close the remaining presentation and evidence gaps without claiming they are already fixed.
+The repository already has project scanning, editable graphs, selection and focus, persistent board notes with human replies, AI replies in the same annotation threads, proposals, full diff review, and the approval gate. The primary human input now saves a note to the focused object or current board scope instead of copying a draft, and every thread has an in-place human reply control. The default view opens on the full canvas, with a contextual inspector that shows the focused object's ordered human/AI thread and supports a new note or a reply in place. Copyable read-only context remains a separate utility. The project workbench and its derived status views are now secondary and available on demand. Phase 3 continues with evidence freshness and uncertainty. This document and ADR 0022 set the product direction; the phases below close the remaining evidence and traceability gaps without claiming they are already fixed.
 
 ## Delivery plan
 
@@ -67,7 +67,7 @@ The repository already has project scanning, editable graphs, selection and focu
 - Align README, English quickstart, architecture overview, `AGENTS.md`, goal-mode guidance, launch copy, package metadata, and the offline repository checks.
 - Mark existing screenshots and UI copy as the current implementation baseline where they do not yet express the new direction.
 
-**Status:** product definition, ADR, roadmap, contributor guidance, public copy, and canonical preview references are aligned. Product implementation has started with the Phase 1 shared-loop slice.
+**Status:** complete. Product definition, ADR, roadmap, contributor guidance, public copy, and canonical preview references are aligned.
 
 ### Phase 1 — Restore the shared communication loop
 
@@ -87,7 +87,9 @@ The repository already has project scanning, editable graphs, selection and focu
 - Use consistent plain-language names and a compact set of visual states for human input, AI response, evidence, unresolved intent, and proposed code changes.
 - Rework first-run guidance and capture one canonical screenshot that demonstrates the shared board loop.
 
-**Complete when:** a first-time user can identify the shared project model, add a contextual correction, see the AI-side update, and find code review without navigating a multi-step dashboard. Keyboard, narrow-screen, empty, loading, and error states remain usable.
+**Status:** implemented as a canvas-first slice. The default workspace is the full canvas; first-run guidance offers a direct read-only project scan; the contextual inspector shows the object's ordered thread and accepts a new note or in-place reply; the workbench opens as a secondary surface with overview and journey cards hidden until explicitly expanded. `docs/shared-board-panel.png` is the reproducible canonical screenshot.
+
+**Complete when:** a first-time user can identify the shared project model, add a contextual correction, see the AI-side update, and find code review without navigating a multi-step dashboard. Keyboard, narrow-screen, empty, loading, and error states remain usable; broader cross-breakpoint validation remains part of ongoing UI maintenance.
 
 ### Phase 3 — Ground the board in project evidence
 
