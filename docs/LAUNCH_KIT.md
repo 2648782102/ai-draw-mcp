@@ -7,7 +7,7 @@ Versioned copy for GitHub, releases, and community posts. Keep claims tied to wh
 Description:
 
 ```text
-MCP-native AI context tool: visualize a codebase as structured, machine-readable context, then collect lightweight human corrections and approval-gated changes.
+Local-first visual communication board where people and AI share and refine a software project model; code changes remain human-approved.
 ```
 
 Homepage:

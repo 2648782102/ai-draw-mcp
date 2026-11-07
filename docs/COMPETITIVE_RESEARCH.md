@@ -4,7 +4,7 @@ Research snapshot: 2026-11-06. This is a positioning brief based on public produ
 
 ## The market gap
 
-Most visual tools optimize either **AI generation** or **human editing**. Mermaid-style tools make diagrams easy for LLMs to generate but leave review in text; whiteboards make diagrams pleasant for people but rarely return machine-readable context to an AI. MCP diagram servers mostly stop at rendering. AI Draw MCP targets the narrow, high-value gap: a local, open-source, AI-callable tool surface that turns project structure into structured context, accepts bounded human corrections, and keeps project writes behind a reviewable proposal gate. The browser panel is an assistive surface, not a chat product.
+Most visual tools optimize either **AI generation** or **human editing**. Mermaid-style tools make diagrams easy for LLMs to generate but leave review in text; whiteboards make diagrams pleasant for people but rarely return machine-readable context to an AI. MCP diagram servers mostly stop at rendering. AI Draw MCP targets the gap between them: a local, open-source shared project canvas where AI makes its structural understanding visible, people correct it in context, and the same graph state is available to the AI through MCP. Project writes remain behind a reviewable proposal gate. The canvas is the shared communication surface; it does not become a general-purpose chat product.
 
 ## Comparison
 
@@ -61,15 +61,15 @@ Design tools and modern code canvases increasingly use depth rather than decorat
 
 ## Positioning statement
 
-> AI Draw MCP is an MCP-native context tool: an AI turns a codebase into structured visual context through stdio tools, while a thin local panel lets a person correct that context and review approval-gated changes.
+> AI Draw MCP is a local-first visual communication board where an AI shares its project understanding through MCP and a person steers it through graph edits, selection, and contextual notes; code changes remain human-approved.
 
 Short form for GitHub About:
 
-> MCP-native AI context tool: visualize a codebase as structured, machine-readable context, then collect lightweight human corrections and approval-gated changes.
+> Local-first visual communication board for people and AI to share and refine a software project model, with human-approved code changes.
 
-## MCP-tool-first boundary research note
+## Earlier MCP-tool-first boundary note
 
-Conversation-first surfaces are useful when the product is a chat or team workspace, but they become scope creep for an AI coding tool. MCP SDK documentation emphasizes `listTools` / `callTool` discovery, while interactive MCP Apps material emphasizes explicit user decisions and consent at the point where UI is needed. For this repository, that supports a thin local panel: show the AI's visual understanding, let a person correct or annotate objects as bounded context, and keep approval as a narrow safety gate. It does not support a strong-subject dialogue bridge, a next-actor queue, or a hosted collaboration workflow. See [ADR 0020](ADR/0020-mcp-tool-is-the-primary-product.md).
+This note records the product framing that led to ADR 0020 and has been superseded by [ADR 0022](ADR/0022-shared-visual-board-is-the-product.md). MCP tool discovery remains an important AI interface, while the shared local canvas is the product surface for people and AI. The updated scope keeps contextual communication attached to project objects and retains explicit human consent for project writes.
 
 ## Product lessons to apply
 

@@ -1,6 +1,8 @@
 # Architecture
 
-AI Draw MCP 0.3 是一个本机优先、**由 AI 直接调用的 MCP 上下文工具**。MCP stdio 是主入口，26 个工具与版本化 JSON 投影构成产品本体；本地浏览器面板是薄辅助层，用来展示 AI 的理解、接收人的轻量纠错、审阅 diff 与签发人工批准。消息、批注、选择、焦点、证据和时间线都是 AI 可消费的上下文信号，不是独立的聊天或工作流主体。它由四层组成：
+AI Draw MCP 是一个本机优先的**人类与 AI 项目沟通画板**。共享项目图是人类可见的主要工作区；MCP stdio 是 AI 读取和更新画布状态的接入方式。节点、关系、来源证据、人的选择与批注、AI 的回复和图形修订共同组成双方的项目上下文。产品定义与分阶段计划见 [PRODUCT_DIRECTION.md](PRODUCT_DIRECTION.md)。
+
+当前 `0.3.x` 已有扫描、图形编辑、节点批注、AI 上下文读取与审批提案；自由文本纠错仍由面板复制到剪贴板。后续实现会让人的上下文写入当前共享会话，并让 AI 回复回到同一画布。无论任何交互路径，项目文件写入仍须经过提案、完整 diff、人工批准和一次性确认号。系统由四层组成：
 
 ```text
 IDE / human browser
@@ -28,7 +30,7 @@ IDE / human browser
 
 1. AI 调用 `scan_project`，`project-scanner.ts` 只读扫描工作区（默认 4 层、最多 400 个节点），按 POSIX 相对路径派生确定性节点/连线 ID；对 1 MiB 以下的源码/Markdown 文本提取最多 5 条 version 1 `GraphSourceEvidence`（`definition` / `import` / `heading` 的 `file:line` 证据）。`visual-sync-service.ts` 把扫描结果交给 `mergeScannedGraph()` 生成 `VisualGraph`，同时复用同一套渲染、会话保存与 WebSocket 广播。
 2. `SessionStore` 把图、修订号、消息、批注、提案写入 `OUTPUT_DIR/.ai-draw/session.json`。
-3. 人类可选在薄面板「⌁ 审阅台」做轻量纠错：改名称/类型/路径/分组/坐标、增删节点、编辑连线、把批注信号绑定到选中节点、复制纠错上下文，或点击「重新扫描项目」；面板不提供聊天发送或线程回复。历史消息与批注仅作为 AI 可读取的只读上下文。每次图形写入都会提升 `graphRevision` 并通过 WebSocket 同步。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、有限坐标、路径/分组/连线类型、回复结构与引用完整性。
+3. 人类可在本机浏览器画布中改节点/连线、选取范围、添加持久化对象批注或重新扫描项目；图形写入会提升 `graphRevision` 并通过 WebSocket 同步。AI 可通过 MCP 在批注线程回复，面板也会显示；当前面板缺少人类线程回复入口，另一个通用纠错 composer 只复制文本给外部 MCP 客户端。Phase 1 计划把人类后续回复并入同一对象线程。`SessionStore.validateGraph()` 校验节点/连线/批注 ID、有限坐标、路径/分组/连线类型、回复结构与引用完整性。
 4. AI 调用 `get_visual_context` 读取待处理消息、未解决批注、节点批注线程与 `annotationThreads.nextActor`、当前图、人类当前选中节点的 `focus`、有界多节点的 `selectionScope`、按节点聚合的 `intentSummary`，以及 `activityTimeline` 的只读派生事件；用 `reply_to_visual_context` 回信、内联回复线程、标记已处理。批注保存 `nodeLabel` / `nodePath` / `graphRevision` / `anchorStatus`：节点改名或路径变化后标为 `outdated`，节点删除后标为 `detached`；`staleThreads` 不进入 `intentByNode`，AI 应等待人类确认或重锚，不能把旧讨论当作当前写入意图。
 5. AI 可先调用 `get_agent_workflow` 读取从当前 `SessionSnapshot` 派生的 version 1 `WORKFLOW_JSON`：八步顺序、前置/产物、`readOnly`、`writes: "none" | "session" | "project"` 与 `blocked` 就绪提示；工具自身只读且不持久化步骤。交接时可调用 `get_shared_brief` 得到同一快照派生的 `BRIEF_JSON`：焦点、就绪阻塞、有界意图、失锚讨论、最近图形修订、源码证据、计数和下一步；它不持久化、不含批准凭据。需要聚焦某个节点时可调用 `get_node_context`，从同一 `SessionSnapshot` 派生 version 1 `NODE_CONTEXT_JSON`：节点字段、`file:line` 证据、命中节点的批注线程及失锚状态、入/出连线与相邻节点、相关 `graphDiffs`、焦点状态和固定只读安全标记；默认节点是人类焦点，显式 `node_id` 不改变焦点。复盘决策依据时可调用 `get_decision_trail`，从同一快照派生 version 1 `DECISION_TRAIL_JSON`：把意图、失锚讨论、图修订、有界提案变更摘要、批准/应用阶段与活动时间线按证据类型串联；它是只读投影，不签发凭据。随后 AI 可选调用 `list_change_templates`：只读列出更新文档/添加测试/创建模块模板，或把模板展开为引用当前 `graphRevision` 与节点的 `changes` 草稿。它不写会话、不创建提案、不签发凭据。随后 AI 可先调用 `preflight_visual_proposal` 只读检查候选变更的路径、文件存在性、create/update 方向、重复路径、重复内容、编码与体积；这一步同样不写会话、不创建提案、不签发凭据。最后 `create_visual_proposal` 记录带 `contentHash` 的 `ChangeProposal`，也只写会话，不碰项目文件。
 6. 面板通过 `/api/collab/proposals/:id/impact` 展示文件/行数/字节数摘要，并通过 `/api/collab/proposals/:id/diff` 展示逐行差异；人类点击「批准」。服务端只把提案标为 `approved`，签发绑定 `contentHash` 的 10 分钟一次性 `approvalId` / `grantHash`，不会写项目文件。

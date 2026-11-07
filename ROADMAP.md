@@ -1,85 +1,63 @@
 # AI Draw MCP Roadmap
 
-This roadmap is a product-direction document, not a support contract. It exists so contributors, AI coding agents, and early users can understand what belongs in the core and what should remain an integration.
+This roadmap sequences work toward the product contract in [docs/PRODUCT_DIRECTION.md](docs/PRODUCT_DIRECTION.md). The shared visual board is the product; MCP is the AI access channel. The repository remains the source of truth for code.
 
-Product principle: **the AI-callable tool surface is the product**. Structured, machine-readable context comes first; the local panel is a thin assistive layer for inspecting, correcting, and approving that context. See [ADR 0020](docs/ADR/0020-mcp-tool-is-the-primary-product.md).
+## Current baseline — 0.3.4
 
-- Keep the panel lightweight: no chat-first composer, social presence, turn-taking dashboard, or hosted collaboration workflow.
-- Treat messages, annotations, focus, selection, diffs, and timelines as bounded AI context signals rather than a strong-subject conversation state.
+- Local MCP stdio server with 26 tools for project scans, diagrams, graph context, proposals, and approval-gated writes.
+- Local browser canvas with project scanning, editable nodes and edges, focus, selection, annotations, AI-readable context, and proposal review.
+- Version 1 session, graph, annotation, and proposal contracts with source evidence, graph diffs, and bounded read-only projections.
+- Node annotations persist and the AI can reply in a thread, but the panel has no human reply control; the separate general correction composer only copies drafts to the clipboard.
+- The current panel still foregrounds MCP tool status and review flow. README now shows one target concept and one current interface baseline; older captures remain development artifacts.
 
-## Now — 0.3.x: trustworthy closed loop
+## Phase 0 — Product contract
 
-- Keep the 26 MCP tools small, composable, and easy for an LLM to call correctly.
-- Make CI reliable on Node 20, 22, and 24, including headless Chrome environments.
-- Preserve the human approval gate: no project write without a proposal, a reviewable diff, and a one-time receipt.
-- Improve first-run clarity: a 30-second Quickstart, troubleshooting, and a reproducible end-to-end demo.
-- Publish consistent GitHub About, topics, release notes, and launch copy from versioned repository files.
-- Keep the panel local-first and offline-capable; never require an account to use the core loop.
+Define the board as the shared communication surface, record the decision in ADR 0022, and align public and contributor-facing descriptions. **Status: documented in this planning change; product implementation has not started.**
 
-## Next — 0.4: a better visual conversation
+## Phase 1 — Shared communication loop
 
-- Diagnose readiness from `BRIEF_JSON` blockers and `DECISION_TRAIL_JSON` gaps with a versioned, read-only review projection in diagnostics and the panel; show the next safe action without replacing human approval.
-- Add language-aware symbol ranges and IDE source-range navigation on top of bounded `file:line` evidence.
-- Keep `SOURCE_NAVIGATION_JSON` copyable and side-effect-free; one-click editor integration remains an optional client-side adapter, not a server process launch.
-- Explore multi-diagram sessions over one workspace while keeping thread anchors and write authority explicit.
-- Keep thread resolution separate from proposal approval and one-time write receipts; conversation controls must stay distinct from server-side write authorization.
+- Add a human reply control to existing annotation threads and persist replies through the current endpoint.
+- Make the selected object's note and reply thread the primary human communication path; keep notes attached to their graph anchor and revision.
+- Keep AI replies visible in the same thread and preserve order, author, pending/resolved state, and stale-anchor behavior.
+- Remove or redirect the separate clipboard-only composer; reuse session and annotation contracts instead of adding a second message store or conversation state machine.
+- Preserve the distinction between discussion and project-write approval.
 
-## Shipped in 0.3.x maintenance
+**Acceptance:** a person adds a note to a selected object, an MCP client reads and answers it in the same thread, and the person can reply there after reload. No code changes without a separate approved proposal.
 
-- `SELECTION_SCOPE_JSON`: a bounded, read-only projection of at most 24 human-selected graph nodes, internal edges, safe relative `file:line` evidence, and focus membership. Selection is ephemeral panel attention, excluded from bundles, and never grants write authority; see [ADR 0018](docs/ADR/0018-human-selection-is-read-only-scope.md).
-- `SELECTION_WORKORDER_JSON`: a bounded, read-only pre-proposal checklist derived from a human selection, current intent, evidence, readiness gaps, safe candidate paths, and descriptive selection freshness. A stale graph revision only asks the human to reselect; it never mutates selection state. It contains no file content, line diff, proposal, or approval grant; see [ADR 0019](docs/ADR/0019-selection-workorder-is-read-only-preflight.md).
-- `SOURCE_NAVIGATION_JSON`: a derived, bounded version 1 copyable source-navigation projection over workspace-relative `file:line` evidence, with VS Code/Cursor URI text and `code --goto` hints; the server never opens files, launches an IDE, executes commands, exposes absolute paths, or grants write authority; see [ADR 0016](docs/ADR/0016-source-navigation-is-copyable-context.md).
-- `CAPABILITIES_JSON`: a derived, read-only catalogue of all 26 tools, versioned JSON markers, workflow/readiness status, a safe next action, and the unique receipt-gated project-write boundary. It complements native MCP `tools/list` discovery without invoking tools or issuing grants; see [ADR 0017](docs/ADR/0017-capability-catalogue-is-read-only-discovery.md).
-- `REVIEW_READINESS_JSON`: a derived, read-only projection that aggregates `BRIEF_JSON` blockers and `DECISION_TRAIL_JSON` evidence gaps into `ready` / `review` / `blocked`, surfaces a diagnostic signal and next action, and appears in the panel and reproducible workflow example without granting writes.
-- A version 1 `EXPORT_MANIFEST_JSON` derived inventory for portable session bundles: counts, excluded credential/history/viewport fields, downgraded approval state, fixed read-only safety flags, and a suggested filename; strict import validation is unchanged; see [ADR 0014](docs/ADR/0014-export-manifest-is-a-derived-inventory.md).
-- `get_decision_trail`: a versioned, read-only `DECISION_TRAIL_JSON` linking human intent, anchored/stale threads, graph diffs, bounded proposal change summaries, proposal stages, gaps, and activity events; full diff review and human approval remain mandatory; see [ADR 0013](docs/ADR/0013-decision-trail-is-a-read-only-projection.md).
-- `get_node_context`: a versioned, read-only single-node projection of source evidence, annotation threads, adjacent edges, related graph diffs, and human focus; see [ADR 0010](docs/ADR/0010-node-context-is-a-read-only-projection.md).
-- `get_shared_brief`: a versioned, read-only `BRIEF_JSON` handoff projection for humans and AI, with readiness blockers, bounded intent, latest graph diff, evidence, and next actions; see [ADR 0011](docs/ADR/0011-shared-brief-is-a-read-only-projection.md).
-- Human viewport attention: bounded, human-panel zoom/pan state is authenticated with the injected panel token and exposed to AI through `CONTEXT_JSON` / `BRIEF_JSON` / diagnostics without graph revisions, timeline noise, bundles, or write authority; see [ADR 0012](docs/ADR/0012-viewport-is-read-only-attention-context.md).
-- Bounded read-only `file:line` source evidence for source/Markdown nodes, exposed to AI, diagnostics, the panel, and strictly validated bundles; see [ADR 0009](docs/ADR/0009-source-evidence-is-read-only-context.md).
-- Bounded, human-confirmed visual undo/redo: restores `VisualGraph` snapshots as new revisions with field-level diffs, while never reversing project writes, proposals, or approval grants; see [ADR 0008](docs/ADR/0008-visual-undo-is-not-project-undo.md).
-- `get_agent_workflow`: a versioned, read-only eight-step `WORKFLOW_JSON` with prerequisites, readiness blockers, explicit `none` / `session` / `project` write targets, and a reproducible CI example; see [ADR 0007](docs/ADR/0007-agent-workflow-is-a-read-only-contract.md).
-- Stable-path project scans: deterministic IDs, human-coordinate/custom-label preservation, annotation/focus migration, incremental auto-layout, a human-confirmed panel rescan, and a read-only preservation summary; see [ADR 0006](docs/ADR/0006-stable-scan-preserves-human-visual-state.md).
-- `list_change_templates`: a read-only catalogue and draft expander for update-documentation, add-test, and create-module intents; drafts must still pass preflight and human review.
-- Field-level graph revision diffs with a strict portable-bundle contract, expandable panel details, and derived `graph_diff` timeline events.
-- Versioned human focus: the selected node is readable by AI, refreshed on graph edits, strictly validated in bundles, and kept separate from write authority.
-- A copyable, read-only AI context prompt in the panel that references focus, diagnostics, graph revisions, and the required approval workflow without issuing credentials.
-- A copyable, read-only `BRIEF_JSON` shared handoff in the panel and MCP for compact status updates.
-- Bounded human viewport attention in `CONTEXT_JSON` / `BRIEF_JSON` / diagnostics, without graph revisions, timeline noise, bundles, or write authority.
-- Read-only `preflight_visual_proposal` for path, filesystem-state, duplicate, and no-op change checks before a proposal is created.
-- Per-proposal impact summary, portable session bundle import/export, and a `doctor` command with IDE/browser remediation hints.
-- Add, remove, rename, and retype nodes from the panel.
-- Add, remove, and reconnect edges without editing Mermaid source.
-- Select a node and pin an annotation to it; AI messages include the target node label.
-- Node-linked annotation threads with one root thread per pin, ordered human/AI replies, resolve/reopen, an AI-readable next-actor queue, and validated portable replies in session bundles.
-- A compact derived activity timeline for messages, annotation threads, thread states, and proposal lifecycle events in the panel and `get_visual_context`.
-- Versioned annotation-thread anchor states: `anchored` / `outdated` / `detached`, human-confirmed re-anchoring, and AI-readable `staleThreads` that keeps stale discussion out of current intent.
-- Validate graph IDs, required fields, and edge/annotation references on the server.
+## Phase 2 — Canvas-first experience
 
-## Later — 0.5: deeper project intelligence
+- Make the graph the default workspace and keep the selected node, edge, or region's evidence and notes close by.
+- Simplify navigation and remove repeated workflow/status summaries from the default view.
+- Keep proposal diff review in a focused secondary surface linked to its originating visual intent.
+- Rewrite first-run guidance and publish one canonical screenshot of the shared loop.
 
-- Language-aware scanners that surface precise symbol ranges, tests, and framework boundaries beyond the current bounded line-evidence heuristics.
-- A bidirectional mapping between graph nodes and source ranges so humans can click from a node to code.
-- Review checkpoints: dry-run, test-command suggestions, and optional Git worktree isolation for applied proposals.
-- Multi-diagram sessions: architecture, flow, and sequence views over the same workspace.
-- Plugin adapters for additional MCP clients and diagram editors, without making them core dependencies.
+**Acceptance:** a new user can see the AI's project understanding, correct it on the canvas, and locate the related AI response and proposal without learning tool names or following a fixed sequence.
 
-## Horizon — 1.0: an open protocol for visual intent
+## Phase 3 — Trustworthy project context
 
-- Stabilize a versioned `VisualGraph` and `ChangeProposal` protocol with compatibility tests and migration notes.
-- Define an extension API for scanners, renderers, proposal generators, and policy checks.
-- Optional shareable read-only visual reviews that do not grant project-write capability.
-- Governance: published decision records, contributor ladder, release cadence, and measurable adoption goals.
+- Improve source and relationship evidence based on concrete scan gaps.
+- Show evidence freshness, uncertain inferences, and stale anchors clearly.
+- Preserve visual intent and traceability across project rescans.
+
+**Acceptance:** a person can inspect the repository evidence behind a visual claim and recognize when the board needs correction or rescanning.
+
+## Phase 4 — Safe code-change loop
+
+- Tie selected visual intent and notes to the existing proposal preflight and proposal creation flow.
+- Show the full line diff and impact summary alongside the graph context that motivated the proposal.
+- Preserve the existing human approval, one-time receipt, path-safety, atomic-write, and rollback boundaries.
+- Rescan after application and connect the resulting graph revision to the reviewed intent.
+
+**Acceptance:** each applied code change can be traced from human intent on the board through proposal, approval, and the resulting project graph.
 
 ## Non-goals
 
-- A hosted multi-user SaaS or an account wall for local use.
-- A general-purpose whiteboard competing with Miro, FigJam, Excalidraw, or tldraw on freehand canvas features.
-- A cloud diagram library that owns the source of truth instead of the developer's repository.
-- A general-purpose human/AI chat or collaboration application; the browser panel is only a local correction, review, and approval helper.
-- Autonomous project writes that bypass human review, diffs, and one-time approval.
-- Binary file edits, deletion operations, or broad filesystem permissions.
+- Hosted multi-user SaaS or mandatory accounts.
+- A general-purpose freehand whiteboard or an independent general chat product.
+- A cloud diagram library that replaces the developer's repository as source of truth.
+- AI project writes that bypass a complete diff, explicit human approval, a one-time receipt, and path-safety checks.
+- Binary edits, project-file deletion, or broad filesystem permissions.
 
-## How to propose a roadmap change
+## Changing this roadmap
 
-Open an issue with the user problem, the smallest end-to-end demo, and the safety implications. Changes to the proposal or approval protocol must include migration tests and an update to `docs/ARCHITECTURE.md`, `AGENTS.md`, and `SECURITY.md`.
+Open an issue with the user problem, the smallest end-to-end demonstration, and safety implications. Protocol or persistence changes require a new ADR, compatibility and migration coverage, and updates to [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [AGENTS.md](AGENTS.md), and [SECURITY.md](SECURITY.md).

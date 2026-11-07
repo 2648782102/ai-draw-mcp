@@ -64,7 +64,7 @@ jobs:
             const body = changelog.slice(start, next < 0 ? undefined : next).trim();
             const release = {
               tag_name: tag,
-              name: `${tag} — MCP-native AI context tool`,
+              name: `${tag} — AI-human visual communication board`,
               body: `${body}\n\nFull documentation: https://github.com/${context.repo.owner}/${context.repo.repo}#readme`,
               draft: false,
               prerelease: version.includes('-'),

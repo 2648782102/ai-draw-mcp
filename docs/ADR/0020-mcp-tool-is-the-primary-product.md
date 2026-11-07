@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR 0022](0022-shared-visual-board-is-the-product.md). This ADR records the earlier MCP-tool-first direction and remains useful for its project-write safety constraints.
 
 ## Context
 

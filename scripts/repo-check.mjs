@@ -120,6 +120,8 @@ const collaborationWorkflow = await read("examples/collaboration-workflow.md");
 const security = await read("SECURITY.md");
 const roadmap = await read("ROADMAP.md");
 const research = await read("docs/COMPETITIVE_RESEARCH.md");
+const productDirection = await read("docs/PRODUCT_DIRECTION.md");
+const sharedBoardAdr = await read("docs/ADR/0022-shared-visual-board-is-the-product.md");
 const englishReadme = englishQuickstart;
 const ci = await read(".github/workflows/ci.yml");
 const metadataWorkflow = await read(".github/workflows/maintain-github-metadata.yml");
@@ -128,7 +130,7 @@ const contributing = await read("CONTRIBUTING.md");
 const pullRequestTemplate = await read(".github/PULL_REQUEST_TEMPLATE.md");
 const featureRequestTemplate = await read(".github/ISSUE_TEMPLATE/feature_request.yml");
 
-const expectedDescription = "MCP-native AI context tool: visualize a codebase as structured, machine-readable context, then collect lightweight human corrections and approval-gated changes.";
+const expectedDescription = "Local-first visual communication board where people and AI share and refine a software project model; code changes remain human-approved.";
 const expectedHomepage = "https://github.com/2648782102/ai-draw-mcp#readme";
 const expectedTopics = [
   "mcp",
@@ -146,13 +148,9 @@ const expectedTopics = [
 ];
 
 check(packageJson.description === expectedDescription, "package.json description does not match docs/LAUNCH_KIT.md");
-check(await assetExists("docs/preview-panel.png"), "README is missing the refreshed preview panel screenshot");
-check(await assetExists("docs/restrained-workspace-panel.png"), "README is missing the restrained workbench screenshot");
-check(await assetExists("docs/canvas-workbench-panel.png"), "README is missing the canvas workbench screenshot");
-check(await assetExists("docs/canvas-shortcuts-panel.png"), "README is missing the canvas shortcuts screenshot");
-check(await assetExists("docs/collaboration-workbench-panel.png"), "README is missing the collaboration workbench screenshot");
-check(await assetExists("docs/collaboration-focus-panel.png"), "README is missing the collaboration focus-mode screenshot");
-check(await assetExists("docs/zen-workspace-panel.png"), "README is missing the immersive workspace screenshot");
+check(await assetExists("docs/collaboration-loop.svg"), "README is missing the shared-board concept diagram");
+check(await assetExists("docs/collaboration-workbench.svg"), "README is missing the target canvas interaction concept");
+check(await assetExists("docs/restrained-workspace-panel.png"), "README is missing the current interface baseline screenshot");
 check(launchKit.includes(expectedDescription), "docs/LAUNCH_KIT.md is missing the GitHub description");
 check(launchKit.includes(expectedHomepage), "docs/LAUNCH_KIT.md is missing the GitHub homepage");
 check(launchKit.includes("25 MCP tools"), "docs/LAUNCH_KIT.md historical 0.3.3 release notes preserve the published 25 MCP tools");
@@ -288,8 +286,7 @@ for (const [label, file, needle] of [
   ["English quickstart workbench diagram", englishQuickstart, "docs/collaboration-workbench.svg"],
   ["Chinese README troubleshooting link", readme, "docs/TROUBLESHOOTING.md"],
   ["English quickstart troubleshooting link", englishQuickstart, "docs/TROUBLESHOOTING.md"],
-  ["English quickstart immersive workspace", englishQuickstart, "immersive workspace"],
-  ["English quickstart appearance boundary", englishQuickstart, "project-write gate"],
+  ["English quickstart human approval boundary", englishQuickstart, "explicit human approval"],
   ["one-time receipt FAQ", troubleshooting, "one-time receipt"],
   ["bilingual stale workorder FAQ", troubleshooting, "What does a stale selection workorder mean?"],
   ["stale workorder FAQ Chinese action", troubleshooting, "重新勾选目标节点"],
@@ -326,7 +323,6 @@ for (const [label, file, needle] of [
   ["source evidence test", sourceEvidenceTest, "read-only source evidence"],
   ["source evidence workflow", agentWorkflowDomain, "sourceEvidence"],
   ["source evidence research", research, "基础证据已交付"],
-  ["source evidence roadmap", roadmap, "file:line` source evidence"],
   ["source evidence launch", launchKit, "file:line` source evidence"],
   ["source evidence docs map", documentationMap, "0009-source-evidence-is-read-only-context.md"],
   ["source evidence security", security, "GraphSourceEvidence"],
@@ -352,7 +348,6 @@ for (const [label, file, needle] of [
   ["node context AGENTS docs", agents, "NODE_CONTEXT_JSON"],
   ["node context architecture", architecture, "NODE_CONTEXT_JSON"],
   ["node context security", security, "NODE_CONTEXT_JSON"],
-  ["node context roadmap", roadmap, "get_node_context"],
   ["node context launch", launchKit, "NODE_CONTEXT_JSON"],
   ["node context research", research, "NODE_CONTEXT_JSON"],
   ["node context troubleshooting", troubleshooting, "NODE_CONTEXT_JSON"],
@@ -375,7 +370,6 @@ for (const [label, file, needle] of [
   ["visual history troubleshooting", troubleshooting, "0008-visual-undo-is-not-project-undo.md"],
   ["visual history docs map", documentationMap, "0008-visual-undo-is-not-project-undo.md"],
   ["visual history research", research, "视觉撤销栈已交付"],
-  ["visual history roadmap", roadmap, "visual undo/redo"],
   ["visual history launch", launchKit, "visual undo/redo"],
   ["workflow ADR write boundary", workflowAdr, 'writes: "project"'],
   ["workflow shared type", types, "export interface AgentWorkflow"],
@@ -413,7 +407,6 @@ for (const [label, file, needle] of [
   ["shared brief AGENTS docs", agents, "BRIEF_JSON"],
   ["shared brief architecture", architecture, "BRIEF_JSON"],
   ["shared brief security", security, "BRIEF_JSON"],
-  ["shared brief roadmap", roadmap, "get_shared_brief"],
   ["shared brief launch", launchKit, "BRIEF_JSON"],
   ["shared brief research", research, "BRIEF_JSON"],
   ["shared brief troubleshooting", troubleshooting, "BRIEF_JSON"],
@@ -441,7 +434,6 @@ for (const [label, file, needle] of [
   ["viewport AGENTS docs", agents, "SessionViewport"],
   ["viewport architecture", architecture, "SessionViewport"],
   ["viewport security", security, "SessionViewport"],
-  ["viewport roadmap", roadmap, "viewport attention"],
   ["viewport launch", launchKit, "Human viewport attention"],
   ["viewport research", research, "SessionViewport"],
   ["viewport troubleshooting", troubleshooting, "BRIEF_JSON.viewport"],
@@ -463,7 +455,6 @@ for (const [label, file, needle] of [
   ["architecture workflow decision link", architecture, "0007-agent-workflow-is-a-read-only-contract.md"],
   ["launch workflow contract", launchKit, "WORKFLOW_JSON"],
   ["research workflow delivery", research, "基础版已交付"],
-  ["roadmap workflow delivery", roadmap, "get_agent_workflow"],
   ["security workflow boundary", security, "WORKFLOW_JSON"],
   ["troubleshooting workflow", troubleshooting, "get_agent_workflow"],
   ["examples workflow", examplesReadme, "agent-workflow.mjs"],
@@ -472,8 +463,6 @@ for (const [label, file, needle] of [
   ["README focus context", readme, "SessionFocus"],
   ["AGENTS focus context", agents, "SessionFocus"],
   ["architecture focus endpoint", architecture, "/api/collab/focus"],
-  ["roadmap focus delivery", await read("ROADMAP.md"), "Versioned human focus"],
-  ["roadmap stable scan delivery", roadmap, "Stable-path project scans"],
   ["release governance checklist", releasing, "docs/GOVERNANCE.md"],
   ["README stable scan", readme, "重新扫描不丢人工状态"],
   ["English stable scan", englishReadme, "rescan"],
@@ -513,7 +502,6 @@ for (const [label, file, needle] of [
   ["decision trail AGENTS docs", agents, "DECISION_TRAIL_JSON"],
   ["decision trail architecture", architecture, "DECISION_TRAIL_JSON"],
   ["decision trail security", security, "DECISION_TRAIL_JSON"],
-  ["decision trail roadmap", roadmap, "get_decision_trail"],
   ["decision trail launch", launchKit, "DECISION_TRAIL_JSON"],
   ["decision trail research", research, "DECISION_TRAIL_JSON"],
   ["decision trail troubleshooting", troubleshooting, "DECISION_TRAIL_JSON"],
@@ -537,7 +525,6 @@ for (const [label, file, needle] of [
   ["export manifest AGENTS docs", agents, "EXPORT_MANIFEST_JSON"],
   ["export manifest architecture", architecture, "EXPORT_MANIFEST_JSON"],
   ["export manifest security", security, "EXPORT_MANIFEST_JSON"],
-  ["export manifest roadmap", roadmap, "EXPORT_MANIFEST_JSON"],
   ["export manifest launch", launchKit, "EXPORT_MANIFEST_JSON"],
   ["export manifest research", research, "EXPORT_MANIFEST_JSON"],
   ["export manifest troubleshooting", troubleshooting, "EXPORT_MANIFEST_JSON"],
@@ -600,7 +587,6 @@ for (const [label, file, needle] of [
   ["source navigation AGENTS docs", agents, "SOURCE_NAVIGATION_JSON"],
   ["source navigation architecture", architecture, "SOURCE_NAVIGATION_JSON"],
   ["source navigation security", security, "SOURCE_NAVIGATION_JSON"],
-  ["source navigation roadmap", roadmap, "SOURCE_NAVIGATION_JSON"],
   ["source navigation launch", launchKit, "SOURCE_NAVIGATION_JSON"],
   ["source navigation research", research, "SOURCE_NAVIGATION_JSON"],
   ["source navigation troubleshooting", troubleshooting, "SOURCE_NAVIGATION_JSON"],
@@ -612,7 +598,6 @@ for (const [label, file, needle] of [
   ["review readiness AGENTS docs", agents, "REVIEW_READINESS_JSON"],
   ["review readiness architecture", architecture, "REVIEW_READINESS_JSON"],
   ["review readiness security", security, "REVIEW_READINESS_JSON"],
-  ["review readiness roadmap", roadmap, "REVIEW_READINESS_JSON"],
   ["review readiness launch", launchKit, "REVIEW_READINESS_JSON"],
   ["review readiness troubleshooting", troubleshooting, "REVIEW_READINESS_JSON"],
   ["review readiness examples map", examplesReadme, "REVIEW_READINESS_JSON"],
@@ -640,7 +625,6 @@ for (const [label, file, needle] of [
   ["capabilities AGENTS docs", agents, "CAPABILITIES_JSON"],
   ["capabilities architecture", architecture, "CAPABILITIES_JSON"],
   ["capabilities security", security, "CAPABILITIES_JSON"],
-  ["capabilities roadmap", roadmap, "CAPABILITIES_JSON"],
   ["capabilities launch", launchKit, "CAPABILITIES_JSON"],
   ["capabilities research", research, "CAPABILITIES_JSON"],
   ["capabilities troubleshooting", troubleshooting, "CAPABILITIES_JSON"],
@@ -669,7 +653,6 @@ for (const [label, file, needle] of [
   ["selection AGENTS docs", agents, "SELECTION_SCOPE_JSON"],
   ["selection architecture", architecture, "SELECTION_SCOPE_JSON"],
   ["selection security", security, "SELECTION_SCOPE_JSON"],
-  ["selection roadmap", roadmap, "SELECTION_SCOPE_JSON"],
   ["selection launch", launchKit, "SELECTION_SCOPE_JSON"],
   ["selection troubleshooting", troubleshooting, "SELECTION_SCOPE_JSON"],
   ["selection examples map", examplesReadme, "SELECTION_SCOPE_JSON"],
@@ -743,11 +726,8 @@ for (const [label, file, needle] of [
   ["Flow rail browser regression", panelUiTest, "flow-source-open"],
   ["Flow rail shortcut regression", panelUiTest, 'press("b")'],
   ["Flow reproducible screenshot", capturePanelScript, "flow-workspace-panel.png"],
-  ["Flow screenshot in Chinese README", readme, "flow-workspace-panel.png"],
-  ["Flow screenshot in English README", englishQuickstart, "flow-workspace-panel.png"],
   ["Flow layout in changelog", changelog, "Flow"],
   ["Flow layout in launch kit", launchKit, "Flow"],
-  ["Flow layout documentation map", documentationMap, "flow-workspace-panel.png"],
   ["command palette CI evidence", changelog, "42196201085"],
   ["command palette CI governance", governance, "127819940490"],
   ["command palette CI launch copy", launchKit, "127819940275"],
@@ -795,7 +775,6 @@ for (const [label, file, needle] of [
   ["canvas object hover edge trace screenshot", capturePanelScript, "flowchart-link.is-hover-path"],
   ["canvas object hover edge trace research", research, "关系路径与即时图形反馈调研"],
   ["canvas object hover edge trace boundary", research, "不把视觉高亮写回图数据"],
-  ["restrained English README context signals", englishQuickstart, "bounded context signals"],
   ["compact touch glance CSS", panel, "@media (max-width: 620px)"],
   ["compact touch glance hint", panel, "轻点先速览"],
   ["compact touch glance focus hint", panel, "再点一次聚焦"],
@@ -813,8 +792,6 @@ for (const [label, file, needle] of [
   ["visible pulse metrics", panel, "setPulseBar('#collabPulseMessageBar', pendingMessages"],
   ["visible pulse browser regression", panelUiTest, "pulseSurface"],
   ["visible layered surfaces regression", panelUiTest, "ambientSurfaces"],
-  ["restrained status layer Chinese README", readme, "一条上下文状态栏"],
-  ["restrained status layer English README", englishQuickstart, "one compact context status line"],
   ["visible status layer launch copy", launchKit, "可见状态层增量"],
   ["visible status layer research", research, "Visible-state research note"],
   ["continuous overlay sync", panel, "holdCanvasOverlaySync(420)"],
@@ -844,8 +821,6 @@ for (const [label, file, needle] of [
   ["dock route renderer", panel, "renderCanvasDockRoute()"],
   ["dock route grouped actions", panel, 'data-group="SHARED"'],
   ["dock route browser regression", panelUiTest, "dockRoute"],
-  ["restrained dock Chinese README", readme, "底部缩放条"],
-  ["restrained dock English README", englishQuickstart, "small zoom dock"],
   ["dock route changelog", changelog, "画布焦点航线控制台"],
   ["dock route launch copy", launchKit, "画布焦点航线控制台增量"],
   ["dock route research", research, "Persistent route research note"],
@@ -878,9 +853,6 @@ for (const [label, file, needle] of [
   ["CI 151 evidence", changelog, "42218674950"],
   ["CI 151 governance", governance, "127894973116"],
   ["compact touch glance screenshot", capturePanelScript, "compact-glance-panel.png"],
-  ["compact touch glance screenshot in Chinese README", readme, "compact-glance-panel.png"],
-  ["compact touch glance screenshot in English README", englishQuickstart, "compact-glance-panel.png"],
-  ["compact touch glance screenshot map", documentationMap, "compact-glance-panel.png"],
   ["canvas object hover shortcut", panel, "toggleHoverPeek()"],
   ["canvas object hover read-only note", panel, "悬停只预览"],
   ["canvas object hover explicit focus note", panel, "Enter</kbd> <span id=\"canvasHoverFocusVerb\">聚焦</span> · 不批准或写文件"],
@@ -893,8 +865,6 @@ for (const [label, file, needle] of [
   ["canvas object hover research boundary", research, "悬停不改变选中态"],
   ["canvas object hover keyboard boundary", research, "悬停与方向键不发布 focus/viewport"],
   ["canvas object hover outline boundary", research, "只是本机 CSS 类"],
-  ["canvas object hover Chinese README", readme, "对象速览"],
-  ["canvas object hover English README", englishQuickstart, "object glance"],
   ["Flow bottom-centered toast", panel, "body.flow-workspace:not(.zen-workspace) .toast"],
   ["Flow immersive toast override", panel, "body.flow-workspace.zen-workspace .toast"],
   ["Flow immersive toast browser regression", panelUiTest, "zenToastPlacement"],
@@ -943,9 +913,6 @@ for (const [label, file, needle] of [
   ["welcome collaboration journey", panel, "welcomeJourney"],
   ["welcome collaboration journey browser regression", panelUiTest, "welcome-journey-step"],
   ["welcome panel screenshot", capturePanelScript, "welcome-panel.png"],
-  ["welcome panel screenshot in Chinese README", readme, "welcome-panel.png"],
-  ["welcome panel screenshot in English README", englishQuickstart, "welcome-panel.png"],
-  ["welcome panel documentation map", documentationMap, "welcome-panel.png"],
   ["welcome journey changelog", changelog, "四步协作闭环条"],
   ["canvas handoff rail", panel, "collabHandoff"],
   ["canvas handoff renderer", panel, "renderCollabHandoff"],
@@ -962,26 +929,24 @@ for (const [label, file, needle] of [
   ["dialog star track canvas browser regression", canvasFocusTest, "handoffStars"],
   ["dialog star track reduced motion CSS", panel, '.dialog-star[data-status="pending"]::after { animation: none;'],
   ["dialog star track browser regression", panelUiTest, "welcomeDialogTrack"],
-  ["restrained English README context signals", englishQuickstart, "bounded context signals"],
-  ["AI-first thin panel Chinese README", readme, "上下文信号"],
-  ["AI-first thin panel English README", englishQuickstart, "no chat composer"],
-  ["AI-first product definition", readme, "MCP stdio 直接调用 26 个工具"],
-  ["AI-first English definition", englishQuickstart, "MCP-native context tool"],
-  ["AI-first agents definition", agents, "给 IDE 里的 AI 直接调用的 MCP 上下文工具"],
-  ["AI-first roadmap principle", roadmap, "AI-callable tool surface is the product"],
-  ["AI-first non-goal", roadmap, "general-purpose human/AI chat"],
-  ["AI-first architecture", architecture, "由 AI 直接调用的 MCP 上下文工具"],
-  ["AI-first ADR index", adrIndex, "0020-mcp-tool-is-the-primary-product.md"],
-  ["AI-first ADR boundary", mcpToolAdr, "a separate conversation state machine"],
-  ["AI-first goal mode", goalMode, "MCP-native AI context tool"],
+  ["shared-board Chinese README", readme, "AI 与人类项目沟通画板"],
+  ["shared-board English README", englishQuickstart, "visual communication board"],
+  ["shared-board agents definition", agents, "AI 与人类项目沟通画板"],
+  ["shared-board roadmap principle", roadmap, "The shared visual board is the product"],
+  ["shared-board architecture", architecture, "人类与 AI 项目沟通画板"],
+  ["shared-board ADR index", adrIndex, "0022-shared-visual-board-is-the-product.md"],
+  ["shared-board product direction", productDirection, "## Shared loop"],
+  ["shared-board decision", sharedBoardAdr, "The local-first shared visual board is the product"],
+  ["superseded MCP-first ADR", mcpToolAdr, "Superseded by [ADR 0022]"],
+  ["shared-board goal mode", goalMode, "AI 与人类项目沟通画板"],
   ["panel assistant framing", panel, "让 AI 用结构图表达项目理解"],
   ["panel context framing", panel, "MCP CONTEXT TOOL"],
   ["dialog live route CSS", panel, ".welcome-live-route"],
   ["dialog live route renderer", panel, "welcomeLiveRoute"],
   ["dialog live route browser regression", panelUiTest, "welcomeLiveRoute"],
   ["restrained design Chinese README", readme, "克制"],
-  ["dialog live route English README", englishQuickstart, "thin assistive surface"],
-  ["AI-first non-chat Chinese README", readme, "不构成聊天发送"],
+  ["English README records current reply gap", englishQuickstart, "does not yet let a human reply within the same thread"],
+  ["product plan acceptance", productDirection, "No project file changes unless a separate proposal is reviewed and approved"],
   ["dialog live route changelog", changelog, "实时协作航线"],
   ["dialog live route launch copy", launchKit, "实时协作航线增量"],
   ["dialog live route research", research, "Live-route research note"],
@@ -990,8 +955,6 @@ for (const [label, file, needle] of [
   ["focus context read-only copy", panel, "不发布焦点、不批准提案、不写项目文件"],
   ["focus context browser regression", canvasFocusTest, "focusContext"],
   ["focus context reduced motion CSS", panel, ".canvas-focus-context[data-visible=\"true\"] { animation: none;"],
-  ["restrained focus copy Chinese README", readme, "低频偏好"],
-  ["restrained focus copy English README", englishQuickstart, "Lower-frequency local preferences"],
   ["focus context changelog", changelog, "焦点上下文胶囊"],
   ["focus context launch copy", launchKit, "焦点上下文胶囊增量"],
   ["focus context research", research, "Focus-context research note"],
@@ -1000,8 +963,6 @@ for (const [label, file, needle] of [
   ["aurora welcome top rail", panel, "body.visual-aurora .welcome-card::before"],
   ["aurora atmosphere browser regression", panelUiTest, "auroraSurfaces"],
   ["aurora glass node browser regression", panelUiTest, "auroraCanvasSkin"],
-  ["unified design Chinese README", readme, "一套克制的扁平视觉系统"],
-  ["unified design English README", englishQuickstart, "one restrained visual system"],
   ["aurora atmosphere changelog", changelog, "Aurora 光场画布"],
   ["aurora atmosphere launch copy", launchKit, "Aurora 光场画布增量"],
   ["aurora atmosphere research", research, "Light-field canvas research note"],
@@ -1090,14 +1051,10 @@ for (const [label, file, needle] of [
   ["focus mode toggle", panel, "btnFocusMode"],
   ["focus mode shortcut", panel, "专注模式"],
   ["focus mode screenshot", capturePanelScript, "collaboration-focus-panel.png"],
-  ["focus mode screenshot in README", readme, "collaboration-focus-panel.png"],
   ["canvas workbench screenshot", capturePanelScript, "canvas-workbench-panel.png"],
-  ["canvas workbench screenshot in README", readme, "canvas-workbench-panel.png"],
   ["canvas shortcuts screenshot", capturePanelScript, "canvas-shortcuts-panel.png"],
   ["canvas shortcuts reproducible screenshot", capturePanelScript, "canvas-shortcuts-panel.png"],
   ["zen workspace screenshot", capturePanelScript, "zen-workspace-panel.png"],
-  ["zen workspace screenshot in README", readme, "zen-workspace-panel.png"],
-  ["zen workspace documentation map", documentationMap, "zen-workspace-panel.png"],
   ["reproducible canvas example project", capturePanelScript, "示例 · 人机协作项目结构"],
   ["intent composer card", panel, "intent-composer"],
   ["local intent draft", panel, "MESSAGE_DRAFT_KEY"],
@@ -1193,8 +1150,8 @@ for (const [label, file, needle] of [
   ["reproducible proposal screenshot", capturePanelScript, "seedProposalCard"],
   ["reproducible screenshot command", JSON.stringify(packageJson), "ui:shots"],
   ["screenshot capture helper", capturePanelScript, "Captured docs/welcome-panel.png"],
-  ["README links refreshed preview screenshot", readme, "新版预览面板"],
-  ["README links collaboration panel screenshot", readme, "collaboration-workbench-panel.png"],
+  ["README shows current interface baseline", readme, "当前界面基线（0.3.x）"],
+  ["README labels target canvas as a concept", readme, "这是目标交互概念，不是当前界面截图"],
   ["workorder freshness pure test", selectionWorkorderTest, "status: \"stale\""],
   ["workorder freshness MCP test", mcpTest, "Selection freshness none"],
   ["workorder freshness HTTP test", collaborationTest, "selectionStale: false"],
@@ -1218,7 +1175,6 @@ for (const [label, file, needle] of [
   ["workorder AGENTS docs", agents, "SELECTION_WORKORDER_JSON"],
   ["workorder architecture", architecture, "SELECTION_WORKORDER_JSON"],
   ["workorder security", security, "SELECTION_WORKORDER_JSON"],
-  ["workorder roadmap", roadmap, "SELECTION_WORKORDER_JSON"],
   ["workorder launch", launchKit, "SELECTION_WORKORDER_JSON"],
   ["workorder troubleshooting", troubleshooting, "SELECTION_WORKORDER_JSON"],
   ["workorder examples map", examplesReadme, "SELECTION_WORKORDER_JSON"],
@@ -1236,12 +1192,10 @@ check(agents.includes("annotationThreads"), "AGENTS.md does not document annotat
 check(agents.includes("preflight_visual_proposal"), "AGENTS.md does not document proposal preflight");
 check(readme.includes("26 个 MCP 工具"), "README.md does not reflect the 26 MCP tools");
 check(agents.includes("## 26 个 MCP 工具"), "AGENTS.md does not reflect the 26 MCP tools");
-check(roadmap.includes("26 MCP tools"), "ROADMAP.md does not reflect the 26 MCP tools");
-const roadmapNextLines = roadmap.split("\n").slice(
-  roadmap.split("\n").findIndex((line) => line.startsWith("## Next")),
-  roadmap.split("\n").findIndex((line) => line.startsWith("## Shipped")),
-).filter((line) => line.startsWith("- "));
-check(new Set(roadmapNextLines).size === roadmapNextLines.length, "ROADMAP.md has duplicate next-stage items");
+check(roadmap.includes("26 tools"), "ROADMAP.md does not reflect the MCP tool surface");
+const roadmapPhases = [...roadmap.matchAll(/^## Phase \d —/gm)].map((match) => match[0]);
+check(roadmapPhases.length === 5, "ROADMAP.md must keep a product-contract phase and four delivery phases");
+check(new Set(roadmapPhases).size === roadmapPhases.length, "ROADMAP.md has duplicate delivery phases");
 check(!panel.includes("navigator.sendBeacon"), "Collaboration panel must not use sendBeacon for authenticated viewport writes");
 check(getAgentWorkflowTool.includes("get_agent_workflow"), "get-agent-workflow.ts is missing the tool name");
 check(agentWorkflowDomain.includes('grantsWriteAuthority: false'), "agent-workflow.ts is missing the no-authority invariant");
@@ -1252,7 +1206,7 @@ check(readme.includes("list_change_templates"), "README.md does not document cha
 check(agents.includes("change-templates.ts"), "AGENTS.md does not list the change template module");
 check(agents.includes("list_change_templates"), "AGENTS.md does not document change templates");
 check(changeTemplateDomain.includes("does not create a proposal"), "change template guidance does not state its read-only boundary");
-check(packageJson.description?.includes("MCP-native AI context tool"), "package.json description is missing the AI-first product positioning");
+check(packageJson.description?.includes("visual communication board"), "package.json description is missing the shared-board product positioning");
 check(agents.includes("anchorStatus"), "AGENTS.md does not document stale annotation anchors");
 check(architecture.includes("annotationThreads.nextActor"), "ARCHITECTURE.md does not document annotation thread handoff");
 check(architecture.includes("anchorStatus"), "ARCHITECTURE.md does not document stale annotation anchors");
@@ -1379,7 +1333,7 @@ check(research.includes("目标模式与维护证据的产品调研"), "COMPETIT
 check(research.includes("132f90e"), "COMPETITIVE_RESEARCH.md is missing the post-release maintenance commit evidence");
 check(dependencyMaintenance.includes("08:03 CST audit snapshot"), "DEPENDENCY_MAINTENANCE.md is missing the audit snapshot");
 check(dependencyMaintenance.includes("not applied"), "DEPENDENCY_MAINTENANCE.md does not record the no-auto-upgrade decision");
-check(releaseWorkflow.includes("MCP-native AI context tool"), "release workflow is missing the AI-first Release title");
+check(releaseWorkflow.includes("AI-human visual communication board"), "release workflow is missing the shared-board Release title");
 check(agents.includes("release.yml"), "AGENTS.md does not document the versioned tag Release workflow");
 check(getCapabilitiesTool.includes("SERVER_VERSION, type ToolContext"), "get-capabilities.ts bypasses the shared infra boundary");
 check(!getCapabilitiesTool.includes('from "../infra/version.js"'), "get-capabilities.ts imports infra directly");
